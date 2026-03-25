@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Filament\Resources\Branches;
+namespace App\Filament\Resources\Users;
 
-use App\Filament\Resources\Branches\Pages\CreateBranch;
-use App\Filament\Resources\Branches\Pages\EditBranch;
-use App\Filament\Resources\Branches\Pages\ListBranches;
-use App\Filament\Resources\Branches\Schemas\BranchForm;
-use App\Filament\Resources\Branches\Tables\BranchesTable;
-use App\Models\Branch;
+use App\Filament\Resources\Users\Pages\CreateUser;
+use App\Filament\Resources\Users\Pages\EditUser;
+use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\Schemas\UserForm;
+use App\Filament\Resources\Users\Tables\UsersTable;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,22 +16,22 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class BranchResource extends Resource
+class UserResource extends Resource
 {
-    protected static ?string $model = Branch::class;
+    protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedBuildingOffice2;
+    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedUsers;
 
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
     {
-        return BranchForm::configure($schema);
+        return UserForm::configure($schema);
     }
 
     public static function table(Table $table): Table
     {
-        return BranchesTable::configure($table);
+        return UsersTable::configure($table);
     }
 
     public static function getRelations(): array
@@ -44,9 +44,9 @@ class BranchResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => ListBranches::route('/'),
-            'create' => CreateBranch::route('/create'),
-            'edit' => EditBranch::route('/{record}/edit'),
+            'index' => ListUsers::route('/'),
+            'create' => CreateUser::route('/create'),
+            'edit' => EditUser::route('/{record}/edit'),
         ];
     }
 
