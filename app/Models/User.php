@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable([
@@ -31,6 +32,7 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+    use HasRoles;
     use SoftDeletes;
     protected function casts(): array
     {
