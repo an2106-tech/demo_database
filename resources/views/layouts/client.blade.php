@@ -11,9 +11,12 @@
         @livewireStyles
     </head>
     <body>
-        <livewire:client.header />
+        @include('partials.header')
+        
         {{ $slot }}
-        <livewire:client.footer />
+
+        @include('partials.footer')
+
         @livewireScripts
     </body>
 </html>
