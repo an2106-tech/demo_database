@@ -11,8 +11,9 @@
         @livewireStyles
     </head>
     <body>
+        <livewire:client.header />
         {{ $slot }}
-
+        <livewire:client.footer />
         @livewireScripts
     </body>
 </html>
