@@ -1,3 +1,13 @@
+<?php
+
+use Livewire\Component;
+
+new class extends Component
+{
+    //
+};
+?>
+
 <div>
     <!DOCTYPE html>
     <html lang="en-US">
@@ -12,32 +22,32 @@
         <!-- Title -->
         <title>jobguru</title>
         <!-- Favicon -->
-        <link rel="icon" type="image/png" sizes="32x32" href="assets/img/favicon/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon/favicon-32x32.png') }}">
         <!--Bootstrap css-->
-        <link rel="stylesheet" href="assets/css/bootstrap.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
         <!--Font Awesome css-->
-        <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }}">
         <!--Magnific css-->
-        <link rel="stylesheet" href="assets/css/magnific-popup.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.css') }}">
         <!--Owl-Carousel css-->
-        <link rel="stylesheet" href="assets/css/owl.carousel.min.css">
-        <link rel="stylesheet" href="assets/css/owl.theme.default.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/owl.theme.default.min.css') }}">
         <!--Animate css-->
-        <link rel="stylesheet" href="assets/css/animate.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/animate.min.css') }}">
         <!--Select2 css-->
-        <link rel="stylesheet" href="assets/css/select2.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/select2.min.css') }}">
         <!--Slicknav css-->
-        <link rel="stylesheet" href="assets/css/slicknav.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/slicknav.min.css') }}">
         <!--Bootstrap-Datepicker css-->
-        <link rel="stylesheet" href="assets/css/bootstrap-datepicker.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/bootstrap-datepicker.min.css') }}">
         <!--Jquery UI css-->
-        <link rel="stylesheet" href="assets/css/jquery-ui.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/jquery-ui.min.css') }}">
         <!--Perfect-Scrollbar css-->
-        <link rel="stylesheet" href="assets/css/perfect-scrollbar.min.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/perfect-scrollbar.min.css') }}">
         <!--Site Main Style css-->
-        <link rel="stylesheet" href="assets/css/style.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
         <!--Responsive css-->
-        <link rel="stylesheet" href="assets/css/responsive.css">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive.css') }}">
     </head>
 
     <body>

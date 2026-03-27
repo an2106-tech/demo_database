@@ -1,3 +1,13 @@
+<?php
+
+use Livewire\Component;
+
+new class extends Component
+{
+    //
+};
+?>
+
 <div>
     <!-- Footer Area Start -->
     <footer class="jobguru-footer-area">
