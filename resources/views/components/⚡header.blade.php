@@ -60,9 +60,9 @@ new class extends Component
                     <div class="row">
                         <div class="col-lg-2">
                             <div class="site-logo">
-                                <a href="index.html">
-                                    <img src="assets/img/logo.png" alt="jobguru" class="non-stick-logo" />
-                                    <img src="assets/img/logo-2.png" alt="jobguru" class="stick-logo" />
+                                <a href="{{ route('home') }}">
+                                    <img src="{{ asset('assets/img/logo.png') }}" alt="jobguru" class="non-stick-logo" />
+                                    <img src="{{ asset('assets/img/logo-2.png') }}" alt="jobguru" class="stick-logo" />
                                 </a>
                             </div>
                             <!-- Responsive Menu Start -->
@@ -76,7 +76,7 @@ new class extends Component
                                         <li class="active has-children">
                                             <a href="#">home</a>
                                             <ul>
-                                                <li><a href="index.html">Home 1</a></li>
+                                                <li><a href="{{ route('home') }}">Home 1</a></li>
                                                 <li><a href="index-2.html">Home 2</a></li>
                                             </ul>
                                         </li>
@@ -112,8 +112,8 @@ new class extends Component
                                         <li class="has-children">
                                             <a href="#">for employers</a>
                                             <ul>
-                                                <li><a href="browse-candidates.html">Browse Candidates</a></li>
-                                                <li><a href="single-company.html">company details</a></li>
+                                                <li><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
+                                                <li><a href="{{ route('employers.single_company') }}">company details</a></li>
                                                 <li><a href="post-job.html">Post A job</a></li>
                                                 <li class="has-inner-child">
                                                     <a href="#">employer dashboard</a>

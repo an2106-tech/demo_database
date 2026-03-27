@@ -13,7 +13,7 @@
 </head>
 
 <body>
-        {{-- @include('partials.header') --}}
+    {{-- @include('partials.header') --}}
     <livewire:header />
     {{ $slot }}
     <livewire:footer />

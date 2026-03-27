@@ -120,6 +120,8 @@ new class extends Component
     <!--Jarallax js-->
     <script src="{{ asset('assets/js/jarallax.min.js') }}"></script>
     <script src="{{ asset('assets/js/jarallax-video.min.js') }}"></script>
+    <!--Custom-Scrollbar js-->
+    <script src="{{ asset('assets/js/custom-scrollbar.js') }}"></script>
     <!--Main js-->
     <script src="{{ asset('assets/js/main.js') }}"></script>
     </body>
