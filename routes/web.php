@@ -1,17 +1,28 @@
 <?php
 
+use App\Livewire\Client\BrowseCategories;
+use App\Livewire\Client\BrowseCompanies;
+use App\Livewire\Client\BrowseJobs;
+use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\employers\BrowseCandidates;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
+use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\Sidebars;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
-Route::get('/home', Home::class)->name('home');
 
+Route::get('/', Home::class)->name('home');
+Route::prefix('candidates')->name('candidates.')->group(function(){
+    route::get('/browse_job',BrowseJobs::class)->name('browse_job');
+    route::get('/sidebar',Sidebars::class)->name('sidebar');
+    route::get('joblist_sidebar',JobListSideBars::class)->name('joblist_sidebar');
+    route::get('browse_categories',BrowseCategories::class)->name('browse_categories');
+    route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
+    route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
+});
 Route::prefix('employers')->name('employers.')->group(function () {
     
     // URL thực tế sẽ là: /employers/browse

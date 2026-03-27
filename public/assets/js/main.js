@@ -226,15 +226,18 @@ JS INDEX
 		=================================================================	
 		*/
 
-        $(window).on('scroll', function () {
+        function updateStickyHeader() {
             var scroll = $(window).scrollTop();
             if (scroll >= 50) {
                 $(".forsticky").addClass("sticky");
             } else {
                 $(".forsticky").removeClass("sticky");
-                $(".forsticky").addClass("");
             }
-        });
+        }
+
+        // Apply on load (e.g. refresh while already scrolled) and on scroll.
+        updateStickyHeader();
+        $(window).on('scroll', updateStickyHeader);
 
 	   /* 
 		=================================================================
@@ -259,4 +262,3 @@ JS INDEX
 
 
 }(jQuery));
-

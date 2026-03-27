@@ -1,0 +1,34 @@
+/*
+ * Compatibility overrides for using the Jobguru HTML template CSS alongside Tailwind (Vite).
+ * These rules keep the template's intended alignment when Tailwind's preflight/reset is present.
+ */
+
+/* Keep header logo rendering consistent across all pages. */
+.jobguru-header-area .site-logo img {
+  display: inline-block;
+  height: auto;
+  max-height: 44px;
+  width: auto;
+}
+
+/* Reliable logo swap: non-sticky uses `non-stick-logo`, sticky uses `stick-logo`. */
+.jobguru-header-area .non-stick-logo {
+  display: inline-block !important;
+}
+
+.jobguru-header-area .stick-logo {
+  display: none !important;
+}
+
+.jobguru-header-area.sticky .non-stick-logo {
+  display: none !important;
+}
+
+.jobguru-header-area.sticky .stick-logo {
+  display: inline-block !important;
+}
+
+/* Template expects logo images to be centered via `text-align:center` on the parent. */
+.top-job-company-image .company-logo-img img {
+  display: inline-block;
+}
