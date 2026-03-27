@@ -179,29 +179,18 @@
                               <li class="has-children">
                                  <a href="#">Cho Ứng Viên</a>
                                  <ul>
+                                    <li><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
+                                    <li><a href="{{ route('employers.single_company') }}">company details</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Post A job</a></li>
                                     <li class="has-inner-child">
                                        <a href="#">Tìm việc làm</a>
                                        <ul>
-                                          <li><a href="{{ route('candidates.browse_job') }}">Tất cả việc làm</a></li>
-                                          <li><a href="{{ route('candidates.sidebar') }}">Dạng lưới (Sidebar)</a></li>
-                                          <li><a href="{{ route('candidates.joblist_sidebar') }}">Dạng danh sách</a></li>
-                                       </ul>
-                                    </li>
-                                    <li><a href="{{ route('candidates.browse_categories') }}">Danh mục ngành nghề</a></li>
-                                    <li><a href="{{ route('candidates.browse_companies') }}">Danh sách chi nhánh</a></li>
-                                    <li><a href="{{ route('candidates.candidate_detail') }}">Chi tiết ứng viên</a></li>
-                                    <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (CV)</a></li>
-                                    <li class="has-inner-child">
-                                       <a href="#">Bảng điều khiển</a>
-                                       <ul>
-                                          <li><a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a>
-                                          </li>
-                                          <li><a href="{{ route('candidates.candidate_profile') }}">Thông tin cá nhân</a>
-                                          </li>
-                                          <li><a href="{{ route('candidates.messages') }}">Tin nhắn</a></li>
-                                          <li><a href="{{ route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
-                                          <li><a href="{{ route('candidates.earnings') }}">Thu nhập</a></li>
-                                          <li><a href="{{ route('candidates.change_password') }}">Đổi mật khẩu</a></li>
+                                          <li><a href="{{ route('employers.dashboard') }}">employer dashboard</a></li>
+                                          <li><a href="{{ route('employers.company_profile') }}">company profile</a></li>
+                                          <li><a href="message.html">messages</a></li>
+                                          <li><a href="manage-candidates.html">manage candidates</a></li>
+                                          <li><a href="transaction.html">transaction</a></li>
+                                          <li><a href="change-password.html">change password</a></li>
                                        </ul>
                                     </li>
                                  </ul>
