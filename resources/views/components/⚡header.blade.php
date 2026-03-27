@@ -118,7 +118,7 @@ new class extends Component
                                                 <li class="has-inner-child">
                                                     <a href="#">employer dashboard</a>
                                                     <ul>
-                                                        <li><a href="employer-dashboard.html">employer dashboard</a>
+                                                        <li><a href="{{ route('employers.dashboard') }}">employer dashboard</a>
                                                         </li>
                                                         <li><a href="company-profile.html">company profile</a></li>
                                                         <li><a href="message.html">messages</a></li>

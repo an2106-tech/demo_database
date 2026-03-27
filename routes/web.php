@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Client\employers\BrowseCandidates;
+use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
@@ -18,6 +19,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/browse', BrowseCandidates::class)->name('browse');
     Route::get('/single_company', SingleCompany::class)->name('single_company');
     Route::get('/post_job', PostJob::class)->name('post_job');
+    Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
 });
 
 
