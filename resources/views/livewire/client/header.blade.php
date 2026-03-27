@@ -52,14 +52,14 @@
                               <li class="has-children">
                                  <a href="#">for employers</a>
                                  <ul>
-                                    <li><a href="browse-candidates.html">Browse Candidates</a></li>
-                                    <li><a href="single-company.html">company details</a></li>
-                                    <li><a href="post-job.html">Post A job</a></li>
+                                    <li><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
+                                    <li><a href="{{ route('employers.single_company') }}">company details</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Post A job</a></li>
                                     <li class="has-inner-child">
                                        <a href="#">employer dashboard</a>
                                        <ul>
-                                          <li><a href="employer-dashboard.html">employer dashboard</a></li>
-                                          <li><a href="company-profile.html">company profile</a></li>
+                                          <li><a href="{{ route('employers.dashboard') }}">employer dashboard</a></li>
+                                          <li><a href="{{ route('employers.company_profile') }}">company profile</a></li>
                                           <li><a href="message.html">messages</a></li>
                                           <li><a href="manage-candidates.html">manage candidates</a></li>
                                           <li><a href="transaction.html">transaction</a></li>

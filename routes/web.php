@@ -31,6 +31,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/single_company', SingleCompany::class)->name('single_company');
     Route::get('/post_job', PostJob::class)->name('post_job');
     Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
+    Route::get('/company-profile', EmployersDashboard::class)->name('company_profile');
 });
 
 
