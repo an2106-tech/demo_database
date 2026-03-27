@@ -1,4 +1,6 @@
-    @import 'tailwindcss';
+    /* Tailwind v4: omit preflight to avoid conflicts with the Jobguru template CSS (Bootstrap + theme styles). */
+    @import 'tailwindcss/theme';
+    @import 'tailwindcss/utilities';
 
     @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
     @source '../../storage/framework/views/*.php';
