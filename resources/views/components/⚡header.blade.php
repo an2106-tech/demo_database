@@ -114,7 +114,7 @@ new class extends Component
                                             <ul>
                                                 <li><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
                                                 <li><a href="{{ route('employers.single_company') }}">company details</a></li>
-                                                <li><a href="post-job.html">Post A job</a></li>
+                                                <li><a href="{{ route('employers.post_job') }}">Post A job</a></li>
                                                 <li class="has-inner-child">
                                                     <a href="#">employer dashboard</a>
                                                     <ul>
