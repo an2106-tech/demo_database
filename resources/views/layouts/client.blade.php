@@ -53,4 +53,14 @@
     @livewireScripts
 </body>
 
+<body>
+    {{-- @include('partials.header') --}}
+    <livewire:header />
+    {{ $slot }}
+    <livewire:footer />
+    {{-- @include('partials.footer') --}}
+
+    @livewireScripts
+</body>
+
 </html>
