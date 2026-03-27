@@ -30,6 +30,6 @@ class DepartmentForm
             Textarea::make('description')
                 ->columnSpanFull()
                 ->nullable(),
-        ]);
+        ])->columns(1);
     }
 }
