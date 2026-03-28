@@ -3,13 +3,19 @@
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
+use App\Livewire\Client\CandidateDashboard;
+use App\Livewire\Client\CandidateProfile;
 use App\Livewire\Client\CandidatesDetails;
+use App\Livewire\Client\ChangePassword;
+use App\Livewire\Client\Earnings;
 use App\Livewire\Client\employers\BrowseCandidates;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\ManageJobs;
+use App\Livewire\Client\Messages;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\SubmitResume;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +30,12 @@ Route::prefix('candidates')->name('candidates.')->group(function(){
     route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
     route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
     route::get('submit_resume',SubmitResume::class)->name('submit_resume');
+    route::get('candidate_dashboard',CandidateDashboard::class)->name('candidate_dashboard');
+    route::get('candidate_profile',CandidateProfile::class)->name('candidate_profile');
+    route::get('messages',Messages::class)->name('messages');
+    route::get('manage_jobs',ManageJobs::class)->name('manage_jobs');
+    route::get('earnings',Earnings::class)->name('earnings');
+    route::get('change_password',ChangePassword::class)->name('change_password');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
     
