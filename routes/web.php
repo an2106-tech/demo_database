@@ -11,6 +11,7 @@ use App\Livewire\Client\Employers\ManageCandidate;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
+use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
 use App\Livewire\Client\Sidebars;
@@ -37,6 +38,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
     Route::get('/message', Message::class)->name('message');
     Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
+    Route::get('/transaction', Transaction::class)->name('transaction');
 });
 
 
