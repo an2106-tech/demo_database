@@ -5,13 +5,15 @@ namespace App\Filament\Resources\Users;
 use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
+use App\Filament\Resources\Users\Pages\ViewUser;
 use App\Filament\Resources\Users\Schemas\UserForm;
 use App\Filament\Resources\Users\Tables\UsersTable;
 use App\Models\User;
 use BackedEnum;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -34,6 +36,24 @@ class UserResource extends Resource
         return UsersTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+                Section::make('Thông tin cá nhân')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('name')->label('Tên'),
+                        TextEntry::make('email')->label('Email'),
+                    ]),
+                section::make('Thông tin hệ thống')
+                    ->columns(2)
+                    ->schema([
+                        TextEntry::make('role')->label('Vai trò'),
+                        TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
+                    ])
+
+            ]);
+    }
     public static function getRelations(): array
     {
         return [
@@ -41,7 +61,8 @@ class UserResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool {
+    public static function canViewAny(): bool
+    {
         return true;
     }
 
@@ -51,6 +72,7 @@ class UserResource extends Resource
             'index' => ListUsers::route('/'),
             'create' => CreateUser::route('/create'),
             'edit' => EditUser::route('/{record}/edit'),
+            'view' => ViewUser::route('/{record}')
         ];
     }
 
