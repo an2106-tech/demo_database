@@ -18,9 +18,9 @@
                     <div class="col-md-12">
                         <div class="breadcromb-box-pagin">
                             <ul>
-                                <li><a href="#">home</a></li>
-                                <li><a href="#">employers</a></li>
-                                <li class="active-breadcromb"><a href="#">Browse Candidates</a></li>
+                                <li><a href="{{ route('home') }}">home</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">employers</a></li>
+                                <li class="active-breadcromb"><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
                             </ul>
                         </div>
                     </div>

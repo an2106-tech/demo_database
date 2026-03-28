@@ -5,10 +5,13 @@ use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\employers\BrowseCandidates;
+use App\Livewire\Client\Employers\CandidateEarnings;
+use App\Livewire\Client\Employers\CandidateProfile;
 use App\Livewire\Client\Employers\ChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
+use App\Livewire\Client\Employers\ManageJobs;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
@@ -41,6 +44,9 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
     Route::get('/transaction', Transaction::class)->name('transaction');
     Route::get('/change-password', ChangePassword::class)->name('change_password');
+    Route::get('/candidate-profile', CandidateProfile::class)->name('candidate_profile');
+    Route::get('/manage-jobs', ManageJobs::class)->name('manage_jobs');
+    Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
 });
 
 
