@@ -53,28 +53,4 @@
     @livewireScripts
 </body>
 
-<body>
-    {{-- @include('partials.header') --}}
-    <livewire:header />
-    {{ $slot }}
-    <livewire:footer />
-    {{-- @include('partials.footer') --}}
-
-    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootstrap-datepicker.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery-perfect-scrollbar.min.js') }}"></script>
-    <script src="{{ asset('assets/js/owl.carousel.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery.slicknav.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery.magnific-popup.min.js') }}"></script>
-    <script src="{{ asset('assets/js/select2.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jquery-ui.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jarallax.min.js') }}"></script>
-    <script src="{{ asset('assets/js/jarallax-video.min.js') }}"></script>
-    <script src="{{ asset('assets/js/custom-scrollbar.js') }}"></script>
-    <script src="{{ asset('assets/js/main.js') }}"></script>
-
-    @livewireScripts
-</body>
-
 </html>
