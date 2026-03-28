@@ -18,9 +18,9 @@
                     <div class="col-md-12">
                         <div class="breadcromb-box-pagin">
                             <ul>
-                                <li><a href="#">home</a></li>
-                                <li><a href="#">employer</a></li>
-                                <li class="active-breadcromb"><a href="#">Dashboard</a></li>
+                                <li><a href="{{ route('home') }}">home</a></li>
+                                <li><a href="{{ route('employers.browse') }}">employer</a></li>
+                                <li class="active-breadcromb"><a href="{{ route('employers.dashboard') }}">Dashboard</a></li>
                             </ul>
                         </div>
                     </div>
@@ -39,18 +39,18 @@
                     <div class="dashboard-left">
                         <ul class="dashboard-menu">
                             <li class="active">
-                                <a href="employer-dashboard.html">
+                                <a href="{{ route('employers.dashboard') }}">
                                     <i class="fa fa-tachometer"></i>
                                     Dashboard
                                 </a>
                             </li>
-                            <li><a href="company-profile.html"><i class="fa fa-users"></i>Company Profile</a></li>
-                            <li><a href="message.html"><i class="fa fa-envelope-open"></i>messages</a></li>
-                            <li><a href="post-job.html"><i class="fa fa-envelope-open"></i>post a job</a></li>
-                            <li><a href="manage-candidates.html"><i class="fa fa-briefcase"></i>manage candidates</a>
+                            <li><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Company Profile</a></li>
+                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a></li>
+                            <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>post a job</a></li>
+                            <li><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-briefcase"></i>manage candidates</a>
                             </li>
-                            <li><a href="transaction.html"><i class="fa fa-rocket"></i>transaction</a></li>
-                            <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
+                            <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-rocket"></i>transaction</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>change password</a></li>
                             <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
                         </ul>
                     </div>

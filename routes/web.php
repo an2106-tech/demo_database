@@ -19,8 +19,6 @@ use App\Livewire\Client\Messages;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\SubmitResume;
 use Illuminate\Support\Facades\Route;
-
-
 Route::get('/', Home::class)->name('home');
 Route::prefix('candidates')->name('candidates.')->group(function(){
     route::get('/browse_job',BrowseJobs::class)->name('browse_job');
