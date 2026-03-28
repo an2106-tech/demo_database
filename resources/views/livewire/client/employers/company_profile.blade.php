@@ -48,10 +48,10 @@
                                     Profile</a></li>
                             <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a></li>
                             <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>post a job</a></li>
-                            <li><a href="manage-candidates.html"><i class="fa fa-briefcase"></i>manage candidates</a>
+                            <li><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-briefcase"></i>manage candidates</a>
                             </li>
-                            <li><a href="transaction.html"><i class="fa fa-rocket"></i>transaction</a></li>
-                            <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
+                            <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-rocket"></i>transaction</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>change password</a></li>
                             <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
                         </ul>
                     </div>

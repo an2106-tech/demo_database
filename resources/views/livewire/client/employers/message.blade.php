@@ -39,17 +39,17 @@
                     <div class="dashboard-left">
                         <ul class="dashboard-menu">
                             <li>
-                                <a href="candidate-dashboard.html">
+                                <a href="{{ route('employers.dashboard') }}">
                                     <i class="fa fa-tachometer"></i>
                                     Dashboard
                                 </a>
                             </li>
-                            <li><a href="candidate-profile.html"><i class="fa fa-users"></i>My Profile</a></li>
+                            <li><a href="{{ route('employers.candidate_profile') }}"><i class="fa fa-users"></i>My Profile</a></li>
                             <li class="active"><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a>
                             </li>
-                            <li><a href="manage-jobs.html"><i class="fa fa-briefcase"></i>manage jobs</a></li>
-                            <li><a href="candidate-earnings.html"><i class="fa fa-rocket"></i>earnings</a></li>
-                            <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
+                            <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-briefcase"></i>manage jobs</a></li>
+                            <li><a href="{{ route('employers.candidate_earnings') }}"><i class="fa fa-rocket"></i>earnings</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>change password</a></li>
                             <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
                         </ul>
                     </div>
@@ -74,7 +74,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-1.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-1.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>David Johnson</h4>
@@ -86,7 +86,7 @@
                                             <li class="clearfix active">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-2.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-2.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Aiden Chavez</h4>
@@ -98,7 +98,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-3.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-3.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Margaret Govan</h4>
@@ -110,7 +110,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-4.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-4.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Emanual Doe</h4>
@@ -122,7 +122,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-2.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-2.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Eric Alsobrook</h4>
@@ -134,7 +134,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-4.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-4.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Christian Kelly</h4>
@@ -146,7 +146,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-1.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-1.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>David Johnson</h4>
@@ -158,7 +158,7 @@
                                             <li class="clearfix active">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-2.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-2.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Aiden Chavez</h4>
@@ -170,7 +170,7 @@
                                             <li class="clearfix">
                                                 <a href="#">
                                                     <div class="chat-avatar-img">
-                                                        <img src="assets/img/msg-3.png" alt="avatar" />
+                                                        <img src="{{ asset('assets/img/msg-3.png') }}" alt="avatar" />
                                                     </div>
                                                     <div class="chat-about">
                                                         <h4>Margaret Govan</h4>
@@ -193,7 +193,7 @@
                                                 <div class="chat-user-details">
                                                     <div class="pull-left chat-user-img">
                                                         <a href="#">
-                                                            <img src="assets/img/msg-3.png" alt="">
+                                                            <img src="{{ asset('assets/img/msg-3.png') }}" alt="">
                                                         </a>
                                                     </div>
                                                 </div>
@@ -219,7 +219,7 @@
                                                     <li>
                                                         <div class="chat-img">
                                                             <a href="#">
-                                                                <img src="assets/img/msg-3.png" alt="user">
+                                                                <img src="{{ asset('assets/img/msg-3.png') }}" alt="user">
                                                             </a>
                                                         </div>
                                                         <div class="chat-content">
@@ -249,7 +249,7 @@
                                                     <li>
                                                         <div class="chat-img">
                                                             <a href="#">
-                                                                <img src="assets/img/msg-3.png" alt="user">
+                                                                <img src="{{ asset('assets/img/msg-3.png') }}" alt="user">
                                                             </a>
                                                         </div>
                                                         <div class="chat-content">
@@ -270,7 +270,7 @@
                                                     <li>
                                                         <div class="chat-img">
                                                             <a href="#">
-                                                                <img src="assets/img/msg-3.png" alt="user">
+                                                                <img src="{{ asset('assets/img/msg-3.png') }}" alt="user">
                                                             </a>
                                                         </div>
                                                         <div class="chat-content">
@@ -291,7 +291,7 @@
                                                     <li>
                                                         <div class="chat-img">
                                                             <a href="#">
-                                                                <img src="assets/img/msg-3.png" alt="user">
+                                                                <img src="{{ asset('assets/img/msg-3.png') }}" alt="user">
                                                             </a>
                                                         </div>
                                                         <div class="chat-content">

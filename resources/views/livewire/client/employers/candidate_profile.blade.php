@@ -19,7 +19,7 @@
                         <div class="breadcromb-box-pagin">
                             <ul>
                                 <li><a href="{{ route('home') }}">home</a></li>
-                                <li><a href="{{ route('candidates.browse_job') }}">candidates</a></li>
+                                <li><a href="#">candidates</a></li>
                                 <li class="active-breadcromb"><a href="{{ route('employers.candidate_profile') }}">Dashboard</a></li>
                             </ul>
                         </div>
