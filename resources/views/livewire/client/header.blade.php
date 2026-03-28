@@ -97,9 +97,10 @@
                <div class="col-lg-4">
                   <div class="header-right-menu">
                      <ul>
-                        <li><a href="post-job.html" class="post-jobs">Post jobs</a></li>
-                        <li><a href="register.html"><i class="fa fa-user"></i>sign up</a></li>
-                        <li><a href="login.html"><i class="fa fa-lock"></i>login</a></li>
+                        <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Post jobs</a></li>
+                        <li><a href="{{ route('auth.sign_up') }}"><i class="fa fa-user"></i>sign up</a></li>
+                        <li><a href="{{ route('auth.login') }}"><i class="fa fa-lock"></i>login</a></li>
+                     </ul>
                   </div>
                </div>
             </div>

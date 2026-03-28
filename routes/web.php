@@ -14,9 +14,11 @@ use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\Login;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\Sidebars;
+use App\Livewire\Client\SignUp;
 use App\Livewire\Client\SubmitResume;
 use Illuminate\Support\Facades\Route;
 Route::get('/', Home::class)->name('home');
@@ -34,6 +36,11 @@ Route::prefix('candidates')->name('candidates.')->group(function(){
     route::get('manage_jobs',ManageJobs::class)->name('manage_jobs');
     route::get('earnings',Earnings::class)->name('earnings');
     route::get('change_password',ChangePassword::class)->name('change_password');
+});
+Route::prefix('auth')->name('auth.')->group(function(){
+    route::get('/login',Login::class)->name('login');
+    route::get('sign_up',SignUp::class)->name('sign_up');
+    route::get('post_jobs',PostJob::class)->name('post_jobs');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
     
