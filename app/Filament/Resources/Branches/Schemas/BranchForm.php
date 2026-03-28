@@ -14,35 +14,63 @@ class BranchForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->required()->label('Branch Name'),
+                TextInput::make('name')
+                ->label('Tên chi nhánh')
+                ->placeholder('FPT Polytechnic Cơ sở Cần Thơ')
+                ->required(),
+
                 TextInput::make('code')
+                ->label('Mã chi nhánh')
+                    ->placeholder('CT01')
                     ->maxLength(20)
                     ->unique(ignoreRecord: true)
                     ->nullable(),
+
                 TextInput::make('city')
+                    ->label('Thành phố')
+                    ->placeholder('Cần Thơ')
                     ->required()
                     ->maxLength(100),
+
                 TextInput::make('province_code')
+                    ->label('Mã tỉnh')
+                    ->placeholder('900000')
                     ->maxLength(10)
                     ->nullable(),
                 Textarea::make('address')
+                    ->label('Địa chỉ')
+                    ->placeholder('Đường số 22, Phường Cái Răng, TP. Cần Thơ')
                     ->columnSpanFull()
                     ->nullable(),
+
                 TextInput::make('phone')
+                    ->label('Số điện thoại')
+                    ->placeholder('097468XXXX')
                     ->maxLength(20)
                     ->nullable(),
+
                 TextInput::make('email_contact')
+                    ->label('Email liên hệ')
+                    ->placeholder('example@fpoly.edu.com')
                     ->email()
                     ->nullable(),
+
                 TextInput::make('latitude')
+                    ->label('Vĩ độ')
                     ->numeric()
                     ->nullable(),
+
                 TextInput::make('longitude')
+                    ->label('Kinh độ')
                     ->numeric()
                     ->nullable(),
+                    
                 Toggle::make('is_headquarters')
+                    ->label('Trụ sở chính')
                     ->default(false),
+
                 Toggle::make('is_active')
+                    ->label('Đang hoạt động')
                     ->default(true),
             ]);
     }
