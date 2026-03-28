@@ -5,6 +5,7 @@ use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\employers\BrowseCandidates;
+use App\Livewire\Client\Employers\ChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
@@ -39,6 +40,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/message', Message::class)->name('message');
     Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
     Route::get('/transaction', Transaction::class)->name('transaction');
+    Route::get('/change-password', ChangePassword::class)->name('change_password');
 });
 
 
