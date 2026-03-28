@@ -16,6 +16,7 @@ use App\Livewire\Client\Employers\ManageCandidate;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
+use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
