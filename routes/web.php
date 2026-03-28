@@ -7,6 +7,7 @@ use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\employers\BrowseCandidates;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
+use App\Livewire\Client\Employers\ManageCandidate;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
@@ -35,6 +36,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
     Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
     Route::get('/message', Message::class)->name('message');
+    Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
 });
 
 
