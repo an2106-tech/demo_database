@@ -74,13 +74,8 @@
                                             <div class="candidate-title">
                                                 <h3><a href="#">{{ $candidate->name }}</a></h3>
                                                 <img src="{{ asset('assets/img/de.svg') }}" alt="vùng miền">
-                                            </div>
                                             <p>UI/UX Designer</p>
                                         </div>
-                                        <div class="candidate-text-inner">
-                                            <p class="rating-company">4.9</p>
-                                            <ul>
-                                                <li><i class="fa fa-star"></i></li>
                                                 <li><i class="fa fa-star"></i></li>
                                                 <li><i class="fa fa-star"></i></li>
                                                 <li><i class="fa fa-star"></i></li>

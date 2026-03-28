@@ -12,6 +12,7 @@ use App\Livewire\Client\Earnings;
 use App\Livewire\Client\employers\BrowseCandidates;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
+use App\Livewire\Client\Employers\ManageCandidate;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
