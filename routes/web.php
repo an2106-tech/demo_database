@@ -19,7 +19,7 @@ use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\SignUp;
-use App\Livewire\Client\SubmitResume;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
 Route::get('/', Home::class)->name('home');
 Route::prefix('candidates')->name('candidates.')->group(function(){
