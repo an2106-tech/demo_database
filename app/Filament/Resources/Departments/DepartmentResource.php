@@ -45,7 +45,6 @@ class DepartmentResource extends Resource
     {
         return [
             'index' => ListDepartments::route('/'),
-            
         ];
     }
 

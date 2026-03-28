@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Branches;
 use App\Filament\Resources\Branches\Pages\CreateBranch;
 use App\Filament\Resources\Branches\Pages\EditBranch;
 use App\Filament\Resources\Branches\Pages\ListBranches;
+use App\Filament\Resources\Branches\Pages\ViewBranch;
 use App\Filament\Resources\Branches\Schemas\BranchForm;
 use App\Filament\Resources\Branches\Tables\BranchesTable;
 use App\Models\Branch;
@@ -19,6 +20,12 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class BranchResource extends Resource
 {
     protected static ?string $model = Branch::class;
+
+    protected static ?string $navigationLabel = 'Chi nhánh';
+
+    protected static ?string $pluralModelLabel = 'Quản lý chi nhánh';
+
+    protected static ?string $modelLabel = 'chi nhánh';
 
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedBuildingOffice2;
 
@@ -41,16 +48,13 @@ class BranchResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool {
-        return true;
-    }
-
     public static function getPages(): array
     {
         return [
             'index' => ListBranches::route('/'),
             'create' => CreateBranch::route('/create'),
             'edit' => EditBranch::route('/{record}/edit'),
+            'view' => ViewBranch::route('/{record}')
         ];
     }
 
