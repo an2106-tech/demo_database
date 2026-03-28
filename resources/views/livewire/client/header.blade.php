@@ -39,7 +39,7 @@
                                  <li class="has-inner-child">
                                     <a href="#">candidate dashboard</a>
                                     <ul>
-                                       <li><a href="{{ route('candidates.candidate_dashboard') }}">Candidate
+                                       <li><a href="{{ route('candidates.candidate_dashboard') }}">candidate
                                              dashboard</a></li>
                                        <li><a href="{{ route('candidates.candidate_profile') }}">Candidate profile</a>
                                        </li>
