@@ -35,7 +35,7 @@
                                     <li><a href="{{ route('candidates.browse_categories') }}">Browse Categories</a></li>
                                     <li><a href="{{ route('candidates.browse_companies') }}">browse companies</a></li>
                                     <li><a href="{{ route('candidates.candidate_detail') }}">candidates details</a></li>
-                                    <li><a href="submit-resume.html">submit resume</a></li>
+                                    <li><a href="{{ route('candidates.submit_resume') }}">submit resume</a></li>
                                     <li class="has-inner-child">
                                        <a href="#">candidate dashboard</a>
                                        <ul>

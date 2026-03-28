@@ -11,6 +11,7 @@ use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
 use App\Livewire\Client\Sidebars;
+use App\Livewire\Client\SubmitResume;
 use Illuminate\Support\Facades\Route;
 
 
@@ -22,6 +23,7 @@ Route::prefix('candidates')->name('candidates.')->group(function(){
     route::get('browse_categories',BrowseCategories::class)->name('browse_categories');
     route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
     route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
+    route::get('submit_resume',SubmitResume::class)->name('submit_resume');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
     
