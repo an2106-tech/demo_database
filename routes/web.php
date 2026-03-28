@@ -20,15 +20,12 @@ use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
-use App\Livewire\Client\pages\About as PagesAbout;
-use App\Livewire\Client\pages\Blog;
-use App\Livewire\Client\pages\Contact;
-use App\Livewire\Client\pages\JobPage;
-use App\Livewire\Client\pages\Login;
-use App\Livewire\Client\pages\Register as PagesRegister;
-use App\Livewire\Client\pages\Single;
+use App\Livewire\Client\Login;
+use App\Livewire\Client\ManageJobs;
+use App\Livewire\Client\Messages;
 use App\Livewire\Client\Sidebars;
-use Illuminate\Container\Attributes\Log;
+use App\Livewire\Client\SignUp;
+use App\Livewire\Client\SubmitResume;
 use Illuminate\Support\Facades\Route;
 
 
@@ -40,6 +37,11 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     route::get('browse_categories', BrowseCategories::class)->name('browse_categories');
     route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
     route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
+});
+Route::prefix('auth')->name('auth.')->group(function(){
+    route::get('/login',Login::class)->name('login');
+    route::get('sign_up',SignUp::class)->name('sign_up');
+    route::get('post_jobs',PostJob::class)->name('post_jobs');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
 
