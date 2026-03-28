@@ -10,10 +10,13 @@ use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\ChangePassword;
 use App\Livewire\Client\Earnings;
 use App\Livewire\Client\employers\BrowseCandidates;
+use App\Livewire\Client\Employers\CandidateEarnings;
+use App\Livewire\Client\Employers\CandidateProfile;
 use App\Livewire\Client\Employers\ChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
+use App\Livewire\Client\Employers\ManageJobs;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
@@ -76,13 +79,13 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/post_job', PostJob::class)->name('post_job');
     Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
     Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
-    Route::get('message', EmployersMessage::class)->name('message');
-    Route::get('manage_candidates', ManageCandidate::class)->name('manage_candidates');
-    Route::get('manage_jobs', EmployersManageJobs::class)->name('manage_jobs');
-    Route::get('candidate_earnings', Earnings::class)->name('candidate_earnings');
-    Route::get('transaction', EmployersTransaction::class)->name('transaction');
-    Route::get('change_password', ChangePassword::class)->name('change_password');
-    Route::get('job_detail', JobDetail::class)->name('job_detail');
+    Route::get('/message', Message::class)->name('message');
+    Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
+    Route::get('/transaction', Transaction::class)->name('transaction');
+    Route::get('/change-password', ChangePassword::class)->name('change_password');
+    Route::get('/candidate-profile', CandidateProfile::class)->name('candidate_profile');
+    Route::get('/manage-jobs', ManageJobs::class)->name('manage_jobs');
+    Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
 });
 
 Route::prefix('pages')->name('pages.')->group(function () {
