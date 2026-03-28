@@ -10,6 +10,7 @@ use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\ChangePassword;
 use App\Livewire\Client\Earnings;
 use App\Livewire\Client\employers\BrowseCandidates;
+use App\Livewire\Client\Employers\ChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
