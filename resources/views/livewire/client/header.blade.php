@@ -71,18 +71,18 @@
                         <li class="has-children">
                            <a href="#">pages</a>
                            <ul>
-                              <li><a href="about.html">About us</a></li>
+                              <li><a href="{{ route('pages.about') }}">About us</a></li>
                               <li class="has-inner-child">
-                                 <a href="#">blog</a>
+                                 <a href="{{ route('pages.blog') }}">blog</a>
                                  <ul>
-                                    <li><a href="blog.html">blog</a></li>
-                                    <li><a href="single-blog.html">single blog</a></li>
+                                    <li><a href="{{ route('pages.blog') }}">blog</a></li>
+                                    <li><a href="{{ route('pages.single') }}">single blog</a></li>
                                  </ul>
                               </li>
-                              <li><a href="job-page.html">job page</a></li>
-                              <li><a href="login.html">login</a></li>
-                              <li><a href="register.html">register</a></li>
-                              <li><a href="contact.html">contact us</a></li>
+                              <li><a href="{{ route('pages.job') }}">job page</a></li>
+                              <li><a href="{{ route('pages.login') }}">login</a></li>
+                              <li><a href="{{ route('pages.register') }}">register</a></li>
+                              <li><a href="{{ route('pages.contact') }}">contact us</a></li>
                            </ul>
                         </li>
                      </ul>

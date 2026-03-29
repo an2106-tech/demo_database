@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Client\About;
+use App\Livewire\Client\Auth\Register;
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
@@ -18,21 +20,29 @@ use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\pages\About as PagesAbout;
+use App\Livewire\Client\pages\Blog;
+use App\Livewire\Client\pages\Contact;
+use App\Livewire\Client\pages\JobPage;
+use App\Livewire\Client\pages\Login;
+use App\Livewire\Client\pages\Register as PagesRegister;
+use App\Livewire\Client\pages\Single;
 use App\Livewire\Client\Sidebars;
+use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
 
 
 Route::get('/', Home::class)->name('home');
-Route::prefix('candidates')->name('candidates.')->group(function(){
-    route::get('/browse_job',BrowseJobs::class)->name('browse_job');
-    route::get('/sidebar',Sidebars::class)->name('sidebar');
-    route::get('joblist_sidebar',JobListSideBars::class)->name('joblist_sidebar');
-    route::get('browse_categories',BrowseCategories::class)->name('browse_categories');
+Route::prefix('candidates')->name('candidates.')->group(function () {
+    route::get('/browse_job', BrowseJobs::class)->name('browse_job');
+    route::get('/sidebar', Sidebars::class)->name('sidebar');
+    route::get('joblist_sidebar', JobListSideBars::class)->name('joblist_sidebar');
+    route::get('browse_categories', BrowseCategories::class)->name('browse_categories');
     route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
     route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
-    
+
     // URL thực tế sẽ là: /employers/browse
     // Tên route để gọi trong thẻ <a> là: employers.browse
     Route::get('/browse', BrowseCandidates::class)->name('browse');
@@ -49,4 +59,12 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
 });
 
-
+Route::prefix('pages')->name('pages.')->group(function () {
+    Route::get('/about', PagesAbout::class)->name('about');
+    Route::get('/blog', Blog::class)->name('blog');
+    Route::get('/single', Single::class)->name('single');
+    Route::get('/job-page', JobPage::class)->name('job');
+    Route::get('/login', Login::class)->name('login');
+    Route::get('/register', PagesRegister::class)->name('register');
+    Route::get('/contact', Contact::class)->name('contact');
+});
