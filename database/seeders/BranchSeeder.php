@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\VietnamProvince;
 use App\Models\Branch;
 use Illuminate\Database\Seeder;
 
@@ -16,8 +17,8 @@ class BranchSeeder extends Seeder
             ['code' => 'HCM-HQ'],
             [
                 'name' => 'FPT HCM (HQ)',
-                'city' => 'Ho Chi Minh',
-                'province_code' => '79',
+                'city' => VietnamProvince::HO_CHI_MINH->value,
+                'province_code' => VietnamProvince::HO_CHI_MINH->provinceCode(),
                 'address' => 'Lot T2, D1 Street, Saigon Hi-Tech Park, Thu Duc, HCMC',
                 'phone' => '02812345678',
                 'email_contact' => 'hr.hcm@fpt.com',
@@ -32,8 +33,8 @@ class BranchSeeder extends Seeder
             ['code' => 'HN'],
             [
                 'name' => 'FPT Ha Noi',
-                'city' => 'Ha Noi',
-                'province_code' => '01',
+                'city' => VietnamProvince::HA_NOI->value,
+                'province_code' => VietnamProvince::HA_NOI->provinceCode(),
                 'address' => 'Cau Giay, Ha Noi',
                 'phone' => '02412345678',
                 'email_contact' => 'hr.hn@fpt.com',

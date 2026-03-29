@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Branches\Tables;
 
+use App\Enums\VietnamProvince;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -25,7 +26,7 @@ class BranchesTable
                     ->getStateUsing(fn($record) => 
                         $record->name . '(' . $record->code . ')'
                     )
-                    ->description(fn($record) => $record->city)
+                    ->description(fn($record) => VietnamProvince::tryFrom($record->city)?->label() ?? $record->city)
                     ->searchable()
                     ->sortable(),
 

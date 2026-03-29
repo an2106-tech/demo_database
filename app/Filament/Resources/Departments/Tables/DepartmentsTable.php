@@ -28,7 +28,7 @@ class DepartmentsTable
             ])
             ->recordActions([
                 ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()->modal(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
