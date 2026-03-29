@@ -12,4 +12,5 @@ class JobPage extends Component
     {
         return view('livewire.client.pages.job');
     }
+    
 }

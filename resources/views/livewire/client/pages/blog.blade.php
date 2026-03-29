@@ -331,10 +331,11 @@
                         <li>
                            <a href="#">
                               <img src="assets/img/img-2.jpg" alt="instagram" />
-                           </a>
-                        </li>
-                        <li>
-                           <a href="#">
+                              </a>
+                           </li>
+                           
+                           <li>
+                              <a href="#">
                               <img src="assets/img/img-5.jpg" alt="instagram" />
                            </a>
                         </li>

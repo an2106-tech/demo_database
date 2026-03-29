@@ -184,7 +184,7 @@
                </div>
             </div>
          </div>
-      </div>
-   </section>
-   <!-- Single Candidate Bottom End -->
+      </section>
+      
+      <!-- Single Candidate Bottom End -->
 </div>

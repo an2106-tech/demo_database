@@ -12,4 +12,5 @@ class About extends Component
     {
         return view('livewire.client.pages.about');
     }
+    
 }

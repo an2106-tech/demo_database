@@ -12,4 +12,5 @@ class Single extends Component
     {
         return view('livewire.client.pages.single');
     }
+    
 }
