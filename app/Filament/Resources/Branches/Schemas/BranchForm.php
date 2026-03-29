@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Branches\Schemas;
 
+use App\Enums\VietnamProvince;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -30,12 +32,12 @@ class BranchForm
                     ->unique(table: 'branches', column: 'code', ignoreRecord: true)
                     ->dehydrateStateUsing(fn ($state) =>trim($state)),
 
-                TextInput::make('city')
+                Select::make('city')
                     ->label('Thành phố')
-                    ->placeholder('Cần Thơ')
-                    ->required()
-                    ->maxLength(100)
-                    ->dehydrateStateUsing(fn ($state) => trim($state)),
+                    ->options(VietnamProvince::options())
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
                 TextInput::make('province_code')
                     ->label('Mã tỉnh')
@@ -52,8 +54,7 @@ class BranchForm
                 TextInput::make('phone')
                     ->label('Số điện thoại')
                     ->placeholder('097468XXXX')
-                    ->tel()
-                    ->rule('regex:/^0[0-9]{9}$/')
+                    ->length(10)
                     ->nullable(),
 
                 TextInput::make('email_contact')
