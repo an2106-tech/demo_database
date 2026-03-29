@@ -28,6 +28,8 @@ use App\Livewire\Client\pages\Login;
 use App\Livewire\Client\pages\Register as PagesRegister;
 use App\Livewire\Client\pages\Single;
 use App\Livewire\Client\Sidebars;
+use App\Livewire\Client\SignUp;
+use App\Livewire\Client\SubmitResume;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
 
