@@ -12,4 +12,5 @@ class Blog extends Component
     {
         return view('livewire.client.pages.blog');
     }
+    
 }

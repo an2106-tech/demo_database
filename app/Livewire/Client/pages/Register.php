@@ -12,4 +12,5 @@ class Register extends Component
     {
         return view('livewire.client.pages.register');
     }
+    
 }

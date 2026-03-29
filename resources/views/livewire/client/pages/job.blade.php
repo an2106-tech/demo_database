@@ -164,5 +164,6 @@
             </div>
          </div>
       </section>
+      
       <!-- Single Candidate Bottom End -->
 </div>

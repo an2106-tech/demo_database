@@ -68,3 +68,4 @@ Route::prefix('pages')->name('pages.')->group(function () {
     Route::get('/register', PagesRegister::class)->name('register');
     Route::get('/contact', Contact::class)->name('contact');
 });
+
