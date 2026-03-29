@@ -23,7 +23,7 @@ class BranchesTable
                 TextColumn::make('name')
                     ->label('Tên chi nhánh')
                     ->getStateUsing(fn($record) => 
-                        $record->name . '(' . $record->code . ')'
+                        $record->name.' ('.$record->code.')'
                     )
                     ->description(fn($record) => $record->city)
                     ->searchable()
@@ -31,7 +31,8 @@ class BranchesTable
 
                 IconColumn::make('is_headquarters')
                     ->label('Trụ sở chính')
-                    ->boolean(),
+                    ->boolean()
+                    ->falseColor('secondary'),
 
                 IconColumn::make('is_active')
                     ->label('Đang hoạt động')

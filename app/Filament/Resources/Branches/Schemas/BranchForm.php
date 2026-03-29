@@ -17,52 +17,63 @@ class BranchForm
                 TextInput::make('name')
                 ->label('Tên chi nhánh')
                 ->placeholder('FPT Polytechnic Cơ sở Cần Thơ')
-                ->required(),
+                ->required()
+                ->minLength(3)
+                ->maxLength(255)
+                ->dehydrateStateUsing(fn ($state) =>trim($state)),
 
                 TextInput::make('code')
                 ->label('Mã chi nhánh')
                     ->placeholder('CT01')
+                    ->required()
                     ->maxLength(20)
-                    ->unique(ignoreRecord: true)
-                    ->nullable(),
+                    ->unique(table: 'branches', column: 'code', ignoreRecord: true)
+                    ->dehydrateStateUsing(fn ($state) =>trim($state)),
 
                 TextInput::make('city')
                     ->label('Thành phố')
                     ->placeholder('Cần Thơ')
                     ->required()
-                    ->maxLength(100),
+                    ->maxLength(100)
+                    ->dehydrateStateUsing(fn ($state) => trim($state)),
 
                 TextInput::make('province_code')
                     ->label('Mã tỉnh')
                     ->placeholder('900000')
                     ->maxLength(10)
-                    ->nullable(),
+                    ->dehydrateStateUsing(fn ($state) =>$state ? trim($state) : null),
+
                 Textarea::make('address')
                     ->label('Địa chỉ')
                     ->placeholder('Đường số 22, Phường Cái Răng, TP. Cần Thơ')
                     ->columnSpanFull()
-                    ->nullable(),
+                    ->dehydrateStateUsing(fn ($state) =>$state ? trim($state) : null),
 
                 TextInput::make('phone')
                     ->label('Số điện thoại')
                     ->placeholder('097468XXXX')
-                    ->maxLength(20)
+                    ->tel()
+                    ->rule('regex:/^0[0-9]{9}$/')
                     ->nullable(),
 
                 TextInput::make('email_contact')
                     ->label('Email liên hệ')
                     ->placeholder('example@fpoly.edu.com')
                     ->email()
+                    ->maxLength(255)
+                    ->unique(table:'branches', column: 'email_contact', ignoreRecord: true)
                     ->nullable(),
 
                 TextInput::make('latitude')
                     ->label('Vĩ độ')
                     ->numeric()
+                    ->rule('between:-90,90')
                     ->nullable(),
 
                 TextInput::make('longitude')
                     ->label('Kinh độ')
                     ->numeric()
+                    ->rule('between:-180,180')
                     ->nullable(),
                     
                 Toggle::make('is_headquarters')
