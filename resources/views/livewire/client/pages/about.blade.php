@@ -255,7 +255,6 @@
                             <h4>Catherine Matt</h4>
                             <p>Senior Consultant</p>
                         </div>
-                        
                     </div>
                 </div>
             </div>

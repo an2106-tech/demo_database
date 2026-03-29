@@ -12,5 +12,4 @@ class Login extends Component
     {
         return view('livewire.client.pages.login');
     }
-    
 }

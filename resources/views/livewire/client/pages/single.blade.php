@@ -350,5 +350,4 @@
          </div>
       </section>
       <!-- Blog Page Area End -->
-      
 </div>

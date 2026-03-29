@@ -12,5 +12,4 @@ class Contact extends Component
     {
         return view('livewire.client.pages.contact');
     }
-    
 }
