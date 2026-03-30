@@ -65,10 +65,10 @@
                                     <ul>
                                        <li><a href="{{ route('employers.dashboard') }}">employer dashboard</a></li>
                                        <li><a href="{{ route('employers.company_profile') }}">company profile</a></li>
-                                       <li><a href="message.html">messages</a></li>
-                                       <li><a href="manage-candidates.html">manage candidates</a></li>
-                                       <li><a href="transaction.html">transaction</a></li>
-                                       <li><a href="change-password.html">change password</a></li>
+                                       <li><a href="{{ route('employers.message') }}">messages</a></li>
+                                       <li><a href="{{ route('employers.manage_candidates') }}">manage candidates</a></li>
+                                       <li><a href="{{ route('employers.transaction') }}">transaction</a></li>
+                                       <li><a href="{{ route('employers.change_password') }}">change password</a></li>
                                     </ul>
                                  </li>
                               </ul>
