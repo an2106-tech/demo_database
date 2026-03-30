@@ -45,11 +45,6 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
     route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
 });
-Route::prefix('auth')->name('auth.')->group(function(){
-    route::get('/login',Login::class)->name('login');
-    route::get('sign_up',SignUp::class)->name('sign_up');
-    route::get('post_jobs',PostJob::class)->name('post_jobs');
-});
 
 Route::prefix('employers')->name('employers.')->group(function () {
 
