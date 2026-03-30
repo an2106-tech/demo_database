@@ -39,12 +39,12 @@
                               <li class="has-inner-child">
                                  <a href="#">candidate dashboard</a>
                                  <ul>
-                                    <li><a href="candidate-dashboard.html">Candidate dashboard</a></li>
-                                    <li><a href="candidate-profile.html">Candidate profile</a></li>
-                                    <li><a href="message.html">messages</a></li>
-                                    <li><a href="manage-jobs.html">manage jobs</a></li>
-                                    <li><a href="candidate-earnings.html">earnings</a></li>
-                                    <li><a href="change-password.html">change password</a></li>
+                                    <li><a href="{{ route('candidates.dashboard') }}">Candidate dashboard</a></li>
+                                    <li><a href="{{ route('candidates.profile') }}">Candidate profile</a></li>
+                                    <li><a href="{{ route('candidates.messages') }}">messages</a></li>
+                                    <li><a href="{{ route('candidates.manage_jobs') }}">manage jobs</a></li>
+                                    <li><a href="{{ route('candidates.candidate_earnings') }}">earnings</a></li>
+                                    <li><a href="{{ route('candidates.change_password') }}">change password</a></li>
                                  </ul>
                               </li>
                            </ul>
