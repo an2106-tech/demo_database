@@ -25,6 +25,12 @@ class WorkplaceResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedMapPin;
 
+    protected static ?string $navigationLabel = 'Địa điểm làm việc';
+
+    protected static ?string $modelLabel = 'địa điểm làm việc';
+
+    protected static ?string $pluralModelLabel = 'địa điểm làm việc';
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
@@ -40,19 +46,19 @@ class WorkplaceResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Thông tin Chung')
+                Section::make('Thông tin chung')
                     ->columns(2)
                     ->schema([
-                        TextEntry::make('name')->label('Name'),
-                        TextEntry::make('code')->label('Code')->copyable(),
-                        TextEntry::make('capacity')->label('Capacity'),
-                        TextEntry::make('branch.name')->label('Branch')->placeholder('-'),
+                        TextEntry::make('name')->label('Tên'),
+                        TextEntry::make('code')->label('Mã')->copyable(),
+                        TextEntry::make('capacity')->label('Sức chứa'),
+                        TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
                     ]),
                 Section::make('Thông tin hệ thống')
                     ->schema([
-                        IconEntry::make('is_interview_room')->label('Is Interview Room')->boolean(),
-                        IconEntry::make('is_active')->label('Is Active')->boolean(),
-                        TextEntry::make('created_at')->label('Created At')->dateTime(),
+                        IconEntry::make('is_interview_room')->label('Phòng phỏng vấn')->boolean(),
+                        IconEntry::make('is_active')->label('Đang hoạt động')->boolean(),
+                        TextEntry::make('created_at')->label('Ngày tạo')->dateTime(),
                     ])->columns(2),
             ]);
     }

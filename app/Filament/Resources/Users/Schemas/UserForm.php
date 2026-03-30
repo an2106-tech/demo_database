@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use Dom\Text;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -15,41 +14,55 @@ class UserForm
     {
         return $schema
             ->components([
-                TextInput::make('name')->required(),
+                TextInput::make('name')
+                    ->label('Họ và tên')
+                    ->required(),
 
                 TextInput::make('email')
+                    ->label('Email')
                     ->email()
                     ->required()
                     ->unique(ignoreRecord: true),
 
                 TextInput::make('password')
+                    ->label('Mật khẩu')
                     ->password()
                     ->revealable()
                     ->dehydrateStateUsing(fn(?string $state) => $state)
                     ->dehydrated(fn(?string $state) => filled($state))
                     ->required(fn(string $operation) => $operation === 'create'),
                 Select::make('role')
+                    ->label('Vai trò')
                     ->options([
-                        'admin' => 'admin',
-                        'hr' => 'hr',
-                        'director' => 'director',
-                        'pm' => 'pm',
-                        'leader' => 'leader',
+                        'admin' => 'Quản trị viên',
+                        'hr' => 'Nhân sự',
+                        'director' => 'Giám đốc',
+                        'pm' => 'Quản lý dự án',
+                        'leader' => 'Trưởng nhóm',
                     ])
                     ->default('pm')
                     ->required(),
 
                 Select::make('branch_id')
+                    ->label('Chi nhánh')
                     ->relationship('branch', 'name')
                     ->searchable()
                     ->preload()
                     ->nullable(),
 
-                TextInput::make('avatar')->maxLength(255)->nullable(),
+                TextInput::make('avatar')
+                    ->label('Ảnh đại diện (URL)')
+                    ->maxLength(255)
+                    ->nullable(),
 
-                Toggle::make('is_active')->default(true),
+                Toggle::make('is_active')
+                    ->label('Đang hoạt động')
+                    ->default(true),
 
-                Textarea::make('metadata')->columnSpanFull()->nullable(),
+                Textarea::make('metadata')
+                    ->label('Metadata')
+                    ->columnSpanFull()
+                    ->nullable(),
             ]);
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Departments\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -17,24 +18,33 @@ class DepartmentsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->recordUrl(null)
             ->columns([
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('code')->searchable()->sortable(),
-                TextColumn::make('branch.name')->label('Branch')->searchable(),
-                TextColumn::make('created_at')->dateTime()->sortable(),
+                TextColumn::make('name')->label('Tên')->searchable()->sortable(),
+                TextColumn::make('code')->label('Mã')->searchable()->sortable(),
+                TextColumn::make('branch.name')->label('Chi nhánh')->searchable(),
+                TextColumn::make('created_at')->label('Ngày tạo')->dateTime()->sortable(),
             ])
             ->filters([
-                TrashedFilter::make(),
+                TrashedFilter::make()->label('Đã xóa'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make()->modal(),
+                ViewAction::make()
+                    ->modal()
+                    ->label('Xem'),
+                EditAction::make()
+                    ->modal()
+                    ->label('Sửa')
+                    ->modalSubmitActionLabel('Lưu'),
+                DeleteAction::make()
+                    ->label('Xóa'),
             ])
+            ->recordActionsColumnLabel('Thao tác')
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                    ForceDeleteBulkAction::make(),
-                    RestoreBulkAction::make(),
+                    DeleteBulkAction::make()->label('Xóa'),
+                    ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
+                    RestoreBulkAction::make()->label('Khôi phục'),
                 ]),
             ]);
     }

@@ -24,6 +24,12 @@ class DepartmentResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedBriefcase;
 
+    protected static ?string $navigationLabel = 'Phòng ban';
+
+    protected static ?string $modelLabel = 'phòng ban';
+
+    protected static ?string $pluralModelLabel = 'phòng ban';
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
@@ -40,34 +46,34 @@ class DepartmentResource extends Resource
     {
         return $schema
             ->components([
-                Section::make('Department')
+                Section::make('Thông tin phòng ban')
                     ->columns(2)
                     ->schema([
                         TextEntry::make('name')
-                            ->label('Name'),
+                            ->label('Tên'),
                         TextEntry::make('code')
-                            ->label('Code')
+                            ->label('Mã')
                             ->copyable(),
                         TextEntry::make('branch.name')
-                            ->label('Branch')
+                            ->label('Chi nhánh')
                             ->placeholder('-'),
                         TextEntry::make('description')
-                            ->label('Description')
+                            ->label('Mô tả')
                             ->placeholder('-')
                             ->prose()
                             ->columnSpanFull(),
                     ]),
-                Section::make('System')
+                Section::make('Hệ thống')
                     ->columns(2)
                     ->schema([
                         TextEntry::make('created_at')
-                            ->label('Created')
+                            ->label('Ngày tạo')
                             ->dateTime(),
                         TextEntry::make('updated_at')
-                            ->label('Updated')
+                            ->label('Cập nhật lần cuối')
                             ->dateTime(),
                         TextEntry::make('deleted_at')
-                            ->label('Deleted')
+                            ->label('Đã xóa lúc')
                             ->dateTime()
                             ->visible(fn (?Department $record): bool => filled($record?->deleted_at)),
                     ]),

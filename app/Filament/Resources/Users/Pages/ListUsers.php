@@ -13,7 +13,11 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->modal()
+                ->label('Thêm người dùng')
+                ->modalHeading('Thêm người dùng')
+                ->modalSubmitActionLabel('Tạo mới'),
         ];
     }
 }
