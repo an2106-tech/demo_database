@@ -13,7 +13,11 @@ class ListWorkplaces extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->modal()
+                ->label('Thêm địa điểm')
+                ->modalHeading('Thêm địa điểm làm việc')
+                ->modalSubmitActionLabel('Tạo mới'),
         ];
     }
 }

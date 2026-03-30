@@ -13,21 +13,25 @@ class DepartmentForm
     {
         return $schema->components([
             TextInput::make('name')
+                ->label('Tên phòng ban')
                 ->required()
                 ->maxLength(150),
 
             TextInput::make('code')
+                ->label('Mã phòng ban')
                 ->required()
                 ->maxLength(50)
                 ->unique(ignoreRecord: true),
 
             Select::make('branch_id')
+                ->label('Chi nhánh')
                 ->relationship('branch', 'name')
                 ->searchable()
                 ->preload()
                 ->nullable(),
 
             Textarea::make('description')
+                ->label('Mô tả')
                 ->columnSpanFull()
                 ->nullable(),
         ])->columns(1);

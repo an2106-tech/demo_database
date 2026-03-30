@@ -13,7 +13,11 @@ class ListDepartments extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->modal()
+                ->label('Thêm phòng ban')
+                ->modalHeading('Thêm phòng ban')
+                ->modalSubmitActionLabel('Tạo mới'),
         ];
     }
 }

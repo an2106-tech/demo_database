@@ -24,6 +24,12 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedUsers;
 
+    protected static ?string $navigationLabel = 'Người dùng';
+
+    protected static ?string $modelLabel = 'người dùng';
+
+    protected static ?string $pluralModelLabel = 'người dùng';
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public static function form(Schema $schema): Schema
@@ -45,13 +51,12 @@ class UserResource extends Resource
                         TextEntry::make('name')->label('Tên'),
                         TextEntry::make('email')->label('Email'),
                     ]),
-                section::make('Thông tin hệ thống')
+                Section::make('Thông tin hệ thống')
                     ->columns(2)
                     ->schema([
                         TextEntry::make('role')->label('Vai trò'),
                         TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
-                    ])
-
+                    ]),
             ]);
     }
     public static function getRelations(): array
