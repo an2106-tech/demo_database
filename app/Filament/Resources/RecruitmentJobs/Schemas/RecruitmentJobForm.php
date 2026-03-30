@@ -9,6 +9,8 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class RecruitmentJobForm
@@ -21,6 +23,7 @@ class RecruitmentJobForm
                     ->label('Tiêu đề tuyển dụng')
                     ->required()
                     ->maxLength(255)
+                    ->rules(['required', 'string', 'max:255'])
                     ->live(onBlur: true)
                     ->afterStateUpdated(
                         fn($state, $set) =>
@@ -32,6 +35,13 @@ class RecruitmentJobForm
                     ->required()
                     ->maxLength(255)
                     ->unique(table: 'recruitment_jobs', column: 'slug', ignoreRecord: true)
+                    ->rules([
+                        'required',
+                        'string',
+                        'max:255',
+                        // allow letters/numbers and dashes (typical slug)
+                        'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
+                    ])
                     ->dehydrateStateUsing(fn($state) => trim($state)),
 
                 Select::make('branch_id')
@@ -40,7 +50,8 @@ class RecruitmentJobForm
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->required(),
+                    ->required()
+                    ->rules(['required']),
 
                 Select::make('department_id')
                     ->label('Phòng ban')
@@ -48,7 +59,8 @@ class RecruitmentJobForm
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->nullable(),
+                    ->nullable()
+                    ->rules(['nullable']),
 
                 Select::make('workplace_id')
                     ->label('Nơi làm việc')
@@ -56,13 +68,15 @@ class RecruitmentJobForm
                     ->searchable()
                     ->preload()
                     ->native(false)
-                    ->nullable(),
+                    ->nullable()
+                    ->rules(['nullable']),
 
                 Textarea::make('description')
                     ->label('Mô tả công việc')
                     ->required()
                     ->rows(5)
                     ->columnSpanFull()
+                    ->rules(['required', 'string'])
                     ->dehydrateStateUsing(fn($state) => trim($state)),
 
                 Select::make('status')
@@ -74,54 +88,131 @@ class RecruitmentJobForm
                         'archived' => 'Lưu trữ',
                     ])
                     ->default('draft')
-                    ->required(),
+                    ->required()
+                    ->rules([
+                        'required',
+                        Rule::in(['draft', 'published', 'closed', 'archived']),
+                    ]),
 
                 TextInput::make('salary_min')
                     ->label('Lương tối thiểu')
                     ->numeric()
-                    ->nullable(),
+                    ->minValue(0)
+                    ->nullable()
+                    ->rules(function (callable $get) {
+                        $max = $get('salary_max');
+
+                        return [
+                            'nullable',
+                            'numeric',
+                            'min:0',
+                            function (string $attribute, $value, $fail) use ($max) {
+                                if ($value === null || $max === null) {
+                                    return;
+                                }
+
+                                if ((float) $value > (float) $max) {
+                                    $fail('Lương tối thiểu không được lớn hơn lương tối đa.');
+                                }
+                            },
+                        ];
+                    }),
 
                 TextInput::make('salary_max')
                     ->label('Lương tối đa')
                     ->numeric()
-                    ->nullable(),
+                    ->minValue(0)
+                    ->nullable()
+                    ->rules(function (callable $get) {
+                        $min = $get('salary_min');
+
+                        return [
+                            'nullable',
+                            'numeric',
+                            'min:0',
+                            function (string $attribute, $value, $fail) use ($min) {
+                                if ($value === null || $min === null) {
+                                    return;
+                                }
+
+                                if ((float) $value < (float) $min) {
+                                    $fail('Lương tối đa không được nhỏ hơn lương tối thiểu.');
+                                }
+                            },
+                        ];
+                    }),
 
                 Hidden::make('salary_range')
+                    ->afterStateHydrated(function ($state, $set) {
+                        if (empty($state)) {
+                            return;
+                        }
+
+                        if (is_array($state)) {
+                            $min = $state['min'] ?? $state[0] ?? null;
+                            $max = $state['max'] ?? $state[1] ?? null;
+
+                            $set('salary_min', $min);
+                            $set('salary_max', $max);
+
+                            return;
+                        }
+
+                        if (is_string($state) && str_contains($state, ',')) {
+                            $parts = array_map('trim', explode(',', $state, 2));
+                            $set('salary_min', $parts[0] !== '' ? $parts[0] : null);
+                            $set('salary_max', ($parts[1] ?? '') !== '' ? $parts[1] : null);
+                        }
+                    })
                     ->dehydrateStateUsing(
-                        fn($state, $get) =>
-                        $get('salary_min') || $get('salary_max')
-                            ? [
-                                'min' => $get('salary_min'),
-                                'max' => $get('salary_max'),
-                            ]
-                            : null
+                        fn($state, $get) => (function () use ($get) {
+                            $min = $get('salary_min');
+                            $max = $get('salary_max');
+
+                            // Normalize empty string to null (sometimes numeric inputs return '' while editing)
+                            $min = $min === '' ? null : $min;
+                            $max = $max === '' ? null : $max;
+
+                            if ($min === null && $max === null) {
+                                return null;
+                            }
+
+                            return [
+                                'min' => $min,
+                                'max' => $max,
+                            ];
+                        })()
                     ),
 
                 DatePicker::make('deadline')
                     ->label('Hạn nộp')
-                    ->nullable(),
+                    ->nullable()
+                    ->rules(['nullable', 'date', 'after_or_equal:today']),
 
                 TextInput::make('positions_count')
                     ->label('Số lượng tuyển')
                     ->numeric()
                     ->default(1)
                     ->minValue(1)
-                    ->required(),
+                    ->required()
+                    ->rules(['required', 'integer', 'min:1']),
 
                 TextInput::make('public_url')
                     ->label('Link công khai')
                     ->url()
                     ->unique(table: 'recruitment_jobs', column: 'public_url', ignoreRecord: true)
-                    ->nullable(),
+                    ->nullable()
+                    ->rules(['nullable', 'url', 'max:2048']),
 
                 FileUpload::make('thumbnail')
                     ->label('Ảnh đại diện')
                     ->image()
                     ->directory('jobs')
-                    ->nullable(),
+                    ->nullable()
+                    ->rules(['nullable']),
 
                 Hidden::make('created_by')
-                    ->default(auth()->id()),
+                    ->default(fn () => Auth::id()),
             ]);
     }
 }
