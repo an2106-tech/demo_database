@@ -8,7 +8,9 @@
 
     <title>{{ $title ?? config('app.name') }}</title>
 
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
+  
 
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon/favicon-32x32.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">

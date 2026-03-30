@@ -1,5 +1,4 @@
 <?php
-
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;

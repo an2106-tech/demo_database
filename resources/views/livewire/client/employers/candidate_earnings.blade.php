@@ -100,7 +100,7 @@
                                 </div>
                                 <div class="transfer-balance single-balance-box ">
                                     <h3>Payment A/c <span><a href="#">setup new</a></span></h3>
-                                    <img src="assets/img/payoneer.jpg" alt="paypal" />
+                                            <img src="{{ asset('assets/img/payoneer.jpg') }}" alt="paypal" />
                                 </div>
                             </div>
                             <div class="balance-transfer-btn">
