@@ -20,6 +20,8 @@ use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\ManageJobs;
+use App\Livewire\Client\Messages;
 use App\Livewire\Client\pages\About as PagesAbout;
 use App\Livewire\Client\pages\Blog;
 use App\Livewire\Client\pages\Contact;
