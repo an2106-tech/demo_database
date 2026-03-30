@@ -47,11 +47,7 @@ Route::prefix('auth')->name('auth.')->group(function(){
     route::get('sign_up',SignUp::class)->name('sign_up');
     route::get('post_jobs',PostJob::class)->name('post_jobs');
 });
-Route::prefix('auth')->name('auth.')->group(function(){
-    route::get('/login',Login::class)->name('login');
-    route::get('sign_up',SignUp::class)->name('sign_up');
-    route::get('post_jobs',PostJob::class)->name('post_jobs');
-});
+
 Route::prefix('employers')->name('employers.')->group(function () {
 
     // URL thực tế sẽ là: /employers/browse

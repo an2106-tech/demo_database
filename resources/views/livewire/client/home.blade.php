@@ -81,7 +81,7 @@
                         <div class="category-holder-text">
                             <h3>Design, Art & Multimedia</h3>
                         </div>
-                        <img src="assets/img/design_art.jpg" alt="category" />
+                                <img src="{{ asset('assets/img/design_art.jpg') }}" alt="category" />
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6">
@@ -92,7 +92,7 @@
                         <div class="category-holder-text">
                             <h3>Restaurant / Food Service</h3>
                         </div>
-                        <img src="assets/img/restaurent.jpg" alt="category" />
+                                <img src="{{ asset('assets/img/restaurent.jpg') }}" alt="category" />
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6">
@@ -103,7 +103,7 @@
                         <div class="category-holder-text">
                             <h3>Programming & Tech</h3>
                         </div>
-                        <img src="assets/img/programing_cat.jpeg" alt="category" />
+                                <img src="{{ asset('assets/img/programing_cat.jpeg') }}" alt="category" />
                     </a>
                 </div>
             </div>
@@ -116,7 +116,7 @@
                         <div class="category-holder-text">
                             <h3>Data Science & Analitycs</h3>
                         </div>
-                        <img src="assets/img/data_cat.png" alt="category" />
+                                <img src="{{ asset('assets/img/data_cat.png') }}" alt="category" />
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6">
@@ -127,7 +127,7 @@
                         <div class="category-holder-text">
                             <h3>Writing / Translations</h3>
                         </div>
-                        <img src="assets/img/writing_cat.jpg" alt="category" />
+                                <img src="{{ asset('assets/img/writing_cat.jpg') }}" alt="category" />
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6">
@@ -138,7 +138,7 @@
                         <div class="category-holder-text">
                             <h3>Education / Training</h3>
                         </div>
-                        <img src="assets/img/edu_cat.jpg" alt="category" />
+                                <img src="{{ asset('assets/img/edu_cat.jpg') }}" alt="category" />
                     </a>
                 </div>
                 <div class="col-lg-3 col-md-6 col-sm-6">
@@ -149,7 +149,7 @@
                         <div class="category-holder-text">
                             <h3>sales / marketing</h3>
                         </div>
-                        <img src="assets/img/sale_cat.png" alt="category" />
+                                <img src="{{ asset('assets/img/sale_cat.png') }}" alt="category" />
                     </a>
                 </div>
             </div>
@@ -222,7 +222,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-4.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -242,7 +242,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-2.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -262,7 +262,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-3.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -282,7 +282,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-1.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-1.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -308,7 +308,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-1.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-1.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -329,7 +329,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-4.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -350,7 +350,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-3.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -371,7 +371,7 @@
                                         <div class="top-company-list">
                                             <div class="company-list-logo">
                                                 <a href="#">
-                                                    <img src="assets/img/company-logo-2.png" alt="company list 1" />
+                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
@@ -442,7 +442,7 @@
             <div class="row">
                 <div class="col-md-4">
                     <div class="how-works-box box-1">
-                        <img src="assets/img/arrow-right-top.png" alt="works" />
+                                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="works" />
                         <div class="works-box-icon">
                             <i class="fa fa-user"></i>
                         </div>
@@ -453,7 +453,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="how-works-box box-2">
-                        <img src="assets/img/arrow-right-bottom.png" alt="works" />
+                                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="works" />
                         <div class="works-box-icon">
                             <i class="fa fa-gavel"></i>
                         </div>
@@ -495,7 +495,7 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                <img src="assets/img/blog-1.jpeg" alt="blog image" />
+                                    <img src="{{ asset('assets/img/blog-1.jpeg') }}" alt="blog image" />
                                 <p><span> 21</span> July</p>
                             </div>
                             <div class="blog-text">
@@ -508,7 +508,7 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                <img src="assets/img/blog-2.jpeg" alt="blog image" />
+                                    <img src="{{ asset('assets/img/blog-2.jpeg') }}" alt="blog image" />
                                 <p><span> 21</span> July</p>
                             </div>
                             <div class="blog-text">
@@ -521,7 +521,7 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                <img src="assets/img/blog-3.jpeg" alt="blog image" />
+                                    <img src="{{ asset('assets/img/blog-3.jpeg') }}" alt="blog image" />
                                 <p><span> 21</span> July</p>
                             </div>
                             <div class="blog-text">

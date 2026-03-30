@@ -64,7 +64,7 @@
                             <div class="candidate-single-profile-info">
                                 <div class="single-resume-feild resume-avatar">
                                     <div class="resume-image">
-                                        <img src="assets/img/author.jpg" alt="resume avatar">
+                                                <img src="{{ asset('assets/img/author.jpg') }}" alt="resume avatar">
                                         <div class="resume-avatar-hover">
                                             <div class="resume-avatar-upload">
                                                 <p>
