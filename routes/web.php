@@ -13,7 +13,7 @@ use App\Livewire\Client\Employers\ChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
-use App\Livewire\Client\Employers\ManageJobs;
+use App\Livewire\Client\Employers\ManageJobs as EmployersManageJobs;
 use App\Livewire\Client\Employers\Message;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
@@ -65,7 +65,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/transaction', Transaction::class)->name('transaction');
     Route::get('/change-password', ChangePassword::class)->name('change_password');
     Route::get('/candidate-profile', CandidateProfile::class)->name('candidate_profile');
-    Route::get('/manage-jobs', ManageJobs::class)->name('manage_jobs');
+    Route::get('/manage-jobs', EmployersManageJobs::class)->name('manage_jobs');
     Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
 });
 
