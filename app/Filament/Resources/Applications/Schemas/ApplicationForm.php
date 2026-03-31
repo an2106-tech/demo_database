@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Applications\Schemas;
 
+use App\Models\Candidate;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use Filament\Forms\Components\DateTimePicker;
@@ -24,98 +25,40 @@ class ApplicationForm
                 Grid::make(['default' => 1, 'md'=>6, 'lg' => 12])
                     ->schema([
 
-                        Section::make('Thông tin ứng tuyển')
-                            ->columns(1)
-                            ->schema([
-                                Select::make('job_id')
-                                    ->label('Vị trí tuyển dụng')
-                                    ->options(fn() => RecruitmentJob::query()
-                                        ->select(['id', 'title'])
-                                        ->orderByDesc('id')
-                                        ->limit(500)
-                                        ->get()
-                                        ->mapWithKeys(fn($job) => [$job->id => "#{$job->id} — {$job->title}"])
-                                        ->all())
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->columnSpanFull()
-                                    ->rules(['required', 'integer', 'exists:recruitment_jobs,id']),
+                Select::make('candidate_id')
+                    ->label('Ứng viên')
+                    ->options(fn () => DB::table('candidates')
+                        ->select(['id', 'name'])
+                        ->orderByDesc('id')
+                        ->limit(500)
+                        ->get()
+                        ->mapWithKeys(fn ($candidate) => [
+                            $candidate->id => "#{$candidate->id} - {$candidate->name}",
+                        ])
+                        ->all())
+                    ->reactive()
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->rules(['required', 'integer', 'exists:candidates,id']),
+                TextInput::make('cv_path')
+                    ->label('Link CV')
+                    ->readOnly()
+                    ->dehydrated(false)
+                    ->placeholder('CV sẽ tự lấy từ hồ sơ ứng viên khi lưu')
+                    ->formatStateUsing(function (callable $get): ?string {
+                        $candidateId = $get('candidate_id');
 
-                                Select::make('candidate_id')
-                                    ->label('Ứng viên')
-                                    ->options(fn() => DB::table('candidates')
-                                        ->select(['id', 'name'])
-                                        ->orderByDesc('id')
-                                        ->limit(500)
-                                        ->get()
-                                        ->mapWithKeys(fn($candidate) => [
-                                            $candidate->id => "#{$candidate->id} — {$candidate->name}",
-                                        ])
-                                        ->all())
-                                    ->reactive()
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->columnSpanFull()
-                                    ->rules(['required', 'integer', 'exists:candidates,id']),
+                        if (empty($candidateId)) {
+                            return null;
+                        }
 
-                                Select::make('source')
-                                    ->label('Nguồn ứng tuyển')
-                                    ->options([
-                                        'website'  => 'Website',
-                                        'facebook' => 'Facebook',
-                                        'linkedin' => 'LinkedIn',
-                                        'referral' => 'Giới thiệu',
-                                        'other'    => 'Khác',
-                                    ])
-                                    ->default('website')
-                                    ->reactive()
-                                    ->required()
-                                    ->rules([
-                                        'required',
-                                        Rule::in(['website', 'facebook', 'linkedin', 'referral', 'other']),
-                                    ]),
+                        $cvFile = Candidate::query()
+                            ->whereKey($candidateId)
+                            ->value('cv_file');
 
-                                DateTimePicker::make('applied_at')
-                                    ->label('Ngày ứng tuyển')
-                                    ->seconds(false)
-                                    ->default(now())
-                                    ->required(),
-
-                                Select::make('status')
-                                    ->label('Trạng thái')
-                                    ->options([
-                                        'new'       => 'Mới',
-                                        'screening' => 'Sàng lọc',
-                                        'interview' => 'Phỏng vấn',
-                                        'offer'     => 'Offer',
-                                        'hired'     => 'Đã tuyển',
-                                        'rejected'  => 'Từ chối',
-                                    ])
-                                    ->default('new')
-                                    ->reactive()
-                                    ->required()
-                                    ->rules([
-                                        'required',
-                                        Rule::in(['new', 'screening', 'interview', 'offer', 'rejected', 'hired']),
-                                    ]),
-
-                                Grid::make(2)
-                                    ->columnSpan(1)
-                                    ->schema([
-                                        TextInput::make('salary_expected.min')
-                                            ->label('Lương mong muốn (từ)')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->nullable(),
-
-                                        TextInput::make('salary_expected.max')
-                                            ->label('Lương mong muốn (đến)')
-                                            ->numeric()
-                                            ->minValue(0)
-                                            ->nullable(),
-                                    ]),
+                        return $cvFile ? asset('storage/' . $cvFile) : 'Ứng viên chưa có CV';
+                    }),
 
                                 Textarea::make('rejected_reason')
                                     ->label('Lý do từ chối')

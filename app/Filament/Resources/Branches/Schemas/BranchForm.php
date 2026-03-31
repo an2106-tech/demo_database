@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\Branches\Schemas;
 
 use App\Enums\VietnamProvince;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -75,19 +74,6 @@ class BranchForm
                     ->maxLength(255)
                     ->unique(table:'branches', column: 'email_contact', ignoreRecord: true)
                     ->nullable(),
-
-                TextInput::make('latitude')
-                    ->label('Vĩ độ')
-                    ->numeric()
-                    ->rule('between:-90,90')
-                    ->nullable(),
-
-                TextInput::make('longitude')
-                    ->label('Kinh độ')
-                    ->numeric()
-                    ->rule('between:-180,180')
-                    ->nullable(),
-                    
                 Toggle::make('is_headquarters')
                     ->label('Trụ sở chính')
                     ->default(false),

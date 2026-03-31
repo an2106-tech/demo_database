@@ -39,9 +39,8 @@ class ApplicationsTable
                     ->searchable(),
                 TextColumn::make('cv_path')
                     ->label('CV')
-                    ->toggleable(isToggledHiddenByDefault: false)
-                    ->formatStateUsing(fn(?string $state): string => $state ? 'Tải CV' : '-')
-                    ->url(fn($record) => $record->cv_path ? asset('storage/' . $record->cv_path) : null)
+                    ->formatStateUsing(fn (?string $state): string => $state ? 'Tải CV' : '-')
+                    ->url(fn ($record) => $record->cv_path ? asset('storage/' . $record->cv_path) : null)
                     ->openUrlInNewTab(),
                 TextColumn::make('source')
                     ->label('Nguồn')
