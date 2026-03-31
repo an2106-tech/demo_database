@@ -4,10 +4,12 @@ namespace App\Livewire\Client;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use App\Models\RecruitmentJob;
 
 class BrowseJobs extends Component
 {
     #[Layout('layouts.client')]
+
     public function render()
     {
         $jobs = RecruitmentJob::query()
