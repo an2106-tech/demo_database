@@ -10,6 +10,13 @@ class BrowseJobs extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        return view('livewire.client.browse-jobs');
+        $jobs = RecruitmentJob::query()
+            ->with(['branch:id,name,image', 'workplace:id,name'])
+            ->latest()
+            ->get();
+
+        return view('livewire.client.browse-jobs', [
+            'jobs' => $jobs
+        ]);
     }
 }

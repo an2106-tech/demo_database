@@ -14,6 +14,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class BranchesTable
 {
@@ -21,6 +22,14 @@ class BranchesTable
     {
         return $table
             ->columns([
+                TextColumn::make('image')
+                    ->label('Ảnh chi nhánh')
+                    ->html()
+                    ->formatStateUsing(fn (?string $state): HtmlString => new HtmlString(
+                        $state
+                            ? '<img src="/storage/' . e($state) . '" alt="Ảnh chi nhánh" style="width:36px;height:36px;border-radius:9999px;object-fit:cover;" />'
+                            : '<span style="color:#94a3b8;">-</span>'
+                    )),
                 TextColumn::make('name')
                     ->label('Tên chi nhánh')
                     ->getStateUsing(fn($record) => 

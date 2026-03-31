@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Branches\Schemas;
 
 use App\Enums\VietnamProvince;
+use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -26,6 +28,14 @@ class BranchForm
                     ->placeholder('CT01')
                     ->maxLength(20)
                     ->unique(ignoreRecord: true)
+                    ->nullable(),
+
+                FileUpload::make('image')
+                    ->label('Hình ảnh chi nhánh')
+                    ->image()
+                    ->disk('public')
+                    ->directory('branches')
+                    ->visibility('public')
                     ->nullable(),
 
                 Select::make('city')

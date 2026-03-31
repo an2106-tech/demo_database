@@ -3,18 +3,17 @@
 namespace App\Filament\Resources\RecruitmentJobs\Pages;
 
 use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
-use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ListRecords;
+use Filament\Actions\EditAction;
+use Filament\Resources\Pages\ViewRecord;
 
-class ListRecruitmentJobs extends ListRecords
+class ViewRecruitmentJob extends ViewRecord
 {
     protected static string $resource = RecruitmentJobResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make()
-                ->label('Thêm tin tuyển dụng'),
+            EditAction::make(),
         ];
     }
 }

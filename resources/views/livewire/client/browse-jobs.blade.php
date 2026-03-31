@@ -72,16 +72,50 @@
                      <div class="top-job-company-image">
                         <div class="company-logo-img">
                            <a href="#">
-                           <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company image" />
+                              <img
+                                 src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
+                                 alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
+                                 style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;"
+                              >
                            </a>
                         </div>
                         <h3><a href="#">C Developer (Senior) C .Net</a></h3>
                      </div>
                      <div class="top-job-company-desc">
                         <ul>
-                           <li>Location <span class="company-state"><i class="fa fa-map-marker"></i> Brisbane</span></li>
-                           <li>salary <span class="open-icon"><i class="fa fa-credit-card-alt"></i>$600-$1200</span></li>
-                           <li>status <span class="varify"><i class="fa fa-check"></i>part time</span></li>
+
+                           <li>
+                              Địa điểm
+                              <span class="company-state">
+                                 <i class="fa fa-map-marker"></i>
+                                 {{ $job->workplace?->name ?? 'Chưa cập nhật' }}
+                              </span>
+                           </li>
+
+                           <li>
+                              Mức lương
+                              <span class="open-icon">
+                                 <i class="fa fa-credit-card-alt"></i>
+
+                                 @if($job->salary_range)
+                                    {{ number_format($job->salary_range['min']) }}
+                                    -
+                                    {{ number_format($job->salary_range['max']) }} VND
+                                 @else
+                                    Thỏa thuận
+                                 @endif
+
+                              </span>
+                           </li>
+
+                           <li>
+                              Trạng thái
+                              <span class="varify">
+                                 <i class="fa fa-check"></i>
+                                 {{ $job->status }}
+                              </span>
+                           </li>
+
                         </ul>
                         <div class="top-job-company-btn">
                            <a href="#" class="jobguru-btn-2">Bid now</a>

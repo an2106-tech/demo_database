@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\HtmlString;
 
 class RecruitmentJobsTable
 {
@@ -18,6 +19,14 @@ class RecruitmentJobsTable
         return $table
             ->columns([
                 TextColumn::make('title')->label('Tiêu đề')->searchable()->sortable(),
+                TextColumn::make('branch.image')
+                    ->label('Ảnh chi nhánh')
+                    ->html()
+                    ->formatStateUsing(fn (?string $state): HtmlString => new HtmlString(
+                        $state
+                            ? '<img src="/storage/' . e($state) . '" alt="Ảnh chi nhánh" style="width:36px;height:36px;border-radius:9999px;object-fit:cover;" />'
+                            : '<span style="color:#94a3b8;">-</span>'
+                    )),
                 TextColumn::make('branch.name')->label('Chi nhánh')->searchable(),
                 TextColumn::make('department.name')->label('Phòng ban')->searchable(),
                 TextColumn::make('workplace.name')->label('Nơi làm việc')->searchable(),
@@ -62,12 +71,9 @@ class RecruitmentJobsTable
             ])
             ->recordActions([
                 ViewAction::make()
-                    ->modal()
                     ->label('Xem'),
                 EditAction::make()
-                    ->modal()
-                    ->label('Sửa')
-                    ->modalSubmitActionLabel('Lưu'),
+                    ->label('Sửa'),
                 DeleteAction::make()
                     ->label('Xóa'),
             ])

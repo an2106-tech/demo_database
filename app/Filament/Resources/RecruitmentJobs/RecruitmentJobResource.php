@@ -5,6 +5,7 @@ namespace App\Filament\Resources\RecruitmentJobs;
 use App\Filament\Resources\RecruitmentJobs\Pages\CreateRecruitmentJob;
 use App\Filament\Resources\RecruitmentJobs\Pages\EditRecruitmentJob;
 use App\Filament\Resources\RecruitmentJobs\Pages\ListRecruitmentJobs;
+use App\Filament\Resources\RecruitmentJobs\Pages\ViewRecruitmentJob;
 use App\Filament\Resources\RecruitmentJobs\Schemas\RecruitmentJobForm;
 use App\Filament\Resources\RecruitmentJobs\Tables\RecruitmentJobsTable;
 use App\Models\RecruitmentJob;
@@ -49,8 +50,9 @@ class RecruitmentJobResource extends Resource
     {
         return [
             'index' => ListRecruitmentJobs::route('/'),
-            // 'create' => CreateRecruitmentJob::route('/create'),
-            // 'edit' => EditRecruitmentJob::route('/{record}/edit'),
+            'create' => CreateRecruitmentJob::route('/create'),
+            'view' => ViewRecruitmentJob::route('/{record}'),
+            'edit' => EditRecruitmentJob::route('/{record}/edit'),
         ];
     }
 }

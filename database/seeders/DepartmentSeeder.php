@@ -30,6 +30,11 @@ class DepartmentSeeder extends Seeder
                 ]);
             });
 
+        // Make this seeder safe to re-run without unique collisions.
+        if (Department::query()->count() > 0) {
+            return;
+        }
+
         Department::factory()
             ->count(10)
             ->state(fn () => [
