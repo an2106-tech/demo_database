@@ -11,6 +11,7 @@ use App\Models\Skill;
 class JobListSideBars extends Component
 {
     #[Layout('layouts.client')]
+   
     public function render()
     {
         $jobs = RecruitmentJob::query()
