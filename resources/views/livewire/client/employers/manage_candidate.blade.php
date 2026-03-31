@@ -1,12 +1,11 @@
 <div>
-    <!-- Breadcromb Area Start -->
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="breadcromb-box">
-                            <h3>Manage Candidates</h3>
+                            <h3>Quản lý ứng viên</h3>
                         </div>
                     </div>
                 </div>
@@ -18,9 +17,9 @@
                     <div class="col-md-12">
                         <div class="breadcromb-box-pagin">
                             <ul>
-                                <li><a href="{{ route('home') }}">home</a></li>
-                                <li><a href="{{ route('employers.dashboard') }}">employer</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.manage_candidates') }}">Manage Candidates</a></li>
+                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+                                <li class="active-breadcromb"><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a></li>
                             </ul>
                         </div>
                     </div>
@@ -28,30 +27,25 @@
             </div>
         </div>
     </section>
-    <!-- Breadcromb Area End -->
-
-
-    <!-- Candidate Dashboard Area Start -->
     <section class="candidate-dashboard-area section_70">
         <div class="container">
             <div class="row">
-                <div class="col-md-4 col-lg-3  mx-auto dashboard-left-border">
+                <div class="col-md-4 col-lg-3 mx-auto dashboard-left-border">
                     <div class="dashboard-left">
                         <ul class="dashboard-menu">
                             <li>
                                 <a href="{{ route('employers.dashboard') }}">
                                     <i class="fa fa-tachometer"></i>
-                                    Dashboard
+                                    Bảng điều khiển
                                 </a>
                             </li>
-                            <li><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Company Profile</a></li>
-                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a></li>
-                            <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>post a job</a></li>
-                            <li class="active"><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-briefcase"></i>manage
-                                    candidates</a></li>
-                            <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-rocket"></i>transaction</a></li>
-                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>change password</a></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
+                            <li><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Hồ sơ công ty</a></li>
+                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
+                            <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>Đăng tin tuyển dụng</a></li>
+                            <li class="active"><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-briefcase"></i>Quản lý ứng viên</a></li>
+                            <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-rocket"></i>Giao dịch</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
+                            <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
                         </ul>
                     </div>
                 </div>
@@ -59,7 +53,7 @@
                     <div class="dashboard-right">
                         <div class="manage-jobs manage-candidates">
                             <div class="manage-jobs-heading">
-                                <h3>Manage Candidates</h3>
+                                <h3>Quản lý ứng viên</h3>
                             </div>
                         </div>
                         <div class="candidate-list-page">
@@ -84,14 +78,14 @@
                                         </div>
                                         <div class="candidate-text-bottom">
                                             <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
+                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% hoàn thành công việc
                                                 </p>
                                                 <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / hr</p>
+                                                <p class="varify"><i class="fa fa-check"></i> $50 / giờ</p>
                                             </div>
                                             <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">Approve</a>
-                                                <a href="#" class="jobguru-btn-danger">Cancel</a>
+                                                <a href="#" class="jobguru-btn-2">Phê duyệt</a>
+                                                <a href="#" class="jobguru-btn-danger">Hủy bỏ</a>
                                             </div>
                                         </div>
                                         <div class="remove-icon">
@@ -104,7 +98,7 @@
                                 <p>Không có ứng viên nào.</p>
                             @endforelse
                             <div class="pagination-box-row">
-                                <p>Page 1 of 6</p>
+                                <p>Trang 1 trên 6</p>
                                 <ul class="pagination">
                                     <li class="active"><a href="#">1</a></li>
                                     <li><a href="#">2</a></li>
@@ -114,12 +108,10 @@
                                     <li><a href="#"><i class="fa fa-angle-double-right"></i></a></li>
                                 </ul>
                             </div>
-                            <!-- End Pagination -->
-                        </div>
+                            </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Candidate Dashboard Area End -->
-</div>
+    </div>

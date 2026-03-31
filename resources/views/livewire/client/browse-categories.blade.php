@@ -112,7 +112,7 @@
                <div class="row">
                   <div class="col-md-12">
                      <div class="breadcromb-box">
-                        <h3>Browse categories</h3>
+                        <h3>Duyệt theo danh mục</h3>
                      </div>
                   </div>
                </div>
@@ -124,9 +124,9 @@
                   <div class="col-md-12">
                      <div class="breadcromb-box-pagin">
                         <ul>
-                           <li><a href="#">home</a></li>
-                           <li><a href="#">candidates</a></li>
-                           <li class="active-breadcromb"><a href="#">browse categories</a></li>
+                           <li><a href="#">Trang chủ</a></li>
+                           <li><a href="#">Ứng viên</a></li>
+                           <li class="active-breadcromb"><a href="#">Duyệt danh mục</a></li>
                         </ul>
                      </div>
                   </div>
@@ -134,10 +134,6 @@
             </div>
          </div>
       </section>
-      <!-- Breadcromb Area End -->
-       
-       
-      <!-- Categories Area Start -->
       <section class="jobguru-categories-area browse-category-page section_70">
          <div class="container">
             <div class="row">
@@ -145,21 +141,21 @@
                   <div class="browse-job-head-option">
                      <div class="job-browse-search">
                         <form>
-                           <input type="search" placeholder="Search Jobs Here...">
+                           <input type="search" placeholder="Tìm kiếm việc làm tại đây...">
                            <button type="submit"><i class="fa fa-search"></i></button>
                         </form>
                      </div>
                      <div class="job-browse-action">
                         <div class="email-alerts">
                            <input type="checkbox" class="styled" id="b_1">
-                           <label class="styled" for="b_1">email alerts for this search</label>
+                           <label class="styled" for="b_1">Nhận thông báo email cho tìm kiếm này</label>
                         </div>
                         <div class="dropdown">
-                           <button class="btn-dropdown dropdown-toggle" type="button" id="dropdowncur" data-bs-toggle="dropdown" aria-haspopup="true">Sort By</button>
+                           <button class="btn-dropdown dropdown-toggle" type="button" id="dropdowncur" data-bs-toggle="dropdown" aria-haspopup="true">Sắp xếp theo</button>
                            <ul class="dropdown-menu" aria-labelledby="dropdowncur">
-                              <li>Newest</li>
-                              <li>Oldest</li>
-                              <li>Random</li>
+                              <li>Mới nhất</li>
+                              <li>Cũ nhất</li>
+                              <li>Ngẫu nhiên</li>
                            </ul>
                         </div>
                     </div>
@@ -189,5 +185,4 @@
             </div>
          </div>
       </section>
-      <!-- Categories Area End -->
-</div>
+      </div>

@@ -1,12 +1,11 @@
 <div>
-    <!-- Breadcromb Area Start -->
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="breadcromb-box">
-                            <h3>Earnings</h3>
+                            <h3>Thu nhập</h3>
                         </div>
                     </div>
                 </div>
@@ -18,9 +17,9 @@
                     <div class="col-md-12">
                         <div class="breadcromb-box-pagin">
                             <ul>
-                                <li><a href="{{ route('employers.dashboard') }}">home</a></li>
-                                <li><a href="#">candidates</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.candidate_earnings') }}">Earnings</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">trang chủ</a></li>
+                                <li><a href="#">ứng viên</a></li>
+                                <li class="active-breadcromb"><a href="{{ route('employers.candidate_earnings') }}">Thu nhập</a></li>
                             </ul>
                         </div>
                     </div>
@@ -28,10 +27,6 @@
             </div>
         </div>
     </section>
-    <!-- Breadcromb Area End -->
-
-
-    <!-- Candidate Dashboard Area Start -->
     <section class="candidate-dashboard-area section_70">
         <div class="container">
             <div class="row">
@@ -41,16 +36,16 @@
                             <li>
                                 <a href="{{ route('employers.dashboard') }}">
                                     <i class="fa fa-tachometer"></i>
-                                    Dashboard
+                                    Bảng điều khiển
                                 </a>
                             </li>
-                            <li><a href="{{ route('employers.candidate_profile') }}"><i class="fa fa-users"></i>My Profile</a></li>
-                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a></li>
-                            <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-briefcase"></i>manage jobs</a></li>
+                            <li><a href="{{ route('employers.candidate_profile') }}"><i class="fa fa-users"></i>Hồ sơ của tôi</a></li>
+                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>tin nhắn</a></li>
+                            <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-briefcase"></i>quản lý công việc</a></li>
                             <li class="active"><a href="{{ route('employers.candidate_earnings') }}"><i
-                                        class="fa fa-rocket"></i>earnings</a></li>
-                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>change password</a></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
+                                            class="fa fa-rocket"></i>thu nhập</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>đổi mật khẩu</a></li>
+                            <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
                         </ul>
                     </div>
                 </div>
@@ -58,53 +53,53 @@
                     <div class="dashboard-right">
                         <div class="earnings-page-box manage-jobs">
                             <div class="manage-jobs-heading">
-                                <h3>eastimated earnings</h3>
+                                <h3>thu nhập ước tính</h3>
                             </div>
                             <div class="earnings-flex">
                                 <div class="single-earnings">
                                     <div class="earnings-icon">
                                         <i class="fa fa-line-chart"></i>
                                     </div>
-                                    <h4>Today so far</h4>
+                                    <h4>Hôm nay</h4>
                                     <h2>$14.00</h2>
                                 </div>
                                 <div class="single-earnings">
                                     <div class="earnings-icon">
                                         <i class="fa fa-line-chart"></i>
                                     </div>
-                                    <h4>Last 7 Days</h4>
+                                    <h4>7 ngày qua</h4>
                                     <h2>$210.30</h2>
                                     <p>+$0.00</p>
-                                    <p>same days last week</p>
+                                    <p>so với cùng kỳ tuần trước</p>
                                 </div>
                                 <div class="single-earnings">
                                     <div class="earnings-icon">
                                         <i class="fa fa-line-chart"></i>
                                     </div>
-                                    <h4>Last 28 Days</h4>
+                                    <h4>28 ngày qua</h4>
                                     <h2>$2293.80</h2>
                                     <p>+$0.00</p>
-                                    <p>same previous 28 days</p>
+                                    <p>so với 28 ngày trước đó</p>
                                 </div>
                             </div>
                             <div class="balance-box-flex">
                                 <div class="my-balance single-balance-box ">
                                     <div class="widget_chart_analytics_right">
-                                        <p>Jan 2018</p>
+                                        <p>Tháng 1 2018</p>
                                         <p>+ 42.6%</p>
                                     </div>
-                                    <h3>Balance</h3>
+                                    <h3>Số dư</h3>
                                     <h2>$1856.00</h2>
-                                    <p>last payment</p>
+                                    <p>thanh toán gần nhất</p>
                                     <p>$122.55</p>
                                 </div>
                                 <div class="transfer-balance single-balance-box ">
-                                    <h3>Payment A/c <span><a href="#">setup new</a></span></h3>
+                                    <h3>Tài khoản nhận tiền <span><a href="#">thiết lập mới</a></span></h3>
                                             <img src="{{ asset('assets/img/payoneer.jpg') }}" alt="paypal" />
                                 </div>
                             </div>
                             <div class="balance-transfer-btn">
-                                <a href="#" class="jobguru-btn-2">quick Transfer</a>
+                                <a href="#" class="jobguru-btn-2">Chuyển tiền nhanh</a>
                             </div>
                         </div>
                     </div>
@@ -112,5 +107,4 @@
             </div>
         </div>
     </section>
-    <!-- Candidate Dashboard Area End -->
-</div>
+    </div>

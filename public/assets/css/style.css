@@ -885,7 +885,7 @@ header,
 }
 
 .banner-single-slider {
-	background-color: #eee;
+	background-color: #fffbfb;
 	background-position: center center !important;
 	background-size: cover !important;
 	background-repeat: no-repeat !important;
@@ -893,11 +893,11 @@ header,
 }
 
 .slider-item-1 {
-	background: url(../img/slider-2.jpg);
+	background: url(../img/banner.jpg);
 }
 
 .slider-item-2 {
-	background: url(../img/slider-1.jpeg);
+	background: url(../img/bannernew.jpg);
 }
 
 .slider-offset {
@@ -905,7 +905,7 @@ header,
 	top: 0;
 	height: 100%;
 	width: 100%;
-	background: rgba(26, 26, 26, 0.9) none repeat scroll 0 0;
+	background: rgba(122, 206, 218, 0.9) none repeat scroll 0 0;
 	opacity: 0.75;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=75)"
 }
@@ -1163,10 +1163,7 @@ header,
 ==================================================*/
 
 .jobguru-inner-hire-area {
-	background-image: url(../img/bg-4_3.jpg);
-	background-repeat: no-repeat;
-	background-size: cover;
-	background-position: center 55%;
+	background: url(../img/banner-tuyen-dung-12_1632972860.jpg) no-repeat scroll right bottom / cover;
 	position: relative;
 	z-index: 1;
 	padding: 100px 0 120px;
@@ -5554,4 +5551,3 @@ ul.company-desc-list li i {
 .contact-right form .row:last-child .single-contact-field {
 	margin-bottom: 0
 }
-

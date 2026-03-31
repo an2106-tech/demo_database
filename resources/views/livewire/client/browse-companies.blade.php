@@ -1,12 +1,11 @@
 <div>
-      <!-- Breadcromb Area Start -->
       <section class="jobguru-breadcromb-area">
          <div class="breadcromb-top section_100">
             <div class="container">
                <div class="row">
                   <div class="col-md-12">
                      <div class="breadcromb-box">
-                        <h3>Browse companies</h3>
+                        <h3>Danh sách công ty</h3>
                      </div>
                   </div>
                </div>
@@ -18,9 +17,9 @@
                   <div class="col-md-12">
                      <div class="breadcromb-box-pagin">
                         <ul>
-                           <li><a href="#">home</a></li>
-                           <li><a href="#">candidates</a></li>
-                           <li class="active-breadcromb"><a href="#">browse companies</a></li>
+                           <li><a href="#">Trang chủ</a></li>
+                           <li><a href="#">Ứng viên</a></li>
+                           <li class="active-breadcromb"><a href="#">Danh sách công ty</a></li>
                         </ul>
                      </div>
                   </div>
@@ -28,10 +27,6 @@
             </div>
          </div>
       </section>
-      <!-- Breadcromb Area End -->
-       
-       
-      <!-- Browse Company Area Start -->
       <section class="jobguru-browse-company-area section_70">
          <div class="container">
             <div class="row">
@@ -116,6 +111,7 @@
                         <a class="nav-link" id="profile_z_tab" data-bs-toggle="tab" href="#profile_z" role="tab" aria-controls="profile_z" aria-selected="false">z</a>
                      </li>
                   </ul>
+
                   <div class="tab-content" id="myTabContent">
                      <div class="tab-pane fade show active" id="company_a" role="tabpanel" aria-labelledby="company_a_tab">
                         <div class="row">
@@ -126,7 +122,7 @@
                                        <img src="{{ asset('storage/' . ltrim($branch->image)) }}" alt="{{ $branch->name }}" />
                                     </a>
                                  </div>
-                                 <h3><a href="#">finance consulting agency</a></h3>
+                                 <h3><a href="#">Đại lý tư vấn tài chính</a></h3>
                                  <ul>
                                     <li><i class="fa fa-star"></i></li>
                                     <li><i class="fa fa-star"></i></li>
@@ -135,7 +131,7 @@
                                     <li><i class="fa fa-star-half-o"></i></li>
                                  </ul>
                                  <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
+                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                                  </div>
                               </div>
                            </div>
@@ -170,242 +166,22 @@
                                  <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                               </div>
                            </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Palms School & college.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
+                           
                            </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">finance consulting agency</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Palms School & college.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Jamulai Consulting & finance.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">finance consulting agency</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Jamulai Consulting & finance.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6  companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">finance consulting agency</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
                         <div class="load-more">
-                           <a href="#" id="loadMore" class="jobguru-btn-2">Load More companies</a>
+                           <a href="#" id="loadMore" class="jobguru-btn-2">Xem thêm công ty</a>
                         </div>
                      </div>
-                     <!-- End A Company Tab -->
                      <div class="tab-pane fade" id="profile_b" role="tabpanel" aria-labelledby="profile_b_tab">
                         <div class="row">
-                           <div class="col-lg-4 col-md-6  companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
                            <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
                               <div class="single-browse-company">
                                  <div class="browse-company-logo">
                                     <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
+                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="Công ty B" />
                                     </a>
                                  </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
+                                 <h3><a href="#">Xây dựng Buildo - TNHH</a></h3>
                                  <ul>
                                     <li><i class="fa fa-star"></i></li>
                                     <li><i class="fa fa-star"></i></li>
@@ -414,345 +190,15 @@
                                     <li><i class="fa fa-star-half-o"></i></li>
                                  </ul>
                                  <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
+                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                                  </div>
                               </div>
                            </div>
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
                            </div>
-                        </div>
-                        <div class="row">
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6  companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                        <div class="row">
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
-                        <div class="load-more">
-                           <a href="#" id="loadMore2" class="jobguru-btn-2">Load More companies</a>
-                        </div>
                      </div>
-                     <!-- End b Company Tab -->
-                     <div class="tab-pane fade" id="profile_c" role="tabpanel" aria-labelledby="profile_c_tab">
-                        <div class="row">
-                           <div class="col-lg-4 col-md-6 ">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                           <div class="col-lg-4 col-md-6">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/b_logo.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
-                              </div>
-                           </div>
-                        </div>
                      </div>
-                     <!-- End c Company Tab -->
-                     <div class="tab-pane fade" id="profile_d" role="tabpanel" aria-labelledby="profile_d_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for D</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_e" role="tabpanel" aria-labelledby="profile_e_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for e</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_f" role="tabpanel" aria-labelledby="profile_f_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for f</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_g" role="tabpanel" aria-labelledby="profile_g_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for g</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_h" role="tabpanel" aria-labelledby="profile_h_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for h</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_i" role="tabpanel" aria-labelledby="profile_i_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for i</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_j" role="tabpanel" aria-labelledby="profile_j_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for j</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_k" role="tabpanel" aria-labelledby="profile_k_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for k</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_l" role="tabpanel" aria-labelledby="profile_l_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for l</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_m" role="tabpanel" aria-labelledby="profile_m_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for m</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_n" role="tabpanel" aria-labelledby="profile_n_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for n</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_o" role="tabpanel" aria-labelledby="profile_o_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for o</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_p" role="tabpanel" aria-labelledby="profile_p_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for p</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_q" role="tabpanel" aria-labelledby="profile_q_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for q</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_r" role="tabpanel" aria-labelledby="profile_r_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for r</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_s" role="tabpanel" aria-labelledby="profile_s_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for s</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_t" role="tabpanel" aria-labelledby="profile_t_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for t</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_u" role="tabpanel" aria-labelledby="profile_u_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for u</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_v" role="tabpanel" aria-labelledby="profile_v_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for v</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_w" role="tabpanel" aria-labelledby="profile_w_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for w</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_x" role="tabpanel" aria-labelledby="profile_x_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for x</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_y" role="tabpanel" aria-labelledby="profile_y_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for y</h3>
-                        </div>
-                     </div>
-                     <div class="tab-pane fade" id="profile_z" role="tabpanel" aria-labelledby="profile_z_tab">
-                        <div class="company-not-found">
-                           <h3>No Companies Found for z</h3>
-                        </div>
-                     </div>
-                  </div>
                </div>
             </div>
          </div>
       </section>
-      <!-- Browse Company Area End -->
-       
 </div>

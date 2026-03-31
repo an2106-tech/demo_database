@@ -1,15 +1,14 @@
 <div>
-      <!-- Breadcromb Area Start -->
-      <section class="jobguru-breadcromb-area">
-         <div class="breadcromb-top section_100">
+    <section class="jobguru-breadcromb-area">
+        <div class="breadcromb-top section_100">
             <div class="container">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="breadcromb-box">
-                        <h3>Dashboard</h3>
-                     </div>
-                  </div>
-               </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="breadcromb-box">
+                            <h3>Bảng điều khiển</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>

@@ -133,10 +133,14 @@
     <section class="jobguru-banner-area">
         <div class="banner-slider owl-carousel">
             <div class="banner-single-slider slider-item-1">
-                <div class="slider-offset"></div>
+                <div class="slider-offset">
+                    {{-- <img src="{{ asset('assets/img/banner-tuyen-dung-11_1632972849.png') }}" alt=""> --}}
+                </div>
             </div>
             <div class="banner-single-slider slider-item-2">
-                <div class="slider-offset"></div>
+                <div class="slider-offset">
+                    {{-- <img src="{{ asset('assets/img/banner2.jpg') }}" alt=""> --}}
+                </div>
             </div>
         </div>
         <div class="banner-text">
@@ -181,10 +185,6 @@
             </div>
         </div>
     </section>
-    <!-- Banner Area End -->
-
-
-    <!-- Categories Area Start -->
     <section class="jobguru-categories-area section_70">
         <div class="container">
             <div class="row">
@@ -219,7 +219,7 @@
                             <i class="fa fa-pencil-square-o"></i>
                         </div>
                         <div class="category-holder-text">
-                            <h3>Design, Art & Multimedia</h3>
+                            <h3>Thiết kế & Đa phương tiện</h3>
                         </div>
                         <img src="{{ asset('assets/img/design_art.jpg') }}" alt="category" />
                         </a>
@@ -358,13 +358,6 @@
                         <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
                             nghề</a>
                     </div>
-                </div>
-            </div>
-    </section>
-    <!-- Categories Area End -->
-
-
-    <!-- Inner Hire Area Start -->
     <section class="jobguru-inner-hire-area section_100">
         <div class="hire_circle"></div>
         <div class="container">
@@ -372,20 +365,13 @@
                 <div class="col-md-12">
                     <div class="inner-hire-left">
                         <h3>Tuyển dụng nhân sự</h3>
+
                         <p>Tìm kiếm ứng viên tài năng cho doanh nghiệp của bạn một cách nhanh chóng và hiệu quả. Chúng
                             tôi kết nối bạn với hàng ngàn chuyên gia sẵn sàng làm việc ngay lập tức. Hãy bắt đầu xây
-                            dựng đội ngũ trong mơ của bạn ngay hôm nay.
                         </p>
 
-                    </div>
-                </div>
-            </div>
         </div>
     </section>
-    <!-- Inner Hire Area End -->
-
-
-    <!-- Job Tab Area Start -->
     <section class="jobguru-job-tab-area section_70">
         <div class="container">
             <div class="row">
@@ -408,7 +394,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="pills-job-tab" data-bs-toggle="pill" href="#pills-job"
-                                    role="tab" aria-controls="pills-job" aria-selected="false">job openning</a>
+                                    role="tab" aria-controls="pills-job" aria-selected="false">Việc làm mới nhất</a>
                             </li>
                         </ul>
                     </div>
@@ -567,16 +553,12 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="load-more">
-                        <a href="#" class="jobguru-btn">browse more listing</a>
+                        <a href="#" class="jobguru-btn">Xem thêm danh sách</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Job Tab Area End -->
-
-
-    <!-- Video Area Start -->
     <section class="jobguru-video-area section_100">
         <div class="container">
             <div class="row">
@@ -587,7 +569,7 @@
                         <div class="video-btn">
                             <a class="popup-youtube" href="https://www.youtube.com/watch?v=k-R6AFn9-ek">
                                 <i class="fa fa-play"></i>
-                                how it works
+                                Cách thức hoạt động
                             </a>
                         </div>
                     </div>
@@ -595,10 +577,6 @@
             </div>
         </div>
     </section>
-    <!-- Video Area End -->
-
-
-    <!-- How Works Area Start -->
     <section class="how-works-area section_70">
         <div class="container">
             <div class="row">
@@ -618,7 +596,7 @@
                             <i class="fa fa-user"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>sign up</p>
+                            <p>Đăng ký</p>
                         </div>
                     </div>
                 </div>
@@ -629,7 +607,7 @@
                             <i class="fa fa-gavel"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>post job</p>
+                            <p>Đăng tin tuyển dụng</p>
                         </div>
                     </div>
                 </div>
@@ -639,17 +617,13 @@
                             <i class="fa fa-thumbs-up"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>choose expert</p>
+                            <p>Chọn chuyên gia</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- How Works Area End -->
-
-
-    <!-- Blog Area Start -->
     <section class="jobguru-blog-area section_70">
         <div class="container">
             <div class="row">
@@ -666,11 +640,9 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
+
                                 <img src="{{ asset('assets/img/content01_2307-01.jpg') }}" alt="blog image" />
                                 <p><span> 21</span> Tháng 7</p>
-                            </div>
-                            <div class="blog-text">
-                                <h3>If you're having trouble coming up with</h3>
                             </div>
                         </div>
                     </a>
@@ -683,7 +655,7 @@
                                 <p><span> 21</span> Tháng 7</p>
                             </div>
                             <div class="blog-text">
-                                <h3>details about Apple’s new iPad Pro models</h3>
+                                <h3>Chi tiết về các mẫu iPad Pro mới của Apple</h3>
                             </div>
                         </div>
                     </a>
@@ -696,7 +668,7 @@
                                 <p><span> 21</span> Tháng 7</p>
                             </div>
                             <div class="blog-text">
-                                <h3>what are those Steps to be a Successful developer</h3>
+                                <h3>Những bước để trở thành một lập trình viên thành công</h3>
                             </div>
                         </div>
                     </a>

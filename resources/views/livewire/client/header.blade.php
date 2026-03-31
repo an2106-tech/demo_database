@@ -223,18 +223,37 @@
                            <li class="has-children">
                               <a href="#">Trang phụ</a>
                               <ul>
-                                 <li><a href="{{ route('pages.about') }}">About us</a></li>
+                                 <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                 <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
+                                 <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
                                  <li class="has-inner-child">
-                                    <a href="#">blog</a>
+                                    <a href="#">Quản lý tuyển dụng</a>
                                     <ul>
-                                       <li><a href="{{ route('pages.blog') }}">blog</a></li>
-                                       <li><a href="{{ route('pages.single') }}">single blog</a></li>
+                                       <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
+                                       <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
+                                       <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
+                                       <li><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a></li>
+                                       <li><a href="{{ route('employers.transaction') }}">Giao dịch</a></li>
+                                       <li><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
                                     </ul>
                                  </li>
-                                 <li><a href="{{ route('pages.job') }}">job page</a></li>
-                                 <li><a href="{{ route('pages.login') }}">login</a></li>
-                                 <li><a href="{{ route('pages.register') }}">register</a></li>
-                                 <li><a href="{{ route('pages.contact') }}">contact us</a></li>
+                              </ul>
+                           </li>
+                           <li class="has-children">
+                              <a href="#">Trang phụ</a>
+                              <ul>
+                                 <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
+                                 <li class="has-inner-child">
+                                    <a href="#">Tin tức/Blog</a>
+                                    <ul>
+                                       <li><a href="{{ route('pages.blog') }}">Danh sách bài viết</a></li>
+                                       <li><a href="{{ route('pages.single') }}">Chi tiết bài viết</a></li>
+                                    </ul>
+                                 </li>
+                                 <li><a href="{{ route('pages.job') }}">Trang việc làm</a></li>
+                                 <li><a href="{{ route('pages.login') }}">Đăng nhập</a></li>
+                                 <li><a href="{{ route('pages.register') }}">Đăng ký</a></li>
+                                 <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                               </ul>
                            </li>
                         </ul>

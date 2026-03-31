@@ -76,7 +76,6 @@ Route::prefix('auth')->name('auth.')->group(function(){
     route::get('post_jobs',PostJob::class)->name('post_jobs');
 });
 Route::prefix('employers')->name('employers.')->group(function () {
-    
     // URL thực tế sẽ là: /employers/browse
     // Tên route để gọi trong thẻ <a> là: employers.browse
     Route::get('/browse', BrowseCandidates::class)->name('browse');

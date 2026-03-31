@@ -1,12 +1,11 @@
 <div>
-    <!-- Single Candidate Start -->
     <section class="single-candidate-page section_70">
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
                     <div class="single-candidate-box">
                         <div class="single-candidate-img">
-                            <img src="{{ asset('assets/img/company_page_logo.jpg') }}" alt="single candidate" />
+                            <img src="{{ asset('assets/img/company_page_logo.jpg') }}" alt="chi tiết công ty" />
                         </div>
                         <div class="single-candidate-box-right">
                             <h4>{{ $branches->name }}</h4>
@@ -27,24 +26,20 @@
                 </div>
                 <div class="col-md-6">
                     <div class="single-candidate-action">
-                        <a href="#" class="bookmarks"><i class="fa fa-map-marker"></i>See on map</a>
-                        <a href="#" class="candidate-contact"><i class="fa fa-gavel"></i>posted Jobs</a>
+                        <a href="#" class="bookmarks"><i class="fa fa-map-marker"></i>Xem trên bản đồ</a>
+                        <a href="#" class="candidate-contact"><i class="fa fa-gavel"></i>Công việc đã đăng</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Single Candidate End -->
-
-
-    <!-- Single Candidate Bottom Start -->
     <div class="single-candidate-bottom-area section_70">
         <div class="container">
             <div class="row">
                 <div class="col-md-10 col-lg-9 mx-auto">
                     <div class="single-candidate-bottom-left">
                         <div class="single-candidate-widget">
-                            <h3>company description</h3>
+                            <h3>Mô tả công ty</h3>
                             <p>Duis ac augue sit amet ex blandit facilisis sit amet ut dui. Nulla pharetra fermentum
                                 mollis. Duis in tempor tortor. Suspendisse vitae nisl diam. Proin eu erat vestibulum,
                                 suscipit quam et, cursus ante.Ut sodales arcu sagittis metus molestie molestie. Nulla
@@ -75,7 +70,7 @@
                                 a, dignissim at odio.</p>
                         </div>
                         <div class="single-candidate-widget">
-                            <h3>(2) Open Positions</h3>
+                            <h3>(2) Vị trí đang tuyển</h3>
                             <div class="single-work-history company-single-page">
                                 <div class="single-candidate-list">
                                     <div class="main-comment">
@@ -90,11 +85,11 @@
                                                 </p>
                                                 <p class="open-icon">
                                                     <i class="fa fa-clock-o"></i>
-                                                    Full Time
+                                                    Toàn thời gian
                                                 </p>
                                                 <p class="varify">
                                                     <i class="fa fa-check"></i>
-                                                    Salary : $800-$1200
+                                                    Mức lương : $800-$1200
                                                 </p>
                                             </div>
                                             <div class="candidate-text-inner">
@@ -121,11 +116,11 @@
                                                 </p>
                                                 <p class="open-icon">
                                                     <i class="fa fa-clock-o"></i>
-                                                    Full Time
+                                                    Toàn thời gian
                                                 </p>
                                                 <p class="varify">
                                                     <i class="fa fa-check"></i>
-                                                    Salary : $800-$1200
+                                                    Mức lương : $800-$1200
                                                 </p>
                                             </div>
                                             <div class="candidate-text-inner">
@@ -146,7 +141,7 @@
                         <div class="single-candidate-widget-2">
                             <a href="#" class="jobguru-btn-2">
                                 <i class="fa fa-balance-scale"></i>
-                                compare with others
+                                So sánh với nơi khác
                             </a>
                         </div>
                         <div class="single-candidate-widget-2">
@@ -157,7 +152,7 @@
                             </ul>
                         </div>
                         <div class="single-candidate-widget-2">
-                            <h3>Social Links</h3>
+                            <h3>Liên kết mạng xã hội</h3>
                             <ul class="candidate-social">
                                 <li><a href="#"><i class="fa fa-facebook"></i></a></li>
                                 <li><a href="#"><i class="fa fa-twitter"></i></a></li>
@@ -167,19 +162,19 @@
                             </ul>
                         </div>
                         <div class="single-candidate-widget-2">
-                            <h3>Quick Contacts</h3>
+                            <h3>Liên hệ nhanh</h3>
                             <form>
                                 <p>
-                                    <input type="text" placeholder="Your Name">
+                                    <input type="text" placeholder="Tên của bạn">
                                 </p>
                                 <p>
-                                    <input type="email" placeholder="Your Email Address">
+                                    <input type="email" placeholder="Địa chỉ Email">
                                 </p>
                                 <p>
-                                    <textarea placeholder="Write here your message"></textarea>
+                                    <textarea placeholder="Viết tin nhắn của bạn tại đây"></textarea>
                                 </p>
                                 <p>
-                                    <button type="submit">Send Message</button>
+                                    <button type="submit">Gửi tin nhắn</button>
                                 </p>
                             </form>
                         </div>
@@ -188,5 +183,4 @@
             </div>
         </div>
     </div>
-    <!-- Single Candidate Bottom End -->
-</div>
+    </div>

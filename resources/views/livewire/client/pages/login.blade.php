@@ -1,12 +1,11 @@
 <div>
-   <!-- Breadcromb Area Start -->
    <section class="jobguru-breadcromb-area">
       <div class="breadcromb-top section_100">
          <div class="container">
             <div class="row">
                <div class="col-md-12">
                   <div class="breadcromb-box">
-                     <h3>Login</h3>
+                     <h3>Đăng nhập</h3>
                   </div>
                </div>
             </div>
@@ -18,9 +17,9 @@
                <div class="col-md-12">
                   <div class="breadcromb-box-pagin">
                      <ul>
-                        <li><a href="#">home</a></li>
-                        <li><a href="#">pages</a></li>
-                        <li class="active-breadcromb"><a href="#">Login</a></li>
+                        <li><a href="#">trang chủ</a></li>
+                        <li><a href="#">trang</a></li>
+                        <li class="active-breadcromb"><a href="#">Đăng nhập</a></li>
                      </ul>
                   </div>
                </div>
@@ -28,10 +27,6 @@
          </div>
       </div>
    </section>
-   <!-- Breadcromb Area End -->
-
-
-   <!-- Login Area Start -->
    <section class="jobguru-login-area section_70">
       <div class="container">
          <div class="row">
@@ -47,22 +42,22 @@
                   <form wire:submit.prevent="login">
                      <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
                      <div class="single-login-field">
-                        <input type="email" placeholder="Email Address">
+                        <input type="email" placeholder="Địa chỉ Email">
                      </div>
                      <div class="single-login-field">
-                        <input type="password" placeholder="Password">
+                        <input type="password" placeholder="Mật khẩu">
                      </div>
                      <div class="remember-row single-login-field clearfix">
                         <p class="checkbox remember">
                            <input class="checkbox-spin" type="checkbox" id="Freelance">
-                           <label for="Freelance"><span></span>Keep Me Signed In</label>
+                           <label for="Freelance"><span></span>Duy trì đăng nhập</label>
                         </p>
                         <p class="lost-pass">
-                           <a href="#">forgot password?</a>
+                           <a href="#">Quên mật khẩu?</a>
                         </p>
                      </div>
                      <div class="single-login-field">
-                        <button type="submit">Sign in</button>
+                        <button type="submit">Đăng nhập</button>
                      </div>
                   </form>
                   <div class="dont_have">
@@ -73,5 +68,4 @@
          </div>
       </div>
    </section>
-   <!-- Login Area End -->
-</div>
+   </div>

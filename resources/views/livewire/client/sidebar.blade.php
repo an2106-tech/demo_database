@@ -53,7 +53,6 @@
                            </form>
                         </div>
                      </div>
-
                      <div class="single-job-sidebar sidebar-keywords">
                         <h3>Từ khóa</h3>
                         <div class="job-sidebar-box">
@@ -66,7 +65,6 @@
                            </form>
                         </div>
                      </div>
-
                      <div class="single-job-sidebar sidebar-category">
                         <h3>Danh mục</h3>
                         <div class="job-sidebar-box">
@@ -75,12 +73,6 @@
                                  <option value="">Tất cả danh mục</option>
                                  @foreach ($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                 @endforeach
-                              </select>
-                           </form>
-                        </div>
-                     </div>
-
                      <div class="single-job-sidebar sidebar-location">
                         <h3>Ngày đăng</h3>
                         <div class="date-post-job job-sidebar-box">
@@ -110,7 +102,6 @@
                            </div>
                         </div>
                      </div>
-
                      <div class="single-job-sidebar sidebar-type">
                         <h3>Loại công việc</h3>
                         <div class="job-sidebar-box">
@@ -138,7 +129,6 @@
                            </ul>
                         </div>
                      </div>
-
                      <div class="single-job-sidebar sidebar-salary">
                         <h3>Lọc theo mức lương</h3>
                         <div class="job-sidebar-box">
@@ -150,7 +140,6 @@
                      </div>
                   </div>
                </div>
-
                <div class="col-lg-9 col-md-11 mx-auto">
                   <div class="job-grid-right">
                      <div class="browse-job-head-option">

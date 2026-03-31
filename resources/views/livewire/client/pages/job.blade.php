@@ -1,89 +1,98 @@
 <div>
 
-    <!-- Single Candidate Start -->
-    <section class="single-candidate-page section_70">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-9 col-lg-6">
-                    <div class="single-candidate-box">
-                        <div class="single-candidate-img">
-                            <img src="assets/img/company_page_logo.jpg" alt="single candidate" />
-                        </div>
-                        <div class="single-candidate-box-right">
-                            <h4>Front-end developer needed</h4>
-                            <img src="assets/img/pl.svg" alt="region" />
-                            <p>Arino Softwere Firm</p>
-                            <div class="job-details-meta">
-                                <p><i class="fa fa-file-text"></i> Applications 1</p>
-                                <p><i class="fa fa-calendar"></i> July 29, 2017</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-lg-6">
-                    <div class="single-candidate-action">
-                        <a href="#" class="candidate-contact"><i class="fa fa-star"></i>Bookmarks</a>
-                    </div>
-                </div>
+   <section class="single-candidate-page section_70">
+      <div class="container">
+         <div class="row">
+            <div class="col-md-9 col-lg-6">
+               <div class="single-candidate-box">
+                  <div class="single-candidate-img">
+                     <img src="{{ asset('assets/img/company_page_logo.jpg') }}" alt="logo công ty" />
+                  </div>
+                  <div class="single-candidate-box-right">
+                     <h4>Cần tuyển nhà phát triển Front-end</h4>
+                     <img src="{{ asset('assets/img/pl.svg') }}" alt="vùng miền" />
+                     <p>Công ty Phần mềm Arino</p>
+                     <div class="job-details-meta">
+                        <p><i class="fa fa-file-text"></i> Số lượng ứng tuyển: 1</p>
+                        <p><i class="fa fa-calendar"></i> 29 Tháng 7, 2017</p>
+                     </div>
+                  </div>
+               </div>
             </div>
-        </div>
-    </section>
-    <!-- Single Candidate End -->
-
-
-    <!-- Single Candidate Bottom Start -->
-    <section class="single-candidate-bottom-area section_70">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-10 col-lg-9 mx-auto">
-                    <div class="single-candidate-bottom-left">
-                        <div class="single-candidate-widget">
-                            <h3>job Description</h3>
-                            <p>Duis ac augue sit amet ex blandit facilisis sit amet ut dui. Nulla pharetra fermentum
-                                mollis.
-                                Duis in tempor tortor. Suspendisse vitae nisl diam. Proin eu erat vestibulum, suscipit
-                                quam et,
-                                cursus ante.Ut sodales arcu sagittis metus molestie molestie. Nulla maximus volutpat
-                                dui. Etiam
-                                luctus lobortis massa in pulvinar. Maecenas nunc odio, </p>
-                            <p>faucibus in malesuada a, dignissim at odio. Aenean eleifend urna.Nulla maximus volutpat
-                                dui.
-                                Etiam luctus lobortis massa in pulvinar. Maecenas nunc odio, faucibus in malesuada a,
-                                dignissim
-                                at odio.</p>
-                            <p>Sed egestas, ante et vulputate volutpat, eros pede semper est, vitae luctus metus libero
-                                eu
-                                augue. Morbi purus libero, faucibus adipiscing, commodo quis, gravida id, est. Sed
-                                lectus.
-                                Praesent elementum hendrerit tortor. Sed semper lorem at felis. Vestibulum volutpat,
-                                lacus a
-                                ultrices sagittis, mi neque euismod dui, eu pulvinar nunc sapien</p>
-                            <p>Duis ac augue sit amet ex blandit facilisis sit amet ut dui. Nulla pharetra fermentum
-                                mollis.
-                                Duis in tempor tortor. Suspendisse vitae nisl diam. Proin eu erat vestibulum, suscipit
-                                quam et,
-                                cursus ante.Ut sodales arcu sagittis metus molestie molestie. Nulla maximus volutpat
-                                dui. Etiam
-                                luctus lobortis massa in pulvinar. Maecenas nunc odio, </p>
-                            <p>faucibus in malesuada a, dignissim at odio. Aenean eleifend urna.Nulla maximus volutpat
-                                dui.
-                                Etiam luctus lobortis massa in pulvinar. Maecenas nunc odio, faucibus in malesuada a,
-                                dignissim
-                                at odio.</p>
+            <div class="col-md-3 col-lg-6">
+               <div class="single-candidate-action">
+                  <a href="#" class="candidate-contact"><i class="fa fa-star"></i>Lưu tin</a>
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+   <section class="single-candidate-bottom-area section_70">
+      <div class="container">
+         <div class="row">
+            <div class="col-md-10 col-lg-9 mx-auto">
+               <div class="single-candidate-bottom-left">
+                  <div class="single-candidate-widget">
+                     <h3>Mô tả công việc</h3>
+                     <p>Chúng tôi đang tìm kiếm một nhà phát triển Front-end tài năng để gia nhập đội ngũ năng động của mình. Bạn sẽ chịu trách nhiệm xây dựng giao diện người dùng mượt mà, tối ưu hóa trải nghiệm trên nhiều nền tảng khác nhau.</p>
+                     <p>Công việc đòi hỏi sự tỉ mỉ trong từng dòng code và khả năng phối hợp tốt với các bộ phận thiết kế để hiện thực hóa các ý tưởng sáng tạo thành sản phẩm thực tế.</p>
+                  </div>
+                  <div class="single-candidate-widget job-required">
+                     <h3>Kỹ năng và Khả năng</h3>
+                     <ul class="company-desc-list">
+                        <li><i class="fa fa-check"></i> Khả năng viết mã – HTML & CSS (Ưu tiên SCSS của SASS khi viết CSS)</li>
+                        <li><i class="fa fa-check"></i>Thành thạo Photoshop, Illustrator, điểm cộng nếu biết sử dụng Sketch</li>
+                        <li><i class="fa fa-check"></i>Kiểm thử đa trình duyệt và đa nền tảng là quy trình bắt buộc</li>
+                        <li><i class="fa fa-check"></i>Có kinh nghiệm sử dụng Invision là một lợi thế</li>
+                        <li><i class="fa fa-check"></i>Có kinh nghiệm sản xuất video là một điểm cộng</li>
+                     </ul>
+                  </div>
+                  
+                  <div class="single-candidate-widget clearfix">
+                     <h3>Chia sẻ bài viết này</h3>
+                     <ul class="share-job">
+                        <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                        <li><a href="#"><i class="fa fa-google-plus"></i></a></li>
+                        <li><a href="#"><i class="fa fa-pinterest"></i></a></li>
+                     </ul>
+                  </div>
+                  <div class="single-candidate-widget">
+                     <h3>Việc làm tương tự</h3>
+                     <div class="sidebar-list-single">
+                        <div class="top-company-list">
+                           <div class="company-list-logo">
+                              <a href="#">
+                                 <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="logo công ty 1">
+                              </a>
+                           </div>
+                           <div class="company-list-details">
+                              <h3><a href="#">Quản lý Bán hàng Khu vực</a></h3>
+                              <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                              <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
+                              <p class="varify"><i class="fa fa-check"></i>Lương cố định: $1200-$2000</p>
+                           </div>
+                           <div class="company-list-btn">
+                              <a href="#" class="jobguru-btn">Ứng tuyển ngay</a>
+                           </div>
                         </div>
-                        <div class="single-candidate-widget job-required">
-                            <h3>Skills, and Abilities</h3>
-                            <ul class="company-desc-list">
-                                <li><i class="fa fa-check"></i> Ability to write code – HTML & CSS (SCSS flavor of SASS
-                                    preferred when writing CSS)</li>
-                                <li><i class="fa fa-check"></i>Proficient in Photoshop, Illustrator, bonus points for
-                                    familiarity with Sketch (Sketch is our preferred concepting)</li>
-                                <li><i class="fa fa-check"></i>Cross-browser and platform testing as standard practice
-                                </li>
-                                <li><i class="fa fa-check"></i>Experience using Invision a plus</li>
-                                <li><i class="fa fa-check"></i>Experience in video production a plus or, at a minimum, a
-                                    willingness to learn</li>
-                            </ul>
+                     </div>
+                     <div class="sidebar-list-single">
+                        <div class="top-company-list">
+                           <div class="company-list-logo">
+                              <a href="#">
+                                 <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="logo công ty 2">
+                              </a>
+                           </div>
+                           <div class="company-list-details">
+                              <h3><a href="#">Trợ giảng</a></h3>
+                              <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                              <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
+                              <p class="varify"><i class="fa fa-check"></i>Lương cố định: $800-$1200</p>
+                           </div>
+                           <div class="company-list-btn">
+                              <a href="#" class="jobguru-btn">Ứng tuyển ngay</a>
+                           </div>
                         </div>
                         <div class="single-candidate-widget clearfix">
                             <h3>Challenges & Benifits</h3>
@@ -205,6 +214,38 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
-</div>
+            <div class="col-md-10 col-lg-3 mx-auto">
+               <div class="single-candidate-bottom-right">
+                  <div class="single-candidate-widget-2">
+                     <a href="#" class="jobguru-btn-2">
+                        <i class="fa fa-paper-plane-o"></i>
+                        Ứng tuyển ngay
+                     </a>
+                  </div>
+                  <div class="single-candidate-widget-2">
+                     <h3>Tổng quan công việc</h3>
+                     <ul class="job-overview">
+                        <li>
+                           <h4><i class="fa fa-briefcase"></i> Mức lương đề nghị</h4>
+                           <p>£15,000 - £20,000</p>
+                        </li>
+                        <li>
+                           <h4><i class="fa fa-map-marker"></i> Địa điểm</h4>
+                           <p>Luân Đôn, Vương Quốc Anh</p>
+                        </li>
+                        <li>
+                           <h4><i class="fa fa-thumb-tack"></i> Hình thức</h4>
+                           <p>Toàn thời gian</p>
+                        </li>
+                        <li>
+                           <h4><i class="fa fa-clock-o"></i> Ngày đăng</h4>
+                           <p>2 ngày trước</p>
+                        </li>
+                     </ul>
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   </section>
+   </div>

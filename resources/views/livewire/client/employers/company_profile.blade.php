@@ -1,12 +1,11 @@
 <div>
-    <!-- Breadcromb Area Start -->
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
                         <div class="breadcromb-box">
-                            <h3>Company Profile</h3>
+                            <h3>Hồ sơ công ty</h3>
                         </div>
                     </div>
                 </div>
@@ -18,9 +17,9 @@
                     <div class="col-md-12">
                         <div class="breadcromb-box-pagin">
                             <ul>
-                                <li><a href="{{ route('home') }}">home</a></li>
-                                <li><a href="{{ route('employers.dashboard') }}">employer</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.company_profile') }}">Company Profile</a></li>
+                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+                                <li class="active-breadcromb"><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
                             </ul>
                         </div>
                     </div>
@@ -28,10 +27,6 @@
             </div>
         </div>
     </section>
-    <!-- Breadcromb Area End -->
-
-
-    <!-- Candidate Dashboard Area Start -->
     <section class="candidate-dashboard-area section_70">
         <div class="container">
             <div class="row">
@@ -41,7 +36,7 @@
                             <li>
                                 <a href="{{ route('employers.dashboard') }}">
                                     <i class="fa fa-tachometer"></i>
-                                    Dashboard
+                                    Bảng điều khiển
                                 </a>
                             </li>
                             <li class="active"><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Company
@@ -67,7 +62,7 @@
                                             <div class="resume-avatar-upload">
                                                 <p>
                                                     <i class="fa fa-pencil"></i>
-                                                    Edit
+                                                    Chỉnh sửa
                                                 </p>
                                                 <input type="file">
                                             </div>
@@ -78,56 +73,56 @@
                             <div class="candidate-single-profile-info">
                                 <form>
                                     <div class="resume-box">
-                                        <h3>company profile</h3>
+                                        <h3>Thông tin công ty</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="name">Company Title:</label>
+                                                <label for="name">Tên công ty:</label>
                                                 <input type="text" value="Jennie Wilson" id="name">
                                             </div>
                                             <div class="single-input">
-                                                <label for="c_cat">company category:</label>
+                                                <label for="c_cat">Lĩnh vực hoạt động:</label>
                                                 <select id="c_cat">
-                                                    <option selected>Choose Category</option>
-                                                    <option>IT Service</option>
-                                                    <option>Non-Profit</option>
-                                                    <option>StartUP</option>
-                                                    <option>Corporate</option>
+                                                    <option selected>Chọn danh mục</option>
+                                                    <option>Dịch vụ CNTT</option>
+                                                    <option>Phi lợi nhuận</option>
+                                                    <option>Khởi nghiệp (StartUP)</option>
+                                                    <option>Tập đoàn</option>
                                                 </select>
                                             </div>
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="Start">Start:</label>
+                                                <label for="Start">Năm thành lập:</label>
                                                 <input type="text" value="1990" id="Start">
                                             </div>
                                             <div class="single-input">
-                                                <label for="member">Team Member:</label>
+                                                <label for="member">Số lượng nhân sự:</label>
                                                 <input type="text" value="132" id="member">
                                             </div>
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="Location">Country:</label>
+                                                <label for="Location">Quốc gia:</label>
                                                 <input type="text" value="London" id="Location">
                                             </div>
                                             <div class="single-input">
-                                                <label for="City">City:</label>
+                                                <label for="City">Thành phố:</label>
                                                 <input type="text" value="Westminster" id="City">
                                             </div>
                                         </div>
                                         <div class="single-resume-feild ">
                                             <div class="single-input">
-                                                <label for="Bio">Description:</label>
+                                                <label for="Bio">Mô tả chi tiết:</label>
                                                 <textarea
-                                                    id="Bio">Maecenas is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</textarea>
+                                                    id="Bio">Maecenas chỉ đơn giản là một đoạn văn bản giả được sử dụng trong việc sắp xếp và trình bày các bản in. Lorem Ipsum đã là văn bản giả tiêu chuẩn của ngành kể từ những năm 1500, khi một thợ in không xác định lấy một bộ các ký tự và sắp xếp chúng để tạo ra một cuốn sách mẫu văn bản.</textarea>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="resume-box">
-                                        <h3>Contact Information</h3>
+                                        <h3>Thông tin liên hệ</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="Phone">Phone:</label>
+                                                <label for="Phone">Điện thoại:</label>
                                                 <input type="text" value="+88-123-4467-9" id="Phone">
                                             </div>
                                             <div class="single-input">
@@ -137,42 +132,43 @@
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="contry">contry:</label>
+                                                <label for="contry">Quốc gia:</label>
                                                 <select id="contry">
-                                                    <option>Arab Amirats</option>
-                                                    <option>America</option>
-                                                    <option>Netherlands</option>
-                                                    <option>Russia</option>
+                                                    <option>Các tiểu vương quốc Ả Rập Thống nhất</option>
+                                                    <option>Mỹ</option>
+                                                    <option>Hà Lan</option>
+                                                    <option>Nga</option>
                                                     <option selected>Bangladesh</option>
-                                                    <option>India</option>
+                                                    <option>Ấn Độ</option>
                                                     <option>Pakistan</option>
                                                     <option>Brazil</option>
-                                                    <option>Africa</option>
+                                                    <option>Châu Phi</option>
+                                                    <option>Việt Nam</option>
                                                 </select>
                                             </div>
                                             <div class="single-input">
-                                                <label for="City2">City:</label>
+                                                <label for="City2">Thành phố:</label>
                                                 <input type="text" value="Dhaka" id="City2">
                                             </div>
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="Zip">Zip:</label>
+                                                <label for="Zip">Mã bưu điện (Zip):</label>
                                                 <input type="text" value="6100" id="Zip">
                                             </div>
                                             <div class="single-input">
-                                                <label for="Address22">Address:</label>
-                                                <input type="text" value="New york city,22/A Street,01" id="Address22">
+                                                <label for="Address22">Địa chỉ:</label>
+                                                <input type="text" value="Thành phố New York, Phố 22/A, 01" id="Address22">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="resume-box">
-                                        <h3>social link</h3>
+                                        <h3>Liên kết mạng xã hội</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
                                                 <label for="twitter">
                                                     <i class="fa fa-twitter twitter"></i>
-                                                    twitter
+                                                    Twitter
                                                 </label>
                                                 <input type="text" value="https://www.twitter.com/" id="twitter"
                                                     name="twitter">
@@ -180,7 +176,7 @@
                                             <div class="single-input">
                                                 <label for="twitter">
                                                     <i class="fa fa-facebook facebook"></i>
-                                                    facebook
+                                                    Facebook
                                                 </label>
                                                 <input type="text" value="https://www.facebook.com/" id="facebook"
                                                     name="facebook">
@@ -198,7 +194,7 @@
                                             <div class="single-input">
                                                 <label for="linkedin">
                                                     <i class="fa fa-linkedin linkedin"></i>
-                                                    linkedin
+                                                    Linkedin
                                                 </label>
                                                 <input type="text" value="https://www.linkedin.com/" id="linkedin"
                                                     name="twitter">
@@ -206,7 +202,7 @@
                                         </div>
                                     </div>
                                     <div class="submit-resume">
-                                        <button type="submit">Update</button>
+                                        <button type="submit">Cập nhật</button>
                                     </div>
                                 </form>
                             </div>

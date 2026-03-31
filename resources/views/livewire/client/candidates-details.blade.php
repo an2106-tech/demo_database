@@ -1,5 +1,4 @@
 <div>
-      <!-- Single Candidate Start -->
       <section class="single-candidate-page section_70">
          <div class="container">
             <div class="row">
@@ -11,7 +10,7 @@
                      <div class="single-candidate-box-right">
                         <h4>Jennie Wilson</h4>
                         <img src="{{ asset('assets/img/pl.svg') }}" alt="region" />
-                        <p>UX/UI Designer</p>
+                        <p>Nhà thiết kế UX/UI</p>
                         <div class="single-candidate-rate">
                            <p class="rating-company">4.9</p>
                            <ul>
@@ -27,29 +26,25 @@
                </div>
                <div class="col-md-6">
                   <div class="single-candidate-action">
-                     <a href="#" class="bookmarks"><i class="fa fa-star"></i>Bookmarks</a>
-                     <a href="#" class="candidate-contact"><i class="fa fa-envelope"></i>contact</a>
+                     <a href="#" class="bookmarks"><i class="fa fa-star"></i>Lưu hồ sơ</a>
+                     <a href="#" class="candidate-contact"><i class="fa fa-envelope"></i>Liên hệ</a>
                   </div>
                </div>
             </div>
          </div>
       </section>
-      <!-- Single Candidate End -->
-       
-       
-      <!-- Single Candidate Bottom Start -->
       <div class="single-candidate-bottom-area section_70">
          <div class="container">
             <div class="row">
                <div class="col-md-10 col-lg-9 mx-auto">
                   <div class="single-candidate-bottom-left">
                      <div class="single-candidate-widget">
-                        <h3>About Me</h3>
+                        <h3>Giới thiệu về tôi</h3>
                         <p>Duis ac augue sit amet ex blandit facilisis sit amet ut dui. Nulla pharetra fermentum mollis. Duis in tempor tortor. Suspendisse vitae nisl diam. Proin eu erat vestibulum, suscipit quam et, cursus ante.Ut sodales arcu sagittis metus molestie molestie. Nulla maximus volutpat dui. Etiam luctus lobortis massa in pulvinar. Maecenas nunc odio, </p>
                         <p>faucibus in malesuada a, dignissim at odio. Aenean eleifend urna.Nulla maximus volutpat dui. Etiam luctus lobortis massa in pulvinar. Maecenas nunc odio, faucibus in malesuada a, dignissim at odio.</p>
                      </div>
                      <div class="single-candidate-widget">
-                        <h3>Skills</h3>
+                        <h3>Kỹ năng</h3>
                         <ul>
                            <li><a href="#">iOS</a></li>
                            <li><a href="#">python</a></li>
@@ -61,31 +56,31 @@
                         </ul>
                      </div>
                      <div class="single-candidate-widget clearfix">
-                        <h3>project history</h3>
+                        <h3>Lịch sử dự án</h3>
                         <div class="progressbar-example">
                            <div class="progress-box">
-                              <p class="progress-title">Job Success</p>
+                              <p class="progress-title">Tỷ lệ thành công</p>
                               <p class="progress-size">80%</p>
                               <div class="progress">
                                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100" style="width: 80%"></div>
                               </div>
                            </div>
                            <div class="progress-box">
-                              <p class="progress-title">Recommendation</p>
+                              <p class="progress-title">Đề xuất</p>
                               <p class="progress-size">100%</p>
                               <div class="progress">
                                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
                               </div>
                            </div>
                            <div class="progress-box">
-                              <p class="progress-title">On Budget</p>
+                              <p class="progress-title">Trong ngân sách</p>
                               <p class="progress-size">70%</p>
                               <div class="progress">
                                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100" style="width: 70%"></div>
                               </div>
                            </div>
                            <div class="progress-box">
-                              <p class="progress-title">On Budget</p>
+                              <p class="progress-title">Đúng hạn</p>
                               <p class="progress-size">90%</p>
                               <div class="progress">
                                  <div class="progress-bar progress-bar-info" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100" style="width: 90%"></div>
@@ -94,7 +89,7 @@
                         </div>
                      </div>
                      <div class="single-candidate-widget">
-                        <h3>work History</h3>
+                        <h3>Lịch sử làm việc</h3>
                         <div class="single-work-history">
                            <div class="single-candidate-list">
                               <div class="main-comment">
@@ -104,9 +99,9 @@
                                  <div class="candidate-text">
                                     <div class="candidate-info">
                                        <div class="candidate-title">
-                                          <h3><a href="#">Lead UX/UI Designer</a></h3>
+                                          <h3><a href="#">Thiết kế UX/UI chính</a></h3>
                                        </div>
-                                       <p><i class="fa fa-calendar-check-o"></i>September 2017 - Present</p>
+                                       <p><i class="fa fa-calendar-check-o"></i>Tháng 9 2017 - Hiện tại</p>
                                     </div>
                                     <div class="candidate-text-inner">
                                        <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.</p>
@@ -124,9 +119,9 @@
                                  <div class="candidate-text">
                                     <div class="candidate-info">
                                        <div class="candidate-title">
-                                          <h3><a href="#">Junior UX/UI Designer</a></h3>
+                                          <h3><a href="#">Thiết kế UX/UI sơ cấp</a></h3>
                                        </div>
-                                       <p><i class="fa fa-calendar-check-o"></i>May 2015 - July 2017</p>
+                                       <p><i class="fa fa-calendar-check-o"></i>Tháng 5 2015 - Tháng 7 2017</p>
                                     </div>
                                     <div class="candidate-text-inner">
                                        <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.</p>
@@ -143,7 +138,7 @@
                      <div class="single-candidate-widget-2">
                         <a href="#" class="jobguru-btn-2">
                         <i class="fa fa-balance-scale"></i>
-                        compare with others
+                        so sánh với người khác
                         </a>
                      </div>
                      <div class="single-candidate-widget-2">
@@ -154,7 +149,7 @@
                         </ul>
                      </div>
                      <div class="single-candidate-widget-2">
-                        <h3>Social Links</h3>
+                        <h3>Liên kết mạng xã hội</h3>
                         <ul class="candidate-social">
                            <li><a href="#"><i class="fa fa-facebook"></i></a></li>
                            <li><a href="#"><i class="fa fa-twitter"></i></a></li>
@@ -164,19 +159,19 @@
                         </ul>
                      </div>
                      <div class="single-candidate-widget-2">
-                        <h3>Quick Contacts</h3>
+                        <h3>Liên hệ nhanh</h3>
                         <form>
                            <p>
-                              <input type="text" placeholder="Your Name">
+                              <input type="text" placeholder="Tên của bạn">
                            </p>
                            <p>
-                              <input type="email" placeholder="Your Email Address">
+                              <input type="email" placeholder="Địa chỉ Email">
                            </p>
                            <p>
-                              <textarea placeholder="Write here your message"></textarea>
+                              <textarea placeholder="Viết tin nhắn của bạn tại đây"></textarea>
                            </p>
                            <p>
-                              <button type="submit">Send Message</button>
+                              <button type="submit">Gửi tin nhắn</button>
                            </p>
                         </form>
                      </div>
@@ -185,5 +180,4 @@
             </div>
          </div>
       </div>
-      <!-- Single Candidate Bottom End -->
-</div>
+      </div>

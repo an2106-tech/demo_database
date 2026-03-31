@@ -1,12 +1,11 @@
 <div>
-     <!-- Breadcromb Area Start -->
       <section class="jobguru-breadcromb-area">
          <div class="breadcromb-top section_100">
             <div class="container">
                <div class="row">
                   <div class="col-md-12">
                      <div class="breadcromb-box">
-                        <h3>Company Profile</h3>
+                        <h3>Hồ sơ công ty</h3>
                      </div>
                   </div>
                </div>
@@ -18,9 +17,9 @@
                   <div class="col-md-12">
                      <div class="breadcromb-box-pagin">
                         <ul>
-                           <li><a href="#">home</a></li>
-                           <li><a href="#">employer</a></li>
-                           <li class="active-breadcromb"><a href="#">Company Profile</a></li>
+                           <li><a href="#">Trang chủ</a></li>
+                           <li><a href="#">Nhà tuyển dụng</a></li>
+                           <li class="active-breadcromb"><a href="#">Hồ sơ công ty</a></li>
                         </ul>
                      </div>
                   </div>
@@ -28,10 +27,6 @@
             </div>
          </div>
       </section>
-      <!-- Breadcromb Area End -->
-       
-       
-      <!-- Candidate Dashboard Area Start -->
       <section class="candidate-dashboard-area section_70">
          <div class="container">
             <div class="row">
@@ -41,16 +36,16 @@
                         <li>
                            <a href="employer-dashboard.html">
                            <i class="fa fa-tachometer"></i>
-                           Dashboard
+                           Bảng điều khiển
                            </a>
                         </li>
-                        <li class="active"><a href="company-profile.html"><i class="fa fa-users"></i>Company Profile</a></li>
-                        <li><a href="message.html"><i class="fa fa-envelope-open"></i>messages</a></li>
-                        <li><a href="post-job.html"><i class="fa fa-envelope-open"></i>post a job</a></li>
-                        <li><a href="manage-candidates.html"><i class="fa fa-briefcase"></i>manage candidates</a></li>
-                        <li><a href="transaction.html"><i class="fa fa-rocket"></i>transaction</a></li>
-                        <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
-                        <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
+                        <li class="active"><a href="company-profile.html"><i class="fa fa-users"></i>Hồ sơ công ty</a></li>
+                        <li><a href="message.html"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
+                        <li><a href="post-job.html"><i class="fa fa-envelope-open"></i>Đăng tin tuyển dụng</a></li>
+                        <li><a href="manage-candidates.html"><i class="fa fa-briefcase"></i>Quản lý ứng viên</a></li>
+                        <li><a href="transaction.html"><i class="fa fa-rocket"></i>Giao dịch</a></li>
+                        <li><a href="change-password.html"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
+                        <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
                      </ul>
                   </div>
                </div>
@@ -65,7 +60,7 @@
                                     <div class="resume-avatar-upload">
                                        <p>
                                           <i class="fa fa-pencil"></i>
-                                          Edit
+                                          Sửa
                                        </p>
                                        <input type="file">
                                     </div>
@@ -76,55 +71,55 @@
                         <div class="candidate-single-profile-info">
                            <form>
                               <div class="resume-box">
-                                 <h3>company profile</h3>
+                                 <h3>Thông tin công ty</h3>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="name">Company Title:</label>
+                                       <label for="name">Tên công ty:</label>
                                        <input type="text" value="Jennie Wilson" id="name">
                                     </div>
                                     <div class="single-input">
-                                       <label for="c_cat">company category:</label>
+                                       <label for="c_cat">Lĩnh vực kinh doanh:</label>
                                        <select id="c_cat">
-                                          <option selected>Choose Category</option>
-                                          <option>IT Service</option>
-                                          <option>Non-Profit</option>
-                                          <option>StartUP</option>
-                                          <option>Corporate</option>
+                                          <option selected>Chọn danh mục</option>
+                                          <option>Dịch vụ CNTT</option>
+                                          <option>Phi lợi nhuận</option>
+                                          <option>Khởi nghiệp (Startup)</option>
+                                          <option>Tập đoàn</option>
                                        </select>
                                     </div>
                                  </div>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="Start">Start:</label>
+                                       <label for="Start">Năm thành lập:</label>
                                        <input type="text" value="1990" id="Start">
                                     </div>
                                     <div class="single-input">
-                                       <label for="member">Team Member:</label>
+                                       <label for="member">Số lượng nhân viên:</label>
                                        <input type="text" value="132" id="member">
                                     </div>
                                  </div>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="Location">Country:</label>
+                                       <label for="Location">Quốc gia:</label>
                                        <input type="text" value="London" id="Location">
                                     </div>
                                     <div class="single-input">
-                                       <label for="City">City:</label>
+                                       <label for="City">Thành phố:</label>
                                        <input type="text" value="Westminster" id="City">
                                     </div>
                                  </div>
                                  <div class="single-resume-feild ">
                                     <div class="single-input">
-                                       <label for="Bio">Description:</label>
+                                       <label for="Bio">Mô tả chi tiết:</label>
                                        <textarea id="Bio">Maecenas is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</textarea>
                                     </div>
                                  </div>
                               </div>
                               <div class="resume-box">
-                                 <h3>Contact Information</h3>
+                                 <h3>Thông tin liên hệ</h3>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="Phone">Phone:</label>
+                                       <label for="Phone">Điện thoại:</label>
                                        <input type="text" value="+88-123-4467-9" id="Phone">
                                     </div>
                                     <div class="single-input">
@@ -134,37 +129,37 @@
                                  </div>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="contry">contry:</label>
+                                       <label for="contry">Quốc gia (Liên hệ):</label>
                                        <select id="contry">
-                                          <option>Arab Amirats</option>
-                                          <option>America</option>
-                                          <option>Netherlands</option>
-                                          <option>Russia</option>
+                                          <option>Ả Rập Thống Nhất</option>
+                                          <option>Mỹ</option>
+                                          <option>Hà Lan</option>
+                                          <option>Nga</option>
                                           <option selected>Bangladesh</option>
-                                          <option>India</option>
+                                          <option>Ấn Độ</option>
                                           <option>Pakistan</option>
                                           <option>Brazil</option>
-                                          <option>Africa</option>
+                                          <option>Châu Phi</option>
                                        </select>
                                     </div>
                                     <div class="single-input">
-                                       <label for="City2">City:</label>
+                                       <label for="City2">Thành phố:</label>
                                        <input type="text" value="Dhaka" id="City2">
                                     </div>
                                  </div>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
-                                       <label for="Zip">Zip:</label>
+                                       <label for="Zip">Mã bưu điện:</label>
                                        <input type="text" value="6100" id="Zip">
                                     </div>
                                     <div class="single-input">
-                                       <label for="Address22">Address:</label>
+                                       <label for="Address22">Địa chỉ:</label>
                                        <input type="text" value="New york city,22/A Street,01" id="Address22">
                                     </div>
                                  </div>
                               </div>
                               <div class="resume-box">
-                                 <h3>social link</h3>
+                                 <h3>Liên kết mạng xã hội</h3>
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
                                        <label for="twitter">
@@ -199,7 +194,7 @@
                                  </div>
                               </div>
                               <div class="submit-resume">
-                                 <button type="submit">Update</button>
+                                 <button type="submit">Cập nhật</button>
                               </div>
                            </form>
                         </div>
@@ -209,5 +204,4 @@
             </div>
          </div>
       </section>
-      <!-- Candidate Dashboard Area End -->
-</div>
+      </div>

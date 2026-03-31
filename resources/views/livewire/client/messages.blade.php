@@ -1,12 +1,11 @@
 <div>
-       <!-- Breadcromb Area Start -->
       <section class="jobguru-breadcromb-area">
          <div class="breadcromb-top section_100">
             <div class="container">
                <div class="row">
                   <div class="col-md-12">
                      <div class="breadcromb-box">
-                        <h3>Messages</h3>
+                        <h3>Tin nhắn</h3>
                      </div>
                   </div>
                </div>
@@ -18,9 +17,9 @@
                   <div class="col-md-12">
                      <div class="breadcromb-box-pagin">
                         <ul>
-                           <li><a href="#">home</a></li>
-                           <li><a href="#">candidates</a></li>
-                           <li class="active-breadcromb"><a href="#">Messages</a></li>
+                           <li><a href="#">Trang chủ</a></li>
+                           <li><a href="#">Ứng viên</a></li>
+                           <li class="active-breadcromb"><a href="#">Tin nhắn</a></li>
                         </ul>
                      </div>
                   </div>
@@ -28,10 +27,6 @@
             </div>
          </div>
       </section>
-      <!-- Breadcromb Area End -->
-       
-       
-      <!-- Candidate Dashboard Area Start -->
       <section class="candidate-dashboard-area section_70">
          <div class="container">
             <div class="row">
@@ -41,33 +36,32 @@
                         <li>
                            <a href="candidate-dashboard.html">
                            <i class="fa fa-tachometer"></i>
-                           Dashboard
+                           Bảng điều khiển
                            </a>
                         </li>
-                        <li><a href="candidate-profile.html"><i class="fa fa-users"></i>My Profile</a></li>
-                        <li class="active"><a href="message.html"><i class="fa fa-envelope-open"></i>messages</a></li>
-                        <li><a href="manage-jobs.html"><i class="fa fa-briefcase"></i>manage jobs</a></li>
-                        <li><a href="candidate-earnings.html"><i class="fa fa-rocket"></i>earnings</a></li>
-                        <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
-                        <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
+                        <li><a href="candidate-profile.html"><i class="fa fa-users"></i>Hồ sơ của tôi</a></li>
+                        <li class="active"><a href="message.html"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
+                        <li><a href="manage-jobs.html"><i class="fa fa-briefcase"></i>Quản lý việc làm</a></li>
+                        <li><a href="candidate-earnings.html"><i class="fa fa-rocket"></i>Thu nhập</a></li>
+                        <li><a href="change-password.html"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
+                        <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
                      </ul>
                   </div>
                </div>
                <div class="col-lg-9 col-md-8  mx-auto">
                   <div class="dashboard-right message-page-box">
                      <div class="manage-jobs-heading">
-                        <h3>New Messages</h3>
+                        <h3>Tin nhắn mới</h3>
                      </div>
                      <div class="row">
                         <div class="col-lg-4 col-md-12 ">
                            <div class="chat-list-left">
                               <div class="chat-search-form">
                                  <form>
-                                    <input type="search" placeholder="Search Contact">
+                                    <input type="search" placeholder="Tìm kiếm liên hệ...">
                                     <button type="submit"><i class="fa fa-search"></i></button>
                                  </form>
                               </div>
-                              <!-- End Chat Search -->
                               <div class="chat-list-body">
                                  <ul class="chat-list">
                                     <li class="clearfix">
@@ -77,11 +71,10 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>David Johnson</h4>
-                                             <small class="online">Online</small>
+                                             <small class="online">Đang hoạt động</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
                                     <li class="clearfix active">
                                        <a href="#">
                                           <div class="chat-avatar-img">
@@ -89,11 +82,10 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>Aiden Chavez</h4>
-                                             <small class="away">Away</small>
+                                             <small class="away">Vắng mặt</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
                                     <li class="clearfix">
                                        <a href="#">
                                           <div class="chat-avatar-img">
@@ -101,11 +93,10 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>Margaret Govan</h4>
-                                             <small class="busy">busy</small>
+                                             <small class="busy">Đang bận</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
                                     <li class="clearfix">
                                        <a href="#">
                                           <div class="chat-avatar-img">
@@ -113,11 +104,10 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>Emanual Doe</h4>
-                                             <small class="online">online</small>
+                                             <small class="online">Đang hoạt động</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
                                     <li class="clearfix">
                                        <a href="#">
                                           <div class="chat-avatar-img">
@@ -125,11 +115,10 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>Eric Alsobrook</h4>
-                                             <small class="online">online</small>
+                                             <small class="online">Đang hoạt động</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
                                     <li class="clearfix">
                                        <a href="#">
                                           <div class="chat-avatar-img">
@@ -137,53 +126,14 @@
                                           </div>
                                           <div class="chat-about">
                                              <h4>Christian Kelly</h4>
-                                             <small class="away">away</small>
+                                             <small class="away">Vắng mặt</small>
                                           </div>
                                        </a>
                                     </li>
-                                    <!-- end list -->
-                                    <li class="clearfix">
-                                       <a href="#">
-                                          <div class="chat-avatar-img">
-                                             <img src="{{asset('assets/img/msg-1.png')}}" alt="avatar" />
-                                          </div>
-                                          <div class="chat-about">
-                                             <h4>David Johnson</h4>
-                                             <small class="online">Online</small>
-                                          </div>
-                                       </a>
-                                    </li>
-                                    <!-- end list -->
-                                    <li class="clearfix active">
-                                       <a href="#">
-                                          <div class="chat-avatar-img">
-                                             <img src="{{asset('assets/img/msg-2.png')}}" alt="avatar" />
-                                          </div>
-                                          <div class="chat-about">
-                                             <h4>Aiden Chavez</h4>
-                                             <small class="away">Away</small>
-                                          </div>
-                                       </a>
-                                    </li>
-                                    <!-- end list -->
-                                    <li class="clearfix">
-                                       <a href="#">
-                                          <div class="chat-avatar-img">
-                                             <img src="{{asset('assets/img/msg-3.png')}}" alt="avatar" />
-                                          </div>
-                                          <div class="chat-about">
-                                             <h4>Margaret Govan</h4>
-                                             <small class="busy">busy</small>
-                                          </div>
-                                       </a>
-                                    </li>
-                                    <!-- end list -->
                                  </ul>
                               </div>
-                              <!-- End Chat List Body -->
-                           </div>
+                              </div>
                         </div>
-                        <!-- Col End -->
                         <div class="col-lg-8 col-md-12">
                            <div class="chat-board-right">
                               <div class="chat-board-header">
@@ -200,7 +150,7 @@
                                           <a href="#" title="Mike Litorus">
                                              <h4>Mike Litorus</h4>
                                           </a>
-                                          <small class="online">online</small>
+                                          <small class="online">Đang hoạt động</small>
                                        </div>
                                     </div>
                                     <ul class="nav navbar-nav pull-right custom-menu">
@@ -210,7 +160,6 @@
                                     </ul>
                                  </div>
                               </div>
-                              <!-- End Chatbot Header -->
                               <div class="chat-board-content">
                                  <div class="chat-box-wrapper">
                                     <div class="chat-box-inner">
@@ -223,25 +172,25 @@
                                              </div>
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   It’s Great opportunity to work.
+                                                   Đó là một cơ hội tuyệt vời để làm việc.
                                                 </div>
-                                                <div class="chat-time">10:57 am</div>
+                                                <div class="chat-time">10:57 sáng</div>
                                              </div>
                                           </li>
                                           <li class="chat-list-right">
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's
+                                                   Đây chỉ là văn bản giả trong ngành in ấn và thiết kế.
                                                 </div>
-                                                <div class="chat-action">seen</div>
+                                                <div class="chat-action">Đã xem</div>
                                              </div>
                                           </li>
                                           <li class="chat-list-right">
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   It was popularised in the 1960s
+                                                   Nó đã trở nên phổ biến vào những năm 1960.
                                                 </div>
-                                                <div class="chat-action">seen</div>
+                                                <div class="chat-action">Đã xem</div>
                                              </div>
                                           </li>
                                           <li>
@@ -252,66 +201,31 @@
                                              </div>
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   Ipsum has been the industry's standard
+                                                   Đã trở thành tiêu chuẩn của ngành.
                                                 </div>
-                                                <div class="chat-time">10:57 am</div>
+                                                <div class="chat-time">10:57 sáng</div>
                                              </div>
                                           </li>
                                           <li class="chat-list-right">
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   It’s Great opportunity to work.
+                                                   Cơ hội làm việc thật tuyệt vời.
                                                 </div>
-                                                <div class="chat-action">seen</div>
-                                             </div>
-                                          </li>
-                                          <li>
-                                             <div class="chat-img">
-                                                <a href="#">
-                                                <img src="{{asset('assets/img/msg-3.png')}}" alt="user">
-                                                </a>
-                                             </div>
-                                             <div class="chat-content">
-                                                <div class="chat-text">
-                                                   It’s Great opportunity to work.
-                                                </div>
-                                                <div class="chat-time">10:57 am</div>
+                                                <div class="chat-action">Đã xem</div>
                                              </div>
                                           </li>
                                           <li class="chat-list-right">
                                              <div class="chat-content">
                                                 <div class="chat-text">
-                                                   I like singing, playing basketballand so on.
+                                                   Tôi thích hát, chơi bóng rổ và nhiều thứ khác.
                                                 </div>
-                                                <div class="chat-action">seen</div>
-                                             </div>
-                                          </li>
-                                          <li>
-                                             <div class="chat-img">
-                                                <a href="#">
-                                                <img src="{{asset('assets/img/msg-3.png')}}" alt="user">
-                                                </a>
-                                             </div>
-                                             <div class="chat-content">
-                                                <div class="chat-text">
-                                                   It’s Great opportunity to work.
-                                                </div>
-                                                <div class="chat-time">10:57 am</div>
-                                             </div>
-                                          </li>
-                                          <li class="chat-list-right">
-                                             <div class="chat-content">
-                                                <div class="chat-text">
-                                                   It’s Great opportunity to work.
-                                                </div>
-                                                <div class="chat-action">seen</div>
+                                                <div class="chat-action">Đã xem</div>
                                              </div>
                                           </li>
                                        </ul>
                                     </div>
                                  </div>
                               </div>
-                              <!-- End Chatbot COntent -->
                               <div class="chat-footer">
                                  <div class="message-bar">
                                     <div class="message-bar-inner">
@@ -323,22 +237,19 @@
                                        </div>
                                        <div class="message-text-area">
                                           <form>
-                                             <textarea placeholder="Type message..."></textarea>
+                                             <textarea placeholder="Nhập tin nhắn..."></textarea>
                                              <button type="submit"><i class="fa fa-send"></i></button>
                                           </form>
                                        </div>
                                     </div>
                                  </div>
                               </div>
-                              <!-- End Chat Footer -->
-                           </div>
+                              </div>
                         </div>
-                        <!-- Col Start -->
-                     </div>
+                        </div>
                   </div>
                </div>
             </div>
          </div>
       </section>
-      <!-- Candidate Dashboard Area End -->
-</div>
+      </div>
