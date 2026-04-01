@@ -123,7 +123,7 @@
                               <div class="single-browse-company">
                                  <div class="browse-company-logo">
                                     <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo.png') }}" alt="company a" />
+                                       <img src="{{ asset('storage/' . ltrim($branch->image)) }}" alt="{{ $branch->name }}" />
                                     </a>
                                  </div>
                                  <h3><a href="#">finance consulting agency</a></h3>
@@ -139,24 +139,35 @@
                                  </div>
                               </div>
                            </div>
-                           <div class="col-lg-4 col-md-6 companyBox moreBox">
-                              <div class="single-browse-company">
-                                 <div class="browse-company-logo">
-                                    <a href="#">
-                                    <img src="{{ asset('assets/img/a_logo_2.png') }}" alt="company a" />
-                                    </a>
-                                 </div>
-                                 <h3><a href="#">Buildo - Construction LTD.</a></h3>
-                                 <ul>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star"></i></li>
-                                    <li><i class="fa fa-star-half-o"></i></li>
-                                 </ul>
-                                 <div class="single-browse-company-btn">
-                                    <a href="#" class="jobguru-btn">view profile</a>
-                                 </div>
+
+                        @empty
+                           <div class="col-12 text-center">
+                              <p>Không có công ty bắt đầu bằng chữ A</p>
+                           </div>
+                        @endforelse
+
+                     </div>
+
+                  </div>
+                  <div class="tab-pane fade" id="profile_b" role="tabpanel" aria-labelledby="profile_b_tab">
+                     <div class="row">
+                        <div class="col-lg-4 col-md-6 companyBox2 moreBox2">
+                           <div class="single-browse-company">
+                              <div class="browse-company-logo">
+                                 <a href="#">
+                                   <img src="{{ asset('storage/' . ltrim($branch->image)) }}" alt="{{ $branch->name }}" />
+                                 </a>
+                              </div>
+                              <h3><a href="#">Xây dựng Buildo - TNHH</a></h3>
+                              <ul>
+                                 <li><i class="fa fa-star"></i></li>
+                                 <li><i class="fa fa-star"></i></li>
+                                 <li><i class="fa fa-star"></i></li>
+                                 <li><i class="fa fa-star"></i></li>
+                                 <li><i class="fa fa-star-half-o"></i></li>
+                              </ul>
+                              <div class="single-browse-company-btn">
+                                 <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                               </div>
                            </div>
                            <div class="col-lg-4 col-md-6 companyBox moreBox">
