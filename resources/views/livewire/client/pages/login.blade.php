@@ -42,14 +42,20 @@
                   <form wire:submit.prevent="login">
                      <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
                      <div class="single-login-field">
-                        <input type="email" placeholder="Địa chỉ Email">
+                        <input type="email" placeholder="Địa chỉ Email" wire:model="email">
+                        @error('email')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
                      </div>
                      <div class="single-login-field">
-                        <input type="password" placeholder="Mật khẩu">
+                        <input type="password" placeholder="Mật khẩu" wire:model="password">
+                        @error('password')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
                      </div>
                      <div class="remember-row single-login-field clearfix">
                         <p class="checkbox remember">
-                           <input class="checkbox-spin" type="checkbox" id="Freelance">
+                           <input class="checkbox-spin" type="checkbox" id="Freelance" wire:model="remember">
                            <label for="Freelance"><span></span>Duy trì đăng nhập</label>
                         </p>
                         <p class="lost-pass">

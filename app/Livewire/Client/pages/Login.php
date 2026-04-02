@@ -37,7 +37,6 @@ class Login extends Component
             $credentials['remember'] ?? false
         )) {
             $this->addError('email', 'Email hoặc mật khẩu không đúng.');
-
             return;
         }
         request()->session()->regenerate();

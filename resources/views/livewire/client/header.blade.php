@@ -279,8 +279,10 @@
                                     </ul>
                                  </li>
                                  <li><a href="{{ route('pages.job') }}">Trang việc làm</a></li>
-                                 <li><a href="{{ route('pages.login') }}">Đăng nhập</a></li>
-                                 <li><a href="{{ route('pages.register') }}">Đăng ký</a></li>
+                                 @guest
+                                    <li><a href="{{ route('auth.login') }}">Đăng nhập</a></li>
+                                    <li><a href="{{ route('auth.sign_up') }}">Đăng ký</a></li>
+                                 @endguest
                                  <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                               </ul>
                            </li>

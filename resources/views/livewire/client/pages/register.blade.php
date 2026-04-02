@@ -100,20 +100,56 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="#">Tài khoản</a></li>
-                                <li class="active-breadcromb"><a href="#">Đăng ký</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+         </div>
+      </div>
+   </section>
+   <section class="jobguru-login-area section_70">
+      <div class="container">
+         <div class="row">
+            <div class="col-lg-4 offset-lg-4 col-sm-6 offset-sm-3">
+               <div class="login-box">
+                  <div class="login-title">
+                     <h3>Đăng ký tài khoản</h3>
+                  </div>
+                  <form wire:submit.prevent="register">
+                     <div class="single-login-field">
+                        <input type="text" placeholder="Họ và Tên" wire:model="name">
+                        @error('name')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
+                     </div>
+                     <div class="single-login-field">
+                        <input type="email" placeholder="Địa chỉ Email" wire:model="email">
+                        @error('email')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
+                     </div>
+                     <div class="single-login-field">
+                        <input type="password" placeholder="Mật khẩu" wire:model="password">
+                        @error('password')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
+                     </div>
+                     <div class="single-login-field">
+                        <input type="password" placeholder="Xác nhận mật khẩu" wire:model="password_confirmation">
+                        @error('password_confirmation')
+                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
+                        @enderror
+                     </div>
+                     <div class="remember-row single-login-field clearfix">
+                        <p class="checkbox remember">
+                           <input class="checkbox-spin" type="checkbox" id="Freelance">
+                           <label for="Freelance"><span></span>Chấp nhận các điều khoản & điều kiện</label>
+                        </p>
+                     </div>
+                     <div class="single-login-field">
+                        <button type="submit">Đăng ký</button>
+                     </div>
+                  </form>
+                  <div class="dont_have">
+                     <a href="{{ route('auth.login') }}">Bạn đã có tài khoản? Đăng nhập ngay</a>
+                  </div>
+               </div>
             </div>
         </div>
     </section>

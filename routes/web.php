@@ -1,4 +1,6 @@
 <?php
+
+use App\Livewire\Client\Auth\Register;
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
@@ -97,7 +99,17 @@ Route::prefix('pages')->name('pages.')->group(function () {
     Route::get('/blog', Blog::class)->name('blog');
     Route::get('/single', Single::class)->name('single');
     Route::get('/job-page', JobPage::class)->name('job');
-    Route::get('/login', Login::class)->name('login');
+    Route::get('/login', \App\Livewire\Client\Login::class)->name('login');
     Route::get('/register', PagesRegister::class)->name('register');
     Route::get('/contact', Contact::class)->name('contact');
+});
+// Guest routes
+Route::middleware('guest')->group(function () {
+    Route::get('/login', \App\Livewire\Client\Login::class)->name('login');
+    Route::get('/register', PagesRegister::class)->name('register');
+});
+// Auth routes
+Route::middleware('auth')->group(function () {
+    Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
+    Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
 });
