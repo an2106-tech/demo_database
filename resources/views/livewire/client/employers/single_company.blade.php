@@ -9,9 +9,9 @@
                             <img src="{{ asset('assets/img/company_page_logo.jpg') }}" alt="single candidate" />
                         </div>
                         <div class="single-candidate-box-right">
-                            <h4>Arino</h4>
-                            <img src="{{ asset('assets/img/pl.svg') }}" alt="region" />
-                            <p>Online Education Center</p>
+                            <h4>{{ $branches->name }}</h4>
+                            <img src="{{ asset('assets/img/pl.svg') }}" alt="vùng miền" />
+                            <p>Trung tâm Giáo dục Trực tuyến</p>
                             <div class="single-candidate-rate">
                                 <p class="rating-company">4.9</p>
                                 <ul>
@@ -151,8 +151,8 @@
                         </div>
                         <div class="single-candidate-widget-2">
                             <ul>
-                                <li><i class="fa fa-envelope"></i> example@mail.com</li>
-                                <li><i class="fa fa-phone"></i> +11-012-3456-89</li>
+                                <li><i class="fa fa-envelope"></i> {{ $branches->email_contact }}</li>
+                                <li><i class="fa fa-phone"></i> {{ $branches->phone }}</li>
                                 <li><i class="fa fa-globe"></i> www.example.com</li>
                             </ul>
                         </div>

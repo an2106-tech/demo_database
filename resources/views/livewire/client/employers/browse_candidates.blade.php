@@ -205,23 +205,22 @@
                         </div>
                         <!-- end job head -->
                         <div class="candidate-list-page">
+                            @forelse ($candidates as $candidate)
                             <div class="single-candidate-list">
                                 <div class="main-comment">
                                     <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-1.png') }}" alt="author">
+                                        <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="tác giả">
                                     </div>
                                     <div class="candidate-text">
                                         <div class="candidate-info">
                                             <div class="candidate-title">
-                                                <h3><a href="#">Tammy Dixon</a></h3>
-                                                <img src="{{ asset('assets/img/de.svg') }}" alt="region" />
+                                                <h3><a href="#">{{ $candidate->name }}</a></h3>
+                                                <img src="{{ asset('assets/img/de.svg') }}" alt="vùng" />
                                             </div>
                                             <p>UI/UX Designer</p>
                                         </div>
                                         <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
+                                            <p>{{ $candidate->email }}
                                             </p>
                                         </div>
                                         <div class="candidate-text-bottom">
@@ -238,178 +237,10 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- End Single Candidate List -->
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-1.png') }}" alt="author">
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">Sebastiano Piccio</a></h3>
-                                                <img src="{{ asset('assets/img/au.svg') }}" alt="region" />
-                                            </div>
-                                            <p>Web Developer</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $45 / hr</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">view profile</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            @empty
+                            <p>Không có ứng viên nào.</p>
+                            @endforelse     
                             </div>
-                            <!-- End Single Candidate List -->
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-4.png') }}" alt="author">
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">Kathy Crawford</a></h3>
-                                                <img src="{{ asset('assets/img/gb.svg') }}" alt="region" />
-                                            </div>
-                                            <p>Laravel Dev</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / hr</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">view profile</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Candidate List -->
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-3.png') }}" alt="author">
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">david kamal </a></h3>
-                                                <img src="{{ asset('assets/img/de.svg') }}" alt="region" />
-                                            </div>
-                                            <p>UI/UX Designer</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / hr</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">view profile</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Candidate List -->
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-2.png') }}" alt="author">
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">david kamal </a></h3>
-                                                <img src="{{ asset('assets/img/pl.svg') }}" alt="region" />
-                                            </div>
-                                            <p>UI/UX Designer</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / hr</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">view profile</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Candidate List -->
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/msg-2.png') }}" alt="author">
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">david kamal </a></h3>
-                                                <img src="{{ asset('assets/img/de.svg') }}" alt="region" />
-                                            </div>
-                                            <p>UI/UX Designer</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada
-                                                fames ac turpis egestas. Etiam eu velit cursus, tempor ipsum in, tempus
-                                                lectus. Nullam tempus nisi id nisl luctus, non tempor justo molestie.
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% job success
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / hr</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">view profile</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- End Single Candidate List -->
-                        </div>
                         <div class="pagination-box-row">
                             <p>Page 1 of 6</p>
                             <ul class="pagination">

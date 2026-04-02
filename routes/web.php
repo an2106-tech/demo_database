@@ -56,11 +56,13 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/single_company', SingleCompany::class)->name('single_company');
     Route::get('/post_job', PostJob::class)->name('post_job');
     Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
-    Route::get('/company-profile', CandidateProfile::class)->name('company_profile');
-    route::get('message',Messages::class)->name('message');
-    route::get('manage_candidates',ManageJobs::class)->name('manage_candidates');
-    route::get('transaction',Earnings::class)->name('transaction');
-    route::get('change_password',ChangePassword::class)->name('change_password');
+    Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
+    Route::get('message', EmployersMessage::class)->name('message');
+    Route::get('manage_candidates', ManageCandidate::class)->name('manage_candidates');
+    Route::get('manage_jobs', EmployersManageJobs::class)->name('manage_jobs');
+    Route::get('candidate_earnings', Earnings::class)->name('candidate_earnings');
+    Route::get('transaction', EmployersTransaction::class)->name('transaction');
+    Route::get('change_password', ChangePassword::class)->name('change_password');
 });
 
 Route::prefix('pages')->name('pages.')->group(function () {
