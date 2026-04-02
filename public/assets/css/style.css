@@ -111,11 +111,11 @@ p {
 	font-weight: 500;
 	background: transparent;
 	border-radius: 4px;
-	border: 1px solid #25AD60;
+	border: 1px solid #5BB1FF;
 }
 
 .jobguru-btn:hover {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff
 }
 
@@ -142,12 +142,12 @@ p {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 }
 
 .jobguru-btn-2:hover {
-	background: #1e8d4e none repeat scroll 0 0;
+	background: #0f6dcc none repeat scroll 0 0;
 	color: #fff
 }
 
@@ -329,7 +329,7 @@ li {
 
 .slicknav_arrow {
 	float: right;
-	color: #25ad60
+	color: #5BB1FF
 }
 
 .slicknav_nav a:hover {
@@ -342,7 +342,7 @@ li {
 
 .slicknav_nav a:hover,
 .slicknav_nav .slicknav_row:hover {
-	background: #25ad60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff
 }
 
@@ -364,7 +364,7 @@ li {
 
 .slicknav_nav {
 	background: #fff none repeat scroll 0 0;
-	border-top: 1px solid #25ad60;
+	border-top: 1px solid #5BB1FF;
 	box-shadow: 0 0 25px rgba(0, 0, 0, 0.19);
     position: relative;
     top: 20px
@@ -445,7 +445,7 @@ li {
 
 .pagination li.active a,
 .pagination li a:hover {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff
 }
 
@@ -505,11 +505,11 @@ li {
 }
 
 .breadcromb-box-pagin ul li.active-breadcromb a {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .breadcromb-box-pagin ul li a:hover {
-	color: #25AD60;
+	color: #5BB1FF;
 	text-decoration: underline
 }
 
@@ -538,8 +538,8 @@ li {
 }
 
 .btntoTop {
-	background-color: #25ad60;
-	border: 2px solid #25ad60;
+	background-color: #5BB1FF;
+	border: 2px solid #5BB1FF;
 	border-radius: 50%;
 	bottom: 30px;
 	cursor: pointer;
@@ -816,12 +816,12 @@ header,
 .post-jobs {
 	display: block;
 	padding: 10px 30px !important;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 40px;
 }
 
 .post-jobs:hover {
-	background: #1e8d4e none repeat scroll 0 0;
+	background: #0f6dcc none repeat scroll 0 0;
 }
 
 
@@ -989,7 +989,7 @@ header,
 	width: 100%;
 	border: medium none;
 	cursor: pointer;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff;
 	border-radius: 0px 4px 4px 0px;
 	-webkit-transition: all 0.4s ease 0s;
@@ -997,7 +997,7 @@ header,
 }
 
 .banner-form-input button:hover {
-	background: #1e8d4e none repeat scroll 0 0;
+	background: #0f6dcc none repeat scroll 0 0;
 }
 
 .banner-form-input .select2 {
@@ -1045,7 +1045,7 @@ header,
 
 .banner-slider .owl-dots .owl-dot.active span,
 .banner-slider .owl-dots .owl-dot:hover span {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 }
 
 
@@ -1126,7 +1126,7 @@ header,
 
 .category-holder-icon i {
 	font-size: 30px;
-	color: #25AD60;
+	color: #5BB1FF;
 	-webkit-transition: all 0.4s ease 0s;
 	transition: all 0.4s ease 0s
 }
@@ -1163,21 +1163,65 @@ header,
 ==================================================*/
 
 .jobguru-inner-hire-area {
-	background: url(../img/hire_bg.jpg) no-repeat scroll 0 0/cover;
+	background-image: url(../img/anh-tuyen-dung-6.webp);
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center 55%;
 	position: relative;
-	z-index: 1
+	z-index: 1;
+	padding: 100px 0 120px;
+	overflow: hidden;
+	min-height: 680px;
 }
 
+.inner-hire-left {
+	width: 45%;
+	max-width: 520px;
+	position: relative;
+	z-index: 2;
+	padding: 140px 30px 40px;
+}
 
+/* Xóa overlay phiền :before và :after để chỉ lấy ảnh + chữ */
+.jobguru-inner-hire-area::after,
 .jobguru-inner-hire-area:before {
-	position: absolute;
-	content: "";
-	top: 0;
-	left: 0;
-	width: 50%;
-	height: 100%;
-	background: #25AD60 none repeat scroll 0 0;
-	z-index: -1;
+	display: none;
+}
+
+.inner-hire-left {
+	width: 45%;
+	max-width: 520px;
+	position: relative;
+	z-index: 2;
+	padding: 110px 30px;
+}
+
+/* Chữ rõ hơn trên ảnh */
+.inner-hire-left h3,
+.inner-hire-left p,
+.inner-hire-left a.jobguru-btn-3 {
+	text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.inner-hire-left h3 {
+	color: #fff;
+	text-transform: capitalize;
+	font-family: 'Montserrat', sans-serif;
+	font-weight: 700;
+	font-size: 42px;
+	margin-bottom: 10px;
+}
+
+.inner-hire-left p {
+	color: #f8f8f8;
+	line-height: 1.7;
+	margin-bottom: 20px;
+}
+
+.inner-hire-left a.jobguru-btn-3 {
+	margin-top: 20px;
+	background: rgba(2, 114, 64, 0.95);
+	border-color: rgba(0, 0, 0, 0.1);
 }
 
 .inner-hire-left h3 {
@@ -1243,7 +1287,7 @@ header,
 	color: #fff;
 	font-family: 'Montserrat', sans-serif !important;
 	font-weight: 500 !important;
-	background: #25AD60 none repeat scroll 0 0 !important;
+	background: #5BB1FF none repeat scroll 0 0 !important;
 }
 .jobguru-job-tab-area .nav-pills .nav-link:hover{
     color: #111
@@ -1372,13 +1416,13 @@ header,
 .company-list-btn a.jobguru-btn {
 	background: transparent none repeat scroll 0 0;
 	color: #111;
-	border: 1px solid #25AD60;
+	border: 1px solid #5BB1FF;
 }
 
 .company-list-btn a.jobguru-btn:hover {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff;
-	border: 1px solid #25AD60;
+	border: 1px solid #5BB1FF;
 }
 
 
@@ -1387,10 +1431,31 @@ header,
 ==================================================*/
 
 .jobguru-video-area {
-	background: url(../img/video_bg.jpeg) no-repeat fixed 0 0/cover;
+	background-image: url(../img/bg-3_3.jpg);
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center center;
+	background-attachment: scroll;
 	position: relative;
-	z-index: 1
+	z-index: 1;
+	width: 100%;
+	max-width: 1280px;
+	height: 500px;
+	margin: 0 auto;
 }
+
+@media (max-width: 991px) {
+	.jobguru-video-area {
+		height: 420px;
+	}
+}
+
+@media (max-width: 767px) {
+	.jobguru-video-area {
+		height: 360px;
+	}
+}
+
 
 .jobguru-video-area:before {
 	position: absolute;
@@ -1438,7 +1503,7 @@ header,
 	background: #fff none repeat scroll 0 0;
 	border: 2px solid #fff;
 	border-radius: 50%;
-	color: #25AD60;
+	color: #5BB1FF;
 	display: inline-block;
 	font-size: 20px;
 	height: 50px;
@@ -1452,8 +1517,8 @@ header,
 }
 
 .popup-youtube:hover i {
-	background: #25AD60 none repeat scroll 0 0;
-	border: 2px solid #25AD60;
+	background: #5BB1FF none repeat scroll 0 0;
+	border: 2px solid #5BB1FF;
 	color: #fff;
 }
 
@@ -1494,7 +1559,7 @@ position: absolute;
 }
 
 .works-box-icon i {
-	color: #25AD60;
+	color: #5BB1FF;
 	font-size: 45px;
 	margin-bottom: 20px;
 }
@@ -1641,7 +1706,7 @@ position: absolute;
 	height: 22%;
 	text-align: center;
 	color: #fff;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	font-weight: 600;
 	font-family: "Montserrat", sans-serif;
 	font-size: 17px;
@@ -1679,20 +1744,20 @@ position: absolute;
 ==================================================*/
 
 .footer-top {
-	background: #151515 url("../img/footer-bg.png") no-repeat scroll 0 0 / cover;
-	color: #8d8e92;
+	background: linear-gradient(135deg, #5BB1FF 0%, #8FCFFF 40%, #B8E4FF 100%);
+	color: #eaf5ff;
 	position: relative;
 	z-index: 1;
 }
 
 .footer-top:after {
-	background: #121212 none repeat scroll 0 0;
+	background: rgba(9, 58, 115, 0.35);
 	content: "";
 	height: 100%;
 	left: 0;
 	position: absolute;
 	top: 0;
-	width: 28%;
+	width: 100%;
 	z-index: -1;
 }
 
@@ -1746,12 +1811,11 @@ ul.footer-social li a>i {
 }
 
 .single-footer-widget>h3 {
-	color: #b3b3b3;
-	;
+	color: #ffffff;
 	display: inline-block;
 	font-family: "Montserrat", sans-serif;
-	font-size: 20px;
-	font-weight: 600;
+	font-size: 22px;
+	font-weight: 700;
 	margin-bottom: 20px;
 	text-transform: capitalize;
 }
@@ -1781,25 +1845,27 @@ ul.footer-social li a>i {
 
 .latest-post-footer-right>h4 {
 	font-family: "Montserrat", sans-serif;
-	font-size: 15px;
+	font-size: 16px;
 	font-weight: 600;
-	line-height: 20px;
+	line-height: 22px;
 	margin-bottom: 5px;
 	text-transform: capitalize;
+	color: #eaf5ff;
 }
 
 .latest-post-footer-right>h4 a {
-	color: #999
+	color: #cde8ff;
 }
 
 .latest-post-footer-right>h4 a:hover {
-	color: #fff
+	color: #ffffff;
 }
 
 .latest-post-footer-right>p {
-	color: #cecece;
-	font-size: 13px;
+	color: #e4f2ff;
+	font-size: 14px;
 }
+
 
 .single-footer-widget li {
 	margin-bottom: 5px;
@@ -1807,7 +1873,7 @@ ul.footer-social li a>i {
 
 .single-footer-widget a {
 	text-transform: capitalize;
-	color: #999
+	color: #d8efff;
 }
 
 .single-footer-widget a i {
@@ -1815,11 +1881,11 @@ ul.footer-social li a>i {
 }
 
 .single-footer-widget li a:hover {
-	color: #eee;
+	color: #ffffff;
 }
 
 .single-footer-widget p>i {
-	color: #25AD60;
+	color: #4c96d6;
 	margin-right: 5px;
 }
 
@@ -1832,36 +1898,33 @@ ul.footer-social li a>i {
 }
 
 .footer-copyright {
-	background: #121212 none repeat scroll 0 0;
-	border-top: 1px solid #262626;
-	color: #8d8e92;
-	padding: 30px 0;
+	background: #0e2a53;
+	border-top: 1px solid #1b4f96;
+	color: #ffffff;
+	padding: 20px 0;
 }
 
 .copyright-left {
-	text-align: center
+	text-align: center;
 }
 
 .copyright-left>p {
 	text-transform: capitalize;
-}
-
-.copyright-left>p {
 	font-family: "Montserrat", sans-serif;
 	font-weight: 500;
-	text-transform: capitalize;
-	color: #4c4c4c;
+	color: #f8fcff;
 }
 
 .copyright-left p i {
-	color: #27d0ee;
+	color: #b7e4ff;
 	margin: 0 5px;
 }
 
 .copyright-left p a {
-	color: #27d0ee;
+	color: #d6eeff;
 	margin-left: 3px;
 }
+
 
 
 /*================================================
@@ -1971,14 +2034,14 @@ ul.footer-social li a>i {
 	border: medium none;
 	padding: 15px 20px;
 	border-radius: 4px;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff;
 	-webkit-transition: all 0.4s ease 0s;
 	transition: all 0.4s ease 0s
 }
 
 .banner-welcome form .video-banner-input:last-child button:hover {
-	background: #1e8d4e none repeat scroll 0 0
+	background: #0f6dcc none repeat scroll 0 0
 }
 
 .top-search-cat p {
@@ -2041,7 +2104,7 @@ ul.footer-social li a>i {
 }
 
 .top-job-company-image h3 a:hover {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .top-job-company-desc {
@@ -2145,7 +2208,7 @@ ul.footer-social li a>i {
 }
 
 .happy-freelancer-info p {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	display: inline-block;
 	line-height: normal;
 	color: #fff;
@@ -2182,7 +2245,7 @@ ul.footer-social li a>i {
 
 .happy-freelancer-slider .owl-dots .owl-dot.active span,
 .happy-freelancer-slider .owl-dots .owl-dot:hover span {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 }
 
 
@@ -2286,7 +2349,7 @@ ul.footer-social li a>i {
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	z-index: -1;
 }
 
@@ -2455,16 +2518,16 @@ ul.footer-social li a>i {
 	height: 100%;
 	width: 20%;
 	cursor: pointer;
-	border: 1px solid #25AD60;
+	border: 1px solid #5BB1FF;
 	color: #fff;
-	background: #25AD60;
+	background: #5BB1FF;
 	border-radius: 0px 4px 4px 0px;
 	-webkit-transition: all 0.4s ease 0s;
 	transition: all 0.4s ease 0s
 }
 
 .job-browse-search form button:hover {
-	background: #1e8d4e none repeat scroll 0 0
+	background: #0f6dcc none repeat scroll 0 0
 }
 
 label.styled {
@@ -2501,7 +2564,7 @@ label.styled:before {
 	transition: all 0.4s ease;
 	opacity: 0;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-	border-right: 2px solid #25AD60;
+	border-right: 2px solid #5BB1FF;
 }
 
 label.styled:hover:before {
@@ -2518,7 +2581,7 @@ input.styled {
 /* :: CHECKED :: */
 
 input.styled:checked~label.styled {
-	background-color: #25AD60;
+	background-color: #5BB1FF;
 	-webkit-animation: throw 0.5s linear;
 	animation: throw 0.5s linear;
 	color: #fff;
@@ -2616,7 +2679,7 @@ input.styled:checked~label.styled:before {
 
 .available-count h4 a:hover {
 	text-decoration: none;
-	color: #25AD60;
+	color: #5BB1FF;
 }
 
 
@@ -2706,7 +2769,7 @@ input.styled:checked~label.styled:before {
 }
 
 .select2-container--default .select2-results__option--highlighted[aria-selected] {
-	background-color: #25AD60;
+	background-color: #5BB1FF;
 	color: #fff;
 }
 
@@ -2738,8 +2801,8 @@ input.styled:checked~label.styled:before {
 }
 
 .select2-container--default .select2-selection--multiple .select2-selection__choice {
-	background-color: #25AD60;
-	border: 1px solid #25AD60;
+	background-color: #5BB1FF;
+	border: 1px solid #5BB1FF;
 	margin-top: 7px;
 	color: #fff;
 }
@@ -2840,8 +2903,8 @@ input.styled:checked~label.styled:before {
 .checkbox-spin:checked+label span:before {
 	-webkit-transform: rotateZ(180deg);
 	transform: rotateZ(180deg);
-	background: #25AD60;
-	border: 1px solid #25AD60;
+	background: #5BB1FF;
+	border: 1px solid #5BB1FF;
 }
 
 .form-group.form-radio {
@@ -2873,13 +2936,13 @@ input.styled:checked~label.styled:before {
 }
 
 .form-group.form-radio input[type="radio"]:checked+.control-label:before {
-	background-color: #25AD60;
+	background-color: #5BB1FF;
 	box-shadow: inset 0 0 0 4px #f4f4f4;
 }
 
 .form-group.form-radio input[type="radio"]:focus+.control-label:before {
 	outline: none;
-	border-color: #25AD60;
+	border-color: #5BB1FF;
 }
 
 .form-group.form-radio input[type="radio"]:disabled {
@@ -2937,14 +3000,14 @@ input.styled:checked~label.styled:before {
 html .ui-button.ui-state-disabled:hover,
 html .ui-button.ui-state-disabled:active {
 	border-radius: 50%;
-	border: 2px solid #25AD60;
+	border: 2px solid #5BB1FF;
 	background: #fff;
 	cursor: pointer;
 }
 
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
 	border-radius: 50%;
-	border: 2px solid #25AD60;
+	border: 2px solid #5BB1FF;
 	background: #fff;
 	cursor: pointer;
 	height: 17px;
@@ -3004,11 +3067,11 @@ html .ui-button.ui-state-disabled:active {
 }
 
 .in.checkbox label:hover {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .checkbox-spin:checked+label {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 
@@ -3057,7 +3120,7 @@ html .ui-button.ui-state-disabled:active {
 .nav-tabs .nav-link.active,
 .nav-tabs .nav-item.show .nav-link {
 	color: #fff;
-	background-color: #25AD60;
+	background-color: #5BB1FF;
 	border-color: #dee2e6 #dee2e6 #fff;
 }
 
@@ -3081,7 +3144,7 @@ html .ui-button.ui-state-disabled:active {
 }
 
 .single-browse-company h3 a:hover {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .single-browse-company ul {
@@ -3181,7 +3244,7 @@ html .ui-button.ui-state-disabled:active {
 	cursor: pointer;
 	display: inline-block;
 	padding: 7px 18px;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	margin: 20px 0;
 }
@@ -3312,7 +3375,7 @@ html .ui-button.ui-state-disabled:active {
 
 .datepicker td.active,
 .datepicker td span.active {
-	background: #25AD60 none repeat scroll 0 0 !important
+	background: #5BB1FF none repeat scroll 0 0 !important
 }
 
 .product-upload {
@@ -3371,7 +3434,7 @@ html .ui-button.ui-state-disabled:active {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	cursor: pointer
 }
@@ -3419,12 +3482,12 @@ html .ui-button.ui-state-disabled:active {
 
 .dashboard-menu li a:hover,
 .dashboard-menu li.active a {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .dashboard-menu li.active a i,
 .dashboard-menu li a:hover i {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .grid_flex {
@@ -3449,7 +3512,7 @@ html .ui-button.ui-state-disabled:active {
 .widget-icon {
 	border: 1px solid #ddd;
 	border-radius: 5px;
-	color: #25AD60;
+	color: #5BB1FF;
 	font-size: 25px;
 	height: 55px;
 	line-height: 55px;
@@ -3474,7 +3537,7 @@ html .ui-button.ui-state-disabled:active {
 }
 
 .widget-page-text h2 {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 5px;
 	color: #fff;
 	display: inline-block;
@@ -3495,7 +3558,7 @@ html .ui-button.ui-state-disabled:active {
 }
 
 .welcome-dashboard h3 span {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .single-input label .twitter {
@@ -3674,7 +3737,7 @@ html .ui-button.ui-state-disabled:active {
 
 .nav.navbar-nav.pull-right.custom-menu>li>a {
 	font-size: 18px;
-	color: #25AD60;
+	color: #5BB1FF;
 }
 
 .nav.navbar-nav.pull-right.custom-menu>li>ul {
@@ -3815,7 +3878,7 @@ html .ui-button.ui-state-disabled:active {
 }
 
 .message-text-area button {
-	color: #25AD60;
+	color: #5BB1FF;
 	background: transparent none repeat scroll 0 0;
 	border: medium none;
 	font-size: 19px;
@@ -3989,7 +4052,7 @@ td span {
 	-ms-flex-line-pack: center;
 	align-content: center;
 	padding: 20px;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	margin-right: 15px;
 	border-radius: 5px;
 	position: relative
@@ -4054,7 +4117,7 @@ td span {
 }
 
 .single-balance-box h2 {
-	color: #25AD60;
+	color: #5BB1FF;
 	margin-top: 15px;
 	font-weight: 600;
 	font-family: 'Montserrat', sans-serif;
@@ -4074,7 +4137,7 @@ td span {
 }
 
 .widget_chart_analytics_right>p {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 5px;
 	color: #fff;
 	margin-bottom: 10px;
@@ -4099,7 +4162,7 @@ td span {
 }
 
 .single-balance-box h3 span a {
-	color: #25AD60;
+	color: #5BB1FF;
 }
 
 .change-pass form p {
@@ -4131,7 +4194,7 @@ td span {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	cursor: pointer;
 	margin-top: 20px
@@ -4362,15 +4425,15 @@ td span {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	margin-left: 10px;
 	border: 1px solid #25ad6a
 }
 
 .single-candidate-action a.candidate-contact:hover {
-	background: #1e8d4e none repeat scroll 0 0;
-	border: 1px solid #1e8d4e
+	background: #0f6dcc none repeat scroll 0 0;
+	border: 1px solid #0f6dcc
 }
 
 .single-candidate-action a.bookmarks {
@@ -4385,7 +4448,7 @@ td span {
 }
 
 .single-candidate-action a.bookmarks:hover {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border: 1px solid #25ad6a
 }
 
@@ -4525,7 +4588,7 @@ ul.job-overview>li>h4 {
 }
 
 .progress-bar-info {
-	background-color: #25AD60;
+	background-color: #5BB1FF;
 }
 
 .progress-bar {
@@ -4564,7 +4627,7 @@ ul.job-overview>li>h4 {
 
 .single-candidate-widget-2 ul li i {
 	margin-right: 5px;
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .single-candidate-widget-2 ul li {
@@ -4593,7 +4656,7 @@ ul.job-overview>li>h4 {
 }
 
 .single-candidate-widget-2>ul.candidate-social>li>a:hover>i {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .single-candidate-widget-2 p {
@@ -4631,7 +4694,7 @@ ul.job-overview>li>h4 {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	cursor: pointer;
 	width: 100%
@@ -4657,7 +4720,7 @@ ul.company-desc-list li i {
 	height: 20px;
 	line-height: 22px;
 	text-align: center;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff;
 	margin-right: 5px;
 	border-radius: 50%;
@@ -4708,7 +4771,7 @@ ul.company-desc-list li i {
 
 .job-details-meta p i {
 	margin-right: 5px;
-	color: #25AD60
+	color: #5BB1FF
 }
 
 
@@ -4971,7 +5034,7 @@ ul.company-desc-list li i {
 
 .blog-categories li a:hover,
 .blog-thumb-info-content h4 a:hover {
-	color: #25AD60
+	color: #5BB1FF
 }
 
 .Tags-catagory>li {
@@ -4990,7 +5053,7 @@ ul.company-desc-list li i {
 }
 
 .Tags-catagory>li>a:hover {
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff
 }
 
@@ -5053,7 +5116,7 @@ ul.company-desc-list li i {
 }
 
 .single-blog-item-date>h4 {
-	background: #25ad60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 5px;
 	color: #fff;
 	display: inline-block;
@@ -5081,7 +5144,7 @@ ul.company-desc-list li i {
 
 .blog-title p i {
 	margin-right: 5px;
-	color: #25ad60
+	color: #5BB1FF
 }
 
 .blog-title p:last-child {
@@ -5103,7 +5166,7 @@ ul.company-desc-list li i {
 }
 
 .blog-title>h3 a:hover {
-	color: #25ad60
+	color: #5BB1FF
 }
 
 .blog-content {
@@ -5164,7 +5227,7 @@ ul.company-desc-list li i {
 }
 
 .blog-content blockquote .author-name {
-	color: #25ad60;
+	color: #5BB1FF;
 	font-size: 18px;
 	font-weight: 500;
 	position: relative;
@@ -5229,7 +5292,7 @@ ul.company-desc-list li i {
 }
 
 .reply {
-	color: #25ad60;
+	color: #5BB1FF;
 	font-weight: 600
 }
 
@@ -5265,7 +5328,7 @@ ul.company-desc-list li i {
 }
 
 .leave-comment form button {
-	background: #25ad60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border: medium none;
 	border-radius: 4px;
 	color: #fff;
@@ -5331,7 +5394,7 @@ ul.company-desc-list li i {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	cursor: pointer;
 }
@@ -5355,7 +5418,7 @@ ul.company-desc-list li i {
 
 .lost-pass a:hover,
 .dont_have a:hover {
-	color: #25ad60
+	color: #5BB1FF
 }
 
 .dont_have {
@@ -5387,7 +5450,7 @@ ul.company-desc-list li i {
 }
 
 .contact-details p i {
-	color: #25ad60;
+	color: #5BB1FF;
 	margin-right: 5px
 }
 
@@ -5443,9 +5506,9 @@ ul.company-desc-list li i {
 }
 
 .social-links-contact ul li a:hover {
-	background: #25ad60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	color: #fff;
-	border: 1px solid #25ad60
+	border: 1px solid #5BB1FF
 }
 
 .contact-right form {
@@ -5483,7 +5546,7 @@ ul.company-desc-list li i {
 	color: #fff;
 	font-family: 'Montserrat', sans-serif;
 	font-weight: 500;
-	background: #25AD60 none repeat scroll 0 0;
+	background: #5BB1FF none repeat scroll 0 0;
 	border-radius: 4px;
 	cursor: pointer;
 }

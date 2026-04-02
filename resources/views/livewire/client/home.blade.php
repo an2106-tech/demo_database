@@ -55,9 +55,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>top Trending <span>Categories</span></h2>
-                        <p>A better career is out there. We'll help you find it. We're your first step to becoming
-                            everything you want to be.</p>
+                        <h2>Danh mục <span>Phổ biến nhất</span></h2>
+                        <p>Một sự nghiệp tốt hơn đang chờ đón bạn. Chúng tôi sẽ giúp bạn tìm thấy nó. Chúng tôi là bước
+                            đệm đầu tiên để bạn đạt được mọi ước mơ.</p>
                     </div>
                 </div>
             </div>
@@ -172,12 +172,12 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="inner-hire-left">
-                        <h3>Hire an employee</h3>
-                        <p>placerat congue dui rhoncus sem et blandit .et consectetur Fusce nec nunc lobortis lorem
-                            ultrices facilisis. Ut dapibus placerat blandit nunc.congue dui rhoncus sem et blandit .et
-                            consectetur Fusce nec nunc lobortis lorem ultrices facilisis. Ut dapibus placerat blandi
+                        <h3>Tuyển dụng nhân sự</h3>
+                        <p>Tìm kiếm ứng viên tài năng cho doanh nghiệp của bạn một cách nhanh chóng và hiệu quả. Chúng
+                            tôi kết nối bạn với hàng ngàn chuyên gia sẵn sàng làm việc ngay lập tức. Hãy bắt đầu xây
+                            dựng đội ngũ trong mơ của bạn ngay hôm nay.
                         </p>
-                        <a href="#" class="jobguru-btn-3">sign up as company</a>
+
                     </div>
                 </div>
             </div>
@@ -192,9 +192,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Companies & <span>job offers</span></h2>
-                        <p>It's easy. Simply post a job you need completed and receive competitive bids from freelancers
-                            within minutes</p>
+                        <h2>Chi nhánh & <span>Việc làm</span></h2>
+                        <p>Thật dễ dàng. Chỉ cần đăng việc bạn cần hoàn thành và nhận báo giá cạnh tranh từ các
+                            freelancer trong vài phút.</p>
                     </div>
                 </div>
             </div>
@@ -205,7 +205,7 @@
                             <li class="nav-item">
                                 <a class="nav-link active" id="pills-companies-tab" data-bs-toggle="pill"
                                     href="#pills-companies" role="tab" aria-controls="pills-companies"
-                                    aria-selected="true">top Companies</a>
+                                    aria-selected="true">Chi nhánh hàng đầu</a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="pills-job-tab" data-bs-toggle="pill" href="#pills-job"
@@ -218,176 +218,73 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
-                                                </a>
+                                    @forelse($branches as $branch)
+                                        <li>
+                                            <div class="top-company-list">
+                                                <div class="company-list-logo">
+                                                    <a href="#">
+                                                        <img src="{{ asset('storage/' . ltrim($branch->image)) }}"
+                                                            alt="{{ $branch->name }}" />
+                                                    </a>
+                                                </div>
+                                                <div class="company-list-details">
+                                                    <h3><a href="#">{{ $branch->name }}</a></h3>
+                                                   
+                                                    @if($branch->address)
+                                                        <p class="company-state"><i class="fa fa-location-arrow"></i>
+                                                            {{ $branch->address }}</p>
+                                                    @endif
+                                                    <p class="open-icon"><i
+                                                            class="fa fa-briefcase"></i>{{ $branch->workplaces_count ?? $branch->workplaces()->count() }}
+                                                        vị trí đang tuyển</p>
+                                                    <p class="varify"><i
+                                                            class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
+                                                    </p>
+                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                </div>
+                                                <div class="company-list-btn">
+                                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
+                                                </div>
                                             </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">jamulai - consulting & finance Co.</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-briefcase"></i>32 open position</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Verified</p>
-                                                <p class="rating-company">4.9</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">view profile</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Buildo - construction Co.</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-briefcase"></i>32 open position</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Verified</p>
-                                                <p class="rating-company">4.2</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">view profile</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">palms - school & college.</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-briefcase"></i>32 open position</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Verified</p>
-                                                <p class="rating-company">4.6</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">view profile</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-1.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">finance - consulting & business Co.</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-briefcase"></i>32 open position</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Verified</p>
-                                                <p class="rating-company">4.9</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">view profile</a>
-                                            </div>
-                                        </div>
-                                    </li>
+                                        </li>
+                                    @empty
+                                        <li>Không có chi nhánh nào.</li>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>
                         <div class="tab-pane fade" id="pills-job" role="tabpanel" aria-labelledby="pills-job-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-1.png') }}" alt="company list 1" />
-                                                </a>
+                                    @forelse($jobs as $job)
+                                        <li>
+                                            <div class="top-company-list">
+                                                <div class="company-list-logo">
+                                                    <a href="#">
+                                                        <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
+                                                            alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
+                                                            style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;">
+                                                    </a>
+                                                </div>
+                                                <div class="company-list-details">
+                                                    <h3><a href="#">{{ $job->title }}</a></h3>
+                                                    <p class="company-state"><i class="fa fa-map-marker"></i>
+                                                        {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}</p>
+                                                    <p class="open-icon"><i class="fa fa-clock-o"></i>
+                                                        {{ $job->created_at->diffForHumans() }}</p>
+                                                    <p class="varify"><i class="fa fa-check"></i>Giá:
+                                                        {{ is_array($job->salary_range) ? join(' - ', $job->salary_range) : ($job->salary_range ?? 'Thỏa thuận') }}
+                                                    </p>
+                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                </div>
+                                                <div class="company-list-btn">
+                                                    <a href="#" class="jobguru-btn">Xem ứng tuyển</a>
+                                                </div>
                                             </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Regional Sales Manager</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 minutes ago</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Fixed price : $1200-$2000
-                                                </p>
-                                                <p class="rating-company">4.1</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">bid now</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">C Developer (Senior) C .Net</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 minutes ago</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Fixed price : $800-$1200
-                                                </p>
-                                                <p class="rating-company">3.1</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">bid now</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Asst. Teacher</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>3 minutes ago</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Fixed price : $800-$1200
-                                                </p>
-                                                <p class="rating-company">4.3</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">bid now</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">civil engineer</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago,
-                                                    Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>30 minutes ago</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Fixed price : $2000-$2500
-                                                </p>
-                                                <p class="rating-company">3.7</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">bid now</a>
-                                            </div>
-                                        </div>
-                                    </li>
+                                        </li>
+                                    @empty
+                                        <li>Không có việc làm nào.</li>
+                                    @endforelse
                                 </ul>
                             </div>
                         </div>
@@ -412,7 +309,8 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="video-container">
-                        <h2>Hire experts freelancers today for <br> any job, any time.</h2>
+                        <h2>Thuê các chuyên gia tự do ngay hôm nay cho <br> bất kỳ công việc nào, vào bất kỳ lúc nào.
+                        </h2>
                         <div class="video-btn">
                             <a class="popup-youtube" href="https://www.youtube.com/watch?v=k-R6AFn9-ek">
                                 <i class="fa fa-play"></i>
@@ -433,16 +331,16 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>how it <span>works</span></h2>
-                        <p>It's easy. Simply post a job you need completed and receive competitive bids from freelancers
-                            within minutes</p>
+                        <h2>Cách thức <span>Hoạt động</span></h2>
+                        <p>Thật dễ dàng. Chỉ cần đăng việc bạn cần hoàn thành và nhận báo giá cạnh tranh từ các
+                            freelancer trong vài phút</p>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-4">
                     <div class="how-works-box box-1">
-                                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="works" />
+                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="works" />
                         <div class="works-box-icon">
                             <i class="fa fa-user"></i>
                         </div>
@@ -453,7 +351,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="how-works-box box-2">
-                                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="works" />
+                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="works" />
                         <div class="works-box-icon">
                             <i class="fa fa-gavel"></i>
                         </div>
@@ -484,9 +382,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Recent From <span>Blog</span></h2>
-                        <p>It's easy. Simply post a job you need completed and receive competitive bids from freelancers
-                            within minutes</p>
+                        <h2>Bài viết <span>Mới nhất</span></h2>
+                        <p>Tìm hiểu các bí quyết và tin tức mới nhất để phát triển sự nghiệp của bạn một cách nhanh
+                            chóng.</p>
                     </div>
                 </div>
             </div>
@@ -495,8 +393,8 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                    <img src="{{ asset('assets/img/blog-1.jpeg') }}" alt="blog image" />
-                                <p><span> 21</span> July</p>
+                                <img src="{{ asset('assets/img/content01_2307-01.jpg') }}" alt="blog image" />
+                                <p><span> 21</span> Tháng 7</p>
                             </div>
                             <div class="blog-text">
                                 <h3>If you're having trouble coming up with</h3>
@@ -508,8 +406,8 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                    <img src="{{ asset('assets/img/blog-2.jpeg') }}" alt="blog image" />
-                                <p><span> 21</span> July</p>
+                                <img src="{{ asset('assets/img/ipad_12_002.jpg') }}" alt="blog image" />
+                                <p><span> 21</span> Tháng 7</p>
                             </div>
                             <div class="blog-text">
                                 <h3>details about Apple’s new iPad Pro models</h3>
@@ -521,8 +419,8 @@
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-                                    <img src="{{ asset('assets/img/blog-3.jpeg') }}" alt="blog image" />
-                                <p><span> 21</span> July</p>
+                                <img src="{{ asset('assets/img/aptech_aprotrain_5.jpg') }}" alt="blog image" />
+                                <p><span> 21</span> Tháng 7</p>
                             </div>
                             <div class="blog-text">
                                 <h3>what are those Steps to be a Successful developer</h3>
@@ -533,5 +431,4 @@
             </div>
         </div>
     </section>
-    <!-- Blog Area End -->
 </div>

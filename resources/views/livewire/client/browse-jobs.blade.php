@@ -88,7 +88,7 @@
                               Địa điểm
                               <span class="company-state">
                                  <i class="fa fa-map-marker"></i>
-                                 {{ $job->workplace?->name ?? 'Chưa cập nhật' }}
+                                 {{ $job->address ?? 'Chưa cập nhật' }}
                               </span>
                            </li>
 
