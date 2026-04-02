@@ -471,6 +471,7 @@
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
                                                         {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}
                                                     </p>
+                                                    {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}</p>
                                                     <p class="open-icon"><i class="fa fa-clock-o"></i>
                                                         {{ $job->created_at->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:
@@ -735,11 +736,7 @@
                                 <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển
                                     của
                                     bạn.</p>
-<<<<<<< HEAD
-                                
-=======
                                 <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
->>>>>>> 1a6caed ([CLIENT] đỗ dữ liệu danh mục)
                                     class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
                             </div>
                         </div>
