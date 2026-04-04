@@ -39,8 +39,8 @@ class RecruitmentJobForm
                                     ->maxLength(255)
                                     ->rules(['required', 'string', 'max:255'])
                                     ->live(onBlur: true)
-                                    ->afterStateUpdated(fn ($state, $set) => $set('slug', Str::slug($state)))
-                                    ->dehydrateStateUsing(fn ($state) => trim($state)),
+                                    ->afterStateUpdated(fn($state, $set) => $set('slug', Str::slug($state)))
+                                    ->dehydrateStateUsing(fn($state) => trim($state)),
 
                                 TextInput::make('slug')
                                     ->required()
@@ -52,7 +52,7 @@ class RecruitmentJobForm
                                         'max:255',
                                         'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                                     ])
-                                    ->dehydrateStateUsing(fn ($state) => trim($state)),
+                                    ->dehydrateStateUsing(fn($state) => trim($state)),
 
                                 Select::make('status')
                                     ->label('Trạng thái')
@@ -71,7 +71,7 @@ class RecruitmentJobForm
                             ]),
 
                         Fieldset::make('Tổ chức')
-                            ->columns(3)
+                            ->columns(2)
                             ->schema([
                                 Select::make('branch_id')
                                     ->label('Chi nhánh')
@@ -87,9 +87,37 @@ class RecruitmentJobForm
                                     ->required()
                                     ->rules(['required']),
 
+
+
+                                Select::make('department_id')
+                                    ->label('Phòng ban')
+                                    ->options(function (callable $get) {
+                                        $branchId = $get('branch_id');
+
+                                        if (empty($branchId)) {
+                                            return [];
+                                        }
+
+                                        return Department::query()
+                                            ->where('branch_id', $branchId)
+                                            ->orderBy('name')
+                                            ->limit(500)
+                                            ->pluck('name', 'id')
+                                            ->all();
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->native(false)
+                                    ->disabled(fn(callable $get): bool => empty($get('branch_id')))
+                                    ->reactive()
+                                    ->afterStateUpdated(fn(callable $set) => $set('workplace_id', null))
+                                    ->nullable()
+                                    ->rules(['nullable', 'integer']),
+
                                 Placeholder::make('branch_image_preview')
                                     ->label('Ảnh chi nhánh')
-                                    ->visible(fn (callable $get): bool => ! empty($get('branch_id')))
+                                    ->columnSpan(1)
+                                    ->visible(fn(callable $get): bool => ! empty($get('branch_id')))
                                     ->content(function (callable $get): HtmlString|string {
                                         $branchId = $get('branch_id');
 
@@ -112,31 +140,6 @@ class RecruitmentJobForm
                                         );
                                     }),
 
-                                Select::make('department_id')
-                                    ->label('Phòng ban')
-                                    ->options(function (callable $get) {
-                                        $branchId = $get('branch_id');
-
-                                        if (empty($branchId)) {
-                                            return [];
-                                        }
-
-                                        return Department::query()
-                                            ->where('branch_id', $branchId)
-                                            ->orderBy('name')
-                                            ->limit(500)
-                                            ->pluck('name', 'id')
-                                            ->all();
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->native(false)
-                                    ->disabled(fn (callable $get): bool => empty($get('branch_id')))
-                                    ->reactive()
-                                    ->afterStateUpdated(fn (callable $set) => $set('workplace_id', null))
-                                    ->nullable()
-                                    ->rules(['nullable', 'integer']),
-
                                 Select::make('workplace_id')
                                     ->label('Nơi làm việc')
                                     ->options(function (callable $get) {
@@ -156,7 +159,7 @@ class RecruitmentJobForm
                                     ->searchable()
                                     ->preload()
                                     ->native(false)
-                                    ->disabled(fn (callable $get): bool => empty($get('department_id')))
+                                    ->disabled(fn(callable $get): bool => empty($get('department_id')))
                                     ->nullable()
                                     ->rules(['nullable', 'integer']),
                             ]),
@@ -171,7 +174,7 @@ class RecruitmentJobForm
                             ->rows(10)
                             ->columnSpanFull()
                             ->rules(['required', 'string'])
-                            ->dehydrateStateUsing(fn ($state) => trim($state)),
+                            ->dehydrateStateUsing(fn($state) => trim($state)),
 
                         Fieldset::make('Lương & Hạn')
                             ->columns(4)
@@ -226,11 +229,15 @@ class RecruitmentJobForm
 
                                 DatePicker::make('deadline')
                                     ->label('Hạn nộp')
+                                    ->columnSpan(2)
+                                    ->native(false)
+                                    ->displayFormat('d/m/Y')
                                     ->nullable()
                                     ->rules(['nullable', 'date', 'after_or_equal:today']),
 
                                 TextInput::make('positions_count')
                                     ->label('Số lượng tuyển')
+                                    ->columnSpan(2)
                                     ->numeric()
                                     ->default(1)
                                     ->minValue(1)
@@ -260,7 +267,7 @@ class RecruitmentJobForm
                                         }
                                     })
                                     ->dehydrateStateUsing(
-                                        fn ($state, $get) => (function () use ($get) {
+                                        fn($state, $get) => (function () use ($get) {
                                             $min = $get('salary_min');
                                             $max = $get('salary_max');
 
@@ -310,7 +317,7 @@ class RecruitmentJobForm
                             ]),
 
                         Hidden::make('created_by')
-                            ->default(fn () => Auth::id()),
+                            ->default(fn() => Auth::id()),
                     ]),
             ]);
     }
