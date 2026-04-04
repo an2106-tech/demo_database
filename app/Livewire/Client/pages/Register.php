@@ -13,6 +13,8 @@ class Register extends Component
     #[Layout('layouts.client')]
     public string $role = 'candidate';
 
+    public ?string $next_route = null;
+
     public string $name = '';
 
     public string $email = '';
@@ -26,20 +28,34 @@ class Register extends Component
     public string $phone = '';
     public bool $terms_accepted = false;
 
+    // Employer-only fields (used by the Blade view)
+    public string $province = '';
+    public string $address = '';
+
     protected array $queryString = [
         'role' => ['except' => 'candidate'],
+        'next_route' => ['except' => null],
     ];
 
     public function mount(): void
     {
         $r = request()->query('role');
         $this->role = $this->normalizeRole(is_string($r) ? $r : '');
+
+        $nextRoute = request()->query('next_route');
+        $this->next_route = is_string($nextRoute) && $nextRoute !== '' ? $nextRoute : null;
     }
 
     public function setRole(string $role): void
     {
         $this->resetErrorBag();
         $this->role = $this->normalizeRole($role);
+
+        if ($this->role === 'candidate') {
+            $this->province = '';
+            $this->address = '';
+            $this->branch_id = null;
+        }
     }
 
     private function normalizeRole(string $role): string
@@ -56,8 +72,32 @@ class Register extends Component
 
     public function register(): mixed
     {
+        $authUser = Auth::user();
+        if ($authUser && $this->role === 'candidate') {
+            $metadata = is_array($authUser->metadata) ? $authUser->metadata : [];
+            $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
+
+            $accountTypes[] = 'candidate';
+            if ($authUser->role === 'hr') {
+                $accountTypes[] = 'employer';
+            }
+
+            $metadata['account_types'] = array_values(array_unique(array_filter($accountTypes, 'is_string')));
+            $authUser->metadata = $metadata;
+            $authUser->save();
+
+            return $this->redirectAfterActivation();
+        }
+
         if (! in_array($this->role, ['candidate', 'employer'], true)) {
             $this->role = 'candidate';
+        }
+
+        $existing = User::query()->where('email', $this->email)->first();
+        if (! $authUser && $existing && $this->role === 'candidate' && $existing->role === 'hr') {
+            $this->addError('email', 'Email này đã có tài khoản HR. Vui lòng đăng nhập và kích hoạt tài khoản ứng viên.');
+
+            return null;
         }
 
         $rules = [
@@ -70,6 +110,8 @@ class Register extends Component
 
         if ($this->role === 'employer') {
             $rules['branch_id'] = ['required', 'integer', 'exists:branches,id'];
+            $rules['province'] = ['required', 'string', 'max:255'];
+            $rules['address'] = ['required', 'string', 'max:255'];
         }
 
         $data = $this->validate($rules);
@@ -85,6 +127,7 @@ class Register extends Component
                 'is_active' => true,
                 'metadata' => [
                     'account_type' => 'candidate',
+                    'account_types' => ['candidate'],
                     'phone' => trim($data['phone']),
                 ],
             ]);
@@ -99,13 +142,34 @@ class Register extends Component
                 'is_active' => true,
                 'metadata' => [
                     'account_type' => 'employer',
+                    'account_types' => ['employer'],
                     'phone' => trim($data['phone']),
+                    'province' => trim($data['province']),
+                    'address' => trim($data['address']),
                 ],
             ]);
         }
 
         Auth::login($user);
         request()->session()->regenerate();
+
+        return redirect()->route('home');
+    }
+
+    private function redirectAfterActivation(): mixed
+    {
+        $allowed = [
+            'candidates.candidate_dashboard',
+            'candidates.candidate_profile',
+            'candidates.messages',
+            'candidates.manage_jobs',
+            'candidates.earnings',
+            'candidates.change_password',
+        ];
+
+        if ($this->next_route && in_array($this->next_route, $allowed, true)) {
+            return redirect()->route($this->next_route);
+        }
 
         return redirect()->route('home');
     }
@@ -117,13 +181,30 @@ class Register extends Component
 
     public function render()
     {
-        $branches = Branch::query()
+        $provinceOptions = Branch::query()
             ->where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name', 'city']);
+            ->whereNotNull('city')
+            ->where('city', '!=', '')
+            ->distinct()
+            ->orderBy('city')
+            ->pluck('city', 'city')
+            ->all();
+
+        $branchesQuery = Branch::query()
+            ->where('is_active', true)
+            ->orderBy('name');
+
+        if ($this->province !== '') {
+            $branchesQuery->where('city', $this->province);
+        } else {
+            $branchesQuery->whereRaw('1=0');
+        }
+
+        $branches = $branchesQuery->get(['id', 'name', 'city']);
 
         return view('livewire.client.pages.register', [
             'branches' => $branches,
+            'provinceOptions' => $provinceOptions,
         ]);
     }
 }

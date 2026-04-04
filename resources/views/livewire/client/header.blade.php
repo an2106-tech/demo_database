@@ -61,14 +61,14 @@
                                     <li class="has-inner-child">
                                        <a href="#">Bảng điều khiển</a>
                                        <ul>
-                                          <li><a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a></li>
-                                          <li><a href="{{ route('candidates.candidate_profile') }}">Thông tin cá nhân</a></li>
-                                          <li><a href="{{ route('candidates.messages') }}">Tin nhắn</a></li>
-                                          <li><a href="{{ route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
-                                          <li><a href="{{ route('candidates.earnings') }}">Thu nhập</a></li>
-                                          <li><a href="{{ route('candidates.change_password') }}">Đổi mật khẩu</a></li>
-                                       </ul>
-                                    </li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.candidate_dashboard']) : route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a></li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.candidate_profile']) : route('candidates.candidate_profile') }}">Thông tin cá nhân</a></li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.messages']) : route('candidates.messages') }}">Tin nhắn</a></li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.manage_jobs']) : route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.earnings']) : route('candidates.earnings') }}">Thu nhập</a></li>
+                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.change_password']) : route('candidates.change_password') }}">Đổi mật khẩu</a></li>
+                                        </ul>
+                                     </li>
                                  </ul>
                               </li>
                            @else
@@ -117,6 +117,14 @@
                <div class="col-lg-4">
                   <div class="header-right-menu">
                      <ul>
+                        @auth
+                           @if($showRoleSwitcher ?? false)
+                              <li style="display:flex; gap:.5rem; align-items:center;">
+                                 <a href="#" wire:click.prevent="switchTo('candidate')" class="post-jobs" style="{{ ! $isEmployerHeader ? 'background:#0ea5e9;border-color:#0ea5e9;' : 'background:#e2e8f0;border-color:#e2e8f0;color:#0f172a;' }}">Ứng viên</a>
+                                 <a href="#" wire:click.prevent="switchTo('employer')" class="post-jobs" style="{{ $isEmployerHeader ? 'background:#16a34a;border-color:#16a34a;' : 'background:#e2e8f0;border-color:#e2e8f0;color:#0f172a;' }}">Nhà tuyển dụng</a>
+                              </li>
+                           @endif
+                        @endauth
                         @if($isEmployerHeader)
                            <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
                         @endif

@@ -84,13 +84,13 @@
                      <div class="top-job-company-desc">
                         <ul>
 
-                           <li>
-                              Địa điểm
-                              <span class="company-state">
-                                 <i class="fa fa-map-marker"></i>
-                                 {{ $job->address ?? 'Chưa cập nhật' }}
-                              </span>
-                           </li>
+                            <li>
+                               Địa điểm
+                               <span class="company-state">
+                                  <i class="fa fa-map-marker"></i>
+                                  {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Chưa cập nhật') }}
+                               </span>
+                            </li>
 
                            <li>
                               Mức lương
@@ -316,6 +316,7 @@
                </div>
             </div>
          </div>
-      </section>
-      <!-- Top Job Area End -->
+
+      </div>
+   </section>
 </div>

@@ -11,7 +11,7 @@ class BrowseJobs extends Component
     public function render()
     {
         $jobs = RecruitmentJob::query()
-            ->with(['branch:id,name,image', 'workplace:id,name'])
+            ->with(['branch:id,name,image,city', 'workplace:id,name'])
             ->latest()
             ->get();
 

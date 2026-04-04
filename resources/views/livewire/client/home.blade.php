@@ -385,8 +385,7 @@
                                                 <div class="company-list-details">
                                                     <h3><a href="#">{{ $job->title }}</a></h3>
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}
-                                                    </p>
+                                                        {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}</p>
                                                     <p class="open-icon"><i class="fa fa-clock-o"></i>
                                                         {{ $job->created_at->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:
