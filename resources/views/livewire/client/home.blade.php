@@ -1,31 +1,133 @@
 <div>
     <style>
-        .jobguru-banner-area { background: linear-gradient(180deg, rgba(12, 77, 133, .92), rgba(25, 115, 224, .90)); }
-        .jobguru-banner-area .banner-text h2 { color: #fff; font-size: 3rem; font-weight: 700; margin-bottom: 1rem; }
-        .jobguru-banner-area .banner-text h4 { color: rgba(255,255,255,.88); font-size: 1.25rem; margin-bottom: 1.5rem; }
-        .jobguru-banner-area .jobguru-btn { min-width: 210px; }
-        #selectRoleModal .modal-dialog { max-width: 1120px; }
-        #selectRoleModal .modal-content { border-radius: 32px; overflow: hidden; border: none; background: transparent; }
-        #selectRoleModal .modal-header { border-bottom: none; padding: 2rem 2rem 0; }
-        #selectRoleModal .modal-body { padding: 0; }
-        #selectRoleModal .role-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; padding: 1.5rem; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
-        #selectRoleModal .role-card { border-radius: 28px; overflow: hidden; border: 1px solid rgba(226,232,240,.8); background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, .12); transition: transform .3s ease, box-shadow .3s ease; }
-        #selectRoleModal .role-card:hover { transform: translateY(-8px); box-shadow: 0 32px 90px rgba(15, 23, 42, .18); }
-        #selectRoleModal .role-card-img { width: 100%; height: 300px; object-fit: cover; }
-        #selectRoleModal .role-card-body { padding: 1.8rem 1.6rem 2rem; }
-        #selectRoleModal .role-card-title { margin-bottom: .85rem; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
-        #selectRoleModal .role-card-text { margin-bottom: 1.4rem; color: #475569; line-height: 1.75; }
-        #selectRoleModal .role-card-button { width: 100%; padding: 1rem 1.2rem; border-radius: 999px; font-weight: 700; }
-        #selectRoleModal .modal-body::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(16,185,129,.14)); pointer-events:none; }
-        #selectRoleModal .modal-content { position: relative; }
-        @media (max-width: 991px) {
-            #selectRoleModal .modal-dialog { max-width: 95%; }
-            #selectRoleModal .role-panel { grid-template-columns: 1fr; }
-            #selectRoleModal .role-card-img { height: 220px; }
+        .jobguru-banner-area {
+            background: linear-gradient(180deg, rgba(12, 77, 133, .92), rgba(25, 115, 224, .90));
         }
+
+        .jobguru-banner-area .banner-text h2 {
+            color: #fff;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .jobguru-banner-area .banner-text h4 {
+            color: rgba(255, 255, 255, .88);
+            font-size: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .jobguru-banner-area .jobguru-btn {
+            min-width: 210px;
+        }
+
+        #selectRoleModal .modal-dialog {
+            max-width: 1120px;
+        }
+
+        #selectRoleModal .modal-content {
+            border-radius: 32px;
+            overflow: hidden;
+            border: none;
+            background: transparent;
+        }
+
+        #selectRoleModal .modal-header {
+            border-bottom: none;
+            padding: 2rem 2rem 0;
+        }
+
+        #selectRoleModal .modal-body {
+            padding: 0;
+        }
+
+        #selectRoleModal .role-panel {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, .96);
+            backdrop-filter: blur(12px);
+        }
+
+        #selectRoleModal .role-card {
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(226, 232, 240, .8);
+            background: #ffffff;
+            box-shadow: 0 28px 70px rgba(15, 23, 42, .12);
+            transition: transform .3s ease, box-shadow .3s ease;
+        }
+
+        #selectRoleModal .role-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 32px 90px rgba(15, 23, 42, .18);
+        }
+
+        #selectRoleModal .role-card-img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        #selectRoleModal .role-card-body {
+            padding: 1.8rem 1.6rem 2rem;
+        }
+
+        #selectRoleModal .role-card-title {
+            margin-bottom: .85rem;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        #selectRoleModal .role-card-text {
+            margin-bottom: 1.4rem;
+            color: #475569;
+            line-height: 1.75;
+        }
+
+        #selectRoleModal .role-card-button {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        #selectRoleModal .modal-body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(59, 130, 246, .18), rgba(16, 185, 129, .14));
+            pointer-events: none;
+        }
+
+        #selectRoleModal .modal-content {
+            position: relative;
+        }
+
+        @media (max-width: 991px) {
+            #selectRoleModal .modal-dialog {
+                max-width: 95%;
+            }
+
+            #selectRoleModal .role-panel {
+                grid-template-columns: 1fr;
+            }
+
+            #selectRoleModal .role-card-img {
+                height: 220px;
+            }
+        }
+
         @media (max-width: 575px) {
-            .jobguru-banner-area .banner-text h2 { font-size: 2.2rem; }
-            .jobguru-banner-area .banner-text h4 { font-size: 1.05rem; }
+            .jobguru-banner-area .banner-text h2 {
+                font-size: 2.2rem;
+            }
+
+            .jobguru-banner-area .banner-text h4 {
+                font-size: 1.05rem;
+            }
         }
     </style>
     <section class="jobguru-banner-area">
@@ -44,9 +146,13 @@
                         <div class="banner-search" style="max-width:760px; margin:0 auto;">
                             <h2>Thuê các chuyên gia tự do hàng đầu.</h2>
                             <h4>Chúng tôi có 1542 cơ hội việc làm dành cho bạn!</h4>
-                            <p style="margin: 20px 0 28px; color: rgba(255,255,255,.85); font-size:1rem; line-height:1.6;">Chọn loại tài khoản của bạn để bắt đầu. Ứng viên hay nhà tuyển dụng sẽ có giao diện khác nhau.</p>
+                            <p
+                                style="margin: 20px 0 28px; color: rgba(255,255,255,.85); font-size:1rem; line-height:1.6;">
+                                Chọn loại tài khoản của bạn để bắt đầu. Ứng viên hay nhà tuyển dụng sẽ có giao diện khác
+                                nhau.</p>
                             <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
-                                <button type="button" class="jobguru-btn" data-bs-toggle="modal" data-bs-target="#selectRoleModal">Đăng ký ngay</button>
+                                <button type="button" class="jobguru-btn" data-bs-toggle="modal"
+                                    data-bs-target="#selectRoleModal">Đăng ký ngay</button>
                                 <a href="{{ route('auth.login') }}" class="jobguru-btn-2">Đăng nhập</a>
                             </div>
                         </div>
@@ -74,102 +180,102 @@
                 <div class="col-lg-3 col-md-6 col-sm-6">
                     <a href="#" class="single-category-holder account_cat">
                         <div class="category-holder-icon">
-                            <i class="fa fa-briefcase"></i>
+                            <i class="bi bi-buildings"></i>
                         </div>
                         <div class="category-holder-text">
                             <h3>Accounting & Finance</h3>
                         </div>
                         <img src="{{ asset('assets/img/logo.png') }}" alt="category" />
+
                     </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder design_cat">
+                    <div class="col-lg-3 col-md-6 col-sm-6">
                         <div class="category-holder-icon">
                             <i class="fa fa-pencil-square-o"></i>
                         </div>
                         <div class="category-holder-text">
                             <h3>Design, Art & Multimedia</h3>
                         </div>
-                                <img src="{{ asset('assets/img/design_art.jpg') }}" alt="category" />
-                    </a>
+                        <img src="{{ asset('assets/img/design_art.jpg') }}" alt="category" />
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder restaurant_cat">
+                            <div class="category-holder-icon">
+                                <i class="fa fa-cutlery"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>Restaurant / Food Service</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/restaurent.jpg') }}" alt="category" />
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder tech_cat">
+                            <div class="category-holder-icon">
+                                <i class="fa fa-code"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>Programming & Tech</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/programing_cat.jpeg') }}" alt="category" />
+                        </a>
+                    </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder restaurant_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-cutlery"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Restaurant / Food Service</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/restaurent.jpg') }}" alt="category" />
-                    </a>
+                <div class="row">
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder data_cat">
+                            <div class="category-holder-icon">
+                                <i class="fa fa-bar-chart"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>Data Science & Analitycs</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/data_cat.png') }}" alt="category" />
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder writing_cat">
+                            <div class="category-holder-icon">
+                                <i class="bi bi-person-gear"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>Writing / Translations</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/writing_cat.jpg') }}" alt="category" />
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder edu_cat">
+                            <div class="category-holder-icon">
+                                <i class="fa fa-graduation-cap"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>Education / Training</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/edu_cat.jpg') }}" alt="category" />
+                        </a>
+                    </div>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder sale_cat">
+                            <div class="category-holder-icon">
+                                <i class="fa fa-bullhorn"></i>
+                            </div>
+                            <div class="category-holder-text">
+                                <h3>sales / marketing</h3>
+                            </div>
+                            <img src="{{ asset('assets/img/sale_cat.png') }}" alt="category" />
+                        </a>
+                    </div>
                 </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder tech_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-code"></i>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="load-more">
+                            <a href="#" class="jobguru-btn">Xem tất cả danh mục</a>
+                            <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
                         </div>
-                        <div class="category-holder-text">
-                            <h3>Programming & Tech</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/programing_cat.jpeg') }}" alt="category" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder data_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-bar-chart"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Data Science & Analitycs</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/data_cat.png') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder writing_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-pencil"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Writing / Translations</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/writing_cat.jpg') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder edu_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-graduation-cap"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Education / Training</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/edu_cat.jpg') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder sale_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-bullhorn"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>sales / marketing</h3>
-                        </div>
-                                <img src="{{ asset('assets/img/sale_cat.png') }}" alt="category" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="load-more">
-                        <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
                     </div>
                 </div>
             </div>
-        </div>
     </section>
     <!-- Categories Area End -->
 
@@ -238,8 +344,8 @@
                                                 </div>
                                                 <div class="company-list-details">
                                                     <h3><a href="#">{{ $branch->name }}</a></h3>
-                                                   
-                                                    @if($branch->address)
+
+                                                    @if ($branch->address)
                                                         <p class="company-state"><i class="fa fa-location-arrow"></i>
                                                             {{ $branch->address }}</p>
                                                     @endif
@@ -249,7 +355,8 @@
                                                     <p class="varify"><i
                                                             class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
                                                     </p>
-                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                    <p class="rating-company">
+                                                        {{ number_format(rand(37, 50) / 10, 1) }}</p>
                                                 </div>
                                                 <div class="company-list-btn">
                                                     <a href="#" class="jobguru-btn">Xem hồ sơ</a>
@@ -278,13 +385,15 @@
                                                 <div class="company-list-details">
                                                     <h3><a href="#">{{ $job->title }}</a></h3>
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}</p>
+                                                        {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}
+                                                    </p>
                                                     <p class="open-icon"><i class="fa fa-clock-o"></i>
                                                         {{ $job->created_at->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:
-                                                        {{ is_array($job->salary_range) ? join(' - ', $job->salary_range) : ($job->salary_range ?? 'Thỏa thuận') }}
+                                                        {{ is_array($job->salary_range) ? join(' - ', $job->salary_range) : $job->salary_range ?? 'Thỏa thuận' }}
                                                     </p>
-                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                    <p class="rating-company">
+                                                        {{ number_format(rand(37, 50) / 10, 1) }}</p>
                                                 </div>
                                                 <div class="company-list-btn">
                                                     <a href="#" class="jobguru-btn">Xem ứng tuyển</a>
@@ -441,7 +550,8 @@
         </div>
     </section>
 
-    <div class="modal fade" id="selectRoleModal" tabindex="-1" aria-labelledby="selectRoleModalLabel" aria-hidden="true">
+    <div class="modal fade" id="selectRoleModal" tabindex="-1" aria-labelledby="selectRoleModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-fullscreen-md-down">
             <div class="modal-content">
                 <div class="modal-header pb-0">
@@ -454,19 +564,27 @@
                 <div class="modal-body">
                     <div class="role-panel">
                         <div class="role-card">
-                            <img class="role-card-img" src="{{ asset('assets/img/anh-tuyen-dung-6.webp') }}" alt="Nhà tuyển dụng" />
+                            <img class="role-card-img" src="{{ asset('assets/img/anh-tuyen-dung-6.webp') }}"
+                                alt="Nhà tuyển dụng" />
                             <div class="role-card-body">
                                 <h4 class="role-card-title">Tôi là nhà tuyển dụng</h4>
-                                <p class="role-card-text">Đăng tin, quản lý ứng viên và mở rộng đội ngũ nhân sự của bạn nhanh chóng.</p>
-                                <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}" class="btn btn-success role-card-button">Chọn nhà tuyển dụng</a>
+                                <p class="role-card-text">Đăng tin, quản lý ứng viên và mở rộng đội ngũ nhân sự của bạn
+                                    nhanh chóng.</p>
+                                <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}"
+                                    class="btn btn-success role-card-button">Chọn nhà tuyển dụng</a>
                             </div>
                         </div>
                         <div class="role-card">
-                            <img class="role-card-img" src="{{ asset('assets/img/uv.webp') }}" alt="Ứng viên tìm việc" width="800" height="600" loading="lazy" decoding="async" />
+                            <img class="role-card-img" src="{{ asset('assets/img/uv.webp') }}"
+                                alt="Ứng viên tìm việc" width="800" height="600" loading="lazy"
+                                decoding="async" />
                             <div class="role-card-body">
                                 <h4 class="role-card-title">Tôi là ứng viên tìm việc</h4>
-                                <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển của bạn.</p>
-                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}" class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
+                                <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển
+                                    của
+                                    bạn.</p>
+                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
+                                    class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
                             </div>
                         </div>
                     </div>
