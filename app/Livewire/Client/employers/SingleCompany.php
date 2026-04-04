@@ -2,14 +2,13 @@
 
 namespace App\Livewire\Client\Employers;
 
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 use App\Models\Branch;
 
 class SingleCompany extends Component
 {
-    #[Layout('layouts.client')] 
-
+    #[Layout('layouts.employer')]
     public function render()
     {
         $branches = Branch::find(1);

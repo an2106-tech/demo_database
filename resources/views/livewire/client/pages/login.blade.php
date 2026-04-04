@@ -38,9 +38,14 @@
             <div class="col-lg-4 offset-lg-4 col-sm-6 offset-sm-3">
                <div class="login-box">
                   <div class="login-title">
-                     <h3>Sign in</h3>
+                     <h3>{{ request('role') === 'employer' ? 'Đăng nhập cho nhà tuyển dụng' : 'Đăng nhập cho ứng viên' }}</h3>
+                     <div class="auth-choice-buttons" style="display:flex; gap:.7rem; flex-wrap:wrap; margin-top:.8rem;">
+                        <a href="{{ route('auth.login', ['role' => 'candidate']) }}" class="jobguru-btn-2 {{ request('role') !== 'employer' ? 'active' : '' }}">Đăng nhập cho ứng viên</a>
+                        <a href="{{ route('auth.login', ['role' => 'employer']) }}" class="jobguru-btn-2 {{ request('role') === 'employer' ? 'active' : '' }}">Đăng nhập cho tuyển dụng</a>
+                     </div>
                   </div>
-                  <form>
+                  <form wire:submit.prevent="login">
+                     <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
                      <div class="single-login-field">
                         <input type="email" placeholder="Email Address">
                      </div>
@@ -61,7 +66,7 @@
                      </div>
                   </form>
                   <div class="dont_have">
-                     <a href="register.html">Don't have an account?</a>
+                     <a href="{{ route('auth.sign_up', ['role' => request('role') === 'employer' ? 'employer' : 'candidate']) }}">Chưa có tài khoản? Đăng ký ngay</a>
                   </div>
                </div>
             </div>

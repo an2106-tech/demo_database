@@ -1,5 +1,33 @@
 <div>
-    <!-- Banner Area Start -->
+    <style>
+        .jobguru-banner-area { background: linear-gradient(180deg, rgba(12, 77, 133, .92), rgba(25, 115, 224, .90)); }
+        .jobguru-banner-area .banner-text h2 { color: #fff; font-size: 3rem; font-weight: 700; margin-bottom: 1rem; }
+        .jobguru-banner-area .banner-text h4 { color: rgba(255,255,255,.88); font-size: 1.25rem; margin-bottom: 1.5rem; }
+        .jobguru-banner-area .jobguru-btn { min-width: 210px; }
+        #selectRoleModal .modal-dialog { max-width: 1120px; }
+        #selectRoleModal .modal-content { border-radius: 32px; overflow: hidden; border: none; background: transparent; }
+        #selectRoleModal .modal-header { border-bottom: none; padding: 2rem 2rem 0; }
+        #selectRoleModal .modal-body { padding: 0; }
+        #selectRoleModal .role-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; padding: 1.5rem; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
+        #selectRoleModal .role-card { border-radius: 28px; overflow: hidden; border: 1px solid rgba(226,232,240,.8); background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, .12); transition: transform .3s ease, box-shadow .3s ease; }
+        #selectRoleModal .role-card:hover { transform: translateY(-8px); box-shadow: 0 32px 90px rgba(15, 23, 42, .18); }
+        #selectRoleModal .role-card-img { width: 100%; height: 300px; object-fit: cover; }
+        #selectRoleModal .role-card-body { padding: 1.8rem 1.6rem 2rem; }
+        #selectRoleModal .role-card-title { margin-bottom: .85rem; font-size: 1.4rem; font-weight: 800; color: #0f172a; }
+        #selectRoleModal .role-card-text { margin-bottom: 1.4rem; color: #475569; line-height: 1.75; }
+        #selectRoleModal .role-card-button { width: 100%; padding: 1rem 1.2rem; border-radius: 999px; font-weight: 700; }
+        #selectRoleModal .modal-body::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(16,185,129,.14)); pointer-events:none; }
+        #selectRoleModal .modal-content { position: relative; }
+        @media (max-width: 991px) {
+            #selectRoleModal .modal-dialog { max-width: 95%; }
+            #selectRoleModal .role-panel { grid-template-columns: 1fr; }
+            #selectRoleModal .role-card-img { height: 220px; }
+        }
+        @media (max-width: 575px) {
+            .jobguru-banner-area .banner-text h2 { font-size: 2.2rem; }
+            .jobguru-banner-area .banner-text h4 { font-size: 1.05rem; }
+        }
+    </style>
     <section class="jobguru-banner-area">
         <div class="banner-slider owl-carousel">
             <div class="banner-single-slider slider-item-1">
@@ -13,33 +41,14 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-12">
-                        <div class="banner-search">
-                            <h2>Hire expert freelancers.</h2>
-                            <h4>We have 1542 job offers for you! </h4>
-                            <form>
-                                <div class="banner-form-box">
-                                    <div class="banner-form-input">
-                                        <input type="text" placeholder="Job Title, Keywords, or Phrase">
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <input type="text" placeholder="City, State or ZIP">
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <select class="banner-select">
-                                            <option selected>Select Sector</option>
-                                            <option value="1">Design & multimedia</option>
-                                            <option value="2">Programming & tech</option>
-                                            <option value="3">Accounting/finance</option>
-                                            <option value="4">content writting</option>
-                                            <option value="5">Training</option>
-                                            <option value="6">Digital Marketing</option>
-                                        </select>
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <button type="submit"><i class="fa fa-search"></i></button>
-                                    </div>
-                                </div>
-                            </form>
+                        <div class="banner-search" style="max-width:760px; margin:0 auto;">
+                            <h2>Thuê các chuyên gia tự do hàng đầu.</h2>
+                            <h4>Chúng tôi có 1542 cơ hội việc làm dành cho bạn!</h4>
+                            <p style="margin: 20px 0 28px; color: rgba(255,255,255,.85); font-size:1rem; line-height:1.6;">Chọn loại tài khoản của bạn để bắt đầu. Ứng viên hay nhà tuyển dụng sẽ có giao diện khác nhau.</p>
+                            <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+                                <button type="button" class="jobguru-btn" data-bs-toggle="modal" data-bs-target="#selectRoleModal">Đăng ký ngay</button>
+                                <a href="{{ route('auth.login') }}" class="jobguru-btn-2">Đăng nhập</a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -156,7 +165,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="load-more">
-                        <a href="#" class="jobguru-btn">browse all categories</a>
+                        <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
                     </div>
                 </div>
             </div>
@@ -431,4 +440,38 @@
             </div>
         </div>
     </section>
+
+    <div class="modal fade" id="selectRoleModal" tabindex="-1" aria-labelledby="selectRoleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen-md-down">
+            <div class="modal-content">
+                <div class="modal-header pb-0">
+                    <div>
+                        <h5 class="modal-title" id="selectRoleModalLabel">Chào bạn!</h5>
+                        <p style="margin: .4rem 0 0; color:#6b7280;">Chọn nhóm phù hợp để bắt đầu trải nghiệm.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="role-panel">
+                        <div class="role-card">
+                            <img class="role-card-img" src="{{ asset('assets/img/anh-tuyen-dung-6.webp') }}" alt="Nhà tuyển dụng" />
+                            <div class="role-card-body">
+                                <h4 class="role-card-title">Tôi là nhà tuyển dụng</h4>
+                                <p class="role-card-text">Đăng tin, quản lý ứng viên và mở rộng đội ngũ nhân sự của bạn nhanh chóng.</p>
+                                <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}" class="btn btn-success role-card-button">Chọn nhà tuyển dụng</a>
+                            </div>
+                        </div>
+                        <div class="role-card">
+                            <img class="role-card-img" src="{{ asset('assets/img/uv.webp') }}" alt="Ứng viên tìm việc" width="800" height="600" loading="lazy" decoding="async" />
+                            <div class="role-card-body">
+                                <h4 class="role-card-title">Tôi là ứng viên tìm việc</h4>
+                                <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển của bạn.</p>
+                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}" class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

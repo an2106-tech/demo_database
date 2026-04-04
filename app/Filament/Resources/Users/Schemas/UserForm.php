@@ -28,9 +28,9 @@ class UserForm
                     ->label('Mật khẩu')
                     ->password()
                     ->revealable()
-                    ->dehydrateStateUsing(fn(?string $state) => $state)
-                    ->dehydrated(fn(?string $state) => filled($state))
-                    ->required(fn(string $operation) => $operation === 'create'),
+                    ->dehydrateStateUsing(fn (?string $state) => $state)
+                    ->dehydrated(fn (?string $state) => filled($state))
+                    ->required(fn (string $operation) => $operation === 'create'),
                 Select::make('role')
                     ->label('Vai trò')
                     ->options([
@@ -39,6 +39,7 @@ class UserForm
                         'director' => 'Giám đốc',
                         'pm' => 'Quản lý dự án',
                         'leader' => 'Trưởng nhóm',
+                        'candidate' => 'Ứng viên',
                     ])
                     ->default('pm')
                     ->required(),

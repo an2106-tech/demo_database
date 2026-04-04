@@ -2,13 +2,13 @@
 
 namespace App\Livewire\Client\employers;
 
-use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Component;
 use App\Models\Candidate;
 
 class BrowseCandidates extends Component
 {
-    #[Layout('layouts.client')] 
+    #[Layout('layouts.employer')]
     public function render()
     {
         $candidates = Candidate::latest()->get();
