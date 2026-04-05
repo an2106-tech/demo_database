@@ -28,20 +28,24 @@ use App\Livewire\Client\SubmitResume;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
 Route::get('/', Home::class)->name('home');
-Route::prefix('candidates')->name('candidates.')->group(function(){
-    route::get('/browse_job',BrowseJobs::class)->name('browse_job');
-    route::get('/sidebar',Sidebars::class)->name('sidebar');
-    route::get('joblist_sidebar',JobListSideBars::class)->name('joblist_sidebar');
-    route::get('browse_categories',BrowseCategories::class)->name('browse_categories');
-    route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
-    route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
-    route::get('submit_resume',SubmitResume::class)->name('submit_resume');
-    route::get('candidate_dashboard',CandidateDashboard::class)->name('candidate_dashboard');
-    route::get('candidate_profile',CandidateProfile::class)->name('candidate_profile');
-    route::get('messages',Messages::class)->name('messages');
-    route::get('manage_jobs',ManageJobs::class)->name('manage_jobs');
-    route::get('earnings',Earnings::class)->name('earnings');
-    route::get('change_password',ChangePassword::class)->name('change_password');
+
+Route::prefix('candidates')->name('candidates.')->group(function () {
+    Route::get('/browse_job', BrowseJobs::class)->name('browse_job');
+    Route::get('/sidebar', Sidebars::class)->name('sidebar');
+    Route::get('joblist_sidebar', JobListSideBars::class)->name('joblist_sidebar');
+    Route::get('browse_categories', BrowseCategories::class)->name('browse_categories');
+    Route::get('browse_companies', BrowseCompanies::class)->name('browse_companies');
+    Route::get('candidate_detail', CandidatesDetails::class)->name('candidate_detail');
+
+    Route::middleware(['auth', 'candidate.account'])->group(function () {
+        Route::get('submit_resume', SubmitResume::class)->name('submit_resume');
+        Route::get('candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
+        Route::get('candidate_profile', CandidateProfile::class)->name('candidate_profile');
+        Route::get('messages', CandidateMessages::class)->name('messages');
+        Route::get('manage_jobs', CandidateManageJobs::class)->name('manage_jobs');
+        Route::get('earnings', Earnings::class)->name('earnings');
+        Route::get('change_password', ChangePassword::class)->name('change_password');
+    });
 });
 Route::prefix('auth')->name('auth.')->group(function(){
     route::get('/login',Login::class)->name('login');

@@ -60,16 +60,15 @@ class HeaderMenuTest extends TestCase
             'name' => 'HR',
             'email' => 'hr2@example.com',
             'role' => 'hr',
-            'metadata' => [],
+            'metadata' => ['account_types' => ['candidate']],
         ]);
         $user->id = 4;
 
         $this->actingAs($user);
-
         $this->withSession(['client_menu_type' => 'candidate']);
 
         Livewire::test(Header::class, ['type' => 'employer'])
             ->assertViewHas('isEmployerHeader', false)
-            ->assertViewHas('candidateActivationNeeded', true);
+            ->assertViewHas('showRoleSwitcher', true);
     }
 }

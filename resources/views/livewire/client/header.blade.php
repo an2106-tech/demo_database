@@ -1,9 +1,9 @@
 <div>
-   <style>
-       #selectRoleModal .modal-dialog { max-width: 1120px; }
-       #selectRoleModal .modal-content { border-radius: 32px; overflow: hidden; border: none; background: transparent; }
-       #selectRoleModal .modal-header { border-bottom: none; padding: 2rem 2rem 0; }
-       #selectRoleModal .modal-body { padding: 0; }
+    <style>
+        #selectRoleModal .modal-dialog { max-width: 1120px; }
+        #selectRoleModal .modal-content { border-radius: 32px; overflow: hidden; border: none; background: transparent; }
+        #selectRoleModal .modal-header { border-bottom: none; padding: 2rem 2rem 0; }
+        #selectRoleModal .modal-body { padding: 0; }
        #selectRoleModal .role-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; padding: 1.5rem; background: rgba(255,255,255,.96); backdrop-filter: blur(12px); }
        #selectRoleModal .role-card { border-radius: 28px; overflow: hidden; border: 1px solid rgba(226,232,240,.8); background: #ffffff; box-shadow: 0 28px 70px rgba(15, 23, 42, .12); transition: transform .3s ease, box-shadow .3s ease; }
        #selectRoleModal .role-card:hover { transform: translateY(-8px); box-shadow: 0 32px 90px rgba(15, 23, 42, .18); }
@@ -14,12 +14,52 @@
        #selectRoleModal .role-card-button { width: 100%; padding: 1rem 1.2rem; border-radius: 999px; font-weight: 700; }
        #selectRoleModal .modal-body::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(59,130,246,.18), rgba(16,185,129,.14)); pointer-events:none; }
        #selectRoleModal .modal-content { position: relative; }
-       @media (max-width: 991px) {
-           #selectRoleModal .modal-dialog { max-width: 95%; }
-           #selectRoleModal .role-panel { grid-template-columns: 1fr; }
-           #selectRoleModal .role-card-img { height: 220px; }
-       }
-   </style>
+        @media (max-width: 991px) {
+            #selectRoleModal .modal-dialog { max-width: 95%; }
+            #selectRoleModal .role-panel { grid-template-columns: 1fr; }
+            #selectRoleModal .role-card-img { height: 220px; }
+        }
+
+        .jobguru-header-area .header-right-menu ul {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: .75rem;
+            flex-wrap: wrap;
+        }
+
+        .jobguru-header-area .header-right-menu ul > li { margin: 0; }
+
+        .jobguru-header-area .role-switcher {
+            display: inline-flex;
+            align-items: center;
+            gap: .25rem;
+            padding: .25rem;
+            border-radius: 999px;
+            border: 1px solid rgba(15, 23, 42, .14);
+            background: rgba(255, 255, 255, .76);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 18px 45px rgba(15, 23, 42, .10);
+        }
+
+        .jobguru-header-area .role-switcher__btn {
+            appearance: none;
+            border: 0;
+            background: transparent;
+            color: #0f172a;
+            padding: .65rem 1rem;
+            border-radius: 999px;
+            font-weight: 900;
+            line-height: 1;
+            transition: background-color .15s ease, color .15s ease, transform .15s ease;
+        }
+
+        .jobguru-header-area .role-switcher__btn:hover { transform: translateY(-1px); }
+        .jobguru-header-area .role-switcher__btn:active { transform: translateY(0); }
+        .jobguru-header-area .role-switcher__btn.is-active { color: #fff; }
+        .jobguru-header-area .role-switcher__btn.is-active.is-candidate { background: #0ea5e9; }
+        .jobguru-header-area .role-switcher__btn.is-active.is-employer { background: #16a34a; }
+    </style>
    <header class="jobguru-header-area stick-top forsticky page-header">
       <div class="menu-animation">
          <div class="container-fluid">
@@ -61,12 +101,12 @@
                                     <li class="has-inner-child">
                                        <a href="#">Bảng điều khiển</a>
                                        <ul>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.candidate_dashboard']) : route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a></li>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.candidate_profile']) : route('candidates.candidate_profile') }}">Thông tin cá nhân</a></li>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.messages']) : route('candidates.messages') }}">Tin nhắn</a></li>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.manage_jobs']) : route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.earnings']) : route('candidates.earnings') }}">Thu nhập</a></li>
-                                           <li><a href="{{ ($candidateActivationNeeded ?? false) ? route('auth.sign_up', ['role' => 'candidate', 'next_route' => 'candidates.change_password']) : route('candidates.change_password') }}">Đổi mật khẩu</a></li>
+                                            <li><a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a></li>
+                                            <li><a href="{{ route('candidates.candidate_profile') }}">Thông tin cá nhân</a></li>
+                                            <li><a href="{{ route('candidates.messages') }}">Tin nhắn</a></li>
+                                            <li><a href="{{ route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
+                                            <li><a href="{{ route('candidates.earnings') }}">Thu nhập</a></li>
+                                            <li><a href="{{ route('candidates.change_password') }}">Đổi mật khẩu</a></li>
                                         </ul>
                                      </li>
                                  </ul>
@@ -74,13 +114,14 @@
                            @else
                               <li class="has-children">
                                  <a href="#">Cho Nhà Tuyển Dụng</a>
-                                 <ul>
-                                    <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                                    <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
-                                    <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
-                                    <li class="has-inner-child">
-                                       <a href="#">Quản lý tuyển dụng</a>
-                                       <ul>
+                                  <ul>
+                                     <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                     <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
+                                     <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
+                                     <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (Ứng viên)</a></li>
+                                     <li class="has-inner-child">
+                                        <a href="#">Quản lý tuyển dụng</a>
+                                        <ul>
                                           <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
                                           <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
                                           <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
@@ -114,22 +155,25 @@
                      </nav>
                   </div>
                </div>
-               <div class="col-lg-4">
-                  <div class="header-right-menu">
-                     <ul>
-                        @auth
-                           @if($showRoleSwitcher ?? false)
-                              <li style="display:flex; gap:.5rem; align-items:center;">
-                                 <a href="#" wire:click.prevent="switchTo('candidate')" class="post-jobs" style="{{ ! $isEmployerHeader ? 'background:#0ea5e9;border-color:#0ea5e9;' : 'background:#e2e8f0;border-color:#e2e8f0;color:#0f172a;' }}">Ứng viên</a>
-                                 <a href="#" wire:click.prevent="switchTo('employer')" class="post-jobs" style="{{ $isEmployerHeader ? 'background:#16a34a;border-color:#16a34a;' : 'background:#e2e8f0;border-color:#e2e8f0;color:#0f172a;' }}">Nhà tuyển dụng</a>
-                              </li>
-                           @endif
-                        @endauth
-                        @if($isEmployerHeader)
-                           <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
-                        @endif
-                        @guest
-                           <li><a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal"><i class="fa fa-user"></i> Đăng ký</a></li>
+
+                <div class="col-lg-4">
+                   <div class="header-right-menu">
+                       <ul>
+                          @auth
+                             @if($showRoleSwitcher ?? false)
+                                <li>
+                                   <div class="role-switcher" role="group" aria-label="Chuyển chế độ">
+                                      <button type="button" wire:click="switchTo('candidate')" class="role-switcher__btn is-candidate {{ ! $isEmployerHeader ? 'is-active' : '' }}">Ứng viên</button>
+                                      <button type="button" wire:click="switchTo('employer')" class="role-switcher__btn is-employer {{ $isEmployerHeader ? 'is-active' : '' }}">Nhà tuyển dụng</button>
+                                   </div>
+                                </li>
+                             @endif
+                          @endauth
+                         @if($isEmployerHeader)
+                            <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
+                         @endif
+                         @guest
+                            <li><a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal"><i class="fa fa-user"></i> Đăng ký</a></li>
                            <li><a href="{{ route('auth.login') }}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
                         @endguest
                         @auth

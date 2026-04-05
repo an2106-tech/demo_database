@@ -273,6 +273,63 @@
                             <a href="#" class="jobguru-btn">Xem tất cả danh mục</a>
                             <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
                         </div>
+                        <div class="category-holder-text">
+                            <h3>Tài chính & đầu tư</h3>
+                        </div>
+                        <img src="{{ asset('assets/img/img-tc.jpg') }}" alt="category" />
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder data_cat">
+                        <div class="category-holder-icon">
+                            <i class="bi bi-bank"></i>
+                        </div>
+                        <div class="category-holder-text">
+                            <h3>Ngân hàng</h3>
+                        </div>
+                        <img src="{{ asset('assets/img/bank.jpg') }}" alt="category" />
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder writing_cat">
+                        <div class="category-holder-icon">
+                            <i class="bi bi-person-gear"></i>
+                        </div>
+                        <div class="category-holder-text">
+                            <h3>Quản lý điều hành</h3>
+                        </div>
+                        <img src="{{ asset('assets/img/qldh.webp') }}" alt="category" />
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder edu_cat">
+                        <div class="category-holder-icon">
+                            <i class="fa fa-graduation-cap"></i>
+                        </div>
+                        <div class="category-holder-text">
+                            <h3>Giáo dục / Đào tạo</h3>
+                        </div>
+                        <img src="{{ asset('assets/img/gddt.jpg') }}" alt="category" />
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder sale_cat">
+                        <div class="category-holder-icon">
+                            <i class="fa fa-bullhorn"></i>
+                        </div>
+                        <div class="category-holder-text">
+                            <h3>Bán hàng / Marketing</h3>
+                        </div>
+                        <img src="{{ asset('assets/img/mkt.webp') }}" alt="category" />
+                    </a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="load-more">
+                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
                     </div>
                 </div>
             </div>

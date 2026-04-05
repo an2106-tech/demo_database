@@ -130,7 +130,7 @@
 
                         @if(auth()->check() && auth()->user()->role === 'hr' && $role === 'candidate')
                             <div class="auth-note">
-                                Tài khoản HR của bạn có thể kích hoạt thêm chế độ Ứng viên (dùng chung email, không tạo tài khoản mới).
+                                Tài khoản HR của bạn có thể kích hoạt thêm chế độ Ứng viên (dùng chung email, không tạo tài khoản mới). Sau khi kích hoạt, bạn có thể dùng nút chuyển chế độ trên header để qua menu Ứng viên.
                             </div>
 
                             <form wire:submit.prevent="register" class="auth-form">

@@ -86,6 +86,8 @@ class Register extends Component
             $authUser->metadata = $metadata;
             $authUser->save();
 
+            session(['client_menu_type' => 'candidate']);
+
             return $this->redirectAfterActivation();
         }
 
