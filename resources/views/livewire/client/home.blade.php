@@ -157,11 +157,11 @@
                                     <div class="banner-form-input">
                                         <select class="banner-select">
                                             <option selected>Chọn lĩnh vực</option>
-                                            @forelse($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                             @forelse($categories as $category)
+                                            <option value="1">{{ $category->name }}</option>
                                             @empty
-                                                <option disabled>Không có dữ liệu</option>
-                                            @endforelse
+                                            <option disabled>Không có dữ liệu</option>
+                                             @endforelse
 
                                             {{-- <option value="2">Lập trình & Công nghệ</option>
                                             <option value="3">Kế toán & Tài chính</option>
