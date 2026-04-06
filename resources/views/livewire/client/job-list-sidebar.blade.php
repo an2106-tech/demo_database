@@ -62,10 +62,10 @@
                             <h3>Danh mục</h3>
                             <div class="job-sidebar-box">
                                 <form>
-                                    <select class="sidebar-category-select-2" name="category_id">
+                                    <select class="sidebar-category-select-2" name="department_id">
                                         <option value="">Tất cả danh mục</option>
-                                        @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @foreach ($departments as $department)
+                                            <option value="{{ $department->id }}">{{ $department->name }}</option>
                                         @endforeach
                                     </select>
                                 </form>

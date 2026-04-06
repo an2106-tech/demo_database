@@ -36,11 +36,6 @@ class User extends Authenticatable
     use HasRoles;
     use SoftDeletes;
 
-    public function canAccessPanel(\Filament\Panel $panel): bool
-    {
-        return $this->is_active && $this->roles()->exists();
-    }
-
     /**
      * Get the attributes that should be cast.
      *

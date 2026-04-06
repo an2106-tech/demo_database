@@ -43,7 +43,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('submit_resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
         Route::get('candidate_profile', CandidateProfile::class)->name('candidate_profile');
-        Route::get('messages', Message::class)->name('messages');
+        Route::get('messages', EmployersMessage::class)->name('messages');
         Route::get('manage_jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('earnings', Earnings::class)->name('earnings');
         Route::get('change_password', ChangePassword::class)->name('change_password');

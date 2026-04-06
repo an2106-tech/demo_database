@@ -434,7 +434,8 @@
                             <div class="top-company-tab">
                                 <ul>
                                     @forelse($jobs as $job)
-                                        <li>
+                                    <li>
+                                        <div>
                                             <div class="top-company-list">
                                                 <div class="company-list-logo">
                                                     <a href="#">
@@ -460,9 +461,77 @@
                                                     <a href="#" class="jobguru-btn">Xem ứng tuyển</a>
                                                 </div>
                                             </div>
-                                        </li>
+                                            <div class="company-list-details">
+                                                <h3><a href="#">Giám đốc bán hàng khu vực</a></h3>
+                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
+                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $1200-$2000</p>
+                                                <p class="rating-company">4.1</p>
+                                            </div>
+                                            <div class="company-list-btn">
+                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="top-company-list">
+                                            <div class="company-list-logo">
+                                                <a href="#">
+                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
+                                                </a>
+                                            </div>
+                                            <div class="company-list-details">
+                                                <h3><a href="#">Lập trình viên C# cao cấp (.Net)</a></h3>
+                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
+                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $800-$1200</p>
+                                                <p class="rating-company">3.1</p>
+                                            </div>
+                                            <div class="company-list-btn">
+                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="top-company-list">
+                                            <div class="company-list-logo">
+                                                <a href="#">
+                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
+                                                </a>
+                                            </div>
+                                            <div class="company-list-details">
+                                                <h3><a href="#">Trợ giảng</a></h3>
+                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                                                <p class="open-icon"><i class="fa fa-clock-o"></i>3 phút trước</p>
+                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $800-$1200</p>
+                                                <p class="rating-company">4.3</p>
+                                            </div>
+                                            <div class="company-list-btn">
+                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
+                                            </div>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="top-company-list">
+                                            <div class="company-list-logo">
+                                                <a href="#">
+                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
+                                                </a>
+                                            </div>
+                                            <div class="company-list-details">
+                                                <h3><a href="#">Kỹ sư dân dụng</a></h3>
+                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
+                                                <p class="open-icon"><i class="fa fa-clock-o"></i>30 phút trước</p>
+                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $2000-$2500</p>
+                                                <p class="rating-company">3.7</p>
+                                            </div>
+                                            <div class="company-list-btn">
+                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
+                                            </div>
+                                        </div>
+                                    </li>
                                     @empty
-                                        <li>Không có việc làm nào.</li>
+                                    <li>Không có công việc nào</li>
                                     @endforelse
                                 </ul>
                             </div>

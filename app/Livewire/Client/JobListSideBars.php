@@ -4,7 +4,7 @@ namespace App\Livewire\Client;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use App\Models\Category;
+use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Models\Skill;
 
@@ -14,7 +14,7 @@ class JobListSideBars extends Component
     public function render()
     {
         $jobs = RecruitmentJob::query()
-            ->with(['branch:id,name,image,city', 'workplace:id,name'])
+            ->with(['branch:id,name,image,city', 'workplace:id,name', 'department:id,name'])
             ->latest()
             ->get();
 
@@ -22,14 +22,14 @@ class JobListSideBars extends Component
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $categories = Category::query()
+        $departments = Department::query()
             ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'icon', 'image']);
+            ->get(['id', 'name']);
 
         return view('livewire.client.job-list-sidebar', [
             'jobs' => $jobs,
             'skills' => $skills,
-            'categories' => $categories,
+            'departments' => $departments,
         ]);
     }
 }
