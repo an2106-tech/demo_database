@@ -145,16 +145,36 @@
                     <div class="col-md-12">
                         <div class="banner-search" style="max-width:760px; margin:0 auto;">
                             <h2>Thuê các chuyên gia tự do hàng đầu.</h2>
-                            <h4>Chúng tôi có 1542 cơ hội việc làm dành cho bạn!</h4>
-                            <p
-                                style="margin: 20px 0 28px; color: rgba(255,255,255,.85); font-size:1rem; line-height:1.6;">
-                                Chọn loại tài khoản của bạn để bắt đầu. Ứng viên hay nhà tuyển dụng sẽ có giao diện khác
-                                nhau.</p>
-                            <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
-                                <button type="button" class="jobguru-btn" data-bs-toggle="modal"
-                                    data-bs-target="#selectRoleModal">Đăng ký ngay</button>
-                                <a href="{{ route('auth.login') }}" class="jobguru-btn-2">Đăng nhập</a>
-                            </div>
+                            <h4>Chúng tôi có 1542 cơ hội việc làm dành cho bạn! </h4>
+                            <form>
+                                <div class="banner-form-box">
+                                    <div class="banner-form-input">
+                                        <input type="text" placeholder="Chức danh, Từ khóa, hoặc Cụm từ">
+                                    </div>
+                                    <div class="banner-form-input">
+                                        <input type="text" placeholder="Thành phố, Tỉnh hoặc Mã bưu điện">
+                                    </div>
+                                    <div class="banner-form-input">
+                                        <select class="banner-select">
+                                            <option selected>Chọn lĩnh vực</option>
+                                            @forelse($categories as $category)
+                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                            @empty
+                                                <option disabled>Không có dữ liệu</option>
+                                            @endforelse
+
+                                            {{-- <option value="2">Lập trình & Công nghệ</option>
+                                            <option value="3">Kế toán & Tài chính</option>
+                                            <option value="4">Viết lách & Nội dung</option>
+                                            <option value="5">Đào tạo & Giáo dục</option>
+                                            <option value="6">Marketing kỹ thuật số</option> --}}
+                                        </select>
+                                    </div>
+                                    <div class="banner-form-input">
+                                        <button type="submit"><i class="fa fa-search"></i></button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -177,18 +197,24 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder account_cat">
-                        <div class="category-holder-icon">
-                            <i class="bi bi-buildings"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Accounting & Finance</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/logo.png') }}" alt="category" />
-
-                    </a>
+                @forelse($categories as $category)
                     <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder account_cat">
+                        <div class="category-holder-icon">
+                            @php($icon = trim((string) ($category->icon ?? '')))
+                            <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                        </div>
+                            <div class="category-holder-text">
+                                <h3>{{ $category->name }}</h3>
+                            </div>
+                            <img src="{{ asset('storage/' . ltrim($category->image)) }}" alt="{{ $category->name }}" />
+                        </a>
+                    </div>
+                @empty
+                    <li>Không có danh mục nào</li>
+                @endforelse
+                {{-- <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder design_cat">
                         <div class="category-holder-icon">
                             <i class="fa fa-pencil-square-o"></i>
                         </div>
@@ -329,7 +355,8 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="load-more">
-                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
+                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
+                            nghề</a>
                     </div>
                 </div>
             </div>
@@ -390,34 +417,12 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    @forelse($branches as $branch)
-                                        <li>
-                                            <div class="top-company-list">
-                                                <div class="company-list-logo">
-                                                    <a href="#">
-                                                        <img src="{{ asset('storage/' . ltrim($branch->image)) }}"
-                                                            alt="{{ $branch->name }}" />
-                                                    </a>
-                                                </div>
-                                                <div class="company-list-details">
-                                                    <h3><a href="#">{{ $branch->name }}</a></h3>
-
-                                                    @if ($branch->address)
-                                                        <p class="company-state"><i class="fa fa-location-arrow"></i>
-                                                            {{ $branch->address }}</p>
-                                                    @endif
-                                                    <p class="open-icon"><i
-                                                            class="fa fa-briefcase"></i>{{ $branch->workplaces_count ?? $branch->workplaces()->count() }}
-                                                        vị trí đang tuyển</p>
-                                                    <p class="varify"><i
-                                                            class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
-                                                    </p>
-                                                    <p class="rating-company">
-                                                        {{ number_format(rand(37, 50) / 10, 1) }}</p>
-                                                </div>
-                                                <div class="company-list-btn">
-                                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
-                                                </div>
+                                    <li>
+                                        <div class="top-company-list">
+                                            <div class="company-list-logo">
+                                                <a href="#">
+                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
+                                                </a>
                                             </div>
                                         </li>
                                     @empty
@@ -442,7 +447,8 @@
                                                 <div class="company-list-details">
                                                     <h3><a href="#">{{ $job->title }}</a></h3>
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}</p>
+                                                        {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}
+                                                    </p>
                                                     <p class="open-icon"><i class="fa fa-clock-o"></i>
                                                         {{ $job->created_at->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:

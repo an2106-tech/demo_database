@@ -1,7 +1,113 @@
 <div>
-     <!-- Breadcromb Area Start -->
-      <section class="jobguru-breadcromb-area">
-         <div class="breadcromb-top section_100">
+    <style>
+        .browse-category-page .browse-job-head-option {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
+            padding: 18px;
+            border-radius: 16px;
+            background: #fff;
+            box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
+            border: 1px solid rgba(226, 232, 240, .9);
+        }
+
+        .browse-category-page .job-browse-search {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .browse-category-page .job-browse-search form {
+            display: flex;
+            align-items: stretch;
+        }
+
+        .browse-category-page .job-browse-search input {
+            height: 46px;
+            border-radius: 12px 0 0 12px;
+            border: 1px solid rgba(148, 163, 184, .35);
+            border-right: 0;
+            padding: 0 14px;
+        }
+
+        .browse-category-page .job-browse-search button {
+            width: 58px;
+            border-radius: 0 12px 12px 0;
+            background: #2f7ff7;
+            border: 1px solid #2f7ff7;
+        }
+
+        .browse-category-page .job-browse-search button:hover {
+            background: #1f6fe8;
+            border-color: #1f6fe8;
+        }
+
+        .browse-category-page .job-browse-action .btn-dropdown {
+            height: 46px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, .35);
+            background: #fff;
+            padding: 0 14px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .browse-category-page .category-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 18px;
+            min-height: 150px;
+            padding: 22px 18px;
+            border: 1px solid rgba(226, 232, 240, .9);
+            background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(248, 250, 252, .96));
+            box-shadow: 0 22px 60px rgba(15, 23, 42, .10);
+        }
+
+        .browse-category-page .category-card .category-holder-icon,
+        .browse-category-page .category-card .category-holder-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .browse-category-page .category-card .category-holder-icon i {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(47, 127, 247, .10);
+            color: #2f7ff7;
+            font-size: 26px;
+        }
+
+        .browse-category-page .category-card .category-holder-text h3 {
+            margin: 10px 0 0;
+            font-size: 18px;
+            line-height: 1.35;
+            font-weight: 900;
+        }
+
+        .browse-category-page .category-card .category-sub {
+            margin: 8px 0 0;
+            color: rgba(15, 23, 42, .65);
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .browse-category-page .category-card > img {
+            z-index: 0;
+            opacity: .16;
+        }
+
+        .browse-category-page .category-card:hover > img {
+            opacity: .45;
+        }
+    </style>
+
+    <section class="jobguru-breadcromb-area">
+        <div class="breadcromb-top section_100">
             <div class="container">
                <div class="row">
                   <div class="col-md-12">
@@ -56,336 +162,30 @@
                               <li>Random</li>
                            </ul>
                         </div>
-                     </div>
-                  </div>
-                  <div class="all-sub-category clearfix">
-                     <div class="search-category-box">
-                        <h3>accountin & finance</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_1">
-                              <label for="cat_1"><span></span>financial consulting</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_2">
-                              <label for="cat_2"><span></span>business plan</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_3">
-                              <label for="cat_3"><span></span>branding services</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_4">
-                              <label for="cat_4"><span></span>branding tips</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_5">
-                              <label for="cat_5"><span></span>presentations</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_6">
-                              <label for="cat_6"><span></span>data entry</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_7">
-                              <label for="cat_7"><span></span>market research</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_8">
-                              <label for="cat_8"><span></span>Flyer Distribution</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_9">
-                              <label for="cat_9"><span></span>Virtual Assistant</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_10">
-                              <label for="cat_10"><span></span>others</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Design, Art & Multimedia</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_101">
-                              <label for="cat_101"><span></span>logo design</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_11">
-                              <label for="cat_11"><span></span> Illustration</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_12">
-                              <label for="cat_12"><span></span>Business Cards & Stationery</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_13">
-                              <label for="cat_13"><span></span>Presentation Design</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_14">
-                              <label for="cat_14"><span></span>Photoshop Editing</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_16">
-                              <label for="cat_16"><span></span>Book & Album Covers</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_17">
-                              <label for="cat_17"><span></span>3D Models</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_18">
-                              <label for="cat_18"><span></span>Product Design</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_19">
-                              <label for="cat_19"><span></span>Logo Animation</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_20">
-                              <label for="cat_20"><span></span> Lyric & Music Videos</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Restaurant / Food Service</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_21">
-                              <label for="cat_21"><span></span>asst. chef</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_22">
-                              <label for="cat_22"><span></span>catering service</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_23">
-                              <label for="cat_23"><span></span>chocolate recepi</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_24">
-                              <label for="cat_24"><span></span>Beverage Services</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_25">
-                              <label for="cat_25"><span></span>bakery</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_26">
-                              <label for="cat_26"><span></span>asst. chef</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_27">
-                              <label for="cat_27"><span></span>catering service</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_28">
-                              <label for="cat_28"><span></span>chocolate recepi</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_29">
-                              <label for="cat_29"><span></span>Beverage Services</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_30">
-                              <label for="cat_30"><span></span>bakery</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Programming & Tech</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_31">
-                              <label for="cat_31"><span></span>php/laravel/codignator</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_32">
-                              <label for="cat_32"><span></span>Website Builders & CMS</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_332">
-                              <label for="cat_332"><span></span>Desktop applications</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_33">
-                              <label for="cat_33"><span></span> Chatbots</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_34">
-                              <label for="cat_34"><span></span>.NET framework</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_35">
-                              <label for="cat_35"><span></span>python programming</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_37">
-                              <label for="cat_37"><span></span>Mobile Apps & Web</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Education / Training</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_61">
-                              <label for="cat_61"><span></span>online lessons</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_62">
-                              <label for="cat_61"><span></span>online course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_63">
-                              <label for="cat_63"><span></span>web development course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_64">
-                              <label for="cat_64"><span></span>python course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_65">
-                              <label for="cat_65"><span></span>online lessons</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_66">
-                              <label for="cat_66"><span></span>online course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_67">
-                              <label for="cat_67"><span></span>web development course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_68">
-                              <label for="cat_68"><span></span>python course</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>fun & lifestyle</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_631">
-                              <label for="cat_631"><span></span>online lessons</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_632">
-                              <label for="cat_631"><span></span>online course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_633">
-                              <label for="cat_633"><span></span>web development course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_634">
-                              <label for="cat_634"><span></span>python course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_635">
-                              <label for="cat_635"><span></span>online lessons</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_636">
-                              <label for="cat_636"><span></span>online course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_637">
-                              <label for="cat_637"><span></span>web development course</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_638">
-                              <label for="cat_638"><span></span>python course</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Writing / Translations</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_51">
-                              <label for="cat_51"><span></span>Resumes & Cover Letters</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_52">
-                              <label for="cat_52"><span></span>Press Releases</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_53">
-                              <label for="cat_53"><span></span>translation</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_54">
-                              <label for="cat_54"><span></span>Articles & Blog Posts</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_55">
-                              <label for="cat_55"><span></span>Website Content</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_56">
-                              <label for="cat_56"><span></span>Legal Writing</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>sales / marketing</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_71">
-                              <label for="cat_71"><span></span>product ranking</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_72">
-                              <label for="cat_72"><span></span>physical marketing</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_73">
-                              <label for="cat_73"><span></span>email marketing</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_74">
-                              <label for="cat_74"><span></span>advertisement</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_75">
-                              <label for="cat_75"><span></span>sales executive</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_76">
-                              <label for="cat_76"><span></span>distribution</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_77">
-                              <label for="cat_77"><span></span>customer research</label>
-                           </li>
-                        </ul>
-                     </div>
-                     <div class="search-category-box">
-                        <h3>Data Science & Analitycs</h3>
-                        <ul class="list_category">
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_41">
-                              <label for="cat_41"><span></span>scripting with r,python</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_42">
-                              <label for="cat_42"><span></span>online statistics</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_43">
-                              <label for="cat_43"><span></span>web scraping</label>
-                           </li>
-                           <li class="in checkbox">
-                              <input class="checkbox-spin" type="checkbox" id="cat_44">
-                              <label for="cat_44"><span></span>statistics & research</label>
-                           </li>
-                        </ul>
-                     </div>
-                  </div>
-               </div>
+                    </div>
+
+                    <div class="row">
+                        @forelse ($categories as $category)
+                            <div class="col-lg-3 col-md-6 col-sm-6" style="margin-top: 22px;">
+                                <a href="{{ route('candidates.browse_job') }}" class="single-category-holder category-card">
+                                    <div class="category-holder-icon">
+                                        @php($icon = trim((string) ($category->icon ?? '')))
+                                        <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                                    </div>
+                                    <div class="category-holder-text">
+                                        <h3>{{ $category->name }}</h3>
+                                        
+                                    </div>
+                                    <img src="{{ $category->image_url }}" alt="{{ $category->name }}" />
+                                </a>
+                            </div>
+                        @empty
+                            <div class="col-md-12 text-center">
+                                <h4>Chưa có danh mục nào</h4>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
             </div>
          </div>
       </section>

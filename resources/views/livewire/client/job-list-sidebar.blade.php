@@ -57,25 +57,19 @@
                               </div>
                            </form>
                         </div>
-                     </div>
-                     <!-- Single Job Sidebar End -->
-                      
-                     <!-- Single Job Sidebar Start -->
-                     <div class="single-job-sidebar sidebar-keywords">
-                        <h3>Keywords</h3>
-                        <div class="job-sidebar-box">
-                           <form>
-                              <select class="sidebar-category-select" name="states[]" multiple="multiple">
-                                 <option value="1">accounting</option>
-                                 <option value="2">finance</option>
-                                 <option value="3">automotive</option>
-                                 <option value="4">construction</option>
-                                 <option value="5">photoshop</option>
-                                 <option value="6">graphics</option>
-                                 <option value="7">After affects</option>
-                                 <option value="8">poster design</option>
-                              </select>
-                           </form>
+
+                        <div class="single-job-sidebar sidebar-category">
+                            <h3>Danh mục</h3>
+                            <div class="job-sidebar-box">
+                                <form>
+                                    <select class="sidebar-category-select-2" name="category_id">
+                                        <option value="">Tất cả danh mục</option>
+                                        @foreach ($categories as $category)
+                                            <option value="{{ $category->id }}">{{ $category->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </form>
+                            </div>
                         </div>
                      </div>
                      <!-- Single Job Sidebar End -->
