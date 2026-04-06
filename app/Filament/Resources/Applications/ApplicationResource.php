@@ -13,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ApplicationResource extends Resource
 {
@@ -47,4 +48,20 @@ class ApplicationResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Auth::user();
+
+        // Giám đốc trung tâm chỉ thấy đơn ứng tuyển thuộc chi nhánh của mình
+        if ($user && $user->hasRole('director') && $user->branch_id) {
+            $query->whereHas(
+                'job',
+                fn(Builder $q) =>
+                $q->where('branch_id', $user->branch_id)
+            );
+        }
+
+        return $query;
+    }
 }
