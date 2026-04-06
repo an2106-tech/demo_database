@@ -10,43 +10,53 @@ class WorkplaceSeeder extends Seeder
 {
     public function run(): void
     {
-        $hcm = Branch::where('code', 'HCM-HQ')->first();
-        if (! $hcm) {
+        $branches = Branch::query()->get();
+        if ($branches->isEmpty()) {
+            $this->call(BranchSeeder::class);
+            $branches = Branch::query()->get();
+        }
+
+        if ($branches->isEmpty()) {
             return;
         }
 
+        $primaryBranch = Branch::query()->where('code', 'POLY-HCM')->first() ?? $branches->first();
+
         Workplace::updateOrCreate(
-            ['branch_id' => $hcm->id, 'name' => 'Office - Floor 10'],
+            ['branch_id' => $primaryBranch->id, 'name' => 'Office - Floor 10'],
             [
                 'type' => 'office',
                 'floor' => '10',
                 'capacity' => 200,
-                'directions' => 'Đi thang máy lên tầng 10, quẹo phải.',
+                'directions' => 'Take the elevator to floor 10 and turn right.',
                 'is_interview_room' => false,
                 'is_active' => true,
             ],
         );
 
         Workplace::updateOrCreate(
-            ['branch_id' => $hcm->id, 'name' => 'Interview Room 1'],
+            ['branch_id' => $primaryBranch->id, 'name' => 'Interview Room 1'],
             [
                 'type' => 'interview_room',
                 'floor' => '10',
-                'room' => 'P.1001',
+                'room' => 'R.1001',
                 'capacity' => 6,
-                'directions' => 'Ngay cạnh khu pantry.',
+                'directions' => 'Next to the pantry area.',
                 'is_interview_room' => true,
                 'is_active' => true,
             ],
         );
 
-        Workplace::updateOrCreate(
-            ['branch_id' => $hcm->id, 'name' => 'Remote'],
-            [
-                'type' => 'remote',
-                'is_interview_room' => false,
-                'is_active' => true,
-            ],
-        );
+        foreach ($branches as $branch) {
+            Workplace::updateOrCreate(
+                ['branch_id' => $branch->id, 'name' => 'Remote'],
+                [
+                    'type' => 'remote',
+                    'is_interview_room' => false,
+                    'is_active' => true,
+                ],
+            );
+        }
     }
 }
+
