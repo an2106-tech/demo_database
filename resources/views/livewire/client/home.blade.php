@@ -157,11 +157,11 @@
                                     <div class="banner-form-input">
                                         <select class="banner-select">
                                             <option selected>Chọn lĩnh vực</option>
-                                             @forelse($categories as $category)
-                                            <option value="1">{{ $category->name }}</option>
+                                            @forelse($categories as $category)
+                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
                                             @empty
-                                            <option disabled>Không có dữ liệu</option>
-                                             @endforelse
+                                                <option disabled>Không có dữ liệu</option>
+                                            @endforelse
 
                                             {{-- <option value="2">Lập trình & Công nghệ</option>
                                             <option value="3">Kế toán & Tài chính</option>
@@ -197,21 +197,22 @@
                 </div>
             </div>
             <div class="row">
-              @forelse($categories as $category)
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder account_cat">
+                @forelse($categories as $category)
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="#" class="single-category-holder account_cat">
                         <div class="category-holder-icon">
-                            <i class="{{ $category->icon }}"></i>
+                            @php($icon = trim((string) ($category->icon ?? '')))
+                            <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
                         </div>
-                        <div class="category-holder-text">
-                            <h3>{{ $category->name }}</h3>
-                        </div>
-                        <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" />
-                    </a>
-                </div>
+                            <div class="category-holder-text">
+                                <h3>{{ $category->name }}</h3>
+                            </div>
+                            <img src="{{ asset('storage/' . ltrim($category->image)) }}" alt="{{ $category->name }}" />
+                        </a>
+                    </div>
                 @empty
-        <li>Không có danh mục nào</li>
-    @endforelse
+                    <li>Không có danh mục nào</li>
+                @endforelse
                 {{-- <div class="col-lg-3 col-md-6 col-sm-6">
                     <a href="#" class="single-category-holder design_cat">
                         <div class="category-holder-icon">
@@ -416,12 +417,33 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
-                                                </a>
+                                    @forelse($branches as $branch)
+                                        <li>
+                                            <div class="top-company-list">
+                                                <div class="company-list-logo">
+                                                    <a href="#">
+                                                        <img src="{{ asset('storage/' . ltrim($branch->image)) }}"
+                                                            alt="{{ $branch->name }}" />
+                                                    </a>
+                                                </div>
+                                                <div class="company-list-details">
+                                                    <h3><a href="#">{{ $branch->name }}</a></h3>
+
+                                                    @if($branch->address)
+                                                        <p class="company-state"><i class="fa fa-location-arrow"></i>
+                                                            {{ $branch->address }}</p>
+                                                    @endif
+                                                    <p class="open-icon"><i
+                                                            class="fa fa-briefcase"></i>{{ $branch->workplaces_count ?? $branch->workplaces()->count() }}
+                                                        vị trí đang tuyển</p>
+                                                    <p class="varify"><i
+                                                            class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
+                                                    </p>
+                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                </div>
+                                                <div class="company-list-btn">
+                                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
+                                                </div>
                                             </div>
                                         </li>
                                     @empty
@@ -713,7 +735,11 @@
                                 <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển
                                     của
                                     bạn.</p>
+<<<<<<< HEAD
                                 
+=======
+                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
+>>>>>>> 1a6caed ([CLIENT] đỗ dữ liệu danh mục)
                                     class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
                             </div>
                         </div>

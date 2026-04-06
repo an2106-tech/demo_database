@@ -4,20 +4,19 @@ namespace App\Livewire\Client;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use App\Models\Department;
+use App\Models\Category;
 
 class BrowseCategories extends Component
 {
     #[Layout('layouts.client')]
     public function render()
     {
-        $departments = Department::query()
-            ->withCount('jobs')
+        $categories = Category::query()
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'slug', 'icon', 'image']);
 
         return view('livewire.client.browse-categories', [
-            'departments' => $departments,
+            'categories' => $categories,
         ]);
     }
 }
