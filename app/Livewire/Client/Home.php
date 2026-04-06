@@ -19,14 +19,12 @@ class Home extends Component
     {
         $jobs = RecruitmentJob::with('branch')->latest()->get();
         $branches = Branch::withCount('workplaces')->latest()->get();
-        $categories = Category::query()
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'icon', 'image']);
+        $categories = Category::latest()->get(); 
 
         return view('livewire.client.home', [
             'branches' => $branches,
             'jobs' => $jobs,
-            'categories' => $categories,
+            'categories' => $categories
         ]);
     }
 }

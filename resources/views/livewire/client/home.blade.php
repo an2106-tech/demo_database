@@ -197,22 +197,21 @@
                 </div>
             </div>
             <div class="row">
-                @forelse($categories as $category)
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder account_cat">
+              @forelse($categories as $category)
+                <div class="col-lg-3 col-md-6 col-sm-6">
+                    <a href="#" class="single-category-holder account_cat">
                         <div class="category-holder-icon">
-                            @php($icon = trim((string) ($category->icon ?? '')))
-                            <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                            <i class="{{ $category->icon }}"></i>
                         </div>
-                            <div class="category-holder-text">
-                                <h3>{{ $category->name }}</h3>
-                            </div>
-                            <img src="{{ asset('storage/' . ltrim($category->image)) }}" alt="{{ $category->name }}" />
-                        </a>
-                    </div>
+                        <div class="category-holder-text">
+                            <h3>{{ $category->name }}</h3>
+                        </div>
+                        <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" />
+                    </a>
+                </div>
                 @empty
-                    <li>Không có danh mục nào</li>
-                @endforelse
+        <li>Không có danh mục nào</li>
+    @endforelse
                 {{-- <div class="col-lg-3 col-md-6 col-sm-6">
                     <a href="#" class="single-category-holder design_cat">
                         <div class="category-holder-icon">
