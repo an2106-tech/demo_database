@@ -645,7 +645,7 @@
                                 <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển
                                     của
                                     bạn.</p>
-                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
+                                
                                     class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
                             </div>
                         </div>
