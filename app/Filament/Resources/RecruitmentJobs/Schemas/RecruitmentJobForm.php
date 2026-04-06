@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\RecruitmentJobs\Schemas;
 
+use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Department;
 use App\Models\Branch;
 use App\Models\Workplace;
@@ -16,7 +17,6 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\HtmlString;
-use Illuminate\Validation\Rule;
 use Illuminate\Support\Str;
 
 class RecruitmentJobForm
@@ -56,18 +56,10 @@ class RecruitmentJobForm
 
                                 Select::make('status')
                                     ->label('Trạng thái')
-                                    ->options([
-                                        'draft' => 'Bản nháp',
-                                        'published' => 'Đang tuyển',
-                                        'closed' => 'Đã đóng',
-                                        'archived' => 'Lưu trữ',
-                                    ])
-                                    ->default('draft')
+                                    ->options(StatusRecruitmentJobsEnum::class)
+                                    ->default(StatusRecruitmentJobsEnum::DRAFT)
                                     ->required()
-                                    ->rules([
-                                        'required',
-                                        Rule::in(['draft', 'published', 'closed', 'archived']),
-                                    ]),
+                                    ->enum(StatusRecruitmentJobsEnum::class),
                             ]),
 
                         Fieldset::make('Tổ chức')
@@ -233,7 +225,7 @@ class RecruitmentJobForm
                                     ->native(false)
                                     ->displayFormat('d/m/Y')
                                     ->nullable()
-                                    ->rules(['nullable', 'date', 'after_or_equal:today']),
+                                    ,
 
                                 TextInput::make('positions_count')
                                     ->label('Số lượng tuyển')
@@ -296,17 +288,23 @@ class RecruitmentJobForm
                                     ->preload()
                                     ->multiple()
                                     ->required()
-                                    ->rules(['required']),
+                                    ->rules(['required'])
+                                    ->pivotData(fn (callable $get) => [
+                                        'level'       => $get('skills_level') ?? 'mid',
+                                        'is_required' => true,
+                                    ]),
 
                                 Select::make('skills_level')
                                     ->label('Trình độ kỹ năng')
                                     ->options([
                                         'junior' => 'Junior',
-                                        'mid' => 'Mid',
+                                        'mid'    => 'Mid',
                                         'senior' => 'Senior',
                                     ])
+                                    ->default('mid')
                                     ->required()
-                                    ->rules(['required']),
+                                    ->rules(['required'])
+                                    ->dehydrated(false),
 
                                 TextInput::make('public_url')
                                     ->label('Link công khai')

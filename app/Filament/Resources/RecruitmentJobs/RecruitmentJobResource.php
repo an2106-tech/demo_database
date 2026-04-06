@@ -14,6 +14,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class RecruitmentJobResource extends Resource
 {
@@ -39,20 +41,43 @@ class RecruitmentJobResource extends Resource
         return RecruitmentJobsTable::configure($table);
     }
 
+    public static function getNavigationBadge(): ?string
+    {
+        if (! Auth::check()) {
+            return null;
+        }
+
+        return (string) static::getEloquentQuery()
+            ->where('status', 'published')
+            ->count();
+    }
+
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => ListRecruitmentJobs::route('/'),
+            'index'  => ListRecruitmentJobs::route('/'),
             'create' => CreateRecruitmentJob::route('/create'),
-            'view' => ViewRecruitmentJob::route('/{record}'),
-            'edit' => EditRecruitmentJob::route('/{record}/edit'),
+            'view'   => ViewRecruitmentJob::route('/{record}'),
+            'edit'   => EditRecruitmentJob::route('/{record}/edit'),
         ];
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        // Giám đốc trung tâm chỉ thấy tin tuyển dụng của chi nhánh mình
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user && $user->hasRole('director') && $user->branch_id) {
+            $query->where('branch_id', $user->branch_id);
+        }
+
+        return $query;
     }
 }

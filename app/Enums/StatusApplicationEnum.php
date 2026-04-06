@@ -10,43 +10,46 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
 {
-    case APPLIED = 'new';
-    case IN_REVIEW = 'in_review';
-    case INTERVIEW_SCHEDULED = 'interview_scheduled';
-    case OFFERED = 'offered';
-    case REJECTED = 'rejected';
+    case NEW        = 'new';
+    case SCREENING  = 'screening';
+    case INTERVIEW  = 'interview';
+    case OFFER      = 'offer';
+    case HIRED      = 'hired';
+    case REJECTED   = 'rejected';
 
     public function getIcon(): string|BackedEnum|Htmlable|null
     {
-
         return match ($this) {
-            self::APPLIED => 'heroicon-o-document',
-            self::IN_REVIEW => 'heroicon-o-eye',
-            self::INTERVIEW_SCHEDULED => 'heroicon-o-calendar',
-            self::OFFERED => 'heroicon-o-hand-raise',
-            self::REJECTED => 'heroicon-o-x-circle',
+            self::NEW       => 'heroicon-o-document-plus',
+            self::SCREENING => 'heroicon-o-eye',
+            self::INTERVIEW => 'heroicon-o-calendar',
+            self::OFFER     => 'heroicon-o-hand-raised',
+            self::HIRED     => 'heroicon-o-check-badge',
+            self::REJECTED  => 'heroicon-o-x-circle',
         };
     }
 
     public function getColor(): string|array|null
     {
         return match ($this) {
-            self::APPLIED => 'primary',
-            self::IN_REVIEW => 'warning',
-            self::INTERVIEW_SCHEDULED => 'info',
-            self::OFFERED => 'success',
-            self::REJECTED => 'danger',
+            self::NEW       => 'gray',
+            self::SCREENING => 'warning',
+            self::INTERVIEW => 'info',
+            self::OFFER     => 'primary',
+            self::HIRED     => 'success',
+            self::REJECTED  => 'danger',
         };
     }
 
     public function getLabel(): string|Htmlable|null
     {
         return match ($this) {
-            self::APPLIED => 'Đã ứng tuyển',
-            self::IN_REVIEW => 'Đang xem xét',
-            self::INTERVIEW_SCHEDULED => 'Đã lên lịch phỏng vấn',
-            self::OFFERED => 'Đã nhận offer',
-            self::REJECTED => 'Đã từ chối',
+            self::NEW       => 'Mới',
+            self::SCREENING => 'Sàng lọc',
+            self::INTERVIEW => 'Phỏng vấn',
+            self::OFFER     => 'Offer',
+            self::HIRED     => 'Đã tuyển',
+            self::REJECTED  => 'Từ chối',
         };
     }
 }

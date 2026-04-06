@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusRecruitmentJobsEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -26,7 +27,8 @@ class RecruitmentJob extends Model
 
     protected $casts = [
         'salary_range' => 'array',
-        'deadline' => 'date',
+        'deadline'     => 'date',
+        'status'       => StatusRecruitmentJobsEnum::class,
     ];
 
     public function branch() {
