@@ -5,6 +5,7 @@ use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidateDashboard;
 use App\Livewire\Client\CandidateMessages;
 use App\Livewire\Client\CandidateProfile;
+use App\Livewire\Client\ApplyJob;
 use App\Livewire\Client\CandidatesDetails;
 use App\Livewire\Client\ChangePassword;
 use App\Livewire\Client\Earnings;
@@ -32,6 +33,11 @@ use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
 Route::get('/', Home::class)->name('home');
 
+// Backward-compatible template URLs (static .html links)
+Route::redirect('/candidate-profile.html', '/candidates/candidate_profile');
+Route::redirect('/candidate-dashboard.html', '/candidates/candidate_dashboard');
+Route::redirect('/submit-resume.html', '/candidates/submit_resume');
+
 Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/browse_job', BrowseJobs::class)->name('browse_job');
     Route::get('/sidebar', Sidebars::class)->name('sidebar');
@@ -44,8 +50,9 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('submit_resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
         Route::get('candidate_profile', CandidateProfile::class)->name('candidate_profile');
-        Route::get('messages', EmployersMessage::class)->name('messages');
-        Route::get('manage_jobs', ManageJobs::class)->name('manage_jobs');
+        Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
+        Route::get('messages', CandidateMessages::class)->name('messages');
+        Route::get('manage_jobs', CandidateManageJobs::class)->name('manage_jobs');
         Route::get('earnings', Earnings::class)->name('earnings');
         Route::get('change_password', ChangePassword::class)->name('change_password');
     });
