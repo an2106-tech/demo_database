@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Services\CandidateAccountService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,13 +20,7 @@ class EnsureCandidateAccount
             return redirect()->route('auth.login', ['role' => 'candidate']);
         }
 
-        if (in_array($user->role, ['candidate', 'pm'], true)) {
-            return $next($request);
-        }
-
-        $metadata = is_array($user->metadata) ? $user->metadata : [];
-        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-        if (in_array('candidate', $accountTypes, true)) {
+        if (app(CandidateAccountService::class)->hasCandidateAccount($user)) {
             return $next($request);
         }
 

@@ -23,6 +23,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index(['attachable_type', 'attachable_id'], 'attachments_attachable_index');
+            $table->index('type');
         });
     }
 

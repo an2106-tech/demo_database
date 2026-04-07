@@ -21,7 +21,7 @@
             ? $cvState->getClientOriginalName()
             : $cvPath;
     } elseif ($cvPath && Storage::disk('public')->exists($cvPath)) {
-        $cvUrl = Storage::disk('public')->url($cvPath);
+        $cvUrl = route('public-file.preview', ['path' => $cvPath]);
     }
 
     $ext = $cvPath ? strtolower(pathinfo($cvPath, PATHINFO_EXTENSION)) : null;

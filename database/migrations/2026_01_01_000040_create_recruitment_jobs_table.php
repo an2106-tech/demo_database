@@ -37,9 +37,13 @@ return new class extends Migration
                 ->constrained()
                 ->nullOnDelete();
 
-            $table->foreignId('location_id')
+            $table->foreignId('branch_id')
+                ->constrained('branches')
+                ->cascadeOnDelete();
+
+            $table->foreignId('workplace_id')
                 ->nullable()
-                ->constrained()
+                ->constrained('workplaces')
                 ->nullOnDelete();
 
             $table->foreignId('created_by')

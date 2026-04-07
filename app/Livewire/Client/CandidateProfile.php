@@ -4,6 +4,7 @@ namespace App\Livewire\Client;
 
 use App\Models\CandidateResume;
 use App\Models\Candidate;
+use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
@@ -71,10 +72,7 @@ class CandidateProfile extends Component
         $user = Auth::user();
         abort_unless($user, 401);
 
-        $candidate = Candidate::query()->firstOrCreate(
-            ['user_id' => $user->id],
-            ['name' => $user->name, 'email' => $user->email],
-        );
+        $candidate = app(CandidateAccountService::class)->resolveFor($user);
 
         $this->candidateId = $candidate->id;
         $this->name = (string) $candidate->name;

@@ -21,24 +21,33 @@ use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
+use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
-use App\Livewire\Client\Login;
+use App\Livewire\Client\ManageJobs as CandidateManageJobs;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
-use App\Livewire\Client\ManageJobs as CandidateManageJobs;
-use App\Livewire\Client\Messages as CandidateMessages;
 use App\Livewire\Client\pages\About as PagesAbout;
 use App\Livewire\Client\pages\Blog;
 use App\Livewire\Client\pages\Contact;
 use App\Livewire\Client\pages\JobPage;
+use App\Livewire\Client\pages\Login as PagesLogin;
 use App\Livewire\Client\pages\Register as PagesRegister;
 use App\Livewire\Client\pages\Single;
 use App\Livewire\Client\Sidebars;
-use App\Livewire\Client\SignUp;
 use App\Livewire\Client\SubmitResume;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
+
+Route::get('/preview/public-file/{path}', function (string $path) {
+    abort_unless(Storage::disk('public')->exists($path), 404);
+
+    return Storage::disk('public')->response($path, basename($path), [
+        'Content-Disposition' => 'inline; filename="'.basename($path).'"',
+        'X-Frame-Options' => 'SAMEORIGIN',
+    ]);
+})->where('path', '.*')->name('public-file.preview');
 
 Route::redirect('/candidate-profile.html', '/candidates/candidate_profile');
 Route::redirect('/candidate-dashboard.html', '/candidates/candidate_dashboard');
@@ -61,20 +70,12 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('manage_jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('earnings', Earnings::class)->name('earnings');
         Route::get('change_password', ClientChangePassword::class)->name('change_password');
-        Route::get('/submit_resume', SubmitResume::class)->name('submit_resume');
-        Route::get('/candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
-        Route::get('/candidate_profile', ClientCandidateProfile::class)->name('candidate_profile');
-        Route::get('/jobs/{job}/apply', ApplyJob::class)->name('apply_job');
-        Route::get('/messages', CandidateMessages::class)->name('messages');
-        Route::get('/manage_jobs', CandidateManageJobs::class)->name('manage_jobs');
-        Route::get('/earnings', Earnings::class)->name('earnings');
-        Route::get('/change_password', ClientChangePassword::class)->name('change_password');
     });
 });
 
 Route::prefix('auth')->name('auth.')->group(function () {
-    Route::get('/login', Login::class)->name('login');
-    Route::get('/sign_up', SignUp::class)->name('sign_up');
+    Route::get('/login', PagesLogin::class)->name('login');
+    Route::get('/sign_up', PagesRegister::class)->name('sign_up');
     Route::get('/post_jobs', PostJob::class)->name('post_jobs');
 });
 
@@ -83,15 +84,18 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/single_company', SingleCompany::class)->name('single_company');
     Route::get('/post_job', PostJob::class)->name('post_job');
     Route::get('/job_detail', JobDetail::class)->name('job_detail');
-    Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
-    Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
-    Route::get('/message', EmployerMessage::class)->name('message');
-    Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
-    Route::get('/transaction', Transaction::class)->name('transaction');
-    Route::get('/change-password', EmployerChangePassword::class)->name('change_password');
-    Route::get('/candidate-profile', EmployerCandidateProfile::class)->name('candidate_profile');
-    Route::get('/manage-jobs', CandidateManageJobs::class)->name('manage_jobs');
-    Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
+
+    Route::middleware(['auth', 'employer.account'])->group(function () {
+        Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
+        Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
+        Route::get('/message', EmployerMessage::class)->name('message');
+        Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
+        Route::get('/transaction', Transaction::class)->name('transaction');
+        Route::get('/change-password', EmployerChangePassword::class)->name('change_password');
+        Route::get('/candidate-profile', EmployerCandidateProfile::class)->name('candidate_profile');
+        Route::get('/manage-jobs', CandidateManageJobs::class)->name('manage_jobs');
+        Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
+    });
 });
 
 Route::prefix('pages')->name('pages.')->group(function () {
@@ -99,13 +103,13 @@ Route::prefix('pages')->name('pages.')->group(function () {
     Route::get('/blog', Blog::class)->name('blog');
     Route::get('/single', Single::class)->name('single');
     Route::get('/job-page', JobPage::class)->name('job');
-    Route::get('/login', Login::class)->name('login');
+    Route::get('/login', PagesLogin::class)->name('login');
     Route::get('/register', PagesRegister::class)->name('register');
     Route::get('/contact', Contact::class)->name('contact');
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', Login::class)->name('login');
+    Route::get('/login', PagesLogin::class)->name('login');
     Route::get('/register', PagesRegister::class)->name('register');
 });
 

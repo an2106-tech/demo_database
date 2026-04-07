@@ -2,8 +2,10 @@
 
 namespace App\Livewire\Client\pages;
 
+use App\Enums\VietnamProvince;
 use App\Models\Branch;
 use App\Models\User;
+use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -26,10 +28,11 @@ class Register extends Component
     public ?int $branch_id = null;
 
     public string $phone = '';
+
     public bool $terms_accepted = false;
 
-    // Employer-only fields (used by the Blade view)
     public string $province = '';
+
     public string $address = '';
 
     protected array $queryString = [
@@ -39,8 +42,8 @@ class Register extends Component
 
     public function mount(): void
     {
-        $r = request()->query('role');
-        $this->role = $this->normalizeRole(is_string($r) ? $r : '');
+        $requestedRole = request()->query('role');
+        $this->role = $this->normalizeRole(is_string($requestedRole) ? $requestedRole : '');
 
         $nextRoute = request()->query('next_route');
         $this->next_route = is_string($nextRoute) && $nextRoute !== '' ? $nextRoute : null;
@@ -58,11 +61,15 @@ class Register extends Component
         }
     }
 
+    public function updatedProvince(): void
+    {
+        $this->branch_id = null;
+    }
+
     private function normalizeRole(string $role): string
     {
         $role = strtolower(trim($role));
 
-        // Backward-compat: allow old querystring `role=hr`
         if ($role === 'hr') {
             return 'employer';
         }
@@ -74,17 +81,7 @@ class Register extends Component
     {
         $authUser = Auth::user();
         if ($authUser && $this->role === 'candidate') {
-            $metadata = is_array($authUser->metadata) ? $authUser->metadata : [];
-            $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-
-            $accountTypes[] = 'candidate';
-            if ($authUser->role === 'hr') {
-                $accountTypes[] = 'employer';
-            }
-
-            $metadata['account_types'] = array_values(array_unique(array_filter($accountTypes, 'is_string')));
-            $authUser->metadata = $metadata;
-            $authUser->save();
+            app(CandidateAccountService::class)->activateFor($authUser);
 
             session(['client_menu_type' => 'candidate']);
 
@@ -176,21 +173,9 @@ class Register extends Component
         return redirect()->route('home');
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-
-
     public function render()
     {
-        $provinceOptions = Branch::query()
-            ->where('is_active', true)
-            ->whereNotNull('city')
-            ->where('city', '!=', '')
-            ->distinct()
-            ->orderBy('city')
-            ->pluck('city', 'city')
-            ->all();
+        $provinceOptions = VietnamProvince::options();
 
         $branchesQuery = Branch::query()
             ->where('is_active', true)

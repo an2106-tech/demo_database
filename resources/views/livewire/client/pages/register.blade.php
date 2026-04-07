@@ -29,6 +29,13 @@
             color: #0f172a;
         }
 
+        .auth-form .checkbox label {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            margin-bottom: 0;
+        }
+
         .auth-form input.form-control,
         .auth-form select.form-select {
             width: 100%;
@@ -100,57 +107,6 @@
                     </div>
                 </div>
             </div>
-         </div>
-      </div>
-   </section>
-   <section class="jobguru-login-area section_70">
-      <div class="container">
-         <div class="row">
-            <div class="col-lg-4 offset-lg-4 col-sm-6 offset-sm-3">
-               <div class="login-box">
-                  <div class="login-title">
-                     <h3>Đăng ký tài khoản</h3>
-                  </div>
-                  <form wire:submit.prevent="register">
-                     <div class="single-login-field">
-                        <input type="text" placeholder="Họ và Tên" wire:model="name">
-                        @error('name')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
-                     </div>
-                     <div class="single-login-field">
-                        <input type="email" placeholder="Địa chỉ Email" wire:model="email">
-                        @error('email')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
-                     </div>
-                     <div class="single-login-field">
-                        <input type="password" placeholder="Mật khẩu" wire:model="password">
-                        @error('password')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
-                     </div>
-                     <div class="single-login-field">
-                        <input type="password" placeholder="Xác nhận mật khẩu" wire:model="password_confirmation">
-                        @error('password_confirmation')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
-                     </div>
-                     <div class="remember-row single-login-field clearfix">
-                        <p class="checkbox remember">
-                           <input class="checkbox-spin" type="checkbox" id="Freelance">
-                           <label for="Freelance"><span></span>Chấp nhận các điều khoản & điều kiện</label>
-                        </p>
-                     </div>
-                     <div class="single-login-field">
-                        <button type="submit">Đăng ký</button>
-                     </div>
-                  </form>
-                  <div class="dont_have">
-                     <a href="{{ route('auth.login') }}">Bạn đã có tài khoản? Đăng nhập ngay</a>
-                  </div>
-               </div>
-            </div>
         </div>
     </section>
 
@@ -166,7 +122,7 @@
 
                         @if(auth()->check() && auth()->user()->role === 'hr' && $role === 'candidate')
                             <div class="auth-note">
-                                Tài khoản HR của bạn có thể kích hoạt thêm chế độ Ứng viên (dùng chung email, không tạo tài khoản mới). Sau khi kích hoạt, bạn có thể dùng nút chuyển chế độ trên header để qua menu Ứng viên.
+                                Tài khoản HR của bạn có thể kích hoạt thêm chế độ ứng viên bằng cùng email. Sau khi kích hoạt, bạn có thể dùng nút chuyển chế độ trên header để qua menu ứng viên.
                             </div>
 
                             <form wire:submit.prevent="register" class="auth-form">
@@ -179,215 +135,179 @@
                                 <a href="{{ route('home') }}">Quay lại trang chủ</a>
                             </div>
                         @else
-                        @if($role === 'employer')
-                            <form wire:submit.prevent="register" class="auth-form">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-name">Họ và tên <span class="text-danger">*</span></label>
-                                            <input id="hr-name" class="form-control" type="text" placeholder="Nguyễn Văn A"
-                                                wire:model="name" autocomplete="name">
-                                            @error('name') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                            @if($role === 'employer')
+                                <form wire:submit.prevent="register" class="auth-form">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-name">Họ và tên <span class="text-danger">*</span></label>
+                                                <input id="hr-name" class="form-control" type="text" placeholder="Nguyễn Văn A" wire:model="name" autocomplete="name">
+                                                @error('name') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-email">Email <span class="text-danger">*</span></label>
+                                                <input id="hr-email" class="form-control" type="email" placeholder="you@example.com" wire:model="email" autocomplete="email" inputmode="email">
+                                                @error('email') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-email">Email <span class="text-danger">*</span></label>
-                                            <input id="hr-email" class="form-control" type="email"
-                                                placeholder="you@example.com" wire:model="email" autocomplete="email"
-                                                inputmode="email">
-                                            @error('email') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-phone">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                                                <input id="hr-phone" class="form-control" type="tel" placeholder="0xxxxxxxxx" wire:model="phone" autocomplete="tel" inputmode="tel">
+                                                @error('phone') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-province">Tỉnh/Thành <span class="text-danger">*</span></label>
+                                                <select id="hr-province" class="form-select" wire:model="province">
+                                                    <option value="">-- Chọn tỉnh/thành --</option>
+                                                    @foreach($provinceOptions as $value => $label)
+                                                        <option value="{{ $value }}">{{ $label }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('province') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-phone">Số điện thoại liên hệ <span
-                                                    class="text-danger">*</span></label>
-                                            <input id="hr-phone" class="form-control" type="tel" placeholder="0xxxxxxxxx"
-                                                wire:model="phone" autocomplete="tel" inputmode="tel">
-                                            @error('phone') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-branch">Chi nhánh <span class="text-danger">*</span></label>
+                                                <select id="hr-branch" class="form-select" wire:model="branch_id" @disabled(empty($province))>
+                                                    <option value="">{{ empty($province) ? '-- Chọn tỉnh/thành trước --' : '-- Chọn chi nhánh --' }}</option>
+                                                    @foreach($branches as $b)
+                                                        <option value="{{ $b->id }}">{{ $b->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('branch_id') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-address">Địa chỉ <span class="text-danger">*</span></label>
+                                                <input id="hr-address" class="form-control" type="text" placeholder="Số nhà, đường, phường/xã..." wire:model="address" autocomplete="street-address">
+                                                @error('address') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-province">Tỉnh/Thành <span class="text-danger">*</span></label>
-                                            <select id="hr-province" class="form-select" wire:model="province">
-                                                <option value="">— Chọn tỉnh/thành —</option>
-                                                @foreach($provinceOptions as $value => $label)
-                                                    <option value="{{ $value }}">{{ $label }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('province') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-password">Mật khẩu <span class="text-danger">*</span></label>
+                                                <input id="hr-password" class="form-control" type="password" placeholder="Tối thiểu 8 ký tự" wire:model="password" autocomplete="new-password">
+                                                @error('password') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="hr-password-confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                                <input id="hr-password-confirm" class="form-control" type="password" placeholder="Nhập lại mật khẩu" wire:model="password_confirmation" autocomplete="new-password">
+                                                @error('password_confirmation') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-branch">Chi nhánh <span class="text-danger">*</span></label>
-                                            <select id="hr-branch" class="form-select" wire:model="branch_id" @disabled(empty($province))>
-                                                <option value="">{{ empty($province) ? '— Chọn tỉnh/thành trước —' : '— Chọn chi nhánh —' }}</option>
-                                                @foreach($branches as $b)
-                                                    <option value="{{ $b->id }}">{{ $b->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('branch_id') <p class="text-danger invalid-text">{{ $message }}</p>
-                                            @enderror
+                                    <div class="remember-row single-login-field clearfix">
+                                        <p class="checkbox remember">
+                                            <input class="checkbox-spin" type="checkbox" id="terms-hr" wire:model="terms_accepted">
+                                            <label for="terms-hr"><span></span>Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
+                                        </p>
+                                        @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <div class="auth-actions single-login-field">
+                                        <button type="submit">Tạo tài khoản nhà tuyển dụng</button>
+                                    </div>
+
+                                    <div class="auth-note">
+                                        Tài khoản HR dùng để đăng tin và quản lý ứng viên. Sau khi tạo tài khoản, bạn có thể cập nhật thêm thông tin trong hồ sơ.
+                                    </div>
+                                </form>
+
+                                <div class="auth-links">
+                                    <a href="{{ route('auth.login', ['role' => 'employer']) }}">Bạn đã có tài khoản? Đăng nhập</a>
+                                    <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">Bạn là ứng viên? Đăng ký ứng viên</a>
+                                </div>
+                            @else
+                                <form wire:submit.prevent="register" class="auth-form">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="cand-name">Họ và tên <span class="text-danger">*</span></label>
+                                                <input id="cand-name" class="form-control" type="text" placeholder="Nguyễn Văn A" wire:model="name" autocomplete="name">
+                                                @error('name') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="cand-email">Email <span class="text-danger">*</span></label>
+                                                <input id="cand-email" class="form-control" type="email" placeholder="you@example.com" wire:model="email" autocomplete="email" inputmode="email">
+                                                @error('email') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-address">Địa chỉ <span class="text-danger">*</span></label>
-                                            <input id="hr-address" class="form-control" type="text" placeholder="Số nhà, đường, phường/xã..." wire:model="address" autocomplete="street-address">
-                                            @error('address') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="cand-phone">Số điện thoại <span class="text-danger">*</span></label>
+                                                <input id="cand-phone" class="form-control" type="tel" placeholder="0xxxxxxxxx" wire:model="phone" autocomplete="tel" inputmode="tel">
+                                                @error('phone') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-password">Mật khẩu <span class="text-danger">*</span></label>
-                                            <input id="hr-password" class="form-control" type="password"
-                                                placeholder="Tối thiểu 8 ký tự" wire:model="password"
-                                                autocomplete="new-password">
-                                            @error('password') <p class="text-danger invalid-text">{{ $message }}</p>
-                                            @enderror
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="cand-password">Mật khẩu <span class="text-danger">*</span></label>
+                                                <input id="cand-password" class="form-control" type="password" placeholder="Tối thiểu 8 ký tự" wire:model="password" autocomplete="new-password">
+                                                @error('password') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="single-login-field">
+                                                <label for="cand-password-confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
+                                                <input id="cand-password-confirm" class="form-control" type="password" placeholder="Nhập lại mật khẩu" wire:model="password_confirmation" autocomplete="new-password">
+                                                @error('password_confirmation') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="hr-password-confirm">Xác nhận mật khẩu <span
-                                                    class="text-danger">*</span></label>
-                                            <input id="hr-password-confirm" class="form-control" type="password"
-                                                placeholder="Nhập lại mật khẩu" wire:model="password_confirmation"
-                                                autocomplete="new-password">
-                                            @error('password_confirmation') <p class="text-danger invalid-text">
-                                            {{ $message }}</p> @enderror
-                                        </div>
+
+                                    <div class="remember-row single-login-field clearfix">
+                                        <p class="checkbox remember">
+                                            <input class="checkbox-spin" type="checkbox" id="terms-candidate" wire:model="terms_accepted">
+                                            <label for="terms-candidate"><span></span>Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
+                                        </p>
+                                        @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
                                     </div>
-                                </div>
 
-                                <div class="remember-row single-login-field clearfix">
-                                    <p class="checkbox remember">
-                                        <input class="checkbox-spin" type="checkbox" id="terms-hr"
-                                            wire:model="terms_accepted">
-                                        <label for="terms-hr"><span></span>Chấp nhận các điều khoản & điều kiện <span
-                                                class="text-danger">*</span></label>
-                                    </p>
-                                    @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="auth-actions single-login-field">
-                                    <button type="submit">Tạo tài khoản nhà tuyển dụng</button>
-                                </div>
-
-                                <div class="auth-note">
-                                    Tài khoản HR dùng để đăng tin và quản lý ứng viên. Sau khi tạo tài khoản, bạn có thể cập
-                                    nhật thêm thông tin trong hồ sơ.
-                                </div>
-                            </form>
-
-                            <div class="auth-links">
-                                <a href="{{ route('auth.login', ['role' => 'employer']) }}">Bạn đã có tài khoản? Đăng
-                                    nhập</a>
-                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">Bạn là ứng viên? Đăng ký ứng
-                                    viên</a>
-                            </div>
-                        @else
-                            <form wire:submit.prevent="register" class="auth-form">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="cand-name">Họ và tên <span class="text-danger">*</span></label>
-                                            <input id="cand-name" class="form-control" type="text"
-                                                placeholder="Nguyễn Văn A" wire:model="name" autocomplete="name">
-                                            @error('name') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
-                                        </div>
+                                    <div class="auth-actions single-login-field">
+                                        <button type="submit">Tạo tài khoản ứng viên</button>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="cand-email">Email <span class="text-danger">*</span></label>
-                                            <input id="cand-email" class="form-control" type="email"
-                                                placeholder="you@example.com" wire:model="email" autocomplete="email"
-                                                inputmode="email">
-                                            @error('email') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
-                                        </div>
+
+                                    <div class="auth-note">
+                                        Sau khi tạo tài khoản, bạn có thể cập nhật hồ sơ và nộp hồ sơ ứng tuyển.
                                     </div>
-                                </div>
+                                </form>
 
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="cand-phone">Số điện thoại <span class="text-danger">*</span></label>
-                                            <input id="cand-phone" class="form-control" type="tel" placeholder="0xxxxxxxxx"
-                                                wire:model="phone" autocomplete="tel" inputmode="tel">
-                                            @error('phone') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
-                                        </div>
-                                    </div>
+                                <div class="auth-links">
+                                    <a href="{{ route('auth.login', ['role' => 'candidate']) }}">Bạn đã có tài khoản? Đăng nhập</a>
+                                    <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}">Bạn là nhà tuyển dụng? Đăng ký nhà tuyển dụng</a>
                                 </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="cand-password">Mật khẩu <span class="text-danger">*</span></label>
-                                            <input id="cand-password" class="form-control" type="password"
-                                                placeholder="Tối thiểu 8 ký tự" wire:model="password"
-                                                autocomplete="new-password">
-                                            @error('password') <p class="text-danger invalid-text">{{ $message }}</p>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="single-login-field">
-                                            <label for="cand-password-confirm">Xác nhận mật khẩu <span
-                                                    class="text-danger">*</span></label>
-                                            <input id="cand-password-confirm" class="form-control" type="password"
-                                                placeholder="Nhập lại mật khẩu" wire:model="password_confirmation"
-                                                autocomplete="new-password">
-                                            @error('password_confirmation') <p class="text-danger invalid-text">
-                                            {{ $message }}</p> @enderror
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="remember-row single-login-field clearfix">
-                                    <p class="checkbox remember">
-                                        <input class="checkbox-spin" type="checkbox" id="terms-candidate"
-                                            wire:model="terms_accepted">
-                                        <label for="terms-candidate"><span></span>Chấp nhận các điều khoản & điều kiện <span
-                                                class="text-danger">*</span></label>
-                                    </p>
-                                    @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div class="auth-actions single-login-field">
-                                    <button type="submit">Tạo tài khoản ứng viên</button>
-                                </div>
-
-                                <div class="auth-note">
-                                    Sau khi tạo tài khoản, bạn có thể cập nhật hồ sơ và nộp hồ sơ ứng tuyển.
-                                </div>
-                            </form>
-
-                            <div class="auth-links">
-                                <a href="{{ route('auth.login', ['role' => 'candidate']) }}">Bạn đã có tài khoản? Đăng
-                                    nhập</a>
-                                <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}">Bạn là nhà tuyển dụng? Đăng ký
-                                    nhà tuyển dụng</a>
-                            </div>
-                        @endif
+                            @endif
                         @endif
                     </div>
                 </div>
             </div>
-
         </div>
     </section>
 </div>

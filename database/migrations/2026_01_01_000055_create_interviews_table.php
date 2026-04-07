@@ -29,9 +29,9 @@ return new class extends Migration
             $table->enum('type', ['online', 'offline'])->default('online');
             $table->string('meeting_link', 500)->nullable();
 
-            $table->foreignId('location_id')
+            $table->foreignId('workplace_id')
                 ->nullable()
-                ->constrained('locations')
+                ->constrained('workplaces')
                 ->nullOnDelete();
 
             $table->timestamp('invite_sent_at')->nullable();

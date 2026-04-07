@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -18,9 +19,7 @@ class Header extends Component
             return;
         }
 
-        $metadata = is_array($user->metadata) ? $user->metadata : [];
-        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-        $hasCandidateAccount = in_array('candidate', $accountTypes, true);
+        $hasCandidateAccount = app(CandidateAccountService::class)->hasCandidateAccount($user);
 
         // Menu mapping:
         // - candidate + pm => candidate menu
@@ -54,12 +53,8 @@ class Header extends Component
             return;
         }
 
-        $metadata = is_array($user->metadata) ? $user->metadata : [];
-        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-        $hasCandidateAccount = in_array('candidate', $accountTypes, true);
-
-        if ($type === 'candidate' && ! $hasCandidateAccount) {
-            return;
+        if ($type === 'candidate') {
+            app(CandidateAccountService::class)->activateFor($user);
         }
 
         session(['client_menu_type' => $type]);
@@ -69,13 +64,10 @@ class Header extends Component
     public function render()
     {
         $user = Auth::user();
-        $metadata = is_array($user?->metadata) ? $user->metadata : [];
-        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-        $hasCandidateAccount = in_array('candidate', $accountTypes, true);
 
         return view('livewire.client.header', [
             'isEmployerHeader' => $this->type === 'employer',
-            'showRoleSwitcher' => (bool) $user && $user->role === 'hr' && $hasCandidateAccount,
+            'showRoleSwitcher' => (bool) $user && $user->role === 'hr',
         ]);
     }
 }

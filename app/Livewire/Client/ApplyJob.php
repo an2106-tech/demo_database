@@ -5,6 +5,7 @@ namespace App\Livewire\Client;
 use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
 use App\Models\RecruitmentJob;
+use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -33,10 +34,7 @@ class ApplyJob extends Component
 
         $this->job = $job;
 
-        $candidate = Candidate::query()->firstOrCreate(
-            ['user_id' => $user->id],
-            ['name' => $user->name, 'email' => $user->email],
-        );
+        $candidate = app(CandidateAccountService::class)->resolveFor($user);
 
         $this->candidateId = $candidate->id;
     }

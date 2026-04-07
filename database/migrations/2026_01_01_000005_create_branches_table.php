@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('code', 20)->unique()->nullable();
+            $table->string('image')->nullable();
             $table->string('city', 100);
             $table->string('province_code', 10)->nullable();
             $table->text('address')->nullable();

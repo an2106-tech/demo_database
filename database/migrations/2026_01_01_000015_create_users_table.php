@@ -19,7 +19,11 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
 
-            $table->enum('role', ['admin', 'hr', 'director', 'pm', 'leader'])->default('pm');
+            $table->enum('role', ['admin', 'hr', 'director', 'pm', 'leader', 'candidate'])->default('pm');
+            $table->foreignId('branch_id')
+                ->nullable()
+                ->constrained('branches')
+                ->nullOnDelete();
             $table->string('avatar')->nullable();
             $table->boolean('is_active')->default(true);
             $table->json('metadata')->nullable();
@@ -50,8 +54,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::dropIfExists('users');
     }
 };
