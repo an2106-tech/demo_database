@@ -2,6 +2,13 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\Applications\ApplicationResource;
+use App\Filament\Resources\Branches\BranchResource;
+use App\Filament\Resources\Departments\DepartmentResource;
+use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
+use App\Filament\Resources\Roles\RoleResource;
+use App\Filament\Resources\Users\UserResource;
+use App\Filament\Resources\Workplaces\WorkplaceResource;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -33,7 +40,15 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->resources([
+                ApplicationResource::class,
+                BranchResource::class,
+                DepartmentResource::class,
+                RecruitmentJobResource::class,
+                RoleResource::class,
+                UserResource::class,
+                WorkplaceResource::class,
+            ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,

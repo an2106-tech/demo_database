@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\RecruitmentJob;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Illuminate\Support\Facades\Schema;
 
 
 class Home extends Component
@@ -16,9 +17,11 @@ class Home extends Component
     {
         $jobs = RecruitmentJob::with('branch')->latest()->get();
         $branches = Branch::withCount('workplaces')->latest()->get();
-        $categories = Category::active()
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'icon', 'image']);
+        $categories = Schema::hasTable('categories')
+            ? Category::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug', 'icon', 'image'])
+            : collect();
 
         return view('livewire.client.home', [
             'branches' => $branches,

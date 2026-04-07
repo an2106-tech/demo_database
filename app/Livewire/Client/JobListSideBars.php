@@ -7,6 +7,7 @@ use Livewire\Component;
 use App\Models\Category;
 use App\Models\RecruitmentJob;
 use App\Models\Skill;
+use Illuminate\Support\Facades\Schema;
 
 class JobListSideBars extends Component
 {
@@ -19,13 +20,17 @@ class JobListSideBars extends Component
             ->latest()
             ->get();
 
-        $skills = Skill::query()
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $skills = Schema::hasTable('skills')
+            ? Skill::query()
+                ->orderBy('name')
+                ->get(['id', 'name'])
+            : collect();
 
-        $categories = Category::active()
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug', 'icon', 'image']);
+        $categories = Schema::hasTable('categories')
+            ? Category::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'slug', 'icon', 'image'])
+            : collect();
 
         return view('livewire.client.job-list-sidebar', [
             'jobs' => $jobs,

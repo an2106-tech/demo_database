@@ -14,10 +14,7 @@ class Application extends Model
     protected $fillable = [
         'job_id',
         'candidate_id',
-        'cv_id',
         'cv_path',
-        'cv_title_snapshot',
-        'cv_file_snapshot',
         'source',
         'referral_user_id',
         'utm_source',
@@ -34,7 +31,6 @@ class Application extends Model
         'applied_at' => 'datetime',
         'status' => StatusApplicationEnum::class,
     ];
-
 
     public function job(): BelongsTo
     {

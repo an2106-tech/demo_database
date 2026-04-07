@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\StatusRecruitmentJobsEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RecruitmentJob extends Model
@@ -31,19 +33,29 @@ class RecruitmentJob extends Model
         'status'       => StatusRecruitmentJobsEnum::class,
     ];
 
-    public function branch() {
+    public function branch(): BelongsTo
+    {
         return $this->belongsTo(Branch::class);
     }
 
-    public function workplace() {
+    public function workplace(): BelongsTo
+    {
         return $this->belongsTo(Workplace::class);
     }
 
-    public function department() {
+    public function department(): BelongsTo
+    {
         return $this->belongsTo(Department::class);
     }
 
-    public function creator() {
+    public function creator(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function skills(): BelongsToMany
+    {
+        return $this->belongsToMany(Skill::class, 'job_skills', 'job_id', 'skill_id')
+            ->withPivot(['level', 'is_required']);
     }
 }

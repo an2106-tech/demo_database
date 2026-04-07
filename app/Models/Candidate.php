@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Candidate extends Model
@@ -36,22 +38,26 @@ class Candidate extends Model
 
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function blacklistedBy(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'blacklisted_by');
+        return $this->belongsTo(User::class);
     }
 
     public function resumes(): HasMany
     {
-        return $this->hasMany(CandidateResume::class, 'candidate_id');
+        return $this->hasMany(CandidateResume::class);
+    }
+
+    public function resume(): HasOne
+    {
+        return $this->hasOne(CandidateResume::class);
     }
 
     public function applications(): HasMany
     {
-        return $this->hasMany(Application::class, 'candidate_id');
+        return $this->hasMany(Application::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 }
-
