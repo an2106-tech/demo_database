@@ -166,5 +166,4 @@
             </div>
         </div>
     </section>
-    <!-- Candidate Dashboard Area End -->
 </div>

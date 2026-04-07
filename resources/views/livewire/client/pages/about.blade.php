@@ -37,10 +37,9 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="about-main-box">
-                        <p>Donec at cursus sem. Duis condimentum posuere
-                            purus, at venenatis tellus mollis. Vestibulum cursus
-                            convallis venenatis. Sed ut blandit mauris. Proin pret-
-                            ium consequat est, sit amet consectetu
+                        <p>Chúng tôi luôn nỗ lực mang đến những giá trị tốt nhất cho khách hàng. Với tầm nhìn chiến lược
+                            và sự tận tâm, chúng tôi cam kết đồng hành cùng bạn trên con đường phát triển sự nghiệp bền
+                            vững và thành công nhất.
                         </p>
                     </div>
                 </div>
@@ -58,6 +57,7 @@
                         </div>
                     </div>
                 </div>
+
                 <div class="col-lg-4 col-md-12">
                     <div class="single-about-box">
                         <div class="about-box-img">
@@ -94,8 +94,10 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>choose best <span>plan</span></h2>
-                        <p>A better career is out there. We'll help you find it. We're your first step to becoming everything you want to be.</p>
+                        <h2>chọn <span>gói</span> tốt nhất</h2>
+                        <p>Một sự nghiệp tốt hơn đang chờ đón bạn. Chúng tôi sẽ giúp bạn tìm thấy nó. Chúng tôi là bước
+                            đi
+                            đầu tiên để bạn trở thành bất cứ ai bạn muốn.</p>
                     </div>
                 </div>
             </div>
@@ -175,8 +177,10 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Awesome Team <span>Member</span></h2>
-                        <p>A better career is out there. We'll help you find it. We're your first step to becoming everything<br> you want to be.</p>
+                        <h2>Thành viên <span>Ưu tú</span></h2>
+                        <p>Một sự nghiệp tốt hơn đang chờ đón bạn. Chúng tôi sẽ giúp bạn tìm thấy nó.<br> Chúng tôi là
+                            bước
+                            đi đầu tiên để bạn chạm đến ước mơ của mình.</p>
                     </div>
                 </div>
             </div>
@@ -260,5 +264,4 @@
             </div>
         </div>
     </section>
-    <!-- Team Area End -->
 </div>

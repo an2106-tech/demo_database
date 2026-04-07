@@ -3,10 +3,9 @@ use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidateDashboard;
+use App\Livewire\Client\CandidateMessages;
 use App\Livewire\Client\CandidateProfile;
 use App\Livewire\Client\CandidatesDetails;
-use App\Livewire\Client\CandidateMessages;
-use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\ChangePassword;
 use App\Livewire\Client\Earnings;
 use App\Livewire\Client\employers\BrowseCandidates;
@@ -14,7 +13,10 @@ use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Home;
+use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\Login;
+use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\pages\About as PagesAbout;
 use App\Livewire\Client\pages\Blog;
@@ -25,7 +27,6 @@ use App\Livewire\Client\pages\Register as PagesRegister;
 use App\Livewire\Client\pages\Single;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\SignUp;
-use App\Livewire\Client\Login;
 use App\Livewire\Client\SubmitResume;
 use Illuminate\Container\Attributes\Log;
 use Illuminate\Support\Facades\Route;
@@ -69,6 +70,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('candidate_earnings', Earnings::class)->name('candidate_earnings');
     Route::get('transaction', EmployersTransaction::class)->name('transaction');
     Route::get('change_password', ChangePassword::class)->name('change_password');
+    Route::get('job_detail', JobDetail::class)->name('job_detail');
 });
 
 Route::prefix('pages')->name('pages.')->group(function () {
