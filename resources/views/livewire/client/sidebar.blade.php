@@ -73,10 +73,15 @@
                                  <option value="">Tất cả danh mục</option>
                                  @foreach ($categories as $category)
                                     <option value="{{ $category->id }}">{{ $category->name }}</option>
-                     <div class="single-job-sidebar sidebar-location">
-                        <h3>Ngày đăng</h3>
-                        <div class="date-post-job job-sidebar-box">
-                           <div class="form-group form-radio">
+                                 @endforeach
+                               </select>
+                            </form>
+                         </div>
+                      </div>
+                      <div class="single-job-sidebar sidebar-location">
+                         <h3>Ngày đăng</h3>
+                         <div class="date-post-job job-sidebar-box">
+                            <div class="form-group form-radio">
                               <input id="last_hour" name="posted_at" type="radio">
                               <label for="last_hour" class="inline control-label">1 giờ qua</label>
                            </div>

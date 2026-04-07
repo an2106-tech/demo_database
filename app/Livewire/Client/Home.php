@@ -16,7 +16,7 @@ class Home extends Component
     {
         $jobs = RecruitmentJob::with('branch')->latest()->get();
         $branches = Branch::withCount('workplaces')->latest()->get();
-        $categories = Category::query()
+        $categories = Category::active()
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'icon', 'image']);
 

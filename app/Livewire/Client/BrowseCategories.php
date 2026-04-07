@@ -11,7 +11,7 @@ class BrowseCategories extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        $categories = Category::query()
+        $categories = Category::active()
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'icon', 'image']);
 

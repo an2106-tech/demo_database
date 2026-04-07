@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             SkillSeeder::class,
             RecruitmentJobSeeder::class,
             JobSkillSeeder::class,
+            CandidateSeeder::class,
             CandidateSkillSeeder::class,
             ApplicationDemoSeeder::class,
         ]);

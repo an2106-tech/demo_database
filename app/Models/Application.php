@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Enums\StatusApplicationEnum;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Application extends Model
 {
@@ -30,7 +32,7 @@ class Application extends Model
     protected $casts = [
         'salary_expected' => 'array',
         'applied_at' => 'datetime',
-        'status' => StatusApplicationEnum::class
+        'status' => StatusApplicationEnum::class,
     ];
 
 

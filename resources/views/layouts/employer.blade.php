@@ -31,7 +31,7 @@
 <body>
     <livewire:header type="employer" />
     {{ $slot }}
-    <livewire:footer />
+    <livewire:footer type="employer" />
 
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>

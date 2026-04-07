@@ -211,8 +211,20 @@
                         </a>
                     </div>
                 @empty
-                    <li>Không có danh mục nào</li>
+                    <div class="col-12">
+                        <p>Không có danh mục nào</p>
+                    </div>
                 @endforelse
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="load-more">
+                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
                 {{-- <div class="col-lg-3 col-md-6 col-sm-6">
                     <a href="#" class="single-category-holder design_cat">
                         <div class="category-holder-icon">
@@ -358,6 +370,7 @@
                         <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
                             nghề</a>
                     </div>
+    --}}
     <section class="jobguru-inner-hire-area section_100">
         <div class="hire_circle"></div>
         <div class="container">
@@ -441,9 +454,8 @@
                         <div class="tab-pane fade" id="pills-job" role="tabpanel" aria-labelledby="pills-job-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    @forelse($jobs as $job)
-                                    <li>
-                                        <div>
+                                    @forelse ($jobs as $job)
+                                        <li>
                                             <div class="top-company-list">
                                                 <div class="company-list-logo">
                                                     <a href="#">
@@ -455,92 +467,29 @@
                                                 <div class="company-list-details">
                                                     <h3><a href="#">{{ $job->title }}</a></h3>
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}
-                                                    </p>
-                                                    {{ optional($job->branch)->city ?? 'Địa điểm chưa xác định' }}</p>
-                                                        {{ \App\Enums\VietnamProvince::tryFrom(optional($job->branch)->city ?? '')?->label() ?? (optional($job->branch)->city ?? 'Địa điểm chưa xác định') }}
+                                                        {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Địa điểm chưa xác định') }}
                                                     </p>
                                                     <p class="open-icon"><i class="fa fa-clock-o"></i>
-                                                        {{ $job->created_at->diffForHumans() }}</p>
+                                                        {{ $job->created_at?->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:
-                                                        {{ is_array($job->salary_range) ? join(' - ', $job->salary_range) : $job->salary_range ?? 'Thỏa thuận' }}
+                                                        @if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
+                                                            {{ number_format($job->salary_range['min']) }} - {{ number_format($job->salary_range['max']) }} VND
+                                                        @elseif (is_array($job->salary_range))
+                                                            {{ implode(' - ', $job->salary_range) }}
+                                                        @elseif (!empty($job->salary_range))
+                                                            {{ $job->salary_range }}
+                                                        @else
+                                                            Thỏa thuận
+                                                        @endif
                                                     </p>
-                                                    <p class="rating-company">
-                                                        {{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
                                                 </div>
                                                 <div class="company-list-btn">
-                                                    <a href="#" class="jobguru-btn">Xem ứng tuyển</a>
+                                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
+                                                        class="jobguru-btn">Xem ứng tuyển</a>
                                                 </div>
                                             </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Giám đốc bán hàng khu vực</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $1200-$2000</p>
-                                                <p class="rating-company">4.1</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-4.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Lập trình viên C# cao cấp (.Net)</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>2 phút trước</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $800-$1200</p>
-                                                <p class="rating-company">3.1</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-3.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Trợ giảng</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>3 phút trước</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $800-$1200</p>
-                                                <p class="rating-company">4.3</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
-                                            </div>
-                                        </div>
-                                    </li>
-                                    <li>
-                                        <div class="top-company-list">
-                                            <div class="company-list-logo">
-                                                <a href="#">
-                                            <img src="{{ asset('assets/img/company-logo-2.png') }}" alt="company list 1" />
-                                                </a>
-                                            </div>
-                                            <div class="company-list-details">
-                                                <h3><a href="#">Kỹ sư dân dụng</a></h3>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Chicago, Michigan</p>
-                                                <p class="open-icon"><i class="fa fa-clock-o"></i>30 phút trước</p>
-                                                <p class="varify"><i class="fa fa-check"></i>Giá cố định: $2000-$2500</p>
-                                                <p class="rating-company">3.7</p>
-                                            </div>
-                                            <div class="company-list-btn">
-                                                <a href="#" class="jobguru-btn">Đấu thầu ngay</a>
-                                            </div>
-                                        </div>
-                                    </li>
+                                        </li>
                                     @empty
                                     <li>Không có công việc nào</li>
                                     @endforelse
@@ -553,7 +502,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="load-more">
-                        <a href="#" class="jobguru-btn">Xem thêm danh sách</a>
+                        <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem thêm danh sách</a>
                     </div>
                 </div>
             </div>

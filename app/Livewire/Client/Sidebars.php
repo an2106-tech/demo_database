@@ -23,7 +23,7 @@ class Sidebars extends Component
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $categories = Category::query()
+        $categories = Category::active()
             ->orderBy('name')
             ->get(['id', 'name', 'slug', 'icon', 'image']);
 

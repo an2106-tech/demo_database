@@ -5,7 +5,6 @@ use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidateDashboard;
-use App\Livewire\Client\CandidateMessages;
 use App\Livewire\Client\CandidateProfile as ClientCandidateProfile;
 use App\Livewire\Client\ApplyJob;
 use App\Livewire\Client\CandidatesDetails;
@@ -27,7 +26,7 @@ use App\Livewire\Client\Home;
 use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
 use App\Livewire\Client\Login;
-use App\Livewire\Client\ManageJobs ;
+use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\pages\About as PagesAbout;
 use App\Livewire\Client\pages\Blog;
@@ -59,12 +58,12 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::middleware(['auth', 'candidate.account'])->group(function () {
         Route::get('submit_resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
-        Route::get('candidate_profile', CandidateProfile::class)->name('candidate_profile');
+        Route::get('candidate_profile', ClientCandidateProfile::class)->name('candidate_profile');
         Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
-        Route::get('messages', CandidateMessages::class)->name('messages');
-        Route::get('manage_jobs', CandidateManageJobs::class)->name('manage_jobs');
+        Route::get('messages', Messages::class)->name('messages');
+        Route::get('manage_jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('earnings', Earnings::class)->name('earnings');
-        Route::get('change_password', ChangePassword::class)->name('change_password');
+        Route::get('change_password', ClientChangePassword::class)->name('change_password');
     });
 });
 Route::prefix('auth')->name('auth.')->group(function(){
@@ -83,6 +82,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/browse', BrowseCandidates::class)->name('browse');
     Route::get('/single_company', SingleCompany::class)->name('single_company');
     Route::get('/post_job', PostJob::class)->name('post_job');
+    Route::get('/job_detail', JobDetail::class)->name('job_detail');
     Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
     Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
     Route::get('/message', Message::class)->name('message');

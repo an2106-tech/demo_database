@@ -15,6 +15,7 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon/favicon-32x32.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('assets/css/magnific-popup.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/owl.carousel.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/owl.theme.default.min.css') }}">
@@ -35,7 +36,7 @@
     {{-- @include('partials.header') --}}
     <livewire:header type="candidate" />
     {{ $slot }}
-    <livewire:footer />
+    <livewire:footer type="candidate" />
     {{-- @include('partials.footer') --}}
 
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>

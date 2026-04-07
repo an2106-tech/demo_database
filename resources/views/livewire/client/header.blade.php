@@ -175,51 +175,6 @@
                               <a href="/">Trang chủ</a>
                            </li>
 
-                           @if(!$isEmployerHeader)
-                              <li class="has-children">
-                                 <a href="#">Cho Ứng Viên</a>
-                                 <ul>
-                                    <li><a href="{{ route('employers.browse') }}">Browse Candidates</a></li>
-                                    <li><a href="{{ route('employers.single_company') }}">company details</a></li>
-                                    <li><a href="{{ route('employers.post_job') }}">Post A job</a></li>
-                                    <li class="has-inner-child">
-                                       <a href="#">Tìm việc làm</a>
-                                       <ul>
-                                          <li><a href="{{ route('employers.dashboard') }}">employer dashboard</a></li>
-                                          <li><a href="{{ route('employers.company_profile') }}">company profile</a></li>
-                                          <li><a href="{{ route('employers.message') }}">messages</a></li>
-                                          <li><a href="manage-candidates.html">manage candidates</a></li>
-                                          <li><a href="transaction.html">transaction</a></li>
-                                          <li><a href="change-password.html">change password</a></li>
-                                       </ul>
-                                    </li>
-                                 </ul>
-                              </li>
-                           @else
-                              <li class="has-children">
-                                 <a href="#">Cho Nhà Tuyển Dụng</a>
-                                 <ul>
-                                    <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                                    <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
-                                    <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
-                                    <li><a href="{{ route('employers.job_detail') }}">Chi tiết tin tuyển dụng</a></li>
-                                    <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (Ứng viên)</a></li>
-                                    <li class="has-inner-child">
-                                       <a href="#">Quản lý tuyển dụng</a>
-                                       <ul>
-                                          <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
-                                          <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
-                                          <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
-                                          <li><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a>
-                                          </li>
-                                          <li><a href="{{ route('employers.transaction') }}">Giao dịch</a></li>
-                                          <li><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
-                                       </ul>
-                                    </li>
-                                 </ul>
-                              </li>
-                           @endif
-
                            <li class="has-children">
                               <a href="#">Cho Ứng Viên</a>
                               <ul>
@@ -254,6 +209,7 @@
                                  <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
                                  <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
                                  <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
+                                 <li><a href="{{ route('employers.job_detail') }}">Chi tiết tin tuyển dụng</a></li>
                                  <li class="has-inner-child">
                                     <a href="#">Quản lý tuyển dụng</a>
                                     <ul>
