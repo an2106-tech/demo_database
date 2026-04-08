@@ -5,7 +5,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="breadcromb-box">
-                            <h3>Duyệt công ty</h3>
+                            <h3>Địa chỉ việc làm</h3>
                         </div>
                     </div>
                 </div>
@@ -19,7 +19,7 @@
                             <ul>
                                 <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                 <li><a href="#">Ứng viên</a></li>
-                                <li class="active-breadcromb"><a href="#">Duyệt công ty</a></li>
+                                <li class="active-breadcromb"><a href="#">Địa chỉ việc làm</a></li>
                             </ul>
                         </div>
                     </div>

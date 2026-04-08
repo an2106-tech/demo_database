@@ -299,7 +299,7 @@
                                     </ul>
                                  </li>
                                  <li><a href="{{ route('candidates.browse_categories') }}">Danh mục ngành nghề</a></li>
-                                 <li><a href="{{ route('candidates.browse_companies') }}">Danh sách chi nhánh</a></li>
+                                 <li><a href="{{ route('candidates.browse_companies') }}">Địa chỉ việc làm</a></li>
                                  <li><a href="{{ route('candidates.candidate_detail') }}">Chi tiết ứng viên</a></li>
                                  <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (CV)</a></li>
                                  <li class="has-inner-child">
