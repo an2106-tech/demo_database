@@ -52,7 +52,12 @@ class Login extends Component
             Auth::logout();
             request()->session()->invalidate();
             request()->session()->regenerateToken();
-            $this->addError('email', 'Tài khoản đã bị khóa.');
+            $this->addError(
+                'email',
+                $user?->role === 'hr'
+                    ? 'Tài khoản nhà tuyển dụng đang chờ super admin duyệt.'
+                    : 'Tài khoản đã bị khóa.'
+            );
 
             return null;
         }

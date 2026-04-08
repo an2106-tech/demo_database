@@ -61,8 +61,9 @@ class Register extends Component
         }
     }
 
-    public function updatedProvince(): void
+    public function updatedProvince(string $value): void
     {
+        $this->province = trim($value);
         $this->branch_id = null;
     }
 
@@ -138,7 +139,7 @@ class Register extends Component
                 'role' => 'hr',
                 'branch_id' => $data['branch_id'],
                 'avatar' => null,
-                'is_active' => true,
+                'is_active' => false,
                 'metadata' => [
                     'account_type' => 'employer',
                     'account_types' => ['employer'],
@@ -147,6 +148,12 @@ class Register extends Component
                     'address' => trim($data['address']),
                 ],
             ]);
+        }
+
+        if ($this->role === 'employer') {
+            return redirect()
+                ->route('auth.login', ['role' => 'employer'])
+                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo và đang chờ super admin duyệt.');
         }
 
         Auth::login($user);

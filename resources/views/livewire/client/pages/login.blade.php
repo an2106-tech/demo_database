@@ -33,16 +33,17 @@
             <div class="col-lg-4 offset-lg-4 col-sm-6 offset-sm-3">
                <div class="login-box">
                   <div class="login-title">
-                     <h3>{{ request('role') === 'employer' ? 'Đăng nhập cho nhà tuyển dụng' : 'Đăng nhập cho ứng viên' }}</h3>
-                     <div class="auth-choice-buttons" style="display:flex; gap:.7rem; flex-wrap:wrap; margin-top:.8rem;">
-                        <a href="{{ route('auth.login', ['role' => 'candidate']) }}" class="jobguru-btn-2 {{ request('role') !== 'employer' ? 'active' : '' }}">Đăng nhập cho ứng viên</a>
-                        <a href="{{ route('auth.login', ['role' => 'employer']) }}" class="jobguru-btn-2 {{ request('role') === 'employer' ? 'active' : '' }}">Đăng nhập cho tuyển dụng</a>
-                     </div>
+                     <h3>Đăng nhập</h3>
                   </div>
+                  @if (session('status'))
+                     <div class="alert alert-success" style="margin-bottom:16px;">
+                        {{ session('status') }}
+                     </div>
+                  @endif
                   <form wire:submit.prevent="login">
                      <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
                      <div class="single-login-field">
-                        <input type="email" placeholder="Địa chỉ Email" wire:model="email">
+                        <input type="email" placeholder="Địa chỉ email" wire:model="email">
                         @error('email')
                            <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
                         @enderror
@@ -55,8 +56,8 @@
                      </div>
                      <div class="remember-row single-login-field clearfix">
                         <p class="checkbox remember">
-                           <input class="checkbox-spin" type="checkbox" id="Freelance" wire:model="remember">
-                           <label for="Freelance"><span></span>Duy trì đăng nhập</label>
+                           <input class="checkbox-spin" type="checkbox" id="remember-login" wire:model="remember">
+                           <label for="remember-login"><span></span>Duy trì đăng nhập</label>
                         </p>
                         <p class="lost-pass">
                            <a href="#">Quên mật khẩu?</a>
@@ -74,4 +75,4 @@
          </div>
       </div>
    </section>
-   </div>
+</div>

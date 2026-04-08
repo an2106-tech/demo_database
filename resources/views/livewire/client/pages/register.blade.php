@@ -29,11 +29,12 @@
             color: #0f172a;
         }
 
-        .auth-form .checkbox label {
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem;
-            margin-bottom: 0;
+        .auth-form .candidate-grid > [class*="col-"] {
+            display: flex;
+        }
+
+        .auth-form .candidate-grid .single-login-field {
+            width: 100%;
         }
 
         .auth-form input.form-control,
@@ -59,14 +60,60 @@
             font-size: 13px;
         }
 
-        .auth-actions {
-            margin-top: 10px;
+        .auth-form .terms-field {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 6px 0 18px;
         }
 
-        .auth-actions button {
+        .auth-form .terms-field input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin-top: 3px;
+            accent-color: #3b82f6;
+            flex: 0 0 auto;
+        }
+
+        .auth-form .terms-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .auth-form .terms-copy label {
+            margin: 0;
+            font-weight: 700;
+            line-height: 1.5;
+            cursor: pointer;
+        }
+
+        .auth-actions {
+            margin-top: 12px;
+        }
+
+        .auth-actions .auth-submit-btn {
             width: 100%;
-            border-radius: 12px;
+            min-height: 52px;
+            border: 0;
+            border-radius: 14px;
             font-weight: 800;
+            letter-spacing: .01em;
+            background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+            color: #fff;
+            box-shadow: 0 14px 32px rgba(37, 99, 235, .18);
+            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+        }
+
+        .auth-actions .auth-submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 16px 36px rgba(37, 99, 235, .22);
+            filter: brightness(1.02);
+        }
+
+        .auth-actions .auth-submit-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 .2rem rgba(59, 130, 246, .18), 0 14px 32px rgba(37, 99, 235, .18);
         }
 
         .auth-links {
@@ -127,7 +174,7 @@
 
                             <form wire:submit.prevent="register" class="auth-form">
                                 <div class="auth-actions single-login-field">
-                                    <button type="submit">Kích hoạt tài khoản ứng viên</button>
+                                    <button type="submit" class="auth-submit-btn">Kích hoạt tài khoản ứng viên</button>
                                 </div>
                             </form>
 
@@ -165,7 +212,7 @@
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="hr-province">Tỉnh/Thành <span class="text-danger">*</span></label>
-                                                <select id="hr-province" class="form-select" wire:model="province">
+                                                <select id="hr-province" class="form-select" wire:model.live="province">
                                                     <option value="">-- Chọn tỉnh/thành --</option>
                                                     @foreach($provinceOptions as $value => $label)
                                                         <option value="{{ $value }}">{{ $label }}</option>
@@ -180,7 +227,13 @@
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="hr-branch">Chi nhánh <span class="text-danger">*</span></label>
-                                                <select id="hr-branch" class="form-select" wire:model="branch_id" @disabled(empty($province))>
+                                                <select
+                                                    id="hr-branch"
+                                                    class="form-select"
+                                                    wire:model.live="branch_id"
+                                                    wire:key="hr-branch-{{ $province !== '' ? $province : 'none' }}"
+                                                    @disabled(empty($province))
+                                                >
                                                     <option value="">{{ empty($province) ? '-- Chọn tỉnh/thành trước --' : '-- Chọn chi nhánh --' }}</option>
                                                     @foreach($branches as $b)
                                                         <option value="{{ $b->id }}">{{ $b->name }}</option>
@@ -215,16 +268,16 @@
                                         </div>
                                     </div>
 
-                                    <div class="remember-row single-login-field clearfix">
-                                        <p class="checkbox remember">
-                                            <input class="checkbox-spin" type="checkbox" id="terms-hr" wire:model="terms_accepted">
-                                            <label for="terms-hr"><span></span>Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
-                                        </p>
-                                        @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                    <div class="terms-field">
+                                        <input type="checkbox" id="terms-hr" wire:model="terms_accepted">
+                                        <div class="terms-copy">
+                                            <label for="terms-hr">Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
+                                            @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                        </div>
                                     </div>
 
                                     <div class="auth-actions single-login-field">
-                                        <button type="submit">Tạo tài khoản nhà tuyển dụng</button>
+                                        <button type="submit" class="auth-submit-btn">Tạo tài khoản nhà tuyển dụng</button>
                                     </div>
 
                                     <div class="auth-note">
@@ -238,7 +291,7 @@
                                 </div>
                             @else
                                 <form wire:submit.prevent="register" class="auth-form">
-                                    <div class="row">
+                                    <div class="row candidate-grid">
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="cand-name">Họ và tên <span class="text-danger">*</span></label>
@@ -255,7 +308,7 @@
                                         </div>
                                     </div>
 
-                                    <div class="row">
+                                    <div class="row candidate-grid">
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="cand-phone">Số điện thoại <span class="text-danger">*</span></label>
@@ -263,9 +316,6 @@
                                                 @error('phone') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="row">
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="cand-password">Mật khẩu <span class="text-danger">*</span></label>
@@ -273,6 +323,9 @@
                                                 @error('password') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div class="row candidate-grid">
                                         <div class="col-md-6">
                                             <div class="single-login-field">
                                                 <label for="cand-password-confirm">Xác nhận mật khẩu <span class="text-danger">*</span></label>
@@ -280,22 +333,23 @@
                                                 @error('password_confirmation') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
                                             </div>
                                         </div>
+                                        <div class="col-md-6 d-flex align-items-end">
+                                            <div class="auth-note" style="margin-top:0; width:100%;">
+                                                Sau khi tạo tài khoản, bạn có thể cập nhật hồ sơ và nộp hồ sơ ứng tuyển.
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="remember-row single-login-field clearfix">
-                                        <p class="checkbox remember">
-                                            <input class="checkbox-spin" type="checkbox" id="terms-candidate" wire:model="terms_accepted">
-                                            <label for="terms-candidate"><span></span>Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
-                                        </p>
-                                        @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                    <div class="terms-field">
+                                        <input type="checkbox" id="terms-candidate" wire:model="terms_accepted">
+                                        <div class="terms-copy">
+                                            <label for="terms-candidate">Chấp nhận các điều khoản và điều kiện <span class="text-danger">*</span></label>
+                                            @error('terms_accepted') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
+                                        </div>
                                     </div>
 
                                     <div class="auth-actions single-login-field">
-                                        <button type="submit">Tạo tài khoản ứng viên</button>
-                                    </div>
-
-                                    <div class="auth-note">
-                                        Sau khi tạo tài khoản, bạn có thể cập nhật hồ sơ và nộp hồ sơ ứng tuyển.
+                                        <button type="submit" class="auth-submit-btn">Tạo tài khoản ứng viên</button>
                                     </div>
                                 </form>
 
