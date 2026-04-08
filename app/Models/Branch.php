@@ -24,4 +24,9 @@ class Branch extends Model
     {
         return $this->hasMany(Workplace::class);
     }
+
+    public function recruitmentJobs(): HasMany
+    {
+        return $this->hasMany(RecruitmentJob::class);
+    }
 }

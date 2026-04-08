@@ -285,33 +285,235 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
+                                    {{--
                                     @forelse($branches as $branch)
                                         <li>
-                                            <div class="top-company-list">
-                                                <div class="company-list-logo">
-                                                    <a href="#">
-                                                        <img src="{{ asset('storage/' . ltrim($branch->image)) }}"
-                                                            alt="{{ $branch->name }}" />
-                                                    </a>
-                                                </div>
-                                                <div class="company-list-details">
-                                                    <h3><a href="#">{{ $branch->name }}</a></h3>
+                                            <div class="top-company-list" style="display:block;">
+                                                <?php
+                                                $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
+                                                    ?? ($branch->city ?? null);
+
+                                                $branchTitle = (string) ($branch->name ?? '');
+                                                $titleLower = function_exists('mb_strtolower')
+                                                    ? mb_strtolower($branchTitle, 'UTF-8')
+                                                    : strtolower($branchTitle);
+                                                $cityLower = $cityLabel
+                                                    ? (function_exists('mb_strtolower') ? mb_strtolower($cityLabel, 'UTF-8') : strtolower($cityLabel))
+                                                    : '';
+
+                                                if ($cityLabel && $cityLower !== '' && !str_contains($titleLower, $cityLower)) {
+                                                    $branchTitle .= ' - ' . $cityLabel;
+                                                }
+                                                ?>
+                                                <div class="row align-items-center" style="margin: 0;">
+                                                    <div class="col-12 col-md-2" style="padding: 18px 10px;">
+                                                        <div class="company-list-logo">
+                                                            <a href="#">
+                                                                <img src="{{ $branch->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
+                                                                    alt="{{ $branch->name }}"
+                                                                    style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;" />
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12 col-md-8" style="padding: 18px 10px;">
+                                                        <div class="company-list-details">
+                                                            <h3 style="margin-bottom: 6px;"><a href="#">{{ $branchTitle }}</a></h3>
+
+                                                    <?php if (false): ?>
+                                                    <p class="company-state"><i class="fa fa-map-marker"></i>
+                                                        {{ \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label() ?? ($branch->city ?? 'Địa điểm chưa xác định') }}
+                                                    </p>
 
                                                     @if($branch->address)
                                                         <p class="company-state"><i class="fa fa-location-arrow"></i>
                                                             {{ $branch->address }}</p>
                                                     @endif
                                                     <p class="open-icon"><i
-                                                            class="fa fa-briefcase"></i>{{ $branch->workplaces_count ?? $branch->workplaces()->count() }}
+                                                            class="fa fa-briefcase"></i>{{ (int) ($branch->published_jobs_count ?? 0) }}
                                                         vị trí đang tuyển</p>
                                                     <p class="varify"><i
                                                             class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
                                                     </p>
                                                     <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                    <?php endif; ?>
+
+                                                    <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size: 13px; color:#6b7280;">
+                                                        <span><i class="fa fa-map-marker"></i> {{ $cityLabel ?? 'Chưa cập nhật' }}</span>
+                                                        @if($branch->address)
+                                                            <span><i class="fa fa-location-arrow"></i> {{ $branch->address }}</span>
+                                                        @endif
+                                                        <span><i class="fa fa-briefcase"></i> {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang tuyển</span>
+                                                        <span><i class="fa fa-check"></i> {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}</span>
+                                                        <span class="rating-company" style="margin-left: auto;">{{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                    </div>
+
+                                                    <?php if (false): ?>
+                                                        <div style="margin-top: 10px;">
+                                                            <ul class="list-unstyled" style="margin: 0;">
+                                                                <?php foreach (($branch->recruitmentJobs ?? collect())->take(3) as $job): ?>
+                                                                    <?php
+                                                                        $salaryText = 'Thỏa thuận';
+                                                                        if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
+                                                                            $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
+                                                                        } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
+                                                                            $salaryText = implode(' - ', $job->salary_range);
+                                                                        } elseif (!empty($job->salary_range)) {
+                                                                            $salaryText = (string) $job->salary_range;
+                                                                        }
+                                                                    ?>
+                                                                    <li style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 6px 0; border-top: 1px dashed #eee;">
+                                                                        <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
+                                                                            style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                                                            {{ $job->title }}
+                                                                        </a>
+                                                                        <span style="white-space:nowrap; font-size: 12px; color: #666;">
+                                                                            {{ $salaryText }}
+                                                                        </span>
+                                                                        <span style="white-space:nowrap; font-size: 12px; color: #666;">
+                                                                            {{ $job->deadline?->format('d/m') ?? '' }}
+                                                                        </span>
+                                                                    </li>
+                                                                <?php endforeach; ?>
+                                                            </ul>
+                                                        </div>
+                                                    <?php endif; ?>
                                                 </div>
+                                                </div>
+                                                <div class="col-12 col-md-2" style="padding: 18px 10px; text-align:right;">
                                                 <div class="company-list-btn">
                                                     <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                                                 </div>
+                                                </div>
+                                                </div>
+
+                                                <?php if (($branch->recruitmentJobs ?? collect())->isNotEmpty()): ?>
+                                                    <div class="row" style="margin: 0;">
+                                                        <div class="col-12 col-md-2"></div>
+                                                        <div class="col-12 col-md-10" style="padding: 0 10px 18px;">
+                                                            <ul class="list-unstyled" style="margin: 0;">
+                                                                <?php foreach (($branch->recruitmentJobs ?? collect())->take(5) as $job): ?>
+                                                                    <?php
+                                                                    $salaryText = 'Thỏa thuận';
+                                                                    if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
+                                                                        $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
+                                                                    } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
+                                                                        $salaryText = implode(' - ', $job->salary_range);
+                                                                    } elseif (!empty($job->salary_range)) {
+                                                                        $salaryText = (string) $job->salary_range;
+                                                                    }
+                                                                    ?>
+                                                                    <li style="display:flex; align-items:center; gap:10px; padding: 10px 0; border-top: 1px solid #f0f0f0;">
+                                                                        <div style="flex:1; min-width:0;">
+                                                                            <i class="fa fa-heart-o" style="margin-right: 10px; color:#a3a3a3;"></i>
+                                                                            <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
+                                                                                style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; max-width:100%;">
+                                                                                {{ $job->title }}
+                                                                            </a>
+                                                                        </div>
+                                                                        <div style="width: 210px; text-align:right; font-size:12px; color:#6b7280;">
+                                                                            <i class="fa fa-money"></i> {{ $salaryText }}
+                                                                        </div>
+                                                                        <div style="width: 70px; text-align:right; font-size:12px; color:#6b7280;">
+                                                                            <i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m') ?? '' }}
+                                                                        </div>
+                                                                    </li>
+                                                                <?php endforeach; ?>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+                                                <?php endif; ?>
+                                            </div>
+                                        </li>
+                                    @empty
+                                        <li>Không có chi nhánh nào.</li>
+                                    @endforelse
+                                    --}}
+
+                                    <style>
+                                        #pills-companies .branch-card{background:#fff;border:1px solid #eef0f3;border-radius:12px;padding:18px;margin:0 0 18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+                                        #pills-companies .branch-header{display:flex;gap:16px;align-items:flex-start}
+                                        #pills-companies .branch-logo{flex:0 0 auto}
+                                        #pills-companies .branch-logo img{width:86px;height:64px;object-fit:contain}
+                                        #pills-companies .branch-main{flex:1;min-width:0}
+                                        #pills-companies .branch-title{font-size:18px;font-weight:600;margin:0 0 6px}
+                                        #pills-companies .branch-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:#6b7280;align-items:center}
+                                        #pills-companies .branch-action{flex:0 0 auto;display:flex;align-items:center;gap:12px;white-space:nowrap}
+                                        #pills-companies .branch-rating{background:#f5a623;color:#fff;font-weight:700;font-size:12px;border-radius:6px;padding:2px 6px;line-height:18px}
+                                        #pills-companies .branch-jobs{margin-top:14px;border-top:1px solid #eef0f3;padding-top:12px}
+                                        #pills-companies .branch-job-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #edf0f3;border-radius:10px;padding:12px 14px;margin-top:10px}
+                                        #pills-companies .branch-job-title{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+                                        #pills-companies .branch-job-title a{font-weight:500}
+                                        #pills-companies .branch-job-salary{width:220px;text-align:right;font-size:12px;color:#6b7280;white-space:nowrap}
+                                        #pills-companies .branch-job-deadline{width:70px;text-align:right;font-size:12px;color:#6b7280;white-space:nowrap}
+                                    </style>
+
+                                    @forelse($branches as $branch)
+                                        <?php
+                                        $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
+                                            ?? ($branch->city ?? null);
+
+                                        $branchTitle = (string) ($branch->name ?? '');
+                                        $titleLower = function_exists('mb_strtolower')
+                                            ? mb_strtolower($branchTitle, 'UTF-8')
+                                            : strtolower($branchTitle);
+                                        $cityLower = $cityLabel
+                                            ? (function_exists('mb_strtolower') ? mb_strtolower($cityLabel, 'UTF-8') : strtolower($cityLabel))
+                                            : '';
+
+                                        if ($cityLabel && $cityLower !== '' && !str_contains($titleLower, $cityLower)) {
+                                            $branchTitle .= ' - ' . $cityLabel;
+                                        }
+                                        ?>
+                                        <li>
+                                            <div class="branch-card">
+                                                <div class="branch-header">
+                                                    <div class="branch-logo">
+                                                        <a href="#">
+                                                            <img src="{{ $branch->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
+                                                                alt="{{ $branchTitle }}">
+                                                        </a>
+                                                    </div>
+                                                    <div class="branch-main">
+                                                        <div class="branch-title"><a href="#">{{ $branchTitle }}</a></div>
+                                                        <div class="branch-meta">
+                                                            <span><i class="fa fa-map-marker"></i> {{ $cityLabel ?? 'Chưa cập nhật' }}</span>
+                                                            <?php if (!empty($branch->address)): ?>
+                                                                <span><i class="fa fa-location-arrow"></i> {{ $branch->address }}</span>
+                                                            <?php endif; ?>
+                                                            <span><i class="fa fa-briefcase"></i> {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang tuyển</span>
+                                                            <span><i class="fa fa-check"></i> {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="branch-action">
+                                                        <span class="branch-rating">{{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                        <a href="#" class="jobguru-btn">Xem hồ sơ</a>
+                                                    </div>
+                                                </div>
+
+                                                <?php if (($branch->recruitmentJobs ?? collect())->isNotEmpty()): ?>
+                                                    <div class="branch-jobs">
+                                                        <?php foreach ((($branch->recruitmentJobs ?? collect())->values()) as $job): ?>
+                                                            <?php
+                                                            $salaryText = 'Thỏa thuận';
+                                                            if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
+                                                                $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
+                                                            } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
+                                                                $salaryText = implode(' - ', $job->salary_range);
+                                                            } elseif (!empty($job->salary_range)) {
+                                                                $salaryText = (string) $job->salary_range;
+                                                            }
+                                                            ?>
+                                                            <div class="branch-job-row">
+                                                                <i class="fa fa-heart-o" style="color:#a3a3a3;"></i>
+                                                                <div class="branch-job-title">
+                                                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">{{ $job->title }}</a>
+                                                                </div>
+                                                                <div class="branch-job-salary"><i class="fa fa-money"></i> {{ $salaryText }}</div>
+                                                                <div class="branch-job-deadline"><i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m') ?? '' }}</div>
+                                                            </div>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php endif; ?>
                                             </div>
                                         </li>
                                     @empty

@@ -5,6 +5,7 @@ namespace App\Livewire\Client;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Branch;
+use App\Enums\StatusRecruitmentJobsEnum;
 
 class BrowseCompanies extends Component
 {
@@ -12,8 +13,18 @@ class BrowseCompanies extends Component
     public function render()
     {
         $branches = Branch::query()
+            ->withCount([
+                'recruitmentJobs as published_jobs_count' => fn ($query) => $query
+                    ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value),
+            ])
+            ->with([
+                'recruitmentJobs' => fn ($query) => $query
+                    ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
+                    ->orderByDesc('created_at')
+                    ->select(['id', 'branch_id', 'title', 'salary_range', 'deadline', 'created_at']),
+            ])
             ->latest()
-            ->get(['id', 'name', 'image']);
+            ->get(['id', 'name', 'image', 'city', 'address', 'is_active']);
 
         $branchesByLetter = $branches->groupBy(function (Branch $branch) {
             $name = (string) ($branch->name ?? '');
