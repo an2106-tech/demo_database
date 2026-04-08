@@ -23,14 +23,15 @@ class CategoryInfolist
                 TextEntry::make('name'),
                 TextEntry::make('slug'),
                 TextEntry::make('icon')
-                    ->placeholder('-'),
+                    ->icon(fn($record) => $record->icon),
                 ImageEntry::make('image')
+                    ->disk('public')
                     ->placeholder('-'),
                 IconEntry::make('status')
                     ->boolean(),
                 TextEntry::make('deleted_at')
                     ->dateTime()
-                    ->visible(fn (Category $record): bool => $record->trashed()),
+                    ->visible(fn(Category $record): bool => $record->trashed()),
             ]);
     }
 }

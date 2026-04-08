@@ -19,7 +19,13 @@ class CategoryForm
                     ->required(),
                 TextInput::make('icon'),
                 FileUpload::make('image')
-                    ->image(),
+                    ->label('Hình ảnh')
+                    ->image()
+                    ->directory('categories')
+                    ->disk('public')
+                    ->visibility('public')
+                    ->imagePreviewHeight('150')
+                     ->nullable(),
                 Toggle::make('status')
                     ->required(),
             ]);

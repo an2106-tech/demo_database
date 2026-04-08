@@ -29,13 +29,17 @@ class CategoriesTable
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('name')
+                    ->label('Tên danh mục')
                     ->searchable(),
                 TextColumn::make('slug')
                     ->searchable(),
                 TextColumn::make('icon')
-                    ->searchable(),
-                ImageColumn::make('image'),
+                    ->icon(fn($record) => $record->icon),
+                ImageColumn::make('image')
+                    ->label('Hình ảnh')
+                    ->disk('public'),
                 IconColumn::make('status')
+                    ->label('Trạng thái')
                     ->boolean(),
                 TextColumn::make('deleted_at')
                     ->dateTime()

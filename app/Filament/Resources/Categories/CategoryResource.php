@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Filament\Resources\Categories;
-
 use App\Filament\Resources\Categories\Pages\CreateCategory;
 use App\Filament\Resources\Categories\Pages\EditCategory;
 use App\Filament\Resources\Categories\Pages\ListCategories;
@@ -26,7 +25,8 @@ class CategoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Quản lý danh mục';
 
-    protected static ?string $modelLabel = 'danh mục';
+    protected static ?string $modelLabel = 'danhmục';
+
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
