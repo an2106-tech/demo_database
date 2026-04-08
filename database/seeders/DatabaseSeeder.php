@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             WorkplaceSeeder::class,
             RolePermissionSeeder::class,
             UserSeeder::class,
+            EmailTemplateSeeder::class,
             SkillSeeder::class,
             RecruitmentJobSeeder::class,
             JobSkillSeeder::class,

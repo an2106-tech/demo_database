@@ -3,6 +3,7 @@
 namespace App\Livewire\Client;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\CandidateApplicationReceivedMail;
 use App\Models\Application;
 use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
@@ -12,6 +13,8 @@ use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -36,13 +39,10 @@ class ApplyJob extends Component
 
     public ?string $career_objective = null;
 
-    public bool $use_existing_cv = true;
-
     public $cv = null;
 
     public function updatedCv(): void
     {
-        $this->use_existing_cv = false;
         $this->resetValidation('cv');
     }
 
@@ -77,19 +77,13 @@ class ApplyJob extends Component
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
             'profile_title' => ['nullable', 'string', 'max:255'],
             'career_objective' => ['nullable', 'string', 'max:4000'],
-            'use_existing_cv' => ['boolean'],
         ];
 
-        $candidate = $this->resolveExistingCandidate();
-        $canReuseExistingCv = Auth::check() && (bool) ($candidate?->cv_file);
-
-        $rules['cv'] = $canReuseExistingCv && $this->use_existing_cv
-            ? ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx']
-            : ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
+        $rules['cv'] = ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
 
         $this->validate($rules);
 
-        DB::transaction(function (): void {
+        $result = DB::transaction(function (): array {
             $candidate = $this->upsertCandidate();
             $cvPath = $this->storeCandidateCv($candidate);
             $cvText = $cvPath ? app(CvTextExtractor::class)->extractFromPublicPath($cvPath) : null;
@@ -115,18 +109,24 @@ class ApplyJob extends Component
             $candidate->metadata = $candidateMetadata;
             $candidate->save();
 
-            Application::query()->updateOrCreate(
-                [
+            $application = Application::withTrashed()
+                ->firstOrNew([
                     'job_id' => $this->job->id,
                     'candidate_id' => $candidate->id,
-                ],
-                [
-                    'cv_path' => $cvPath,
-                    'source' => 'website',
-                    'status' => StatusApplicationEnum::NEW,
-                    'applied_at' => now(),
-                ],
-            );
+                ]);
+
+            $application->fill([
+                'cv_path' => $cvPath,
+                'source' => 'website',
+                'status' => StatusApplicationEnum::NEW,
+                'applied_at' => now(),
+            ]);
+
+            if ($application->trashed()) {
+                $application->deleted_at = null;
+            }
+
+            $application->save();
 
             CandidateJobSubmission::query()->updateOrCreate(
                 [
@@ -151,10 +151,19 @@ class ApplyJob extends Component
             );
 
             $this->candidateId = $candidate->id;
+
+            return [
+                'candidate' => $candidate,
+                'application' => $application,
+            ];
         });
 
+        $this->sendApplicationReceivedMail(
+            $result['candidate'],
+            $result['application'],
+        );
+
         $this->cv = null;
-        $this->use_existing_cv = Auth::check();
 
         session()->flash('status', 'Da nop ung tuyen thanh cong. Chung toi se lien he voi ban som nhat co the.');
     }
@@ -238,13 +247,26 @@ class ApplyJob extends Component
         return (string) $candidate->cv_file;
     }
 
-    public function getHasExistingCvProperty(): bool
+    protected function sendApplicationReceivedMail(Candidate $candidate, Application $application): void
     {
-        if (! Auth::check()) {
-            return false;
+        $email = is_string($candidate->email) ? trim($candidate->email) : null;
+
+        if (blank($email)) {
+            return;
         }
 
-        return (bool) ($this->resolveExistingCandidate()?->cv_file);
+        try {
+            Mail::to($email)->send(
+                new CandidateApplicationReceivedMail($candidate, $application, $this->job)
+            );
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to send candidate application confirmation email.', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'email' => $email,
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
     protected function messages(): array
@@ -278,8 +300,6 @@ class ApplyJob extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        return view('livewire.client.apply-job', [
-            'hasExistingCv' => $this->hasExistingCv,
-        ]);
+        return view('livewire.client.apply-job');
     }
 }

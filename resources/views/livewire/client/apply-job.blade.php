@@ -5,7 +5,7 @@
                 <div class="row">
                     <div class="col-md-12">
                         <div class="breadcromb-box">
-                            <h3>Ứng tuyển</h3>
+                            <h3>&#7912;ng tuy&#7875;n</h3>
                         </div>
                     </div>
                 </div>
@@ -25,13 +25,13 @@
                         <div class="resume-box">
                             <h3>Nộp hồ sơ: {{ $job->title }}</h3>
                             <p style="margin-top: 6px; color: #6b7280;">
-                                Bạn không cần đăng nhập để ứng tuyển. Chỉ cần điền thông tin cơ bản và tải CV lên.
+                                Bạn không cần đăng nhập để ứng tuyển. Chỉ cần điền thông tin cơ bản và tải lên CV của bạn.
                             </p>
 
                             <form wire:submit.prevent="submit" enctype="multipart/form-data">
                                 <div class="single-resume-feild">
                                     <div class="single-input">
-                                        <label>Họ và tên</label>
+                                        <label>H&#7885; v&#224; t&#234;n</label>
                                         <input type="text" wire:model.defer="name" placeholder="Nhập họ và tên">
                                         @error('name')<div class="text-danger">{{ $message }}</div>@enderror
                                     </div>
@@ -81,13 +81,6 @@
                                     <div class="single-input">
                                         <label>CV</label>
 
-                                        @if ($hasExistingCv)
-                                            <label style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
-                                                <input type="checkbox" wire:model="use_existing_cv">
-                                                Dùng lại CV đã có trong hồ sơ ứng viên
-                                            </label>
-                                        @endif
-
                                         <input type="file" wire:model="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                                         <div wire:loading wire:target="cv" class="mt-2">Đang tải lên...</div>
                                         @error('cv')<div class="text-danger">{{ $message }}</div>@enderror
@@ -95,7 +88,7 @@
                                 </div>
 
                                 <div class="submit-resume">
-                                    <button type="submit" wire:loading.attr="disabled">Nộp ứng tuyển</button>
+                                    <button type="submit" wire:loading.attr="disabled">Ứng tuyển</button>
                                 </div>
                             </form>
                         </div>
