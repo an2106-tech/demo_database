@@ -17,6 +17,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class UserResource extends Resource
 {
@@ -45,25 +46,24 @@ class UserResource extends Resource
     public static function infolist(Schema $schema): Schema
     {
         return $schema->components([
-                Section::make('Thông tin cá nhân')
-                    ->columns(2)
-                    ->schema([
-                        TextEntry::make('name')->label('Tên'),
-                        TextEntry::make('email')->label('Email'),
-                    ]),
-                Section::make('Thông tin hệ thống')
-                    ->columns(2)
-                    ->schema([
-                        TextEntry::make('role')->label('Vai trò'),
-                        TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
-                    ]),
-            ]);
+            Section::make('Thông tin cá nhân')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('name')->label('Tên'),
+                    TextEntry::make('email')->label('Email'),
+                ]),
+            Section::make('Thông tin hệ thống')
+                ->columns(2)
+                ->schema([
+                    TextEntry::make('role')->label('Vai trò'),
+                    TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
+                ]),
+        ]);
     }
+
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -72,15 +72,36 @@ class UserResource extends Resource
             'index' => ListUsers::route('/'),
             'create' => CreateUser::route('/create'),
             'edit' => EditUser::route('/{record}/edit'),
-            'view' => ViewUser::route('/{record}')
+            'view' => ViewUser::route('/{record}'),
         ];
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
-        return parent::getRecordRouteBindingEloquentQuery()
+        $query = parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
     }
 }

@@ -220,7 +220,7 @@
                                        </li>
                                     </ul>
                                     <div class="top-job-company-btn">
-                                       <a href="#" class="jobguru-btn-2">Ứng tuyển ngay</a>
+                                       <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}" class="jobguru-btn-2">Ứng tuyển ngay</a>
                                     </div>
                                  </div>
                               </div>
@@ -237,3 +237,4 @@
         </div>
     </section>
 </div>
+

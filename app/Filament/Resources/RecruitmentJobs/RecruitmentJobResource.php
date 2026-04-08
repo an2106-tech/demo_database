@@ -9,6 +9,7 @@ use App\Filament\Resources\RecruitmentJobs\Pages\ViewRecruitmentJob;
 use App\Filament\Resources\RecruitmentJobs\Schemas\RecruitmentJobForm;
 use App\Filament\Resources\RecruitmentJobs\Tables\RecruitmentJobsTable;
 use App\Models\RecruitmentJob;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -71,9 +72,10 @@ class RecruitmentJobResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
+        /** @var User|null $user */
         $user = Auth::user();
-        if ($user && $user->hasRole('director') && $user->branch_id) {
-            $query->where('branch_id', $user->branch_id);
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
         }
 
         return $query;

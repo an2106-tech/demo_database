@@ -50,6 +50,7 @@ class RolePermissionSeeder extends Seeder
 
         $roles['director']->syncPermissions($this->permissionsFor($guardName, [
             'Application',
+            'Candidate',
             'RecruitmentJob',
         ], [
             'ViewAny',
@@ -67,6 +68,7 @@ class RolePermissionSeeder extends Seeder
 
         $roles['pm']->syncPermissions($this->permissionsFor($guardName, [
             'Application',
+            'Candidate',
             'RecruitmentJob',
         ], [
             'ViewAny',
@@ -84,6 +86,7 @@ class RolePermissionSeeder extends Seeder
 
         $roles['hr']->syncPermissions($this->permissionsFor($guardName, [
             'Application',
+            'Candidate',
             'RecruitmentJob',
         ], [
             'ViewAny',

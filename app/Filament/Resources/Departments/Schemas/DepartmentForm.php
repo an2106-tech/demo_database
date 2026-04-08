@@ -2,10 +2,12 @@
 
 namespace App\Filament\Resources\Departments\Schemas;
 
+use App\Models\Branch;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentForm
 {
@@ -25,9 +27,23 @@ class DepartmentForm
 
             Select::make('branch_id')
                 ->label('Chi nhánh')
-                ->relationship('branch', 'name')
+                ->options(function (): array {
+                    /** @var \App\Models\User|null $user */
+                    $user = Auth::user();
+
+                    if ($user?->branchScopeId()) {
+                        return Branch::query()
+                            ->whereKey($user->branchScopeId())
+                            ->pluck('name', 'id')
+                            ->all();
+                    }
+
+                    return Branch::query()->orderBy('name')->pluck('name', 'id')->all();
+                })
                 ->searchable()
                 ->preload()
+                ->default(fn () => Auth::user()?->branchScopeId())
+                ->disabled(fn (): bool => (bool) Auth::user()?->branchScopeId())
                 ->nullable(),
 
             Textarea::make('description')

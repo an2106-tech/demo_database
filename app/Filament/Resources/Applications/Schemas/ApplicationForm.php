@@ -16,8 +16,6 @@ use Filament\Forms\Components\ViewField;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 class ApplicationForm
 {
@@ -34,14 +32,22 @@ class ApplicationForm
                                     ->schema([
                                         Select::make('job_id')
                                             ->label('Công việc')
-                                            ->options(fn () => RecruitmentJob::query()
-                                                ->orderByDesc('id')
-                                                ->limit(500)
-                                                ->get()
-                                                ->mapWithKeys(fn (RecruitmentJob $job) => [
-                                                    $job->id => "#{$job->id} - {$job->title}",
-                                                ])
-                                                ->all())
+                                            ->options(function (): array {
+                                                $query = RecruitmentJob::query();
+
+                                                if (\Illuminate\Support\Facades\Auth::user()?->branchScopeId()) {
+                                                    $query->where('branch_id', \Illuminate\Support\Facades\Auth::user()?->branchScopeId());
+                                                }
+
+                                                return $query
+                                                    ->orderByDesc('id')
+                                                    ->limit(500)
+                                                    ->get()
+                                                    ->mapWithKeys(fn (RecruitmentJob $job) => [
+                                                        $job->id => "#{$job->id} - {$job->title}",
+                                                    ])
+                                                    ->all();
+                                            })
                                             ->searchable()
                                             ->preload()
                                             ->required()

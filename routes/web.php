@@ -60,12 +60,12 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/browse_categories', BrowseCategories::class)->name('browse_categories');
     Route::get('/browse_companies', BrowseCompanies::class)->name('browse_companies');
     Route::get('/candidate_detail', CandidatesDetails::class)->name('candidate_detail');
+    Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
 
     Route::middleware(['auth', 'candidate.account'])->group(function () {
         Route::get('submit_resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate_dashboard', CandidateDashboard::class)->name('candidate_dashboard');
         Route::get('candidate_profile', ClientCandidateProfile::class)->name('candidate_profile');
-        Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
         Route::get('messages', Messages::class)->name('messages');
         Route::get('manage_jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('earnings', Earnings::class)->name('earnings');
@@ -117,3 +117,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
     Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
 });
+
+
+

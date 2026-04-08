@@ -8,6 +8,7 @@ use App\Filament\Resources\Workplaces\Pages\ListWorkplaces;
 use App\Filament\Resources\Workplaces\Pages\ViewWorkplaces;
 use App\Filament\Resources\Workplaces\Schemas\WorkplaceForm;
 use App\Filament\Resources\Workplaces\Tables\WorkplacesTable;
+use App\Models\User;
 use App\Models\Workplace;
 use BackedEnum;
 use Filament\Infolists\Components\IconEntry;
@@ -18,6 +19,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class WorkplaceResource extends Resource
 {
@@ -42,6 +44,7 @@ class WorkplaceResource extends Resource
     {
         return WorkplacesTable::configure($table);
     }
+
     public static function infolist(Schema $schema): Schema
     {
         return $schema
@@ -65,9 +68,7 @@ class WorkplaceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -82,9 +83,30 @@ class WorkplaceResource extends Resource
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
-        return parent::getRecordRouteBindingEloquentQuery()
+        $query = parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
     }
 }

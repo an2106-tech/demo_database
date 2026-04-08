@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
+use App\Models\Branch;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class UserForm
 {
@@ -45,9 +47,23 @@ class UserForm
 
                 Select::make('branch_id')
                     ->label('Chi nhánh')
-                    ->relationship('branch', 'name')
+                    ->options(function (): array {
+                        /** @var \App\Models\User|null $user */
+                        $user = Auth::user();
+
+                        if ($user?->branchScopeId()) {
+                            return Branch::query()
+                                ->whereKey($user->branchScopeId())
+                                ->pluck('name', 'id')
+                                ->all();
+                        }
+
+                        return Branch::query()->orderBy('name')->pluck('name', 'id')->all();
+                    })
                     ->searchable()
                     ->preload()
+                    ->default(fn () => Auth::user()?->branchScopeId())
+                    ->disabled(fn (): bool => (bool) Auth::user()?->branchScopeId())
                     ->nullable(),
 
                 TextInput::make('avatar')

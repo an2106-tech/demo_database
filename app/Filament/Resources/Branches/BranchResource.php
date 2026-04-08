@@ -9,6 +9,7 @@ use App\Filament\Resources\Branches\Pages\ViewBranch;
 use App\Filament\Resources\Branches\Schemas\BranchForm;
 use App\Filament\Resources\Branches\Tables\BranchesTable;
 use App\Models\Branch;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -16,6 +17,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class BranchResource extends Resource
 {
@@ -27,7 +29,7 @@ class BranchResource extends Resource
 
     protected static ?string $modelLabel = 'chi nhánh';
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedBuildingOffice2;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice2;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -43,9 +45,7 @@ class BranchResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -54,15 +54,36 @@ class BranchResource extends Resource
             'index' => ListBranches::route('/'),
             'create' => CreateBranch::route('/create'),
             'edit' => EditBranch::route('/{record}/edit'),
-            'view' => ViewBranch::route('/{record}')
+            'view' => ViewBranch::route('/{record}'),
         ];
     }
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
-        return parent::getRecordRouteBindingEloquentQuery()
+        $query = parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->whereKey($user->branchScopeId());
+        }
+
+        return $query;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->whereKey($user->branchScopeId());
+        }
+
+        return $query;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Filament\Resources\Branches\BranchResource;
+use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Resources\Departments\DepartmentResource;
 use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
 use App\Filament\Resources\Roles\RoleResource;
@@ -43,6 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->resources([
                 ApplicationResource::class,
                 BranchResource::class,
+                CandidateResource::class,
                 DepartmentResource::class,
                 RecruitmentJobResource::class,
                 RoleResource::class,

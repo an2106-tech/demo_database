@@ -2,13 +2,11 @@
 
 namespace App\Filament\Resources\Departments;
 
-use App\Filament\Resources\Departments\Pages\CreateDepartment;
-use App\Filament\Resources\Departments\Pages\EditDepartment;
 use App\Filament\Resources\Departments\Pages\ListDepartments;
-use App\Filament\Resources\Departments\Pages\ViewDepartment;
 use App\Filament\Resources\Departments\Schemas\DepartmentForm;
 use App\Filament\Resources\Departments\Tables\DepartmentsTable;
 use App\Models\Department;
+use App\Models\User;
 use BackedEnum;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -17,6 +15,7 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentResource extends Resource
 {
@@ -49,32 +48,17 @@ class DepartmentResource extends Resource
                 Section::make('Thông tin phòng ban')
                     ->columns(2)
                     ->schema([
-                        TextEntry::make('name')
-                            ->label('Tên'),
-                        TextEntry::make('code')
-                            ->label('Mã')
-                            ->copyable(),
-                        TextEntry::make('branch.name')
-                            ->label('Chi nhánh')
-                            ->placeholder('-'),
-                        TextEntry::make('description')
-                            ->label('Mô tả')
-                            ->placeholder('-')
-                            ->prose()
-                            ->columnSpanFull(),
+                        TextEntry::make('name')->label('Tên'),
+                        TextEntry::make('code')->label('Mã')->copyable(),
+                        TextEntry::make('branch.name')->label('Chi nhánh')->placeholder('-'),
+                        TextEntry::make('description')->label('Mô tả')->placeholder('-')->prose()->columnSpanFull(),
                     ]),
                 Section::make('Hệ thống')
                     ->columns(2)
                     ->schema([
-                        TextEntry::make('created_at')
-                            ->label('Ngày tạo')
-                            ->dateTime(),
-                        TextEntry::make('updated_at')
-                            ->label('Cập nhật lần cuối')
-                            ->dateTime(),
-                        TextEntry::make('deleted_at')
-                            ->label('Đã xóa lúc')
-                            ->dateTime()
+                        TextEntry::make('created_at')->label('Ngày tạo')->dateTime(),
+                        TextEntry::make('updated_at')->label('Cập nhật lần cuối')->dateTime(),
+                        TextEntry::make('deleted_at')->label('Đã xóa lúc')->dateTime()
                             ->visible(fn (?Department $record): bool => filled($record?->deleted_at)),
                     ]),
             ]);
@@ -82,9 +66,7 @@ class DepartmentResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -96,9 +78,30 @@ class DepartmentResource extends Resource
 
     public static function getRecordRouteBindingEloquentQuery(): Builder
     {
-        return parent::getRecordRouteBindingEloquentQuery()
+        $query = parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
+            $query->where('branch_id', $user->branchScopeId());
+        }
+
+        return $query;
     }
 }

@@ -83,6 +83,24 @@ class User extends Authenticatable
         $this->syncRoles([$role]);
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
+    public function branchScopeId(): ?int
+    {
+        if ($this->isSuperAdmin()) {
+            return null;
+        }
+
+        if ($this->hasAnyRole(['director', 'pm', 'hr']) && $this->branch_id) {
+            return (int) $this->branch_id;
+        }
+
+        return null;
+    }
+
     protected function casts(): array
     {
         return [

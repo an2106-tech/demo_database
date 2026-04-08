@@ -2,11 +2,13 @@
 
 namespace App\Filament\Resources\Workplaces\Schemas;
 
+use App\Models\Branch;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class WorkplaceForm
 {
@@ -16,9 +18,23 @@ class WorkplaceForm
             ->components([
                 Select::make('branch_id')
                     ->label('Chi nhánh')
-                    ->relationship('branch', 'name')
+                    ->options(function (): array {
+                        /** @var \App\Models\User|null $user */
+                        $user = Auth::user();
+
+                        if ($user?->branchScopeId()) {
+                            return Branch::query()
+                                ->whereKey($user->branchScopeId())
+                                ->pluck('name', 'id')
+                                ->all();
+                        }
+
+                        return Branch::query()->orderBy('name')->pluck('name', 'id')->all();
+                    })
                     ->searchable()
                     ->preload()
+                    ->default(fn () => Auth::user()?->branchScopeId())
+                    ->disabled(fn (): bool => (bool) Auth::user()?->branchScopeId())
                     ->required(),
                 TextInput::make('name')
                     ->label('Tên địa điểm')
@@ -52,15 +68,12 @@ class WorkplaceForm
                     ->label('Liên kết bản đồ')
                     ->maxLength(1000)
                     ->nullable(),
-
                 Toggle::make('is_interview_room')
                     ->label('Là phòng phỏng vấn')
                     ->default(false),
                 Toggle::make('is_active')
                     ->label('Đang hoạt động')
                     ->default(true),
-
-
             ]);
     }
 }

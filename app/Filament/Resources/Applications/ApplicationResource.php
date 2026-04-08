@@ -7,6 +7,7 @@ use App\Filament\Resources\Applications\Pages\ListApplications;
 use App\Filament\Resources\Applications\Schemas\ApplicationForm;
 use App\Filament\Resources\Applications\Tables\ApplicationsTable;
 use App\Models\Application;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -41,9 +42,7 @@ class ApplicationResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            //
-        ];
+        return [];
     }
 
     public static function getPages(): array
@@ -57,13 +56,13 @@ class ApplicationResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery();
-        $user = Auth::user();
 
-        // Giám đốc trung tâm chỉ thấy đơn ứng tuyển thuộc chi nhánh của mình.
-        if ($user && $user->hasRole('director') && $user->branch_id) {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if ($user?->branchScopeId()) {
             $query->whereHas(
                 'job',
-                fn (Builder $q) => $q->where('branch_id', $user->branch_id)
+                fn (Builder $jobQuery) => $jobQuery->where('branch_id', $user->branchScopeId())
             );
         }
 
