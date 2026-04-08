@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
@@ -19,5 +20,13 @@ class EditUser extends EditRecord
             ForceDeleteAction::make(),
             RestoreAction::make(),
         ];
+    }
+
+    protected function afterSave(): void
+    {
+        /** @var User $user */
+        $user = $this->record;
+
+        $user->syncRoles($user->role === 'admin' ? ['super_admin'] : [$user->role]);
     }
 }

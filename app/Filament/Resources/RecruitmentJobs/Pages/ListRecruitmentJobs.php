@@ -25,26 +25,18 @@ class ListRecruitmentJobs extends ListRecords
     {
         return [
             'all' => Tab::make('Tất cả'),
-
-            'published' => Tab::make(StatusRecruitmentJobsEnum::PUBLISHED->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', StatusRecruitmentJobsEnum::PUBLISHED))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', StatusRecruitmentJobsEnum::PUBLISHED)->count()),
-
-            'draft' => Tab::make(StatusRecruitmentJobsEnum::DRAFT->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', StatusRecruitmentJobsEnum::DRAFT))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', StatusRecruitmentJobsEnum::DRAFT)->count()),
-
-            'closed' => Tab::make(StatusRecruitmentJobsEnum::CLOSED->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', StatusRecruitmentJobsEnum::CLOSED))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', StatusRecruitmentJobsEnum::CLOSED)->count()),
-
-            'archived' => Tab::make(StatusRecruitmentJobsEnum::ARCHIVED->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', StatusRecruitmentJobsEnum::ARCHIVED))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', StatusRecruitmentJobsEnum::ARCHIVED)->count()),
-
-            'expired' => Tab::make(StatusRecruitmentJobsEnum::EXPIRED->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', StatusRecruitmentJobsEnum::EXPIRED))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', StatusRecruitmentJobsEnum::EXPIRED)->count()),
+            'published' => $this->makeStatusTab(StatusRecruitmentJobsEnum::PUBLISHED),
+            'draft' => $this->makeStatusTab(StatusRecruitmentJobsEnum::DRAFT),
+            'closed' => $this->makeStatusTab(StatusRecruitmentJobsEnum::CLOSED),
+            'archived' => $this->makeStatusTab(StatusRecruitmentJobsEnum::ARCHIVED),
+            'expired' => $this->makeStatusTab(StatusRecruitmentJobsEnum::EXPIRED),
         ];
+    }
+
+    protected function makeStatusTab(StatusRecruitmentJobsEnum $status): Tab
+    {
+        return Tab::make($status->getLabel())
+            ->modifyQueryUsing(fn (Builder $query): Builder => $query->where('status', $status->value))
+            ->badge(fn (): int => RecruitmentJobResource::getEloquentQuery()->where('status', $status->value)->count());
     }
 }

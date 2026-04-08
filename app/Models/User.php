@@ -40,6 +40,13 @@ class User extends Authenticatable
     use HasRoles;
     use SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saved(function (self $user): void {
+            $user->syncAssignedRole();
+        });
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -51,6 +58,29 @@ class User extends Authenticatable
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         return $this->is_active && $this->roles()->exists();
+    }
+
+    public function syncAssignedRole(): void
+    {
+        $role = $this->role === 'admin' ? 'super_admin' : $this->role;
+
+        if (! is_string($role) || $role === '') {
+            $this->syncRoles([]);
+
+            return;
+        }
+
+        $availableRoleNames = \Spatie\Permission\Models\Role::query()
+            ->pluck('name')
+            ->all();
+
+        if (! in_array($role, $availableRoleNames, true)) {
+            $this->syncRoles([]);
+
+            return;
+        }
+
+        $this->syncRoles([$role]);
     }
 
     protected function casts(): array

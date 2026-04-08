@@ -31,15 +31,14 @@ class UserForm
                     ->dehydrateStateUsing(fn (?string $state) => $state)
                     ->dehydrated(fn (?string $state) => filled($state))
                     ->required(fn (string $operation) => $operation === 'create'),
+
                 Select::make('role')
                     ->label('Vai trò')
                     ->options([
-                        'admin' => 'Quản trị viên',
+                        'admin' => 'Super Admin',
                         'hr' => 'Nhân sự',
                         'director' => 'Giám đốc',
                         'pm' => 'Quản lý dự án',
-                        'leader' => 'Trưởng nhóm',
-                        'candidate' => 'Ứng viên',
                     ])
                     ->default('pm')
                     ->required(),

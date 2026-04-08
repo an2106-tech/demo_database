@@ -60,10 +60,10 @@ class RecruitmentJobResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListRecruitmentJobs::route('/'),
+            'index' => ListRecruitmentJobs::route('/'),
             'create' => CreateRecruitmentJob::route('/create'),
-            'view'   => ViewRecruitmentJob::route('/{record}'),
-            'edit'   => EditRecruitmentJob::route('/{record}/edit'),
+            'view' => ViewRecruitmentJob::route('/{record}'),
+            'edit' => EditRecruitmentJob::route('/{record}/edit'),
         ];
     }
 
@@ -71,8 +71,6 @@ class RecruitmentJobResource extends Resource
     {
         $query = parent::getEloquentQuery();
 
-        // Giám đốc trung tâm chỉ thấy tin tuyển dụng của chi nhánh mình
-        /** @var \App\Models\User|null $user */
         $user = Auth::user();
         if ($user && $user->hasRole('director') && $user->branch_id) {
             $query->where('branch_id', $user->branch_id);

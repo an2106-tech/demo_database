@@ -66,11 +66,6 @@ class UserResource extends Resource
         ];
     }
 
-    public static function canViewAny(): bool
-    {
-        return true;
-    }
-
     public static function getPages(): array
     {
         return [

@@ -120,7 +120,7 @@ class ApplicationsTable
 
                         return $query->whereHas('job', fn (Builder $q) => $q->where('branch_id', $data['value']));
                     })
-                    ->visible(fn () => (bool) Auth::user()?->hasAnyRole(['super_admin', 'admin'])),
+                    ->visible(fn () => (bool) Auth::user()?->hasRole('super_admin')),
                 SelectFilter::make('job_id')
                     ->label('Công việc')
                     ->options(fn () => RecruitmentJob::query()->orderBy('title')->limit(500)->pluck('title', 'id')->all())
