@@ -1,110 +1,4 @@
 <div>
-    <style>
-        .jobguru-footer-area.footer--employer {
-            --footer-accent: #22c55e;
-            --footer-accent-2: #0ea5e9;
-            --footer-bg: #0b1220;
-            --footer-bg-2: #0f1b33;
-        }
-
-        .jobguru-footer-area.footer--candidate {
-            --footer-accent: #2f7ff7;
-            --footer-accent-2: #16a34a;
-            --footer-bg: #0b1830;
-            --footer-bg-2: #10264a;
-        }
-
-        .jobguru-footer-area.footer--employer .footer-top,
-        .jobguru-footer-area.footer--candidate .footer-top {
-            background: radial-gradient(1200px 600px at 10% 0%, rgba(34, 197, 94, .14), transparent 55%),
-                radial-gradient(1000px 520px at 90% 10%, rgba(14, 165, 233, .14), transparent 60%),
-                linear-gradient(180deg, var(--footer-bg-2), var(--footer-bg));
-            color: rgba(255, 255, 255, .84);
-        }
-
-        .jobguru-footer-area.footer--employer .single-footer-widget h3,
-        .jobguru-footer-area.footer--candidate .single-footer-widget h3 {
-            color: #fff;
-            font-weight: 900;
-            letter-spacing: .2px;
-        }
-
-        .jobguru-footer-area.footer--employer a,
-        .jobguru-footer-area.footer--candidate a {
-            color: rgba(255, 255, 255, .86);
-        }
-
-        .jobguru-footer-area.footer--employer a:hover,
-        .jobguru-footer-area.footer--candidate a:hover {
-            color: #fff;
-        }
-
-        .jobguru-footer-area .footer-cta {
-            border-radius: 18px;
-            padding: 16px 16px;
-            border: 1px solid rgba(255, 255, 255, .10);
-            background: linear-gradient(135deg, rgba(255, 255, 255, .08), rgba(255, 255, 255, .04));
-            box-shadow: 0 20px 60px rgba(0, 0, 0, .22);
-        }
-
-        .jobguru-footer-area .footer-cta__title {
-            font-weight: 900;
-            color: #fff;
-            margin: 0 0 6px;
-        }
-
-        .jobguru-footer-area .footer-cta__desc {
-            margin: 0 0 12px;
-            color: rgba(255, 255, 255, .78);
-            line-height: 1.65;
-        }
-
-        .jobguru-footer-area .footer-cta__btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 999px;
-            font-weight: 900;
-            border: 1px solid rgba(255, 255, 255, .12);
-            background: linear-gradient(135deg, var(--footer-accent), var(--footer-accent-2));
-            color: #04110a;
-        }
-
-        .jobguru-footer-area .footer-cta__btn:hover {
-            filter: brightness(1.03);
-        }
-
-        .jobguru-footer-area.footer--candidate .footer-cta__btn {
-            color: #071526;
-        }
-
-        .jobguru-footer-area .footer-logo img {
-            height: 34px;
-            width: auto;
-        }
-
-        .jobguru-footer-area .footer-social li a {
-            background: rgba(255, 255, 255, .10);
-        }
-
-        .jobguru-footer-area .footer-social li a:hover {
-            background: rgba(255, 255, 255, .16);
-        }
-
-        .jobguru-footer-area.footer--employer .footer-copyright,
-        .jobguru-footer-area.footer--candidate .footer-copyright {
-            background: rgba(0, 0, 0, .18);
-            border-top: 1px solid rgba(255, 255, 255, .08);
-        }
-
-        .jobguru-footer-area.footer--employer .footer-copyright p,
-        .jobguru-footer-area.footer--candidate .footer-copyright p {
-            color: rgba(255, 255, 255, .76);
-            margin: 0;
-        }
-    </style>
-
     <footer class="jobguru-footer-area {{ ($isEmployerFooter ?? false) ? 'footer--employer' : 'footer--candidate' }}">
         <div class="footer-top section_50">
             <div class="container">
@@ -113,7 +7,7 @@
                         <div class="single-footer-widget">
                             <div class="footer-logo">
                                 <a href="{{ route('home') }}">
-                                    <img src="{{ asset('assets/img/logo.png') }}" alt="jobguru logo" />
+                                    <img src="{{ asset('assets/img/fe-logo.png') }}" alt="jobguru logo" />
                                 </a>
                             </div>
                             <p style="margin-top: 12px;">
@@ -122,11 +16,11 @@
                                     : 'Nền tảng kết nối việc làm uy tín, giúp ứng viên tìm thấy cơ hội mơ ước và hỗ trợ doanh nghiệp xây dựng đội ngũ nhân sự.' }}
                             </p>
                             <ul class="footer-social" style="margin-top: 16px;">
-                                <li><a href="#" class="fb" aria-label="Facebook"><i class="fa fa-facebook"></i></a></li>
-                                <li><a href="#" class="twitter" aria-label="Twitter"><i class="fa fa-twitter"></i></a></li>
-                                <li><a href="#" class="linkedin" aria-label="LinkedIn"><i class="fa fa-linkedin"></i></a></li>
-                                <li><a href="#" class="gp" aria-label="Google Plus"><i class="fa fa-google-plus"></i></a></li>
-                                <li><a href="#" class="skype" aria-label="Skype"><i class="fa fa-skype"></i></a></li>
+                                <li><a href="#" aria-label="Facebook"><i class="fa fa-facebook"></i></a></li>
+                                <li><a href="#" aria-label="Twitter"><i class="fa fa-twitter"></i></a></li>
+                                <li><a href="#" aria-label="LinkedIn"><i class="fa fa-linkedin"></i></a></li>
+                                <li><a href="#" aria-label="Google Plus"><i class="fa fa-google-plus"></i></a></li>
+                                <li><a href="#" aria-label="Skype"><i class="fa fa-skype"></i></a></li>
                             </ul>
                         </div>
                     </div>
@@ -173,8 +67,6 @@
                             <p><i class="fa fa-map-marker"></i> Số 4257, Đường SunnyVale, Hoa Kỳ</p>
                             <p><i class="fa fa-phone"></i> 012-3456-789</p>
                             <p><i class="fa fa-envelope-o"></i> info@jobguru.com</p>
-
-                            
                         </div>
                     </div>
                 </div>
