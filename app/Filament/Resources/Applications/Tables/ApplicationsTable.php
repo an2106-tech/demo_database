@@ -54,6 +54,19 @@ class ApplicationsTable
                     ->formatStateUsing(fn (?string $state): string => $state ? 'Mở CV' : '-')
                     ->url(fn ($record) => $record->cv_path ? asset('storage/' . ltrim($record->cv_path, '/')) : null)
                     ->openUrlInNewTab(),
+                TextColumn::make('apply_method')
+                    ->label('Cách nộp')
+                    ->badge()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'profile' => 'Hồ sơ',
+                        'cv' => 'CV',
+                        default => $state ?? '-',
+                    })
+                    ->colors([
+                        'info' => 'profile',
+                        'primary' => 'cv',
+                    ]),
                 TextColumn::make('source')
                     ->label('Nguồn')
                     ->badge()
@@ -207,7 +220,8 @@ class ApplicationsTable
                 ViewAction::make()
                     ->modal()
                     ->modalWidth('7xl')
-                    ->label('Xem'),
+                    ->label('Xem')
+                    ->modalContent(fn ($record) => view('filament.applications.application-view', ['record' => $record])),
                 EditAction::make()
                     ->label('Sửa')
                     ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record])),

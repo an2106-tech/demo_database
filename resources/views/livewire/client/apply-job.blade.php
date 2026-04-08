@@ -37,11 +37,9 @@
                                     </div>
                                 </div>
 
-                                <div class="single-resume-feild">
-                                    <div class="single-input">
-                                        <label>Email</label>
-                                        <input type="email" wire:model.defer="email" placeholder="Nhập email">
-                                        @error('email')<div class="text-danger">{{ $message }}</div>@enderror
+                                @if ($apply_method === 'profile')
+                                    <div class="alert alert-info">
+                                        Hệ thống sẽ lấy dữ liệu bạn đã nhập trong <a href="{{ route('candidates.candidate_profile') }}">Hồ sơ của tôi</a> và lưu snapshot vào đơn ứng tuyển.
                                     </div>
                                 </div>
 

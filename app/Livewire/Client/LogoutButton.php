@@ -19,8 +19,6 @@ class LogoutButton extends Component
 
     public function render()
     {
-        return <<<'HTML'
-            <button wire:click="logout" type="button">Đăng xuất</button>
-        HTML;
+        return view('livewire.client.logout-button');
     }
 }

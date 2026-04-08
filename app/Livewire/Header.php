@@ -64,10 +64,34 @@ class Header extends Component
     public function render()
     {
         $user = Auth::user();
+        $hasCandidateAccount = (bool) $user && app(CandidateAccountService::class)->hasCandidateAccount($user);
+
+        $hasEmployerAccount = false;
+        if ($user) {
+            if ($user->role === 'hr') {
+                $hasEmployerAccount = true;
+            } else {
+                $metadata = is_array($user->metadata) ? $user->metadata : [];
+                $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
+                $hasEmployerAccount = in_array('employer', $accountTypes, true);
+            }
+        }
+
+        $isEmployerHeader = $this->type === 'employer';
+        $showCandidateMenu = ! $user
+            ? true
+            : (! $isEmployerHeader && $hasCandidateAccount);
+        $showEmployerMenu = ! $user
+            ? true
+            : ($isEmployerHeader && $hasEmployerAccount);
 
         return view('livewire.client.header', [
-            'isEmployerHeader' => $this->type === 'employer',
+            'isEmployerHeader' => $isEmployerHeader,
             'showRoleSwitcher' => (bool) $user && $user->role === 'hr',
+            'canCandidateMenu' => $hasCandidateAccount,
+            'canEmployerMenu' => $hasEmployerAccount,
+            'showCandidateMenu' => $showCandidateMenu,
+            'showEmployerMenu' => $showEmployerMenu,
         ]);
     }
 }

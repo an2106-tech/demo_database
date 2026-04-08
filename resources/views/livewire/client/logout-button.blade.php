@@ -2,36 +2,59 @@
     <style>
         .client-logout-btn{
             appearance: none;
-            border: 1px solid rgba(15, 23, 42, .18);
-            background: rgba(255, 255, 255, .92);
+            width: 100%;
+            border: 1px solid rgba(14, 116, 144, .16);
+            background: linear-gradient(135deg, #ffffff 0%, #ecfeff 100%);
             color: #0f172a;
-            padding: .7rem 1.05rem;
-            border-radius: 999px;
-            font-weight: 800;
+            padding: .9rem 1rem;
+            border-radius: 16px;
+            font-weight: 700;
             display: inline-flex;
             align-items: center;
-            gap: .55rem;
-            line-height: 1;
-            box-shadow: 0 14px 35px rgba(15, 23, 42, .10);
-            transition: transform .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease;
-            backdrop-filter: blur(10px);
+            justify-content: center;
+            gap: .65rem;
+            line-height: 1.2;
+            letter-spacing: .01em;
+            box-shadow: 0 12px 28px rgba(14, 116, 144, .10);
+            transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
         }
+
         .client-logout-btn:hover{
             transform: translateY(-1px);
-            background: #ffffff;
-            border-color: rgba(15, 23, 42, .26);
-            box-shadow: 0 18px 45px rgba(15, 23, 42, .14);
+            background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%);
+            border-color: rgba(8, 145, 178, .35);
+            color: #ffffff;
+            box-shadow: 0 16px 34px rgba(14, 116, 144, .20);
         }
+
         .client-logout-btn:active{
             transform: translateY(0);
-            box-shadow: 0 12px 28px rgba(15, 23, 42, .10);
+            box-shadow: 0 10px 20px rgba(14, 116, 144, .18);
         }
+
+        .client-logout-btn:focus-visible{
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, .22), 0 12px 28px rgba(14, 116, 144, .12);
+        }
+
         .client-logout-btn:disabled{
             opacity: .6;
             cursor: not-allowed;
             transform: none;
         }
-        .client-logout-btn i{ font-size: 16px; }
+
+        .client-logout-btn i{
+            font-size: 16px;
+            transition: transform .18s ease;
+        }
+
+        .client-logout-btn:hover i{
+            transform: translateX(2px);
+        }
+
+        .client-logout-btn span{
+            white-space: nowrap;
+        }
     </style>
 
     <button
@@ -47,4 +70,3 @@
         <span>Đăng xuất</span>
     </button>
 </div>
-

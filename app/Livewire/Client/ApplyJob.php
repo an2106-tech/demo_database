@@ -2,11 +2,8 @@
 
 namespace App\Livewire\Client;
 
-use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
 use App\Models\Candidate;
-use App\Models\CandidateJobSubmission;
-use App\Models\CandidateResume;
 use App\Models\RecruitmentJob;
 use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
@@ -83,16 +80,25 @@ class ApplyJob extends Component
         $candidate = $this->resolveExistingCandidate();
         $hasExistingCv = (bool) ($candidate?->cv_file);
 
-        $rules['cv'] = $hasExistingCv && $this->use_existing_cv
-            ? ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx']
-            : ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
+        $application = DB::transaction(function () use ($candidate) {
+            $cvPath = null;
+            $cvAttachmentId = null;
 
-        $this->validate($rules);
+            if ($this->apply_method === 'cv') {
+                if ($this->cv) {
+                    $cvPath = $this->cv->storePublicly("applications/{$candidate->id}/{$this->job->id}/cv", 'public');
+                } elseif ($this->use_existing_cv && $candidate->cv_file) {
+                    $cvPath = $candidate->cv_file;
+                }
 
-        DB::transaction(function (): void {
-            $candidate = $this->upsertCandidate();
-            $cvPath = $this->storeCandidateCv($candidate);
-            $cvText = $cvPath ? app(CvTextExtractor::class)->extractFromPublicPath($cvPath) : null;
+                if (! $cvPath) {
+                    $this->addError('cv', 'Bạn cần chọn CV để nộp.');
+                    return null;
+                }
+            } else {
+                // Profile method: CV is optional. If candidate already has a CV keep it for convenience.
+                $cvPath = $candidate->cv_file ?: null;
+            }
 
             $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
             $resume->fill([
@@ -108,62 +114,56 @@ class ApplyJob extends Component
             ]);
             $resume->save();
 
-            $candidateMetadata = is_array($candidate->metadata) ? $candidate->metadata : [];
-            if (is_string($cvText) && $cvText !== '') {
-                $candidateMetadata['cv_text_excerpt'] = mb_substr($cvText, 0, 4000);
-            }
-            $candidate->metadata = $candidateMetadata;
-            $candidate->save();
-
-            Application::query()->updateOrCreate(
-                [
-                    'job_id' => $this->job->id,
-                    'candidate_id' => $candidate->id,
-                ],
+            $application = Application::query()->updateOrCreate(
+                ['job_id' => $this->job->id, 'candidate_id' => $candidate->id],
                 [
                     'cv_path' => $cvPath,
+                    'apply_method' => $this->apply_method,
+                    'profile_snapshot' => $this->apply_method === 'profile' ? $profileSnapshot : null,
+                    'cv_text_snapshot' => null,
                     'source' => 'website',
-                    'status' => StatusApplicationEnum::NEW,
+                    'status' => 'new',
                     'applied_at' => now(),
                 ],
             );
 
-            CandidateJobSubmission::query()->updateOrCreate(
-                [
-                    'job_id' => $this->job->id,
-                    'candidate_id' => $candidate->id,
-                ],
-                [
-                    'apply_method' => 'cv',
-                    'profile_snapshot' => [
-                        'candidate' => [
-                            'id' => $candidate->id,
-                            'user_id' => $candidate->user_id,
-                            'name' => $candidate->name,
-                            'email' => $candidate->email,
-                            'phone' => $candidate->phone,
-                            'experience_years' => $candidate->experience_years,
-                        ],
-                    ],
-                    'cv_path' => $cvPath,
-                    'cv_text_snapshot' => is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null,
-                ],
-            );
+            if ($this->apply_method === 'cv') {
+                $cvText = app(CvTextExtractor::class)->extractFromPublicPath($cvPath);
+                if (is_string($cvText) && $cvText !== '') {
+                    $application->cv_text_snapshot = mb_substr($cvText, 0, 200000);
+                }
 
-            $this->candidateId = $candidate->id;
+                $application->attachments()
+                    ->where('type', 'cv')
+                    ->delete();
+
+                $attachment = $application->attachments()->create([
+                    'path' => $cvPath,
+                    'type' => 'cv',
+                    'original_filename' => $this->cv && method_exists($this->cv, 'getClientOriginalName')
+                        ? $this->cv->getClientOriginalName()
+                        : null,
+                    'mime_type' => $this->cv && method_exists($this->cv, 'getMimeType')
+                        ? $this->cv->getMimeType()
+                        : null,
+                    'size_bytes' => $this->cv && method_exists($this->cv, 'getSize')
+                        ? $this->cv->getSize()
+                        : null,
+                ]);
+
+                $cvAttachmentId = $attachment->id;
+                $application->cv_attachment_id = $cvAttachmentId;
+                $application->save();
+            } else {
+                $application->cv_attachment_id = null;
+                $application->save();
+            }
+
+            return $application;
         });
 
-        $this->cv = null;
-        $this->use_existing_cv = true;
-
-        session()->flash('status', 'Đã nộp ứng tuyển thành công. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
-    }
-
-    protected function resolveExistingCandidate(): ?Candidate
-    {
-        $user = Auth::user();
-        if ($user) {
-            return app(CandidateAccountService::class)->resolveFor($user);
+        if (! $application) {
+            return;
         }
 
         $email = trim($this->email);

@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Client;
 
-use App\Models\CandidateJobSubmission;
+use App\Models\Application;
 use App\Models\RecruitmentJob;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
@@ -32,7 +32,7 @@ class CandidateDashboard extends Component
             ->where('status', 'published')
             ->count();
 
-        $this->appliedCount = CandidateJobSubmission::query()
+        $this->appliedCount = Application::query()
             ->where('candidate_id', $candidate->id)
             ->count();
 

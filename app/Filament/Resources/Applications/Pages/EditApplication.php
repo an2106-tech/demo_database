@@ -26,6 +26,13 @@ class EditApplication extends EditRecord
     protected function mutateFormDataBeforeSave(array $data): array
     {
         $candidateId = $data['candidate_id'] ?? null;
+        $applyMethod = $data['apply_method'] ?? null;
+
+        if ($applyMethod === 'profile') {
+            $data['cv_path'] = $data['cv_path'] ?? null;
+
+            return $data;
+        }
 
         if (empty($data['cv_path'])) {
             $cvFile = Candidate::query()
