@@ -203,7 +203,7 @@
         </div>
     </section>
 
-    <section>
+    {{-- <section>
         <div class="job-container">
             <div class="job-card">
                 <!-- Header: Tiêu đề và Nút -->
@@ -287,6 +287,117 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section> --}}
+
+    <section>
+        <div class="job-container">
+            <div class="job-card">
+
+                <!-- HEADER -->
+                <div class="job-header">
+                    <div>
+                        <h2 class="job-title">{{ $job->title }}</h2>
+                    </div>
+
+                    <a href="{{ $job->public_url }}" target="_blank" class="btn-apply">
+                        ỨNG TUYỂN NGAY
+                    </a>
+                </div>
+
+                <!-- GRID INFO -->
+                <div class="job-info-grid">
+
+                    <div class="info-item">
+                        <span class="label">Địa điểm:</span>
+                        <span class="value">
+                            {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Chưa cập nhật') }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Khu vực:</span>
+                        <span class="value">
+                            {{ optional($job->branch)->name ?? 'N/A' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Phòng ban:</span>
+                        <span class="value">
+                            {{ optional($job->department)->name ?? 'N/A' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Số lượng tuyển:</span>
+                        <span class="value">
+                            {{ $job->positions_count }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Hạn nộp:</span>
+                        <span class="value">
+                            {{ $job->deadline?->format('d/m/Y') ?? 'Không có' }}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Slug:</span>
+                        <span class="value">{{ $job->slug ? ucwords(str_replace('-', ' ', $job->slug)) : 'N/A' }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Trạng thái:</span>
+                        <span class="value">{{ $job->status?->getLabel() ?? 'N/A' }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Mức lương:</span>
+                        <span class="value">
+                            ${{ number_format($job->salary_range['min'] ?? 0) }}
+                            -
+                            ${{ number_format($job->salary_range['max'] ?? 0) }}
+                            {{ $job->salary_range['currency'] ?? '' }}
+                        </span>
+                    </div>
+
+                </div>
+
+                <hr class="divider">
+
+                <!-- DESCRIPTION -->
+                <div class="job-description">
+                    <h3>MÔ TẢ CÔNG VIỆC</h3>
+                    <p>{!! nl2br(e($job->description)) !!}</p>
+
+                    <h4>Nơi làm việc</h4>
+                    <p>{{ optional($job->workplace)->name ?? 'Chưa cập nhật' }}</p>
+
+                    <h4>Yêu cầu công việc</h4>
+                    <p>
+                        Tốt nghiệp Đại học loại giỏi;<br>
+                        3+ năm kinh nghiệm làm việc;<br>
+                        Kỹ năng giao tiếp & đàm phán xuất sắc;<br>
+                        Tiếng Anh tốt.
+                    </p>
+                </div>
+
+                <!-- IMAGE -->
+                <div class="attachments-section">
+                    <h5>HÌNH ẢNH HOẶC TÀI LIỆU CÓ THỂ HỮU ÍCH TRONG VIỆC MÔ TẢ CÔNG VIỆC CỦA BẠN</h5>
+                    <div class="attachment-list">
+
+                        <div class="attachment-item">
+                            <img src="{{ asset($job->thumbnail) }}" alt="thumbnail"
+                                style="width:100%; border-radius:10px;">
+                        </div>
+
+                    </div>
+                </div>
+
             </div>
         </div>
     </section>

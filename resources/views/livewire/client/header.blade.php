@@ -323,7 +323,6 @@
                                  <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
                                  <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
                                  <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
-                                 <li><a href="{{ route('employers.job_detail') }}">Chi tiết tin tuyển dụng</a></li>
                                  <li class="has-inner-child">
                                     <a href="#">Quản lý tuyển dụng</a>
                                     <ul>
