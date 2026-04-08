@@ -7,6 +7,7 @@ use App\Filament\Resources\Branches\BranchResource;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Departments\DepartmentResource;
+use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
@@ -52,6 +53,7 @@ class AdminPanelProvider extends PanelProvider
                 UserResource::class,
                 WorkplaceResource::class,
                 CategoryResource::class,
+                PostResource::class,
             ])
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
