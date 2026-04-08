@@ -25,7 +25,7 @@ class CategoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Quản lý danh mục';
 
-    protected static ?string $modelLabel = 'danhmục';
+    protected static ?string $modelLabel = 'danh mục';
 
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
