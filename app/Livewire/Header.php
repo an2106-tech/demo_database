@@ -21,16 +21,13 @@ class Header extends Component
 
         $hasCandidateAccount = app(CandidateAccountService::class)->hasCandidateAccount($user);
 
-        // Menu mapping:
-        // - candidate + pm => candidate menu
-        // - hr => employer menu by default; allow switching to candidate only if activated
-        if (in_array($user->role, ['candidate', 'pm'], true)) {
+        if ($user->role === 'candidate') {
             $this->type = 'candidate';
 
             return;
         }
 
-        if ($user->role === 'hr') {
+        if (in_array($user->role, ['hr', 'admin'], true)) {
             $preferred = session('client_menu_type');
             if ($preferred === 'candidate' && $hasCandidateAccount) {
                 $this->type = 'candidate';
@@ -49,7 +46,7 @@ class Header extends Component
         }
 
         $user = Auth::user();
-        if (! $user || $user->role !== 'hr') {
+        if (! $user || ! in_array($user->role, ['hr', 'admin'], true)) {
             return;
         }
 
@@ -68,7 +65,7 @@ class Header extends Component
 
         $hasEmployerAccount = false;
         if ($user) {
-            if ($user->role === 'hr') {
+            if (in_array($user->role, ['hr', 'admin'], true)) {
                 $hasEmployerAccount = true;
             } else {
                 $metadata = is_array($user->metadata) ? $user->metadata : [];
@@ -87,7 +84,7 @@ class Header extends Component
 
         return view('livewire.client.header', [
             'isEmployerHeader' => $isEmployerHeader,
-            'showRoleSwitcher' => (bool) $user && $user->role === 'hr',
+            'showRoleSwitcher' => (bool) $user && in_array($user->role, ['hr', 'admin'], true),
             'canCandidateMenu' => $hasCandidateAccount,
             'canEmployerMenu' => $hasEmployerAccount,
             'showCandidateMenu' => $showCandidateMenu,

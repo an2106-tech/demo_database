@@ -81,9 +81,9 @@ class ApplyJob extends Component
         ];
 
         $candidate = $this->resolveExistingCandidate();
-        $hasExistingCv = (bool) ($candidate?->cv_file);
+        $canReuseExistingCv = Auth::check() && (bool) ($candidate?->cv_file);
 
-        $rules['cv'] = $hasExistingCv && $this->use_existing_cv
+        $rules['cv'] = $canReuseExistingCv && $this->use_existing_cv
             ? ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx']
             : ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
 
@@ -154,7 +154,7 @@ class ApplyJob extends Component
         });
 
         $this->cv = null;
-        $this->use_existing_cv = true;
+        $this->use_existing_cv = Auth::check();
 
         session()->flash('status', 'Da nop ung tuyen thanh cong. Chung toi se lien he voi ban som nhat co the.');
     }
@@ -240,6 +240,10 @@ class ApplyJob extends Component
 
     public function getHasExistingCvProperty(): bool
     {
+        if (! Auth::check()) {
+            return false;
+        }
+
         return (bool) ($this->resolveExistingCandidate()?->cv_file);
     }
 

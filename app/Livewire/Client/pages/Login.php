@@ -62,7 +62,7 @@ class Login extends Component
             return null;
         }
 
-        if ($user->role === 'hr') {
+        if (in_array($user->role, ['hr', 'admin'], true)) {
             session(['client_menu_type' => $this->role === 'candidate' ? 'candidate' : 'employer']);
         } else {
             session()->forget('client_menu_type');

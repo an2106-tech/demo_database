@@ -9,7 +9,7 @@ class CandidateAccountService
 {
     public function hasCandidateAccount(User $user): bool
     {
-        if (in_array($user->role, ['candidate', 'pm'], true)) {
+        if ($user->role === 'candidate') {
             return true;
         }
 
@@ -25,12 +25,12 @@ class CandidateAccountService
         $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
 
         $accountTypes[] = 'candidate';
-        if ($user->role === 'hr') {
+        if (in_array($user->role, ['hr', 'admin'], true)) {
             $accountTypes[] = 'employer';
         }
 
         $metadata['account_types'] = array_values(array_unique(array_filter($accountTypes, 'is_string')));
-        $metadata['account_type'] = $user->role === 'hr' ? 'employer' : 'candidate';
+        $metadata['account_type'] = in_array($user->role, ['hr', 'admin'], true) ? 'employer' : 'candidate';
 
         if (! isset($metadata['phone']) && $user->candidate?->phone) {
             $metadata['phone'] = $user->candidate->phone;
