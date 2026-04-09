@@ -36,7 +36,7 @@
                     <div class="single-blog-page-item">
                         @forelse($posts as $post)
                         <div class="single-blog-item-img">
-                            <img src="{{ asset('storage/' . ltrim($post->image)) }}" alt="{{ $post->title }}">
+                            <img src="{{ asset($post->image) }}" alt="{{ $post->title }}">
                         </div>
 
                         <div class="blog-meta d-flex align-items-center">
@@ -54,25 +54,25 @@
                         <div class="blog-content">
                             {!! $post->content !!}
 
-                            <blockquote>
+                            {{-- <blockquote>
                                 <div class="quote-inner">
                                     <i class="quote-icon fa fa-quote-right"></i>
                                     <div class="quote-text">
                                         Mọi lời giải thích đều hướng tới một cuộc sống hạnh phúc. Không ai thực sự khao khát nỗi đau vì chính nó, mà chỉ vì những hệ quả nảy sinh từ những hoàn cảnh nhất định.
                                     </div>
                                 </div>
-                            </blockquote>
+                            </blockquote> --}}
 
-                            <ul class="company-desc-list">
+                            {{-- <ul class="company-desc-list">
                                 <li><i class="fa fa-check"></i> Luôn chú trọng vào các chi tiết nhỏ nhất</li>
                                 <li><i class="fa fa-check"></i> Đảm bảo chất lượng nội dung tốt nhất cho người đọc</li>
                                 <li><i class="fa fa-check"></i> Cập nhật xu hướng thị trường thường xuyên</li>
                                 <li><i class="fa fa-check"></i> Kết nối cộng đồng thông qua các bài chia sẻ</li>
                                 <li><i class="fa fa-check"></i> Hỗ trợ giải đáp thắc mắc của độc giả nhanh chóng</li>
                                 <li><i class="fa fa-check"></i> Tối ưu hóa trải nghiệm người dùng trên website</li>
-                            </ul>
+                            </ul> --}}
 
-                            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p>
+                            {{-- <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.</p> --}}
 
                             <div class="share-this-post">
                                 <h3>Chia sẻ bài viết này</h3>
@@ -168,7 +168,7 @@
                                     <div class="blog-thumb-info">
                                         <div class="blog-thumb-info-image">
                                             <a href="#">
-                                                <img src="{{ asset('storage/' . ltrim($post->image)) }}" alt="{{ $post->title }}">
+                                                <img src="{{ asset($post->image) }}" alt="{{ $post->title }}">
                                             </a>
                                         </div>
                                         <div class="blog-thumb-info-content">

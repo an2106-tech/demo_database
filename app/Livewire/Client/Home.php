@@ -6,6 +6,7 @@ use App\Models\Branch;
 use App\Models\Category;
 use App\Models\RecruitmentJob;
 use App\Enums\StatusRecruitmentJobsEnum;
+use App\Models\Post;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -55,11 +56,12 @@ class Home extends Component
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'icon', 'image'])
             : collect();
-
+        $posts = Post::latest()->get();
         return view('livewire.client.home', [
             'branches' => $branches,
             'jobs' => $jobs,
             'categories' => $categories,
+            'posts' => $posts,
         ]);
     }
 }

@@ -506,43 +506,23 @@
                 </div>
             </div>
             <div class="row">
+               @forelse($posts as $post)
                 <div class="col-lg-4 col-md-12">
                     <a href="#">
                         <div class="single-blog">
                             <div class="blog-image">
-
-                                <img src="{{ asset('assets/img/content01_2307-01.jpg') }}" alt="blog image" />
-                                <p><span> 21</span> Tháng 7</p>
+                                <img src="{{ asset($post->image) }}" alt="{{$post->title}}" style="height: 200px;" />
+                                <h5>{{$post->title}}</h5>
+                                <p>{{$post->created_at->format('d/m') }}</p>
                             </div>
                         </div>
                     </a>
                 </div>
-                <div class="col-lg-4 col-md-12">
-                    <a href="#">
-                        <div class="single-blog">
-                            <div class="blog-image">
-                                <img src="{{ asset('assets/img/ipad_12_002.jpg') }}" alt="blog image" />
-                                <p><span> 21</span> Tháng 7</p>
-                            </div>
-                            <div class="blog-text">
-                                <h3>Chi tiết về các mẫu iPad Pro mới của Apple</h3>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-4 col-md-12">
-                    <a href="#">
-                        <div class="single-blog">
-                            <div class="blog-image">
-                                <img src="{{ asset('assets/img/aptech_aprotrain_5.jpg') }}" alt="blog image" />
-                                <p><span> 21</span> Tháng 7</p>
-                            </div>
-                            <div class="blog-text">
-                                <h3>Những bước để trở thành một lập trình viên thành công</h3>
-                            </div>
-                        </div>
-                    </a>
-                </div>
+                 @empty
+                    <div class="col-12">
+                        <p>Không có bài viết nào</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </section>

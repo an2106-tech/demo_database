@@ -34,8 +34,8 @@ class DatabaseSeeder extends Seeder
             CandidateSeeder::class,
             CandidateSkillSeeder::class,
             ApplicationDemoSeeder::class,
-            InterviewDemoSeeder::class,
-            CategorySeeder::class
+            CategorySeeder::class,
+            PostSeeder::class
         ]);
     }
 }

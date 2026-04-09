@@ -35,12 +35,12 @@
                <div class="single-blog-page-item">
                   <div class="single-blog-item-img">
                      <a href="#">
-                        <img src="{{ asset('storage/' . ltrim($post->image)) }}" alt="{{ $post->title }}">
+                        <img src="{{ asset($post->image) }}" alt="{{ $post->title }}">
                      </a>
                   </div>
                   <div class="blog-meta d-flex align-items-center">
                      <div class="single-blog-item-date">
-                        <h4>{{$post->created_at}}</h4>
+                        <h4>{{ $post->created_at->format('d/m') }}</h4>
                      </div>
                      <div class="blog-title">
                         <h3>
@@ -161,12 +161,12 @@
                            <div class="blog-thumb-info">
                               <div class="blog-thumb-info-image">
                                  <a href="#">
-                                    <img src="{{ asset('storage/' . ltrim($post->image)) }}" />
+                                    <img src="{{ asset($post->image) }}" />
                                  </a>
                               </div>
                               <div class="blog-thumb-info-content">
                                  <h4><a href="#">{{$post->title}}</a></h4>
-                                 <p>Đăng ngày :<a href="#">{{$post->created_at}}</a></p>
+                                 <p>Đăng ngày: <a href="#">{{ $post->created_at->format('d/m/Y') }}</a></p>
                               </div>
                            </div>
                         </li>
