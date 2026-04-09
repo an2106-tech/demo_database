@@ -20,8 +20,6 @@ class Category extends Model
     public const STATUS_ACTIVE = 'active';
     public const STATUS_INACTIVE = 'inactive';
 
-    protected $guarded = [];
-
     protected $casts = [
         'status' => 'string',
     ];

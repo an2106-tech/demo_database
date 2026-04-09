@@ -35,12 +35,6 @@
                                             @empty
                                                 <option disabled>Không có dữ liệu</option>
                                             @endforelse
-
-                                            {{-- <option value="2">Lập trình & Công nghệ</option>
-                                            <option value="3">Kế toán & Tài chính</option>
-                                            <option value="4">Viết lách & Nội dung</option>
-                                            <option value="5">Đào tạo & Giáo dục</option>
-                                            <option value="6">Marketing kỹ thuật số</option> --}}
                                         </select>
                                     </div>
                                     <div class="banner-form-input">
@@ -76,8 +70,7 @@
                             <div class="category-holder-text">
                                 <h3>{{ $category->name }}</h3>
                             </div>
-                            <img src="{{ asset('storage/' . ltrim($category->image)) }}" alt="{{ $category->name }}" />
-                        </a>
+                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" />                        </a>
                     </div>
                 @empty
                     <div class="col-12">
@@ -94,7 +87,7 @@
             </div>
         </div>
     </section>
-              
+            
     <section class="jobguru-inner-hire-area section_100">
         <div class="hire_circle"></div>
         <div class="container">

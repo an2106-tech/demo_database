@@ -9,30 +9,61 @@ use Illuminate\Support\Str;
 
 class CategorySeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-
         $categories = [
-            'Kế toán & Tài chính',
-            'Tư vấn tài chính',
-            'Kế hoạch kinh doanh',
-            'Công nghệ thông tin',
-            'Maketing',
-            'Thuyết kế đồ họa',
-            'Giáo dục',
-            'Nghiên cứu thị trường',
-            'Bán hàng',
-            'Cơ khí',
-            'Khác'
+            [
+                'name' => 'Kế toán & Tài chính',
+                'image' => 'categories/ketoan.jpg'
+            ],
+            [
+                'name' => 'Tư vấn tài chính',
+                'image' => 'categories/nhansu.jpg'
+            ],
+            [
+                'name' => 'Kế hoạch kinh doanh',
+                'image' => 'categories/nhansu.jpg'
+            ],
+            [
+                'name' => 'Công nghệ thông tin',
+                'image' => 'categories/IT.jpg'
+            ],
+            [
+                'name' => 'Marketing',
+                'image' => 'categories/maketing.jpg'
+            ],
+            [
+                'name' => 'Thiết kế đồ họa',
+                'image' => 'categories/dohoa.jpg'
+            ],
+            [
+                'name' => 'Giáo dục',
+                'image' => 'categories/giaoduc.jpg'
+            ],
+            [
+                'name' => 'Nghiên cứu thị trường',
+                'image' => 'categories/nhansu.jpg'
+            ],
+            [
+                'name' => 'Bán hàng',
+                'image' => 'categories/banhang.jpg'
+            ],
+            [
+                'name' => 'Cơ khí',
+                'image' => 'categories/xaydung.jpg'
+            ],
+            [
+                'name' => 'Khác',
+                'image' => ''
+            ],
         ];
-
         foreach ($categories as $item) {
             Category::create([
-                'name' => $item,
-                'slug' => Str::slug($item)
+                'name' => $item['name'],
+                'slug' => Str::slug($item['name']),
+                'icon' => null,
+                'image' => $item['image'],
+                'status' => 1, 
             ]);
         }
     }
