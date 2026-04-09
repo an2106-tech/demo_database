@@ -44,7 +44,7 @@
                     <div class="single-about-box">
                         <div class="about-box-img">
                             <a href="#">
-                                <img src="assets/img/abt-1.jpeg" alt="hình ảnh giới thiệu" />
+                                <img src="https://i.pinimg.com/1200x/22/53/6e/22536e9e8f0a2ffaea9b40a346c9eceb.jpg" style = "height: 300px;" alt="hình ảnh giới thiệu"  />
                             </a>
                         </div>
                         <div class="about-box-text">
@@ -57,7 +57,7 @@
                     <div class="single-about-box">
                         <div class="about-box-img">
                             <a href="#">
-                                <img src="assets/img/abt-2.jpeg" alt="hình ảnh giới thiệu" />
+                                <img src="https://i.pinimg.com/1200x/1e/07/b9/1e07b92882c9e43503e50f663fabf801.jpg" style = "height: 300px;" alt="hình ảnh giới thiệu" />
                             </a>
                         </div>
                         <div class="about-box-text">
@@ -69,7 +69,7 @@
                     <div class="single-about-box">
                         <div class="about-box-img">
                             <a href="#">
-                                <img src="assets/img/abt-3.jpeg" alt="hình ảnh giới thiệu" />
+                                <img src="https://i.pinimg.com/1200x/4d/15/85/4d158554d73b12e953298ff8e9661fc3.jpg" style = "height: 300px;" alt="hình ảnh giới thiệu" />
                             </a>
                         </div>
                         <div class="about-box-text">
@@ -175,7 +175,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="single-team-member">
                         <div class="team-img">
-                            <img src="assets/img/team-3.jpg" alt="thành viên đội ngũ" />
+                            <img src="https://i.pinimg.com/736x/d3/91/b6/d391b6f7780f0afc18aa32c46d020923.jpg" style = "height: 300px;" alt="thành viên đội ngũ" />
                             <div class="team-overlay">
                                 <ul>
                                     <li><a href="#"><i class="fa fa-facebook"></i></a></li>
@@ -194,7 +194,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="single-team-member">
                         <div class="team-img">
-                            <img src="assets/img/team-2.jpg" alt="thành viên đội ngũ" />
+                            <img src="https://i.pinimg.com/736x/92/72/64/927264aba9d2e3127d6e98bd77631eef.jpg" style = "height: 300px;" alt="thành viên đội ngũ" />
                             <div class="team-overlay">
                                 <ul>
                                     <li><a href="#"><i class="fa fa-facebook"></i></a></li>
@@ -213,7 +213,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="single-team-member">
                         <div class="team-img">
-                            <img src="assets/img/team-1.jpg" alt="thành viên đội ngũ" />
+                            <img src="https://i.pinimg.com/736x/00/a4/d8/00a4d88bad0a7e27953396c2bccdd8c4.jpg" style = "height: 300px;" alt="thành viên đội ngũ" />
                             <div class="team-overlay">
                                 <ul>
                                     <li><a href="#"><i class="fa fa-facebook"></i></a></li>
@@ -232,7 +232,7 @@
                 <div class="col-md-6 col-lg-3">
                     <div class="single-team-member">
                         <div class="team-img">
-                            <img src="assets/img/team-4.jpg" alt="thành viên đội ngũ" />
+                            <img src="https://i.pinimg.com/1200x/a7/4e/8f/a74e8f9fdd1dda7262e3686ae41819d0.jpg" style = "height: 300px;" alt="thành viên đội ngũ" />
                             <div class="team-overlay">
                                 <ul>
                                     <li><a href="#"><i class="fa fa-facebook"></i></a></li>
