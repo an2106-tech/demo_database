@@ -30,31 +30,48 @@ class InterviewCalendarService
 
     public function buildContent(Interview $interview): string
     {
+        return $this->buildRecipientContent($interview);
+    }
+
+    public function buildRecipientContent(
+        Interview $interview,
+        ?string $recipientEmail = null,
+        ?string $recipientName = null,
+    ): string {
         $start = $interview->scheduled_at?->copy() ?? now();
         $end = $start->copy()->addMinutes(max(15, (int) ($interview->duration_minutes ?: 60)));
         $application = $interview->application;
         $candidate = $application?->candidate;
         $job = $application?->job;
         $location = $this->resolveLocation($interview);
+        $organizerEmail = (string) config('mail.from.address', 'no-reply@example.com');
+        $organizerName = (string) config('mail.from.name', config('app.name', 'Laravel'));
+
         $summary = $this->escapeText(sprintf(
-            'Phỏng vấn - %s - %s',
-            $candidate?->name ?? 'Ứng viên',
-            $job?->title ?? 'Vị trí ứng tuyển'
+            'Phong van - %s - %s',
+            $candidate?->name ?? 'Ung vien',
+            $job?->title ?? 'Vi tri ung tuyen'
         ));
 
         $descriptionLines = array_filter([
-            'Lịch phỏng vấn được tạo từ hệ thống tuyển dụng.',
-            $job?->title ? "Vị trí: {$job->title}" : null,
-            $candidate?->name ? "Ứng viên: {$candidate->name}" : null,
-            $interview->interviewer?->name ? "Người phỏng vấn: {$interview->interviewer->name}" : null,
-            $interview->type === 'online' && $interview->meeting_link ? "Link phỏng vấn: {$interview->meeting_link}" : null,
-            $interview->notes ? "Ghi chú: {$interview->notes}" : null,
+            'Lich phong van duoc tao tu he thong tuyen dung.',
+            $job?->title ? "Vi tri: {$job->title}" : null,
+            $candidate?->name ? "Ung vien: {$candidate->name}" : null,
+            $interview->interviewer?->name ? "Nguoi phong van: {$interview->interviewer->name}" : null,
+            $interview->type === 'online' && $interview->meeting_link ? "Link phong van: {$interview->meeting_link}" : null,
+            $interview->notes ? "Ghi chu: {$interview->notes}" : null,
         ]);
 
         $description = $this->escapeText(implode("\n", $descriptionLines));
         $uidHost = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
+        $attendeeLine = null;
 
-        return implode("\r\n", [
+        if (filled($recipientEmail)) {
+            $attendeeLabel = $this->escapeText($recipientName ?: $recipientEmail);
+            $attendeeLine = 'ATTENDEE;CN=' . $attendeeLabel . ';ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION;RSVP=TRUE:mailto:' . $recipientEmail;
+        }
+
+        $lines = array_filter([
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
             'PRODID:-//Hackrathon//Interview Schedule//VI',
@@ -68,12 +85,17 @@ class InterviewCalendarService
             'SUMMARY:' . $summary,
             'DESCRIPTION:' . $description,
             'LOCATION:' . $this->escapeText($location),
+            'ORGANIZER;CN=' . $this->escapeText($organizerName) . ':mailto:' . $organizerEmail,
+            $attendeeLine,
             'STATUS:CONFIRMED',
+            'TRANSP:OPAQUE',
             'SEQUENCE:' . max(0, (int) $interview->updated_at?->timestamp),
             'END:VEVENT',
             'END:VCALENDAR',
             '',
         ]);
+
+        return implode("\r\n", $lines);
     }
 
     public function resolveLocation(Interview $interview): string
@@ -84,11 +106,11 @@ class InterviewCalendarService
 
         $parts = array_filter([
             $interview->workplace?->name,
-            $interview->workplace?->room ? 'Phòng ' . $interview->workplace->room : null,
-            $interview->workplace?->floor ? 'Tầng ' . $interview->workplace->floor : null,
+            $interview->workplace?->room ? 'Phong ' . $interview->workplace->room : null,
+            $interview->workplace?->floor ? 'Tang ' . $interview->workplace->floor : null,
         ]);
 
-        return implode(' - ', $parts) ?: 'Tại văn phòng';
+        return implode(' - ', $parts) ?: 'Tai van phong';
     }
 
     protected function formatScheduledDate(CarbonInterface $date): string
@@ -114,10 +136,10 @@ class InterviewCalendarService
     {
         return Str::of($value)
             ->replace('\\', '\\\\')
-            ->replace(',', '\,')
-            ->replace(';', '\;')
-            ->replace("\r\n", '\n')
-            ->replace("\n", '\n')
+            ->replace(',', '\\,')
+            ->replace(';', '\\;')
+            ->replace("\r\n", '\\n')
+            ->replace("\n", '\\n')
             ->toString();
     }
 }

@@ -4,11 +4,13 @@ namespace App\Filament\Resources\Applications\Tables;
 
 use App\Enums\StatusApplicationEnum;
 use App\Filament\Resources\Applications\ApplicationResource;
+use App\Mail\CandidateOfferMail;
 use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
 use App\Models\Interview;
+use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Models\Workplace;
@@ -42,20 +44,20 @@ class ApplicationsTable
     public static function configure(Table $table): Table
     {
         $statusOptions = collect(StatusApplicationEnum::cases())
-            ->mapWithKeys(fn (StatusApplicationEnum $status) => [$status->value => $status->getLabel()])
+            ->mapWithKeys(fn (StatusApplicationEnum $status) => [$status->value => (string) $status->getLabel()])
             ->all();
 
         return $table
             ->defaultSort('applied_at', 'desc')
             ->searchPlaceholder('Tìm theo ID, công việc, ứng viên...')
             ->columns([
-                TextColumn::make('interview_action')
+                TextColumn::make('pipeline_action')
                     ->label('')
-                    ->state(fn (Application $record): ?string => static::canManageInterview($record) ? 'Phỏng vấn' : null)
+                    ->state(fn (Application $record): ?string => static::getPipelineActionLabel($record))
                     ->badge(fn (?string $state): bool => filled($state))
-                    ->color(fn (Application $record): string => static::hasInterviewStatus($record) ? 'info' : 'warning')
+                    ->color(fn (Application $record): string => static::getPipelineActionColor($record))
                     ->alignCenter()
-                    ->action(static::makeInterviewAction())
+                    ->action(static::makePipelineAction())
                     ->placeholder('-'),
                 TextColumn::make('id')
                     ->label('ID')
@@ -73,7 +75,7 @@ class ApplicationsTable
                     ->sortable(),
                 TextColumn::make('cv_path')
                     ->label('CV')
-                    ->formatStateUsing(fn (?string $state): string => $state ? 'Mo CV' : '-')
+                    ->formatStateUsing(fn (?string $state): string => $state ? 'Mã CV' : '-')
                     ->url(fn ($record) => $record->cv_path ? asset('storage/' . ltrim($record->cv_path, '/')) : null)
                     ->openUrlInNewTab(),
                 TextColumn::make('apply_method')
@@ -81,7 +83,7 @@ class ApplicationsTable
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'profile' => 'Hồ sơ',
+                        'profile' => 'Hồ so',
                         'cv' => 'CV',
                         default => $state ?? '-',
                     })
@@ -97,7 +99,7 @@ class ApplicationsTable
                         'website' => 'Website',
                         'facebook' => 'Facebook',
                         'linkedin' => 'LinkedIn',
-                        'referral' => 'Giới thiệu',
+                        'referral' => 'Giới thi?u',
                         'other' => 'Khác',
                         default => $state ?? '-',
                     })
@@ -113,24 +115,20 @@ class ApplicationsTable
                     ->badge()
                     ->sortable(),
                 TextColumn::make('salary_expected')
-                    ->label('Lương mon muốn')
+                    ->label('Lương mong muốn')
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(function ($state): string {
                         if (! is_array($state) || (($state['min'] ?? null) === null && ($state['max'] ?? null) === null)) {
                             return '-';
                         }
 
-                        $min = isset($state['min']) && $state['min'] !== null
-                            ? number_format((float) $state['min'], 0, ',', '.')
-                            : null;
-                        $max = isset($state['max']) && $state['max'] !== null
-                            ? number_format((float) $state['max'], 0, ',', '.')
-                            : null;
+                        $min = isset($state['min']) && $state['min'] !== null ? number_format((float) $state['min'], 0, ',', '.') : null;
+                        $max = isset($state['max']) && $state['max'] !== null ? number_format((float) $state['max'], 0, ',', '.') : null;
 
                         return match (true) {
                             $min && $max => "{$min} - {$max} VND",
                             $min !== null => "Từ {$min} VND",
-                            $max !== null => "Đến {$max} VND",
+                            $max !== null => "Ðến {$max} VND",
                             default => '-',
                         };
                     }),
@@ -157,12 +155,10 @@ class ApplicationsTable
                     })
                     ->visible(fn () => (bool) Auth::user()?->hasRole('super_admin')),
                 SelectFilter::make('job_id')
-                    ->label('Công việc')
+                    ->label('Công vi?c')
                     ->options(fn () => RecruitmentJob::query()->orderBy('title')->limit(500)->pluck('title', 'id')->all())
                     ->query(function (Builder $query, array $data): Builder {
-                        return filled($data['value'] ?? null)
-                            ? $query->where('job_id', $data['value'])
-                            : $query;
+                        return filled($data['value'] ?? null) ? $query->where('job_id', $data['value']) : $query;
                     }),
                 SelectFilter::make('candidate_id')
                     ->label('Ứng viên')
@@ -170,37 +166,31 @@ class ApplicationsTable
                         $candidate->id => "#{$candidate->id} - {$candidate->name}" . ($candidate->email ? " ({$candidate->email})" : ''),
                     ])->all())
                     ->query(function (Builder $query, array $data): Builder {
-                        return filled($data['value'] ?? null)
-                            ? $query->where('candidate_id', $data['value'])
-                            : $query;
+                        return filled($data['value'] ?? null) ? $query->where('candidate_id', $data['value']) : $query;
                     }),
                 SelectFilter::make('source')
-                    ->label('Nguồn')
+                    ->label('Ngu?n')
                     ->options([
                         'website' => 'Website',
                         'facebook' => 'Facebook',
                         'linkedin' => 'LinkedIn',
-                        'referral' => 'Giới thiệu',
+                        'referral' => 'Giới thi?u',
                         'other' => 'Khác',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
-                        return filled($data['value'] ?? null)
-                            ? $query->where('source', $data['value'])
-                            : $query;
+                        return filled($data['value'] ?? null) ? $query->where('source', $data['value']) : $query;
                     }),
                 SelectFilter::make('status')
                     ->label('Trạng thái')
                     ->options($statusOptions)
                     ->query(function (Builder $query, array $data): Builder {
-                        return filled($data['value'] ?? null)
-                            ? $query->where('status', $data['value'])
-                            : $query;
+                        return filled($data['value'] ?? null) ? $query->where('status', $data['value']) : $query;
                     }),
                 SelectFilter::make('cv_state')
                     ->label('Tình trạng CV')
                     ->options([
-                        'has_cv' => 'Da co CV',
-                        'missing_cv' => 'Chua co CV',
+                        'has_cv' => 'Ðã có CV',
+                        'missing_cv' => 'Chua có CV',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
@@ -212,33 +202,70 @@ class ApplicationsTable
                         };
                     }),
                 Filter::make('applied_at_range')
-                    ->label('Ngay ung tuyen')
+                    ->label('Ngày ứng tuyển')
                     ->form([
-                        DatePicker::make('applied_from')
-                            ->label('Tu ngay')
-                            ->native(false)
-                            ->displayFormat('d/m/Y'),
-                        DatePicker::make('applied_until')
-                            ->label('Den ngay')
-                            ->native(false)
-                            ->displayFormat('d/m/Y'),
+                        DatePicker::make('applied_from')->label('Từ ngày')->native(false)->displayFormat('d/m/Y'),
+                        DatePicker::make('applied_until')->label('Ðến ngày')->native(false)->displayFormat('d/m/Y'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
-                            ->when(
-                                filled($data['applied_from'] ?? null),
-                                fn (Builder $q) => $q->whereDate('applied_at', '>=', $data['applied_from'])
-                            )
-                            ->when(
-                                filled($data['applied_until'] ?? null),
-                                fn (Builder $q) => $q->whereDate('applied_at', '<=', $data['applied_until'])
-                            );
+                            ->when(filled($data['applied_from'] ?? null), fn (Builder $q) => $q->whereDate('applied_at', '>=', $data['applied_from']))
+                            ->when(filled($data['applied_until'] ?? null), fn (Builder $q) => $q->whereDate('applied_at', '<=', $data['applied_until']));
                     }),
-                TrashedFilter::make()
-                    ->label('Ban ghi da xoa'),
+                TrashedFilter::make()->label('Bản ghi dã xóa'),
             ])
             ->filtersFormColumns(3)
             ->recordActions([
+                Action::make('send_offer')
+                    ->label(fn (Application $record): string => $record->latestOffer?->sent_at ? 'Gửi lại offer' : 'Gửi offer')
+                    ->icon('heroicon-o-envelope')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->modalHeading('Gửi offer cho ứng viên')
+                    ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới ' . ($record->candidate?->email ?: 'email ứng viên'))
+                    ->action(function (Application $record): void {
+                        $offer = $record->offers()->latest('id')->first();
+                        $candidate = $record->candidate;
+                        $job = $record->job;
+
+                        if (! $offer || ! $candidate?->email || ! $job) {
+                            Notification::make()
+                                ->warning()
+                                ->title('Chưa thể gửi offer')
+                                ->body('Vui lòng tạo offer và kiểm tra email ứng viên trước khi gửi.')
+                                ->send();
+
+                            return;
+                        }
+
+                        try {
+                            Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+
+                            $offer->forceFill([
+                                'sent_at' => now(),
+                            ])->save();
+
+                            Notification::make()
+                                ->success()
+                                ->title('Ðã gửi offer')
+                                ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
+                                ->send();
+                        } catch (\Throwable $exception) {
+                            Log::warning('Failed to send offer mail.', [
+                                'application_id' => $record->id,
+                                'offer_id' => $offer->id,
+                                'recipient' => $candidate->email,
+                                'error' => $exception->getMessage(),
+                            ]);
+
+                            Notification::make()
+                                ->warning()
+                                ->title('Gửi offer thất bại')
+                                ->body('Offer dã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (Application $record): bool => static::canSendOffer($record)),
                 ViewAction::make()
                     ->modal()
                     ->modalWidth('7xl')
@@ -247,21 +274,20 @@ class ApplicationsTable
                 EditAction::make()
                     ->label('Sửa')
                     ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record])),
-                DeleteAction::make()
-                    ->label('Xóa'),
+                DeleteAction::make()->label('Xóa'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->label('Xoa da chon'),
-                    ForceDeleteBulkAction::make()->label('Xoa vinh vien'),
-                    RestoreBulkAction::make()->label('Khoi phuc'),
+                    DeleteBulkAction::make()->label('Xóa dã chặnn'),
+                    ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
+                    RestoreBulkAction::make()->label('Khôi phục'),
                 ]),
             ]);
     }
 
     protected static function getInterviewFormData(Application $record): array
     {
-        $interview = $record->latestInterview()->first();
+        $interview = $record->interviews()->latest('id')->first();
 
         return [
             'scheduled_at' => $interview?->scheduled_at,
@@ -275,23 +301,74 @@ class ApplicationsTable
 
     protected static function canManageInterview(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum
-            ? $record->status->value
-            : $record->status;
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
 
-        return in_array($status, [
-            StatusApplicationEnum::SCREENING->value,
-            StatusApplicationEnum::INTERVIEW->value,
-        ], true);
+        return in_array($status, [StatusApplicationEnum::SCREENING->value, StatusApplicationEnum::INTERVIEW->value], true);
     }
 
     protected static function hasInterviewStatus(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum
-            ? $record->status->value
-            : $record->status;
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
 
         return $status === StatusApplicationEnum::INTERVIEW->value;
+    }
+
+    protected static function getInterviewActionLabel(Application $record): ?string
+    {
+        if (! static::canManageInterview($record)) {
+            return null;
+        }
+
+        return static::hasInterviewStatus($record) ? 'Cập nhật phỏng vấn' : 'Tạo lịch phỏng vấn';
+    }
+
+    protected static function getPipelineActionLabel(Application $record): ?string
+    {
+        if (static::canManageInterview($record)) {
+            return static::getInterviewActionLabel($record);
+        }
+
+        if (static::canManageOffer($record)) {
+            return static::getOfferActionLabel($record);
+        }
+
+        return null;
+    }
+
+    protected static function getPipelineActionColor(Application $record): string
+    {
+        if (static::canManageInterview($record)) {
+            return static::hasInterviewStatus($record) ? 'info' : 'warning';
+        }
+
+        if (static::canManageOffer($record)) {
+            return 'primary';
+        }
+
+        return 'gray';
+    }
+
+    protected static function canManageOffer(Application $record): bool
+    {
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
+
+        return $status === StatusApplicationEnum::OFFER->value;
+    }
+
+    protected static function getOfferActionLabel(Application $record): ?string
+    {
+        if (! static::canManageOffer($record)) {
+            return null;
+        }
+
+        return $record->offers()->exists() ? 'Sửa offer' : 'Tạo offer';
+    }
+
+    protected static function canSendOffer(Application $record): bool
+    {
+        return static::canManageOffer($record)
+            && filled($record->candidate?->email)
+            && $record->offers()->exists();
     }
 
     protected static function getWorkplaceOptions(Application $record): array
@@ -307,9 +384,7 @@ class ApplicationsTable
             ->where('is_active', true)
             ->orderBy('name')
             ->get()
-            ->mapWithKeys(fn (Workplace $workplace): array => [
-                $workplace->id => static::formatWorkplaceLabel($workplace),
-            ])
+            ->mapWithKeys(fn (Workplace $workplace): array => [$workplace->id => static::formatWorkplaceLabel($workplace)])
             ->all();
     }
 
@@ -325,10 +400,14 @@ class ApplicationsTable
             ->where('branch_id', $branchId)
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['director', 'pm', 'hr']))
+            ->with('branch')
             ->orderBy('name')
             ->get()
             ->mapWithKeys(fn (User $user): array => [
-                $user->id => $user->name . ($user->role ? ' (' . strtoupper($user->role) . ')' : ''),
+                $user->id => trim(implode(' - ', array_filter([
+                    $user->name . ($user->role ? ' (' . static::formatUserRole($user->role) . ')' : ''),
+                    $user->branch?->name,
+                ]))),
             ])
             ->all();
     }
@@ -365,139 +444,195 @@ class ApplicationsTable
     {
         $parts = array_filter([
             $workplace->name,
-            $workplace->room ? 'Phong ' . $workplace->room : null,
-            $workplace->floor ? 'Tang ' . $workplace->floor : null,
+            $workplace->room ? 'Phòng ' . $workplace->room : null,
+            $workplace->floor ? 'Tầng ' . $workplace->floor : null,
         ]);
 
         return implode(' - ', $parts);
     }
 
-    protected static function makeInterviewAction(): Action
+    protected static function formatUserRole(?string $role): string
     {
-        return Action::make('interview')
-            ->label('Phong van')
-            ->icon('heroicon-o-calendar-days')
-            ->color(fn (Application $record): string => static::hasInterviewStatus($record) ? 'info' : 'warning')
-            ->modalWidth('3xl')
-            ->modalHeading(fn (Application $record): string => $record->latestInterview()->exists() ? 'Dieu chinh lich phong van' : 'Tao lich phong van')
-            ->modalDescription(fn (Application $record): string => 'Ho so #' . $record->id . ' - ' . ($record->candidate?->name ?? 'Ung vien'))
-            ->fillForm(fn (Application $record): array => static::getInterviewFormData($record))
-            ->form([
-                DateTimePicker::make('scheduled_at')
-                    ->label('Thời gian phỏng vấn')
-                    ->native(false)
-                    ->seconds(false)
-                    ->required(),
-                Select::make('type')
-                    ->label('Hình thức phỏng vấn')
-                    ->options([
-                        'online' => 'Online',
-                        'offline' => 'Offline',
-                    ])
-                    ->default('online')
-                    ->live()
-                    ->required(),
-                TextInput::make('meeting_link')
-                    ->label('Link phỏng vấn')
-                    ->url()
-                    ->maxLength(500)
-                    ->visible(fn (callable $get): bool => $get('type') === 'online')
-                    ->required(fn (callable $get): bool => $get('type') === 'online'),
-                Select::make('workplace_id')
-                    ->label('Địa điểm phỏng vấn')
-                    ->options(fn (Application $record): array => static::getWorkplaceOptions($record))
-                    ->searchable()
-                    ->preload()
-                    ->visible(fn (callable $get): bool => $get('type') === 'offline')
-                    ->required(fn (callable $get): bool => $get('type') === 'offline'),
-                Select::make('interviewer_id')
-                    ->label('Người phỏng vấn')
-                    ->options(fn (Application $record): array => static::getInterviewerOptions($record))
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Textarea::make('notes')
-                    ->label('Ghi chu')
-                    ->rows(4)
-                    ->columnSpanFull(),
-            ])
-            ->action(function (Application $record, array $data): void {
-                $existingInterview = $record->latestInterview()->first();
-                $nextRound = max(1, $record->interviews()->count() + ($existingInterview ? 0 : 1));
+        return match ($role) {
+            'director' => 'Giám đốc',
+            'hr' => 'HR',
+            'pm' => 'PM',
+            'admin' => 'Super Admin',
+            default => strtoupper((string) $role),
+        };
+    }
 
-                $interview = $existingInterview ?? new Interview([
-                    'application_id' => $record->id,
-                    'round_number' => $nextRound,
-                    'round_name' => 'Phỏng vấn vòng ' . $nextRound,
-                    'duration_minutes' => 60,
-                    'result' => 'pending',
-                ]);
-
-                $interview->fill([
-                    'application_id' => $record->id,
-                    'interviewer_id' => $data['interviewer_id'],
-                    'scheduled_at' => $data['scheduled_at'],
-                    'type' => $data['type'],
-                    'meeting_link' => $data['type'] === 'online' ? ($data['meeting_link'] ?? null) : null,
-                    'workplace_id' => $data['type'] === 'offline' ? ($data['workplace_id'] ?? null) : null,
-                    'notes' => $data['notes'] ?? null,
-                ]);
-                $interview->save();
-
-                $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
-
-                app(InterviewCalendarService::class)->store($interview);
-
-                $record->forceFill([
-                    'status' => StatusApplicationEnum::INTERVIEW,
-                ])->save();
-
-                $recipients = static::getInterviewRecipients($record->fresh(['job.branch', 'candidate']));
-                $sentCount = 0;
-                $failedCount = 0;
-
-                foreach ($recipients as $email => $recipientLabel) {
-                    try {
-                        Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel));
-                        $sentCount++;
-                    } catch (\Throwable $exception) {
-                        $failedCount++;
-
-                        Log::warning('Failed to send interview schedule mail.', [
-                            'application_id' => $record->id,
-                            'interview_id' => $interview->id,
-                            'recipient' => $email,
-                            'error' => $exception->getMessage(),
-                        ]);
-                    }
+    protected static function makePipelineAction(): Action
+    {
+        return Action::make('pipeline')
+            ->label('Xử lý')
+            ->icon(fn (Application $record): string => static::canManageInterview($record)
+                ? 'heroicon-o-calendar-days'
+                : 'heroicon-o-hand-raised')
+            ->color(fn (Application $record): string => static::getPipelineActionColor($record))
+            ->modalWidth(fn (Application $record): string => static::canManageInterview($record) ? '3xl' : '4xl')
+            ->modalHeading(function (Application $record): string {
+                if (static::canManageInterview($record)) {
+                    return $record->interviews()->exists() ? 'Ðiều chỉnh lịch phỏng vấn' : 'Tạo lịch phỏng vấn';
                 }
 
-                if ($sentCount > 0) {
-                    $interview->forceFill([
-                        'invite_sent_at' => now(),
-                    ])->save();
+                if (static::canManageOffer($record)) {
+                    return $record->offers()->exists() ? 'Chỉnh sửa offer' : 'Tạo offer';
                 }
 
-                $notification = Notification::make()
-                    ->title($existingInterview ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn');
-
-                if ($failedCount > 0) {
-                    $notification
-                        ->warning()
-                        ->body("Lịch phỏng vấn đã được lưu, gửi email thành công {$sentCount} và thất bại {$failedCount}.");
-                } elseif ($sentCount === 0) {
-                    $notification
-                        ->warning()
-                        ->body('Lịch phỏng vấn đã được lưu, nhưng không tìm thấy email để gửi thông báo.');
-                } else {
-                    $notification
-                        ->success()
-                        ->body("Đã lưu lịch phỏng vấn và gửi {$sentCount} email thông báo.");
-                }
-
-                $notification->send();
+                return 'Xử lý hồ sơ';
             })
-            ->visible(fn (Application $record): bool => static::canManageInterview($record))
-            ->disabled(fn (Application $record): bool => ! static::canManageInterview($record));
+            ->modalDescription(fn (Application $record): string => 'Hồ sơ #' . $record->id . ' - ' . ($record->candidate?->name ?? '?ng viên'))
+            ->fillForm(function (Application $record): array {
+                if (static::canManageInterview($record)) {
+                    return static::getInterviewFormData($record);
+                }
+
+                $offer = $record->offers()->latest('id')->first();
+
+                return [
+                    'salary_offered' => $offer?->salary_offered,
+                    'start_date' => $offer?->start_date,
+                    'probation_months' => $offer?->probation_months ?? 2,
+                    'content' => $offer?->content,
+                ];
+            })
+            ->form(function (Application $record): array {
+                if (static::canManageInterview($record)) {
+                    return [
+                        DateTimePicker::make('scheduled_at')->label('Thời gian phỏng vấn')->native(false)->seconds(false)->required(),
+                        Select::make('type')
+                            ->label('Hình thức phỏng vấn')
+                            ->options(['online' => 'Online', 'offline' => 'Offline'])
+                            ->default('online')
+                            ->live()
+                            ->required(),
+                        TextInput::make('meeting_link')
+                            ->label('Link phỏng vấn')
+                            ->url()
+                            ->maxLength(500)
+                            ->visible(fn (callable $get): bool => $get('type') === 'online')
+                            ->required(fn (callable $get): bool => $get('type') === 'online'),
+                        Select::make('workplace_id')
+                            ->label('Ðịa điểm phỏng vấn')
+                            ->options(fn (Application $record): array => static::getWorkplaceOptions($record))
+                            ->searchable()
+                            ->preload()
+                            ->visible(fn (callable $get): bool => $get('type') === 'offline')
+                            ->required(fn (callable $get): bool => $get('type') === 'offline'),
+                        Select::make('interviewer_id')
+                            ->label('Nguời phỏng vấn')
+                            ->options(fn (Application $record): array => static::getInterviewerOptions($record))
+                            ->searchable()
+                            ->preload()
+                            ->required(),
+                        Textarea::make('notes')->label('Ghi chú')->rows(4)->columnSpanFull(),
+                    ];
+                }
+
+                return [
+                    TextInput::make('salary_offered')->label('Mức lương đề nghị')->numeric()->minValue(0)->required()->suffix('VND'),
+                    DatePicker::make('start_date')->label('Ngày bắt đầu dự kiến')->native(false)->displayFormat('d/m/Y')->required(),
+                    TextInput::make('probation_months')->label('Thời gian thử việc')->numeric()->minValue(0)->default(2)->required()->suffix('tháng'),
+                    Textarea::make('content')
+                        ->label('Nội dung thư mời nhận việc')
+                        ->rows(10)
+                        ->required()
+                        ->columnSpanFull()
+                        ->helperText('Bước MVP cho phép soạn tay. Sau bổ sung PDF'),
+                ];
+            })
+            ->action(function (Application $record, array $data): void {
+                if (static::canManageInterview($record)) {
+                    $existingInterview = $record->interviews()->latest('id')->first();
+                    $roundNumber = (int) ($existingInterview?->round_number ?: 1);
+
+                    $interview = $existingInterview ?? new Interview([
+                        'application_id' => $record->id,
+                        'round_number' => $roundNumber,
+                        'round_name' => 'Phỏng vấn vòng ' . $roundNumber,
+                        'duration_minutes' => 60,
+                        'result' => 'pending',
+                    ]);
+
+                    $interview->fill([
+                        'application_id' => $record->id,
+                        'interviewer_id' => $data['interviewer_id'],
+                        'scheduled_at' => $data['scheduled_at'],
+                        'type' => $data['type'],
+                        'meeting_link' => $data['type'] === 'online' ? ($data['meeting_link'] ?? null) : null,
+                        'workplace_id' => $data['type'] === 'offline' ? ($data['workplace_id'] ?? null) : null,
+                        'notes' => $data['notes'] ?? null,
+                    ]);
+                    $interview->save();
+
+                    $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
+                    app(InterviewCalendarService::class)->store($interview);
+
+                    $record->forceFill(['status' => StatusApplicationEnum::INTERVIEW])->save();
+
+                    $recipients = static::getInterviewRecipients($record->fresh(['job.branch', 'candidate']));
+                    $sentCount = 0;
+                    $failedCount = 0;
+
+                    foreach ($recipients as $email => $recipientLabel) {
+                        try {
+                            Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel));
+                            $sentCount++;
+                        } catch (\Throwable $exception) {
+                            $failedCount++;
+                            Log::warning('Failed to send interview schedule mail.', [
+                                'application_id' => $record->id,
+                                'interview_id' => $interview->id,
+                                'recipient' => $email,
+                                'error' => $exception->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    if ($sentCount > 0) {
+                        $interview->forceFill(['invite_sent_at' => now()])->save();
+                    }
+
+                    $notification = Notification::make()->title($existingInterview ? 'Ðã cập nhật lịch phỏng vấn' : 'Ðã tạo lịch phỏng vấn');
+
+                    if ($failedCount > 0) {
+                        $notification->warning()->body("Lịch phỏng vấn đã được lưu, gửi email thành công {$sentCount} và thất bại {$failedCount}.");
+                    } elseif ($sentCount === 0) {
+                        $notification->warning()->body('Lịch phỏng vấn đã được lưu nhưng không tìm thấy email để gửi thông báo.');
+                    } else {
+                        $notification->success()->body("Ðã lưu lịch phỏng vấn và gửi {$sentCount} email thông báo.");
+                    }
+
+                    $notification->send();
+
+                    return;
+                }
+
+                $existingOffer = $record->offers()->latest('id')->first();
+                $offer = $existingOffer ?? new Offer([
+                    'application_id' => $record->id,
+                    'status' => 'pending',
+                ]);
+
+                $offer->fill([
+                    'application_id' => $record->id,
+                    'salary_offered' => $data['salary_offered'],
+                    'start_date' => $data['start_date'],
+                    'probation_months' => $data['probation_months'],
+                    'content' => $data['content'],
+                ]);
+                $offer->save();
+
+                $record->forceFill(['status' => StatusApplicationEnum::OFFER])->save();
+
+                Notification::make()
+                    ->success()
+                    ->title($existingOffer ? 'Ðã lưu offer' : 'Ðã tạo offer')
+                    ->body('Offer dã được lưu. Có thể ấn gửi offer để gửi email cho ứng viên.')
+                    ->send();
+            })
+            ->visible(fn (Application $record): bool => static::getPipelineActionLabel($record) !== null)
+            ->disabled(fn (Application $record): bool => static::getPipelineActionLabel($record) === null);
     }
 }

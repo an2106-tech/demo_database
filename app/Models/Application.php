@@ -64,4 +64,14 @@ class Application extends Model
     {
         return $this->hasOne(Interview::class)->latestOfMany('scheduled_at');
     }
+
+    public function offers(): HasMany
+    {
+        return $this->hasMany(Offer::class);
+    }
+
+    public function latestOffer(): HasOne
+    {
+        return $this->hasOne(Offer::class)->latestOfMany();
+    }
 }
