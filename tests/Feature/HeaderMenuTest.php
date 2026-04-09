@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Livewire\Header;
 use App\Models\User;
+use App\Services\CandidateAccountService;
+use App\Models\Candidate;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -70,5 +72,39 @@ class HeaderMenuTest extends TestCase
         Livewire::test(Header::class, ['type' => 'employer'])
             ->assertViewHas('isEmployerHeader', false)
             ->assertViewHas('showRoleSwitcher', true);
+    }
+
+    public function test_hr_switching_role_redirects_to_expected_page(): void
+    {
+        $this->app->instance(CandidateAccountService::class, new class
+        {
+            public function hasCandidateAccount(User $user): bool
+            {
+                return true;
+            }
+
+            public function activateFor(User $user): Candidate
+            {
+                return new Candidate();
+            }
+        });
+
+        $user = new User([
+            'name' => 'HR',
+            'email' => 'hr3@example.com',
+            'role' => 'hr',
+            'metadata' => ['account_types' => ['candidate']],
+        ]);
+        $user->id = 5;
+
+        $this->actingAs($user);
+
+        Livewire::test(Header::class, ['type' => 'employer'])
+            ->call('switchTo', 'candidate')
+            ->assertRedirect(route('candidates.browse_job'));
+
+        Livewire::test(Header::class, ['type' => 'candidate'])
+            ->call('switchTo', 'employer')
+            ->assertRedirect(route('auth.post_jobs'));
     }
 }

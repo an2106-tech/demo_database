@@ -684,15 +684,15 @@
                             <div class="apply-form-spotlight">
                                 <div class="apply-spot-card">
                                     <strong>01</strong>
-                                    <span>Dien thong tin co ban de nha tuyen dung lien he nhanh hon</span>
+                                    <span>Điền thông tin cơ bản để nhà tuyển dụng liên hệ nhanh hơn</span>
                                 </div>
                                 <div class="apply-spot-card">
                                     <strong>CV</strong>
-                                    <span>Ho so co CV ro rang se duoc xem xet de dang hon</span>
+                                    <span>Hồ sơ có CV rõ ràng sẽ được xem xét dễ dàng hơn</span>
                                 </div>
                                 <div class="apply-spot-card">
                                     <strong>10MB</strong>
-                                    <span>Ho tro PDF, DOC, DOCX voi dung luong toi da 10MB</span>
+                                    <span>Hỗ trợ PDF, DOC, DOCX với dung lượng tối đa 10MB</span>
                                 </div>
                             </div>
 
@@ -753,7 +753,6 @@
 
                                 <div class="apply-field apply-field--cv full">
                                     <div class="single-input">
-                                        <div class="apply-cv-badge">CV la diem nhan quan trong nhat</div>
                                         <label>CV</label>
 
 
@@ -775,4 +774,3 @@
         </div>
     </section>
 </div>
-

@@ -27,19 +27,23 @@ class Header extends Component
             return;
         }
 
-        if (in_array($user->role, ['hr', 'admin'], true)) {
-            $preferred = session('client_menu_type');
-            if ($preferred === 'candidate' && $hasCandidateAccount) {
-                $this->type = 'candidate';
+        if (! in_array($user->role, ['hr', 'admin'], true)) {
+            $this->type = 'candidate';
 
-                return;
-            }
-
-            $this->type = 'employer';
+            return;
         }
+
+        $preferred = session('client_menu_type');
+        if ($preferred === 'candidate' && $hasCandidateAccount) {
+            $this->type = 'candidate';
+
+            return;
+        }
+
+        $this->type = 'employer';
     }
 
-    public function switchTo(string $type): void
+    public function switchTo(string $type)
     {
         if (! in_array($type, ['candidate', 'employer'], true)) {
             return;
@@ -56,6 +60,10 @@ class Header extends Component
 
         session(['client_menu_type' => $type]);
         $this->type = $type;
+
+        return $type === 'candidate'
+            ? $this->redirectRoute('candidates.browse_job')
+            : $this->redirectRoute('auth.post_jobs');
     }
 
     public function render()
