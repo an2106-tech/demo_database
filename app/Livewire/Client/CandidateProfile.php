@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -229,7 +230,7 @@ class CandidateProfile extends Component
         });
 
         $this->cv = null;
-        session()->flash('status', 'Đã cập nhật hồ sơ.');
+        session()->flash('status', 'Cập nhật hồ sơ thành công.');
     }
 
     public function addExperience(): void
@@ -327,7 +328,9 @@ class CandidateProfile extends Component
             return null;
         }
 
-        return asset('storage/'.$candidate->cv_file);
+        return Route::has('public-file.preview')
+            ? route('public-file.preview', ['path' => $candidate->cv_file])
+            : asset('storage/' . ltrim($candidate->cv_file, '/'));
     }
 
     #[Layout('layouts.client')]

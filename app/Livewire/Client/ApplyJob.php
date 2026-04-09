@@ -13,8 +13,7 @@ use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -48,7 +47,7 @@ class ApplyJob extends Component
 
     public function mount(RecruitmentJob $job): void
     {
-        $this->job = $job;
+        $this->job = $job->loadMissing(['branch', 'department', 'workplace', 'skills']);
 
         $user = Auth::user();
         if (! $user) {
@@ -165,7 +164,7 @@ class ApplyJob extends Component
 
         $this->cv = null;
 
-        session()->flash('status', 'Da nop ung tuyen thanh cong. Chung toi se lien he voi ban som nhat co the.');
+        session()->flash('status', 'Đã nộp ứng tuyển thành công. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
     }
 
     protected function resolveExistingCandidate(): ?Candidate
@@ -269,6 +268,41 @@ class ApplyJob extends Component
         }
     }
 
+    public function getExistingCvNameProperty(): ?string
+    {
+        if (! Auth::check()) {
+            return null;
+        }
+
+        $candidate = $this->resolveExistingCandidate();
+        if (! $candidate?->cv_file) {
+            return null;
+        }
+
+        $attachment = $candidate->attachments()
+            ->where('type', 'cv')
+            ->latest('id')
+            ->first();
+
+        return $attachment?->original_filename ?: basename($candidate->cv_file);
+    }
+
+    public function getExistingCvUrlProperty(): ?string
+    {
+        if (! Auth::check()) {
+            return null;
+        }
+
+        $candidate = $this->resolveExistingCandidate();
+        if (! $candidate?->cv_file) {
+            return null;
+        }
+
+        return Route::has('public-file.preview')
+            ? route('public-file.preview', ['path' => $candidate->cv_file])
+            : asset('storage/' . ltrim($candidate->cv_file, '/'));
+    }
+
     protected function messages(): array
     {
         return [
@@ -300,6 +334,10 @@ class ApplyJob extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        return view('livewire.client.apply-job');
+        return view('livewire.client.apply-job', [
+            'hasExistingCv' => $this->hasExistingCv,
+            'existingCvName' => $this->existingCvName,
+            'existingCvUrl' => $this->existingCvUrl,
+        ]);
     }
 }
