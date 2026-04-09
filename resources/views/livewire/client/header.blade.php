@@ -178,6 +178,7 @@
 
 
 
+
       #selectRoleModal .modal-dialog {
          max-width: 1120px;
       }
@@ -291,64 +292,39 @@
       }
 
       .jobguru-header-area .role-switcher {
-         --switcher-gap: .36rem;
-         --switcher-pad: .34rem;
-         --switcher-candidate: linear-gradient(135deg, #f37021 0%, #ff8a1d 56%, #ffb347 100%);
-         --switcher-employer: linear-gradient(135deg, #f37021 0%, #ff7a1a 42%, #ff9f43 100%);
          position: relative;
          isolation: isolate;
          display: inline-grid;
          grid-template-columns: repeat(2, minmax(0, 1fr));
          align-items: center;
-         gap: var(--switcher-gap);
-         min-width: 232px;
-         padding: var(--switcher-pad);
+         gap: .3rem;
+         min-width: 228px;
+         padding: .32rem;
          border-radius: 999px;
-         border: 1px solid rgba(14, 116, 144, .14);
-         background: linear-gradient(135deg, rgba(255, 255, 255, .97), rgba(236, 248, 255, .92));
+         border: 1px solid rgba(14, 116, 144, .16);
+         background: linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(240, 249, 255, .88));
          backdrop-filter: blur(16px);
-         box-shadow:
-            0 16px 40px rgba(14, 116, 144, .12),
-            inset 0 1px 0 rgba(255, 255, 255, .85);
-         overflow: hidden;
-      }
-
-      .jobguru-header-area .role-switcher::after {
-         content: "";
-         position: absolute;
-         inset: 1px;
-         border-radius: inherit;
-         background: linear-gradient(180deg, rgba(255, 255, 255, .52), rgba(255, 255, 255, 0));
-         pointer-events: none;
-         z-index: -1;
+         box-shadow: 0 18px 45px rgba(14, 116, 144, .12);
       }
 
       .jobguru-header-area .role-switcher::before {
          content: "";
          position: absolute;
-         top: var(--switcher-pad);
-         bottom: var(--switcher-pad);
-         left: var(--switcher-pad);
-         width: calc(50% - ((var(--switcher-gap) / 2) + var(--switcher-pad)));
+         top: .32rem;
+         bottom: .32rem;
+         left: .32rem;
+         width: calc(50% - .47rem);
          border-radius: 999px;
-         background: var(--switcher-candidate);
-         box-shadow:
-            0 12px 26px rgba(243, 112, 33, .26),
-            inset 0 1px 0 rgba(255, 255, 255, .34);
-         transition:
-            transform .5s cubic-bezier(.22, 1, .36, 1),
-            background .32s ease,
-            box-shadow .32s ease;
+         background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%);
+         box-shadow: 0 10px 24px rgba(14, 116, 144, .22);
+         transition: transform .28s cubic-bezier(.22, 1, .36, 1), background .22s ease, box-shadow .22s ease;
          z-index: 0;
-         will-change: transform;
       }
 
-      .jobguru-header-area .role-switcher[data-active='employer']::before {
-         transform: translateX(calc(100% + var(--switcher-gap)));
-         background: var(--switcher-employer);
-         box-shadow:
-            0 12px 28px rgba(243, 112, 33, .3),
-            inset 0 1px 0 rgba(255, 255, 255, .34);
+      .jobguru-header-area .role-switcher:has(.role-switcher__btn.is-employer.is-active)::before {
+         transform: translateX(calc(100% + .3rem));
+         background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+         box-shadow: 0 10px 24px rgba(22, 163, 74, .24);
       }
 
       .jobguru-header-area .role-switcher__btn {
@@ -363,16 +339,12 @@
          gap: .5rem;
          min-height: 44px;
          color: #0f172a;
-         padding: .78rem 1.08rem;
+         padding: .75rem 1.05rem;
          border-radius: 999px;
          font-weight: 800;
          letter-spacing: .01em;
          line-height: 1;
-         transition:
-            color .24s ease,
-            transform .24s ease,
-            opacity .24s ease,
-            text-shadow .24s ease;
+         transition: color .2s ease, transform .2s ease, opacity .2s ease;
       }
 
       .jobguru-header-area .role-switcher__btn:hover {
@@ -407,16 +379,16 @@
       }
 
       .jobguru-header-area .role-switcher__btn:not(.is-active) {
-         color: #37506b;
+         color: #334155;
       }
 
       .jobguru-header-area .role-switcher__btn:not(.is-active):hover {
-         color: #17324d;
+         color: #0f172a;
       }
 
       .jobguru-header-area .role-switcher__btn[disabled] {
          cursor: wait;
-         opacity: .92;
+         opacity: .85;
       }
 
       .jobguru-header-area .role-switcher__btn-label {
@@ -426,24 +398,6 @@
       .jobguru-header-area .header-right-menu .post-jobs {
          padding: 10px 22px !important;
          white-space: nowrap;
-         color: #fff !important;
-         font-weight: 800;
-         text-shadow: 0 1px 1px rgba(15, 23, 42, .12);
-      }
-
-      .jobguru-header-area .header-right-menu .post-jobs:hover,
-      .jobguru-header-area .header-right-menu .post-jobs:focus {
-         color: #fff !important;
-      }
-
-      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs,
-      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:hover,
-      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:focus,
-      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:active,
-      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs,
-      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:hover,
-      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:focus {
-         color: #fff !important;
       }
 
       .jobguru-header-area .header-right-menu .client-logout-btn {
@@ -578,24 +532,48 @@
                   <div class="header-right-menu">
                      <ul>
                         @auth
-                           <!-- Chuyển chế độ (Nếu có) -->
-                           @if($showRoleSwitcher ?? false)
+
+
+                           @auth
+                              @if($showRoleSwitcher ?? false)
+                                 <li>
+                                    <div class="role-switcher" role="group" aria-label="Chuyển chế độ">
+                                       <button type="button" wire:click="switchTo('candidate')"
+                                          class="role-switcher__btn is-candidate {{ !$isEmployerHeader ? 'is-active' : '' }}">
+                                          Ứng viên
+                                       </button>
+                                       <button type="button" wire:click="switchTo('employer')"
+                                          class="role-switcher__btn is-employer {{ $isEmployerHeader ? 'is-active' : '' }}">
+                                          Nhà tuyển dụng
+                                       </button>
+                                    </div>
+                                 </li>
+                              @endif
+                           @endauth
+                           @if($isEmployerHeader)
                               <li>
-                                 <div class="role-switcher" role="group">
-                                    <button type="button" wire:click="switchTo('candidate')"
-                                       class="role-switcher__btn {{ !$isEmployerHeader ? 'is-active' : '' }}">Ứng
-                                       viên</button>
-                                    <button type="button" wire:click="switchTo('employer')"
-                                       class="role-switcher__btn {{ $isEmployerHeader ? 'is-active' : '' }}">Nhà tuyển
-                                       dụng</button>
-                                 </div>
+                                 <a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a>
                               </li>
                            @endif
+                           @guest
+                              <li>
+                                 <a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal">
+                                    <i class="fa fa-user"></i>
+                                    Đăng ký
+                                 </a>
+                              </li>
+                              <li>
+                                 <a href="{{ route('auth.login') }}">
+                                    <i class="fa fa-lock"></i>
+                                    Đăng nhập
+                                 </a>
+                              </li>
+                           @endguest
 
-                           <!-- Mục đăng tin (Cho nhà tuyển dụng) -->
-                           @if($isEmployerHeader)
-                              <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
-                           @endif
+
+
+
+
 
                            @auth
                               <!-- Chỉ can thiệp vào khối User Menu này -->
@@ -665,7 +643,7 @@
                                              </div>
                                           </li>
                                        </div>
-                                       
+
                                     </ul>
                                  </div>
                               </li>
