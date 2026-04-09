@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Client\pages;
 
+use App\Models\Post;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
@@ -10,6 +11,9 @@ class Single extends Component
     #[Layout('layouts.client')] 
     public function render()
     {
-        return view('livewire.client.pages.single');
+         $posts = Post::latest()->get();
+        return view('livewire.client.pages.single',[
+            'posts' => $posts
+        ]);
     }
 }
