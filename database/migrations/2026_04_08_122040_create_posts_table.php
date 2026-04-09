@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');  
             $table->string('slug')->unique();  
-            $table->string('excerpt')->unique(); //mô tả ngắn 
+            $table->text('excerpt')->change(); 
             $table->longText('content');  
             $table->string('image')->nullable();   
             $table->integer('views')->default(0);

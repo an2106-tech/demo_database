@@ -72,10 +72,9 @@ class PostForm
                         ->directory('posts')
                         ->imagePreviewHeight('200')
                         ->columnSpanFull()
-                        ->helperText('Hình nên 800x600px để hiển thị đẹp'),
-
-
-
+                        ->helperText('Hình nên 800x600px để hiển thị đẹp')
+                        ->disk('public'),
+                        
                     Toggle::make('status')
                         ->label('Trạng thái (Hiển thị)')
                         ->default(true),

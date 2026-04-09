@@ -31,13 +31,12 @@ class PostInfolist
                     ->label('Nội dung')
                     ->placeholder('-')
                     ->columnSpanFull()
-                    ->wrap(true),
+                   ,
 
                 ImageEntry::make('image')
                     ->label('Hình đại diện')
                     ->placeholder('-')
-                    ->height(100)
-                    ->width(150),
+                    ->disk('public'),
 
                 TextEntry::make('views')
                     ->label('Lượt xem')
