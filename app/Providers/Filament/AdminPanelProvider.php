@@ -34,11 +34,11 @@ class AdminPanelProvider extends PanelProvider
     public static bool $registerNavigation = false;
     public function panel(Panel $panel): Panel
     {
-        
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->login()
             ->colors([
                 'primary' => Color::Amber,
@@ -63,6 +63,7 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 FilamentInfoWidget::class,
+                \App\Filament\Widgets\InterviewCalendar::class,
             ])
             ->plugins([
                 \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
@@ -81,7 +82,5 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
-            
-            
     }
 }
