@@ -1,4 +1,4 @@
-<div>
+﻿<div>
     <section class="jobguru-banner-area home-banner">
         <div class="banner-slider owl-carousel">
             <div class="banner-single-slider slider-item-1">
@@ -94,152 +94,7 @@
             </div>
         </div>
     </section>
-                {{-- <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder design_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-pencil-square-o"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Thiết kế & Đa phương tiện</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/design_art.jpg') }}" alt="category" />
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder restaurant_cat">
-                            <div class="category-holder-icon">
-                                <i class="fa fa-cutlery"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>Restaurant / Food Service</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/restaurent.jpg') }}" alt="category" />
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder tech_cat">
-                            <div class="category-holder-icon">
-                                <i class="fa fa-code"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>Programming & Tech</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/programing_cat.jpeg') }}" alt="category" />
-                        </a>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder data_cat">
-                            <div class="category-holder-icon">
-                                <i class="fa fa-bar-chart"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>Data Science & Analitycs</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/data_cat.png') }}" alt="category" />
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder writing_cat">
-                            <div class="category-holder-icon">
-                                <i class="bi bi-person-gear"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>Writing / Translations</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/writing_cat.jpg') }}" alt="category" />
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder edu_cat">
-                            <div class="category-holder-icon">
-                                <i class="fa fa-graduation-cap"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>Education / Training</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/edu_cat.jpg') }}" alt="category" />
-                        </a>
-                    </div>
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder sale_cat">
-                            <div class="category-holder-icon">
-                                <i class="fa fa-bullhorn"></i>
-                            </div>
-                            <div class="category-holder-text">
-                                <h3>sales / marketing</h3>
-                            </div>
-                            <img src="{{ asset('assets/img/sale_cat.png') }}" alt="category" />
-                        </a>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="load-more">
-                            <a href="#" class="jobguru-btn">Xem tất cả danh mục</a>
-                            <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Tài chính & đầu tư</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/img-tc.jpg') }}" alt="category" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder data_cat">
-                        <div class="category-holder-icon">
-                            <i class="bi bi-bank"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Ngân hàng</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/bank.jpg') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder writing_cat">
-                        <div class="category-holder-icon">
-                            <i class="bi bi-person-gear"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Quản lý điều hành</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/qldh.webp') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder edu_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-graduation-cap"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Giáo dục / Đào tạo</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/gddt.jpg') }}" alt="category" />
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6 col-sm-6">
-                    <a href="#" class="single-category-holder sale_cat">
-                        <div class="category-holder-icon">
-                            <i class="fa fa-bullhorn"></i>
-                        </div>
-                        <div class="category-holder-text">
-                            <h3>Bán hàng / Marketing</h3>
-                        </div>
-                        <img src="{{ asset('assets/img/mkt.webp') }}" alt="category" />
-                    </a>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="load-more">
-                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
-                            nghề</a>
-                    </div>
-    --}}
+              
     <section class="jobguru-inner-hire-area section_100">
         <div class="hire_circle"></div>
         <div class="container">
@@ -287,6 +142,7 @@
                                 <ul>
                                     {{--
                                     @forelse($branches as $branch)
+                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
                                         <li>
                                             <div class="top-company-list" style="display:block;">
                                                 <?php
@@ -448,6 +304,7 @@
                                     </style>
 
                                     @forelse($branches as $branch)
+                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
                                         <?php
                                         $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
                                             ?? ($branch->city ?? null);

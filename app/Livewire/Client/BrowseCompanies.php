@@ -20,6 +20,7 @@ class BrowseCompanies extends Component
         $branches = Branch::query()
             // [WHERE] Chỉ lấy những chi nhánh được đánh dấu là đang hoạt động
             ->where('is_active', true)
+            ->select(['id', 'name', 'image', 'city', 'address', 'is_active'])
 
             // [WHERE HAS] Chỉ lấy Chi nhánh nếu nó có ít nhất một tin tuyển dụng thỏa mãn các điều kiện:
             ->whereHas('recruitmentJobs', function ($query) use ($now) {
@@ -61,7 +62,7 @@ class BrowseCompanies extends Component
             ->latest()
 
             // [GET] Thực thi truy vấn và chỉ lấy các cột cần thiết của bảng Chi nhánh
-            ->get(['id', 'name', 'image', 'city', 'address', 'is_active']);
+            ->get();
 
         // 3. Phân nhóm (Grouping) các chi nhánh đã lấy được theo chữ cái đầu tiên của tên
         $branchesByLetter = $branches->groupBy(function (Branch $branch) {

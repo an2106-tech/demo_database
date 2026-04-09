@@ -172,7 +172,7 @@
                                 </div>
                                 <div class="dropdown">
                                     <button class="btn-dropdown dropdown-toggle" type="button" id="dropdowncur"
-                                        data-bs-toggle="dropdown" aria-haspopup="true">Sắp xếp theo</button>
+                                        data-bs-toggle="dropdown" aria-haspopup="true" style="text-transform:none;">Sắp xếp theo</button>
                                     <ul class="dropdown-menu" aria-labelledby="dropdowncur">
                                         <li>Mới nhất</li>
                                         <li>Cũ nhất</li>

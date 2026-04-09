@@ -53,6 +53,7 @@
                                 aria-labelledby="company_{{ strtolower($letter) }}_tab">
                                 <div class="row">
                                     @forelse ($branchesByLetter->get($letter, collect()) as $branch)
+                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
                                         <div class="col-lg-4 col-md-6">
                                             <div class="single-browse-company">
                                                 <div class="browse-company-logo">
@@ -77,7 +78,7 @@
                                                 @endif
                                                 <p class="open-icon" style="margin: 6px 0 0;">
                                                     <i class="fa fa-briefcase"></i>
-                                                    {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang tuyển
+                                                    1 vị trí đang tuyển
                                                 </p>
                                                 <p class="varify" style="margin: 6px 0 0;">
                                                     <i class="fa fa-check"></i>
@@ -95,7 +96,7 @@
                                                 @if ($branch->recruitmentJobs?->isNotEmpty())
                                                     <div style="margin-top: 12px; border-top: 1px solid #eee; padding-top: 10px;">
                                                         <ul class="list-unstyled" style="margin: 0;">
-                                                            @foreach ($branch->recruitmentJobs->take(5) as $job)
+                                                            @foreach ($branch->recruitmentJobs->take(1) as $job)
                                                                 @php
                                                                     $salaryText = 'Thỏa thuận';
                                                                     if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
