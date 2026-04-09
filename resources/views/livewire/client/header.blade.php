@@ -1,5 +1,9 @@
-<div>
+<div x-data="{ active: @entangle('type').live }">
    <style>
+      [x-cloak] {
+         display: none !important;
+      }
+
       #selectRoleModal .modal-dialog {
          max-width: 1120px;
       }
@@ -113,39 +117,64 @@
       }
 
       .jobguru-header-area .role-switcher {
+         --switcher-gap: .36rem;
+         --switcher-pad: .34rem;
+         --switcher-candidate: linear-gradient(135deg, #f37021 0%, #ff8a1d 56%, #ffb347 100%);
+         --switcher-employer: linear-gradient(135deg, #f37021 0%, #ff7a1a 42%, #ff9f43 100%);
          position: relative;
          isolation: isolate;
          display: inline-grid;
          grid-template-columns: repeat(2, minmax(0, 1fr));
          align-items: center;
-         gap: .3rem;
-         min-width: 228px;
-         padding: .32rem;
+         gap: var(--switcher-gap);
+         min-width: 232px;
+         padding: var(--switcher-pad);
          border-radius: 999px;
-         border: 1px solid rgba(14, 116, 144, .16);
-         background: linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(240, 249, 255, .88));
+         border: 1px solid rgba(14, 116, 144, .14);
+         background: linear-gradient(135deg, rgba(255, 255, 255, .97), rgba(236, 248, 255, .92));
          backdrop-filter: blur(16px);
-         box-shadow: 0 18px 45px rgba(14, 116, 144, .12);
+         box-shadow:
+            0 16px 40px rgba(14, 116, 144, .12),
+            inset 0 1px 0 rgba(255, 255, 255, .85);
+         overflow: hidden;
+      }
+
+      .jobguru-header-area .role-switcher::after {
+         content: "";
+         position: absolute;
+         inset: 1px;
+         border-radius: inherit;
+         background: linear-gradient(180deg, rgba(255, 255, 255, .52), rgba(255, 255, 255, 0));
+         pointer-events: none;
+         z-index: -1;
       }
 
       .jobguru-header-area .role-switcher::before {
          content: "";
          position: absolute;
-         top: .32rem;
-         bottom: .32rem;
-         left: .32rem;
-         width: calc(50% - .47rem);
+         top: var(--switcher-pad);
+         bottom: var(--switcher-pad);
+         left: var(--switcher-pad);
+         width: calc(50% - ((var(--switcher-gap) / 2) + var(--switcher-pad)));
          border-radius: 999px;
-         background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%);
-         box-shadow: 0 10px 24px rgba(14, 116, 144, .22);
-         transition: transform .28s cubic-bezier(.22, 1, .36, 1), background .22s ease, box-shadow .22s ease;
+         background: var(--switcher-candidate);
+         box-shadow:
+            0 12px 26px rgba(243, 112, 33, .26),
+            inset 0 1px 0 rgba(255, 255, 255, .34);
+         transition:
+            transform .5s cubic-bezier(.22, 1, .36, 1),
+            background .32s ease,
+            box-shadow .32s ease;
          z-index: 0;
+         will-change: transform;
       }
 
-      .jobguru-header-area .role-switcher:has(.role-switcher__btn.is-employer.is-active)::before {
-         transform: translateX(calc(100% + .3rem));
-         background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-         box-shadow: 0 10px 24px rgba(22, 163, 74, .24);
+      .jobguru-header-area .role-switcher[data-active='employer']::before {
+         transform: translateX(calc(100% + var(--switcher-gap)));
+         background: var(--switcher-employer);
+         box-shadow:
+            0 12px 28px rgba(243, 112, 33, .3),
+            inset 0 1px 0 rgba(255, 255, 255, .34);
       }
 
       .jobguru-header-area .role-switcher__btn {
@@ -160,12 +189,16 @@
          gap: .5rem;
          min-height: 44px;
          color: #0f172a;
-         padding: .75rem 1.05rem;
+         padding: .78rem 1.08rem;
          border-radius: 999px;
          font-weight: 800;
          letter-spacing: .01em;
          line-height: 1;
-         transition: color .2s ease, transform .2s ease, opacity .2s ease;
+         transition:
+            color .24s ease,
+            transform .24s ease,
+            opacity .24s ease,
+            text-shadow .24s ease;
       }
 
       .jobguru-header-area .role-switcher__btn:hover {
@@ -200,16 +233,16 @@
       }
 
       .jobguru-header-area .role-switcher__btn:not(.is-active) {
-         color: #334155;
+         color: #37506b;
       }
 
       .jobguru-header-area .role-switcher__btn:not(.is-active):hover {
-         color: #0f172a;
+         color: #17324d;
       }
 
       .jobguru-header-area .role-switcher__btn[disabled] {
          cursor: wait;
-         opacity: .85;
+         opacity: .92;
       }
 
       .jobguru-header-area .role-switcher__btn-label {
@@ -219,6 +252,24 @@
       .jobguru-header-area .header-right-menu .post-jobs {
          padding: 10px 22px !important;
          white-space: nowrap;
+         color: #fff !important;
+         font-weight: 800;
+         text-shadow: 0 1px 1px rgba(15, 23, 42, .12);
+      }
+
+      .jobguru-header-area .header-right-menu .post-jobs:hover,
+      .jobguru-header-area .header-right-menu .post-jobs:focus {
+         color: #fff !important;
+      }
+
+      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs,
+      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:hover,
+      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:focus,
+      .jobguru-header-area.stick-top.sticky .header-right-menu .post-jobs:active,
+      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs,
+      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:hover,
+      .jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:focus {
+         color: #fff !important;
       }
 
       .jobguru-header-area .header-right-menu .client-logout-btn {
@@ -286,8 +337,14 @@
                               <a href="/">Trang chủ</a>
                            </li>
 
-                           @if($showCandidateMenu ?? auth()->guest())
-                           <li class="has-children">
+                           @if(($canCandidateMenu ?? false) || auth()->guest())
+                           <li class="has-children" @auth x-cloak x-show="active === 'candidate'"
+                              x-transition:enter="transition ease-out duration-250"
+                              x-transition:enter-start="opacity-0 -translate-y-1"
+                              x-transition:enter-end="opacity-100 translate-y-0"
+                              x-transition:leave="transition ease-in duration-180"
+                              x-transition:leave-start="opacity-100 translate-y-0"
+                              x-transition:leave-end="opacity-0 -translate-y-1" @endauth>
                               <a href="#">Cho Ứng Viên</a>
                               <ul>
                                  <li class="has-inner-child">
@@ -316,8 +373,14 @@
                               </ul>
                            </li>
                            @endif
-                           @if($showEmployerMenu ?? auth()->guest())
-                           <li class="has-children">
+                           @if(($canEmployerMenu ?? false) || auth()->guest())
+                           <li class="has-children" @auth x-cloak x-show="active === 'employer'"
+                              x-transition:enter="transition ease-out duration-250"
+                              x-transition:enter-start="opacity-0 -translate-y-1"
+                              x-transition:enter-end="opacity-100 translate-y-0"
+                              x-transition:leave="transition ease-in duration-180"
+                              x-transition:leave-start="opacity-100 translate-y-0"
+                              x-transition:leave-end="opacity-0 -translate-y-1" @endauth>
                               <a href="#">Cho Nhà Tuyển Dụng</a>
                               <ul>
                                  <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
@@ -367,20 +430,27 @@
                         @auth
                            @if($showRoleSwitcher ?? false)
                               <li>
-                                 <div class="role-switcher" role="group" aria-label="Chuyển chế độ">
+                                 <div class="role-switcher" role="group" aria-label="Chuyển chế độ"
+                                    :data-active="active">
                                     <button type="button" wire:click="switchTo('candidate')"
-                                       class="role-switcher__btn is-candidate {{ !$isEmployerHeader ? 'is-active' : '' }}">Ứng
+                                       wire:loading.attr="disabled" wire:target="switchTo"
+                                       @click="active = 'candidate'"
+                                       class="role-switcher__btn is-candidate"
+                                       :class="{ 'is-active': active === 'candidate' }">Ứng
                                        viên</button>
                                     <button type="button" wire:click="switchTo('employer')"
-                                       class="role-switcher__btn is-employer {{ $isEmployerHeader ? 'is-active' : '' }}">Nhà
+                                       wire:loading.attr="disabled" wire:target="switchTo"
+                                       @click="active = 'employer'"
+                                       class="role-switcher__btn is-employer"
+                                       :class="{ 'is-active': active === 'employer' }">Nhà
                                        tuyển dụng</button>
                                  </div>
                               </li>
                            @endif
                         @endauth
-                        @if($isEmployerHeader)
-                           <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
-                        @endif
+                        @auth
+                           <li x-cloak x-show="active === 'employer'"><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
+                        @endauth
                         @guest
                            <li><a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal"><i
                                     class="fa fa-user"></i> Đăng ký</a></li>
@@ -439,3 +509,4 @@
       </div>
    </div>
 </div>
+

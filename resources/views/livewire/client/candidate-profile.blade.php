@@ -82,6 +82,76 @@
             padding: 32px;
         }
 
+        .cp-hero__profile {
+            align-items: center;
+            display: flex;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+
+        .cp-avatar {
+            background: #fff;
+            border: 4px solid rgba(255, 255, 255, 0.92);
+            border-radius: 28px;
+            box-shadow: 0 18px 34px rgba(243, 112, 33, 0.16);
+            flex: 0 0 108px;
+            height: 108px;
+            overflow: hidden;
+            width: 108px;
+        }
+
+        .cp-avatar img {
+            display: block;
+            height: 100%;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .cp-avatar__content strong {
+            color: #272727;
+            display: block;
+            font-size: 17px;
+            margin-bottom: 6px;
+        }
+
+        .cp-avatar__content span {
+            color: var(--cp-muted);
+            display: block;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 12px;
+        }
+
+        .cp-avatar__action {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .cp-avatar__upload {
+            background: linear-gradient(135deg, #f37021 0%, #ff8a1d 100%);
+            border-radius: 999px;
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 16px;
+            transition: transform .18s ease, box-shadow .18s ease;
+            box-shadow: 0 12px 22px rgba(243, 112, 33, 0.22);
+        }
+
+        .cp-avatar__upload:hover {
+            transform: translateY(-1px);
+        }
+
+        .cp-avatar__hint {
+            color: var(--cp-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
         .cp-eyebrow {
             letter-spacing: 0.08em;
             margin-bottom: 10px;
@@ -537,6 +607,22 @@
                         <div class="cp-hero">
                             <div class="cp-hero__inner">
                                 <div class="cp-hero__main">
+                                    <div class="cp-hero__profile">
+                                        <div class="cp-avatar">
+                                            <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Ảnh đại diện">
+                                        </div>
+                                        <div class="cp-avatar__content">
+                                            <strong>Ảnh đại diện</strong>
+                                            <span>Tải ảnh chân dung rõ mặt để hồ sơ trông chuyên nghiệp và dễ nhận diện hơn.</span>
+                                            <div class="cp-avatar__action">
+                                                <label class="cp-avatar__upload" for="avatar">Chọn ảnh mới</label>
+                                                <span class="cp-avatar__hint">Hỗ trợ JPG, PNG, WEBP. Tối đa 5MB.</span>
+                                            </div>
+                                            @error('avatar')
+                                                <div class="cp-error" style="margin-top: 10px;">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                    </div>
                                     <div class="cp-eyebrow">Hồ sơ ứng viên</div>
                                     <h1 class="cp-hero__title">{{ $profile_title ?: 'Hoàn thiện hồ sơ để tăng cơ hội được liên hệ' }}</h1>
                                     <p class="cp-hero__subtitle">
@@ -570,7 +656,8 @@
                         </div>
 
                         <div class="candidate-profile">
-                            <form class="cp-form" wire:submit.prevent="save" enctype="multipart/form-data">
+                            <form class="cp-form" wire:submit.prevent="save" method="POST" enctype="multipart/form-data">
+                                <input id="avatar" type="file" wire:model="avatar" accept="image/png,image/jpeg,image/webp" hidden>
                                 <div class="cp-layout">
                                     <aside class="cp-toc">
                                         <h3>Điều hướng nhanh</h3>

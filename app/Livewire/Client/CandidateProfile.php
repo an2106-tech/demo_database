@@ -8,6 +8,7 @@ use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -25,6 +26,8 @@ class CandidateProfile extends Component
     public ?string $phone = null;
 
     public ?int $experience_years = null;
+
+    public $avatar = null;
 
     public $cv = null;
 
@@ -107,6 +110,7 @@ class CandidateProfile extends Component
         $this->validate([
             'phone' => ['nullable', 'string', 'max:50'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
+            'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
             'cv' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx'],
 
             'profile_title' => ['nullable', 'string', 'max:255'],
@@ -179,11 +183,24 @@ class CandidateProfile extends Component
         ]);
 
         $candidate = Candidate::query()->findOrFail($this->candidateId);
+        $user = Auth::user();
         $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
 
-        DB::transaction(function () use ($candidate, $resume) {
+        DB::transaction(function () use ($candidate, $resume, $user) {
             $candidate->phone = $this->phone;
             $candidate->experience_years = $this->experience_years;
+
+            if ($this->avatar && $user) {
+                $oldAvatar = $user->avatar;
+                $avatarPath = $this->avatar->storePublicly("users/{$user->id}/avatar", 'public');
+
+                $user->avatar = $avatarPath;
+                $user->save();
+
+                if ($oldAvatar && $oldAvatar !== $avatarPath && Storage::disk('public')->exists($oldAvatar)) {
+                    Storage::disk('public')->delete($oldAvatar);
+                }
+            }
 
             if ($this->cv) {
                 $path = $this->cv->storePublicly("candidates/{$candidate->id}/cv", 'public');
@@ -229,6 +246,7 @@ class CandidateProfile extends Component
             $resume->save();
         });
 
+        $this->avatar = null;
         $this->cv = null;
         session()->flash('status', 'Cập nhật hồ sơ thành công.');
     }
@@ -331,6 +349,21 @@ class CandidateProfile extends Component
         return Route::has('public-file.preview')
             ? route('public-file.preview', ['path' => $candidate->cv_file])
             : asset('storage/' . ltrim($candidate->cv_file, '/'));
+    }
+
+    public function getCurrentAvatarUrlProperty(): string
+    {
+        $avatar = Auth::user()?->avatar;
+
+        if (! $avatar) {
+            return asset('assets/img/avatar_detail.jpg');
+        }
+
+        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+            return $avatar;
+        }
+
+        return asset('storage/' . ltrim($avatar, '/'));
     }
 
     #[Layout('layouts.client')]

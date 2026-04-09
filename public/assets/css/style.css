@@ -5821,6 +5821,19 @@ CUSTOM - CLIENT HEADER/FOOTER (Livewire)
 }
 
 /* Home banner closer to reference (image-led banner, search pill at bottom) */
+.jobguru-banner-area.home-banner .banner-single-slider {
+	height: clamp(560px, 46vw, 760px);
+	background-color: #eef2ff;
+	background-position: center top !important;
+	background-repeat: no-repeat !important;
+	background-size: contain !important;
+}
+
+.jobguru-banner-area.home-banner .slider-item-1,
+.jobguru-banner-area.home-banner .slider-item-2 {
+	background-color: #eef2ff;
+}
+
 .jobguru-banner-area.home-banner .slider-offset {
 	background: linear-gradient(180deg, rgba(255, 255, 255, .02) 0%, rgba(255, 255, 255, .10) 55%, rgba(255, 255, 255, .65) 100%);
 }
@@ -5839,23 +5852,97 @@ CUSTOM - CLIENT HEADER/FOOTER (Livewire)
 .jobguru-banner-area.home-banner .banner-form-box {
 	width: min(1100px, 96%);
 	border-radius: 999px;
-	padding: 6px;
+	padding: 8px;
 	margin: 0 auto;
 	box-shadow: 0 28px 70px rgba(15, 23, 42, .14);
+	min-height: 74px;
 }
 
 .jobguru-banner-area.home-banner .banner-form-input {
-	padding: 12px 14px;
+	padding: 12px 20px;
 	border-right: 1px solid rgba(15, 23, 42, .10);
+	min-width: 0;
 }
 
 .jobguru-banner-area.home-banner .banner-form-input:last-child {
-	flex: 0 0 56px;
+	flex: 0 0 64px;
 	padding: 0;
+	border-right: 0;
 }
 
 .jobguru-banner-area.home-banner .banner-form-input button {
 	border-radius: 999px;
+	font-size: 20px;
+}
+
+.jobguru-banner-area.home-banner .banner-form-input input,
+.jobguru-banner-area.home-banner .banner-form-input .select2-selection__rendered {
+	font-size: 15px !important;
+	line-height: 1.4 !important;
+}
+
+.jobguru-banner-area.home-banner .banner-form-input input::placeholder {
+	color: #5f6471;
+	font-size: 15px;
+}
+
+.jobguru-banner-area.home-banner .banner-form-input .select2 {
+	padding: 0;
+	width: 100% !important;
+}
+
+.jobguru-banner-area.home-banner .select2-container--default .select2-selection--single {
+	height: 40px !important;
+	display: flex !important;
+	align-items: center !important;
+}
+
+.jobguru-banner-area.home-banner .select2-container--default .select2-selection--single .select2-selection__arrow {
+	top: 8px;
+}
+
+.jobguru-banner-area.home-banner .banner-form-input input {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+@media (max-width: 991px) {
+	.jobguru-banner-area.home-banner .banner-single-slider {
+		height: clamp(360px, 56vw, 520px);
+		background-position: center top !important;
+		background-size: contain !important;
+	}
+}
+
+@media (max-width: 767px) {
+	.jobguru-banner-area.home-banner .banner-single-slider {
+		height: clamp(260px, 62vw, 360px);
+	}
+
+	.jobguru-banner-area.home-banner .banner-text {
+		bottom: 16px;
+	}
+
+	.jobguru-banner-area.home-banner .banner-form-box {
+		width: min(96%, 1100px);
+		min-height: 68px;
+		padding: 8px;
+	}
+
+	.jobguru-banner-area.home-banner .banner-form-input {
+		padding: 10px 12px;
+	}
+
+	.jobguru-banner-area.home-banner .banner-form-input:last-child {
+		flex: 0 0 56px;
+	}
+
+	.jobguru-banner-area.home-banner .banner-form-input input,
+	.jobguru-banner-area.home-banner .banner-form-input input::placeholder,
+	.jobguru-banner-area.home-banner .banner-form-input .select2-selection__rendered {
+		font-size: 14px !important;
+	}
 }
 
 .jobguru-footer-area.footer--employer {

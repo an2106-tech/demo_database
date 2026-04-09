@@ -14,6 +14,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -41,9 +42,46 @@ class UsersTable
         return $table
             ->recordUrl(null)
             ->columns([
-                TextColumn::make('name')->label('Họ và tên')->searchable()->sortable(),
-                TextColumn::make('email')->label('Email')->searchable()->sortable(),
-                TextColumn::make('branch.name')->label('Chi nhánh')->searchable(),
+                ImageColumn::make('avatar')
+                    ->label('Ảnh')
+                    ->circular()
+                    ->size(40)
+                    ->defaultImageUrl(asset('assets/img/avatar_detail.jpg'))
+                    ->getStateUsing(static function (User $record): ?string {
+                        if (! filled($record->avatar)) {
+                            return null;
+                        }
+
+                        $avatar = (string) $record->avatar;
+
+                        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
+                            return $avatar;
+                        }
+
+                        return asset('storage/' . ltrim($avatar, '/'));
+                    }),
+                TextColumn::make('name')
+                    ->label('Người dùng')
+                    ->searchable(['name', 'email'])
+                    ->sortable()
+                    ->weight('semi-bold')
+                    ->description(static function (User $record): string {
+                        $role = match ($record->role) {
+                            'admin' => 'Super Admin',
+                            'hr' => 'Nhân sự',
+                            'director' => 'Giám đốc',
+                            'pm' => 'Quản lý dự án',
+                            default => (string) $record->role,
+                        };
+
+                        return trim("{$record->email} • {$role}");
+                    }),
+                TextColumn::make('branch.name')
+                    ->label('Chi nhánh')
+                    ->searchable()
+                    ->limit(36)
+                    ->tooltip(static fn (?string $state): ?string => filled($state) ? $state : null)
+                    ->toggleable(),
                 TextColumn::make('approval')
                     ->label('Xét duyệt')
                     ->badge()
@@ -67,9 +105,17 @@ class UsersTable
                         'danger' => 'Từ chối',
                         'gray' => '-',
                     ]),
-                IconColumn::make('is_active')->label('Hoạt động')->boolean(),
-                TextColumn::make('created_at')->label('Ngày tạo')->dateTime()->sortable(),
+                IconColumn::make('is_active')
+                    ->label('Hoạt động')
+                    ->boolean()
+                    ->alignCenter(),
+                TextColumn::make('created_at')
+                    ->label('Ngày tạo')
+                    ->dateTime('d/m/y H:i')
+                    ->sortable()
+                    ->toggleable(),
             ])
+            ->defaultSort('created_at', 'desc')
             ->filters([
                 Filter::make('pending_hr')
                     ->label('HR chờ duyệt')
@@ -86,7 +132,7 @@ class UsersTable
                 TrashedFilter::make()->label('Đã xóa'),
             ])
             ->recordActions([
-                ViewAction::make()->modal()->label('Xem'),
+                ViewAction::make()->modal()->modalWidth('6xl')->label('Xem'),
 
                 ActionGroup::make([
                     Action::make('approve_hr')
@@ -183,4 +229,3 @@ class UsersTable
             ]);
     }
 }
-

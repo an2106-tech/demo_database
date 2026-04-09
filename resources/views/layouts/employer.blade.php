@@ -4,11 +4,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="{{ url('/') }}/">
+    @php
+        $routeName = \Illuminate\Support\Facades\Route::currentRouteName();
+        $baseTitle = config('app.name', 'FPT Careers');
+        $fallbackTitle = $routeName
+            ? (string) \Illuminate\Support\Str::of($routeName)
+                ->replace(['candidates.', 'employers.', 'pages.', 'auth.'], '')
+                ->replace(['_', '.'], ' ')
+                ->headline()
+            : $baseTitle;
+        $pageTitle = filled($title ?? null) ? $title : $fallbackTitle;
+        $documentTitle = \Illuminate\Support\Str::contains($pageTitle, $baseTitle) ? $pageTitle : "{$pageTitle} | {$baseTitle}";
+    @endphp
 
-    <title>{{ $title ?? config('app.name') }}</title>
+    <title>{{ $documentTitle }}</title>
 
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/favicon/favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/fe-logo.png') }}">
+    <link rel="shortcut icon" href="{{ asset('assets/img/fe-logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('assets/img/fe-logo.png') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/font-awesome.min.css') }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
