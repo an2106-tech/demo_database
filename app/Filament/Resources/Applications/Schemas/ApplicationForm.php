@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Applications\Schemas;
 
 use App\Enums\StatusApplicationEnum;
+use App\Models\Application;
 use App\Models\Candidate;
 use App\Models\RecruitmentJob;
 use App\Models\User;
@@ -122,7 +123,7 @@ class ApplicationForm
 
                                         Select::make('status')
                                             ->label('Trạng thái')
-                                            ->options(StatusApplicationEnum::class)
+                                            ->options(fn (?Application $record): array => static::getAllowedStatusOptions($record))
                                             ->default(StatusApplicationEnum::NEW)
                                             ->live()
                                             ->required()
@@ -274,4 +275,51 @@ class ApplicationForm
             ])
             ->columns(1);
     }
+    public static function getAllowedStatusOptions(?Application $record = null): array
+    {
+        $currentStatus = $record?->status instanceof StatusApplicationEnum
+            ? $record->status
+            : (is_string($record?->status) ? StatusApplicationEnum::tryFrom($record->status) : null);
+
+        $currentIndex = static::getStatusIndex($currentStatus ?? StatusApplicationEnum::NEW);
+
+        return collect(StatusApplicationEnum::cases())
+            ->filter(fn (StatusApplicationEnum $status): bool => static::getStatusIndex($status) >= $currentIndex)
+            ->mapWithKeys(fn (StatusApplicationEnum $status): array => [
+                $status->value => (string) $status->getLabel(),
+            ])
+            ->all();
+    }
+
+    public static function canMoveStatusForwardOnly(
+        StatusApplicationEnum|string|null $from,
+        StatusApplicationEnum|string|null $to,
+    ): bool {
+        $fromEnum = $from instanceof StatusApplicationEnum ? $from : StatusApplicationEnum::tryFrom((string) $from);
+        $toEnum = $to instanceof StatusApplicationEnum ? $to : StatusApplicationEnum::tryFrom((string) $to);
+
+        if (! $toEnum) {
+            return false;
+        }
+
+        if (! $fromEnum) {
+            return true;
+        }
+
+        return static::getStatusIndex($toEnum) >= static::getStatusIndex($fromEnum);
+    }
+
+    protected static function getStatusIndex(StatusApplicationEnum $status): int
+    {
+        return match ($status) {
+            StatusApplicationEnum::NEW => 10,
+            StatusApplicationEnum::SCREENING => 20,
+            StatusApplicationEnum::INTERVIEW => 30,
+            StatusApplicationEnum::OFFER => 40,
+            StatusApplicationEnum::HIRED => 50,
+            StatusApplicationEnum::REJECTED => 60,
+        };
+    }
 }
+
+

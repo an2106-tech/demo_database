@@ -7,13 +7,13 @@ use App\Models\Candidate;
 use App\Models\EmailTemplate;
 use App\Models\RecruitmentJob;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Schema;
 
-class CandidateApplicationReceivedMail extends Mailable
+class CandidateApplicationRejectedMail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -49,19 +49,20 @@ class CandidateApplicationReceivedMail extends Mailable
 
     protected function resolveTemplate(): array
     {
-        $fallbackSubject = 'Xác nhận đã nhận hồ sơ ứng tuyển';
+        $fallbackSubject = 'Cập nhật kết quả hồ sơ ứng tuyển';
         $fallbackBody = implode("\n", [
             '<p>Chào {{candidate_name}},</p>',
             '<p>Cảm ơn bạn đã quan tâm và ứng tuyển vào vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p>Chúng tôi đã nhận được hồ sơ của bạn với các thông tin sau:</p>',
+            '<p>Sau quá trình xem xét kỹ lưỡng, rất tiếc hiện tại chúng tôi chưa thể tiếp tục hồ sơ của bạn cho vị trí này.</p>',
+            '<p>Thông tin hồ sơ:</p>',
             '<ul>',
             '<li>Mã hồ sơ ứng tuyển: #{{application_id}}</li>',
             '<li>Vị trí: {{job_title}}</li>',
-            '<li>Thời gian nộp: {{applied_at}}</li>',
-            '<li>Email ứng tuyển: {{candidate_email}}</li>',
+            '<li>Thời gian cập nhật: {{updated_at}}</li>',
             '</ul>',
-            '<p>Bộ phận tuyển dụng sẽ xem xét hồ sơ và liên hệ với bạn trong thời gian sớm nhất nếu hồ sơ phù hợp.</p>',
-            '<p>Chúng tôi trân trọng sự quan tâm của bạn đối với {{app_name}} và hy vọng sẽ có cơ hội hợp tác cùng bạn.</p>',
+            '<p><strong>Lý do:</strong> {{rejected_reason}}</p>',
+            '<p>Chúng tôi đánh giá cao sự quan tâm của bạn và sẽ lưu lại hồ sơ cho những cơ hội phù hợp hơn trong tương lai.</p>',
+            '<p>Hy vọng sẽ có cơ hội được đồng hành cùng bạn trong thời gian tới.</p>',
             '<p>Trân trọng,<br>{{app_name}}</p>',
         ]);
 
@@ -70,7 +71,7 @@ class CandidateApplicationReceivedMail extends Mailable
 
         if (Schema::hasTable('email_templates')) {
             $template = EmailTemplate::query()
-                ->where('type', 'auto_reply')
+                ->where('type', 'rejection')
                 ->where('is_active', true)
                 ->latest('id')
                 ->first();
@@ -86,7 +87,8 @@ class CandidateApplicationReceivedMail extends Mailable
             '{{candidate_email}}' => e((string) $this->candidate->email),
             '{{job_title}}' => e($this->job->title),
             '{{application_id}}' => (string) $this->application->id,
-            '{{applied_at}}' => e(optional($this->application->applied_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')),
+            '{{updated_at}}' => e(optional($this->application->updated_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')),
+            '{{rejected_reason}}' => e($this->application->rejected_reason ?: 'Chưa có ghi chú cụ thể.'),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 

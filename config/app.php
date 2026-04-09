@@ -67,6 +67,8 @@ return [
 
     'timezone' => 'UTC',
 
+    'interview_timezone' => env('INTERVIEW_TIMEZONE', 'Asia/Saigon'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

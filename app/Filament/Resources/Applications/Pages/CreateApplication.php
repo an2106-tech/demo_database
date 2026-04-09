@@ -25,7 +25,7 @@ class CreateApplication extends CreateRecord
 
         if (empty($data['cv_path'])) {
             throw ValidationException::withMessages([
-                'cv_path' => 'Ung vien nay chua co CV. Vui long tai len file CV truoc khi luu.',
+                'cv_path' => 'Ứng viên này chưa có CV. Vui lòng cập nhật CV trước khi tạo hồ sơ ứng tuyển.',
             ]);
         }
 
