@@ -13,43 +13,43 @@ class CategorySeeder extends Seeder
         $categories = [
             [
                 'name' => 'Kế toán & Tài chính',
-                'image' => 'categories/ketoan.jpg'
+                'image' => 'assets/img/categories/ketoan.jpg'
             ],
             [
                 'name' => 'Tư vấn tài chính',
-                'image' => 'categories/nhansu.jpg'
+                'image' => 'assets/img/categories/nhansu.jpg'
             ],
             [
                 'name' => 'Kế hoạch kinh doanh',
-                'image' => 'categories/nhansu.jpg'
+                'image' => 'assets/img/categories/nhansu.jpg'
             ],
             [
                 'name' => 'Công nghệ thông tin',
-                'image' => 'categories/IT.jpg'
+                'image' => 'assets/img/categories/IT.jpg'
             ],
             [
                 'name' => 'Marketing',
-                'image' => 'categories/maketing.jpg'
+                'image' => 'assets/img/categories/maketing.jpg'
             ],
             [
                 'name' => 'Thiết kế đồ họa',
-                'image' => 'categories/dohoa.jpg'
+                'image' => 'assets/img/categories/dohoa.jpg'
             ],
             [
                 'name' => 'Giáo dục',
-                'image' => 'categories/giaoduc.jpg'
+                'image' => 'assets/img/categories/giaoduc.jpg'
             ],
             [
                 'name' => 'Nghiên cứu thị trường',
-                'image' => 'categories/nhansu.jpg'
+                'image' => 'assets/img/categories/nhansu.jpg'
             ],
             [
                 'name' => 'Bán hàng',
-                'image' => 'categories/banhang.jpg'
+                'image' => 'assets/img/categories/banhang.jpg'
             ],
             [
                 'name' => 'Cơ khí',
-                'image' => 'categories/xaydung.jpg'
+                'image' => 'assets/img/categories/xaydung.jpg'
             ],
             [
                 'name' => 'Khác',

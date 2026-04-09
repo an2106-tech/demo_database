@@ -70,7 +70,7 @@
                             <div class="category-holder-text">
                                 <h3>{{ $category->name }}</h3>
                             </div>
-                            <img src="{{ asset('storage/' . $category->image) }}" alt="{{ $category->name }}" />                        </a>
+                            <img src="{{ asset($category->image) }}" alt="{{ $category->name }}" /></a>
                     </div>
                 @empty
                     <div class="col-12">
