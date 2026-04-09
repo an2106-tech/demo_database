@@ -5,6 +5,9 @@
     $salary = is_array($job->salary_range) ? $job->salary_range : [];
     $salaryMin = $salary['min'] ?? null;
     $salaryMax = $salary['max'] ?? null;
+    $branchCityDisplay = $branch?->city
+        ? ucwords(str_replace(['_', '-'], ' ', (string) $branch->city))
+        : null;
     $salaryText = match (true) {
         $salaryMin && $salaryMax => number_format((float) $salaryMin, 0, ',', '.') . ' - ' . number_format((float) $salaryMax, 0, ',', '.') . ' VND',
         $salaryMin => 'Từ ' . number_format((float) $salaryMin, 0, ',', '.') . ' VND',
@@ -148,11 +151,6 @@
             padding: 22px 24px;
         }
 
-        .apply-section + .apply-section,
-        .apply-summary + .apply-section {
-            border-top: 1px solid #f3e7dd;
-        }
-
         .apply-summary h3,
         .apply-section h3 {
             color: #1d1511;
@@ -243,18 +241,41 @@
         .apply-form-head h3 {
             color: #1d1511;
             font-size: 26px;
-            margin: 0 0 8px;
-        }
-
-        .apply-form-head p {
-            color: var(--apply-muted);
-            font-size: 15px;
-            line-height: 1.7;
             margin: 0;
         }
 
         .apply-form-body {
             padding: 28px;
+        }
+
+        .apply-form-spotlight {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin: 0 0 22px;
+        }
+
+        .apply-spot-card {
+            background: linear-gradient(135deg, #fff8f1 0%, #f7eadf 100%);
+            border: 1px solid #dcc3af;
+            border-radius: 18px;
+            padding: 14px 16px;
+        }
+
+        .apply-spot-card strong {
+            color: var(--apply-primary-dark);
+            display: block;
+            font-size: 22px;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .apply-spot-card span {
+            color: #5b4b40;
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.6;
         }
 
         .apply-steps {
@@ -313,6 +334,24 @@
             transform: translateY(-1px);
         }
 
+        .apply-field--cv {
+            background: linear-gradient(135deg, #fff8f1 0%, #fff 100%);
+            border: 1px solid #d2aa8a;
+            box-shadow: 0 16px 32px rgba(122, 56, 16, 0.08);
+            position: relative;
+        }
+
+        .apply-field--cv::before {
+            background: linear-gradient(90deg, var(--apply-primary), var(--apply-secondary));
+            border-radius: 999px;
+            content: "";
+            height: 5px;
+            left: 16px;
+            position: absolute;
+            top: 0;
+            width: 132px;
+        }
+
         .apply-field .single-input {
             margin: 0;
         }
@@ -325,6 +364,23 @@
             letter-spacing: 0.04em;
             margin-bottom: 10px;
             text-transform: uppercase;
+        }
+
+        .apply-field--cv .single-input > label {
+            color: var(--apply-primary-dark);
+            font-size: 14px;
+        }
+
+        .apply-cv-badge {
+            background: rgba(184, 93, 31, 0.1);
+            border: 1px solid rgba(184, 93, 31, 0.16);
+            border-radius: 999px;
+            color: var(--apply-primary-dark);
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            padding: 8px 12px;
         }
 
         .apply-field input,
@@ -351,6 +407,15 @@
         .apply-field textarea:focus {
             border-color: rgba(184, 93, 31, 0.58);
             box-shadow: 0 0 0 4px rgba(184, 93, 31, 0.14);
+        }
+
+        .apply-field--cv input[type="file"] {
+            background: #fffdfa;
+            border: 2px dashed #cfa27f;
+            border-radius: 16px;
+            margin-top: 8px;
+            min-height: 68px;
+            padding: 14px;
         }
 
         .apply-checkbox {
@@ -484,6 +549,7 @@
         }
 
         @media (max-width: 767px) {
+            .apply-form-spotlight,
             .apply-form-grid {
                 grid-template-columns: 1fr;
             }
@@ -537,8 +603,8 @@
                         <div class="apply-highlight-row">
                             <div class="apply-chip">Phản hồi nhanh</div>
                             <div class="apply-chip">Nộp hồ sơ trong 1 phút</div>
-                            @if ($branch?->city)
-                                <div class="apply-chip">{{ $branch->city }}</div>
+                            @if ($branchCityDisplay)
+                                <div class="apply-chip">{{ $branchCityDisplay }}</div>
                             @endif
                         </div>
                     </div>
@@ -585,8 +651,8 @@
                                     <span>Địa chỉ</span>
                                     <div>
                                         {{ $branch?->address ?: 'Chưa cập nhật địa chỉ' }}
-                                        @if ($branch?->city)
-                                            <br>{{ $branch->city }}
+                                        @if ($branchCityDisplay)
+                                            <br>{{ $branchCityDisplay }}
                                         @endif
                                     </div>
                                 </div>
@@ -605,26 +671,31 @@
                                 Bạn vẫn có thể ứng tuyển mà không cần đăng nhập. Chỉ cần điền thông tin cơ bản và tải CV lên.
                             </div>
                         </div>
-                    @else
-                        <div class="apply-section">
-                            <h3>Lưu ý</h3>
-                            <div class="apply-note">
-                                Hệ thống sẽ tự điền một phần thông tin từ hồ sơ ứng viên của bạn. Hãy kiểm tra lại trước khi gửi để hồ sơ được đầy đủ nhất.
-                            </div>
-                        </div>
                     @endguest
                 </aside>
 
                 <div class="apply-form-card">
                     <div class="apply-form-head">
                         <h3>Nộp hồ sơ cho vị trí này</h3>
-                        <p>
-                            {{ Auth::check() ? 'Bạn có thể dùng lại CV hiện có hoặc tải lên phiên bản mới.' : 'Nhập thông tin ứng tuyển và tải CV để hoàn tất hồ sơ.' }}
-                        </p>
                     </div>
 
                     <div class="apply-form-body">
                         <form wire:submit.prevent="submit" enctype="multipart/form-data">
+                            <div class="apply-form-spotlight">
+                                <div class="apply-spot-card">
+                                    <strong>01</strong>
+                                    <span>Dien thong tin co ban de nha tuyen dung lien he nhanh hon</span>
+                                </div>
+                                <div class="apply-spot-card">
+                                    <strong>CV</strong>
+                                    <span>Ho so co CV ro rang se duoc xem xet de dang hon</span>
+                                </div>
+                                <div class="apply-spot-card">
+                                    <strong>10MB</strong>
+                                    <span>Ho tro PDF, DOC, DOCX voi dung luong toi da 10MB</span>
+                                </div>
+                            </div>
+
                             <div class="apply-steps">
                                 <div class="apply-step"><b>1</b> Điền thông tin</div>
                                 <div class="apply-step"><b>2</b> Chọn CV phù hợp</div>
@@ -680,8 +751,9 @@
                                     </div>
                                 </div>
 
-                                <div class="apply-field full">
+                                <div class="apply-field apply-field--cv full">
                                     <div class="single-input">
+                                        <div class="apply-cv-badge">CV la diem nhan quan trong nhat</div>
                                         <label>CV</label>
 
                                         @if ($hasExistingCv)
