@@ -52,7 +52,7 @@ class InterviewScheduledMail extends Mailable
 
         return [
             Attachment::fromData(
-                fn(): string => $service->buildContent($this->interview),
+                fn (): string => $service->buildContent($this->interview),
                 $service->fileNameFor($this->interview),
             )->withMime('text/calendar'),
         ];
@@ -104,7 +104,7 @@ class InterviewScheduledMail extends Mailable
             '{{candidate_name}}' => e($candidate?->name ?? 'Ứng viên'),
             '{{candidate_email}}' => e((string) ($candidate?->email ?? '')),
             '{{job_title}}' => e($job?->title ?? 'Vị trí ứng tuyển'),
-            '{{scheduled_at}}' => e(optional($this->interview->scheduled_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')),
+            '{{scheduled_at}}' => e($this->formatDisplayDate($this->interview->scheduled_at)),
             '{{interview_type}}' => e($this->interview->type === 'online' ? 'Online' : 'Offline'),
             '{{interview_location}}' => e($locationText),
             '{{interviewer_name}}' => e($interviewer?->name ?? 'N/A'),
@@ -117,5 +117,16 @@ class InterviewScheduledMail extends Mailable
             strtr($subject, $replacements),
             strtr($body, $replacements),
         ];
+    }
+
+    protected function formatDisplayDate($date): string
+    {
+        if (! $date) {
+            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y H:i');
+        }
+
+        return $date->copy()
+            ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
+            ->format('d/m/Y H:i');
     }
 }

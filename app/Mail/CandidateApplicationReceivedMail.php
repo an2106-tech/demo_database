@@ -7,11 +7,11 @@ use App\Models\Candidate;
 use App\Models\EmailTemplate;
 use App\Models\RecruitmentJob;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Schema;
 
 class CandidateApplicationReceivedMail extends Mailable
 {
@@ -86,7 +86,7 @@ class CandidateApplicationReceivedMail extends Mailable
             '{{candidate_email}}' => e((string) $this->candidate->email),
             '{{job_title}}' => e($this->job->title),
             '{{application_id}}' => (string) $this->application->id,
-            '{{applied_at}}' => e(optional($this->application->applied_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')),
+            '{{applied_at}}' => e($this->formatDisplayDate($this->application->applied_at)),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
@@ -94,5 +94,16 @@ class CandidateApplicationReceivedMail extends Mailable
             strtr($subject, $replacements),
             strtr($body, $replacements),
         ];
+    }
+
+    protected function formatDisplayDate($date): string
+    {
+        if (! $date) {
+            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y H:i');
+        }
+
+        return $date->copy()
+            ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
+            ->format('d/m/Y H:i');
     }
 }

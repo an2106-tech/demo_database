@@ -87,7 +87,7 @@ class CandidateApplicationRejectedMail extends Mailable
             '{{candidate_email}}' => e((string) $this->candidate->email),
             '{{job_title}}' => e($this->job->title),
             '{{application_id}}' => (string) $this->application->id,
-            '{{updated_at}}' => e(optional($this->application->updated_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i')),
+            '{{updated_at}}' => e($this->formatDisplayDate($this->application->updated_at)),
             '{{rejected_reason}}' => e($this->application->rejected_reason ?: 'Chưa có ghi chú cụ thể.'),
             '{{app_name}}' => e((string) config('app.name')),
         ];
@@ -96,5 +96,16 @@ class CandidateApplicationRejectedMail extends Mailable
             strtr($subject, $replacements),
             strtr($body, $replacements),
         ];
+    }
+
+    protected function formatDisplayDate($date): string
+    {
+        if (! $date) {
+            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y H:i');
+        }
+
+        return $date->copy()
+            ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
+            ->format('d/m/Y H:i');
     }
 }

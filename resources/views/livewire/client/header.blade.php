@@ -1,8 +1,182 @@
 <div x-data="{ active: @entangle('type').live }">
    <style>
-      [x-cloak] {
-         display: none !important;
+      /* Khối Dropdown */
+      .userbox-dropdown {
+         position: absolute;
+         top: calc(100% + 12px);
+         left: 15;
+         /* Bám lề trái của icon Avatar */
+         right: auto;
+         width: 250px;
+         /* Tăng nhẹ độ rộng để chữ không bị xuống dòng */
+         background: #ffffff !important;
+         border-radius: 12px;
+         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+         border: 1px solid rgba(0, 0, 0, 0.05);
+         z-index: 9999;
+
+         /* Hiệu ứng ẩn hiện */
+         opacity: 0;
+         visibility: hidden;
+         transform: translateY(15px);
+         transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
       }
+
+      /* Hover hiện dropdown */
+      .userbox-menu:hover .userbox-dropdown {
+         opacity: 1;
+         visibility: visible;
+         transform: translateY(0);
+      }
+
+      /* Mũi tên nhọn - Căn lề phải cho khớp với icon */
+      .userbox-dropdown::before {
+         content: "";
+         position: absolute;
+         top: -8px;
+         left: 15px;
+         right: auto;
+         /* Điều chỉnh số này để mũi tên nằm ngay giữa icon Avatar của bạn */
+         border-left: 8px solid transparent;
+         border-right: 8px solid transparent;
+         border-bottom: 8px solid #ffffff;
+      }
+
+      /* Fix lỗi chữ bị dính vào nhau trong hình của bạn */
+      .user-link {
+         display: flex !important;
+         align-items: center;
+         text-align: left !important;
+         gap: 12px;
+         padding: 12px 20px !important;
+         /* Tăng padding để menu thoáng hơn */
+         color: #475569 !important;
+         white-space: nowrap;
+         /* Giữ chữ trên 1 dòng */
+      }
+
+      /* Container của danh sách */
+      .dropdown-list-wrapper {
+         list-style: none;
+         padding: 12px 20px !important;
+         margin: 0;
+         display: flex;
+         flex-direction: column;
+         text-align: left !important;
+         align-items: flex-start;
+         /* Căn các phần tử con về bên trái */
+      }
+
+      .dropdown-list-wrapper li {
+         width: 100%;
+         display: flex !important;
+         align-items: center;
+         text-align: left !important;
+         /* Đảm bảo mỗi mục chiếm toàn bộ chiều rộng để dễ click */
+      }
+
+      /* Căn trái cho phần Tên và Email */
+      .userbox-account-info {
+         padding: 12px 20px !important;
+         display: flex;
+         border-bottom: 1px solid #f1f5f9;
+         flex-direction: column;
+         text-align: left !important;
+         align-items: flex-start;
+         /* Căn các phần tử con về bên trái */
+         /* Đảm bảo căn trái */
+      }
+
+      /* Các hàng trong menu */
+      .user-link {
+         display: flex !important;
+         align-items: center;
+         gap: 12px;
+         /* Khoảng cách giữa Icon và Chữ */
+         padding: 10px 20px !important;
+         color: #475569 !important;
+         text-decoration: none;
+         transition: background 0.2s;
+         font-size: 14px;
+         white-space: nowrap;
+         cursor: pointer;
+      }
+
+      .user-link:hover {
+         background-color: #f8fafc;
+         color: #F37021 !important;
+         /* Đổi màu khi hover cho đẹp */
+      }
+
+      .user-link i,
+      .user-link .icon {
+         width: 20px;
+         /* Cố định độ rộng icon để chữ luôn thẳng hàng dọc */
+         text-align: left !important;
+         align-items: flex-start;
+         /* Căn icon về bên trái */
+         font-size: 16px;
+      }
+
+      /* Nhãn "Giao diện" */
+      .dropdown-label {
+         padding: 12px 20px 5px;
+         font-size: 11px;
+         font-weight: 700;
+         color: #94a3b8;
+         text-transform: uppercase;
+         letter-spacing: 0.5px;
+      }
+
+      /* Phần đăng xuất */
+      .logout-section {
+         border-top: 1px solid #f1f5f9;
+         margin-top: 8px;
+         padding: 8px 10px 4px;
+      }
+
+      /* Giữ nguyên khối userbox-dropdown của bạn nhưng điều chỉnh nhỏ */
+      .userbox-dropdown {
+         position: absolute;
+         top: calc(100% + 12px);
+         right: 0;
+         width: 240px;
+         background: #ffffff !important;
+         border-radius: 12px;
+         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+         border: 1px solid rgba(0, 0, 0, 0.06);
+         z-index: 9999;
+         overflow: hidden;
+         /* Đảm bảo các hàng hover không tràn khỏi bo góc */
+
+         opacity: 0;
+         visibility: hidden;
+         transform: translateY(15px);
+         transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+      }
+
+      /* Đảm bảo các dòng menu luôn căn trái */
+      .user-link {
+         display: flex !important;
+         align-items: center;
+         justify-content: flex-start !important;
+         /* Ép nội dung bám lề trái */
+         gap: 12px;
+         padding: 10px 20px !important;
+         text-align: left !important;
+      }
+
+      /* Đảm bảo icon có độ rộng cố định để chữ thẳng hàng dọc */
+      .user-link i,
+      .user-link .icon {
+         width: 20px;
+         display: flex;
+         justify-content: center;
+         flex-shrink: 0;
+         /* Không cho icon bị bóp méo */
+      }
+
+
 
       #selectRoleModal .modal-dialog {
          max-width: 1120px;
@@ -303,7 +477,7 @@
             justify-content: stretch;
          }
 
-         .jobguru-header-area .header-right-menu ul > li {
+         .jobguru-header-area .header-right-menu ul>li {
             width: 100%;
          }
 
@@ -317,6 +491,7 @@
          }
       }
    </style>
+
    <header class="jobguru-header-area stick-top forsticky page-header">
       <div class="menu-animation">
          <div class="container-fluid">
@@ -333,72 +508,50 @@
                   <div class="header-menu">
                      <nav id="navigation">
                         <ul id="jobguru_navigation">
-                           <li class="active has-children">
+                           <li class="active">
                               <a href="/">Trang chủ</a>
                            </li>
 
-                           @if(($canCandidateMenu ?? false) || auth()->guest())
-                           <li class="has-children" @auth x-cloak x-show="active === 'candidate'"
-                              x-transition:enter="transition ease-out duration-250"
-                              x-transition:enter-start="opacity-0 -translate-y-1"
-                              x-transition:enter-end="opacity-100 translate-y-0"
-                              x-transition:leave="transition ease-in duration-180"
-                              x-transition:leave-start="opacity-100 translate-y-0"
-                              x-transition:leave-end="opacity-0 -translate-y-1" @endauth>
-                              <a href="#">Cho Ứng Viên</a>
-                              <ul>
-                                 <li class="has-inner-child">
-                                    <a href="#">Tìm việc làm</a>
-                                    <ul>
-                                       <li><a href="{{ route('candidates.browse_job') }}">Tất cả việc làm</a></li>
-                                       <li><a href="{{ route('candidates.sidebar') }}">Dạng lưới (Sidebar)</a></li>
-                                       <li><a href="{{ route('candidates.joblist_sidebar') }}">Dạng danh sách</a></li>
-                                    </ul>
-                                 </li>
-                                 <li><a href="{{ route('candidates.browse_categories') }}">Danh mục ngành nghề</a></li>
-                                 <li><a href="{{ route('candidates.browse_companies') }}">Địa chỉ việc làm</a></li>
-                                 <li><a href="{{ route('candidates.candidate_detail') }}">Chi tiết ứng viên</a></li>
-                                 <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (CV)</a></li>
-                                 <li class="has-inner-child">
-                                    <a href="#">Bảng điều khiển</a>
-                                    <ul>
-                                       <li><a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a></li>
-                                       <li><a href="{{ route('candidates.candidate_profile') }}">Thông tin cá nhân</a></li>
-                                       <li><a href="{{ route('candidates.messages') }}">Tin nhắn</a></li>
-                                       <li><a href="{{ route('candidates.manage_jobs') }}">Việc làm của tôi</a></li>
-                                       <li><a href="{{ route('candidates.earnings') }}">Thu nhập</a></li>
-                                       <li><a href="{{ route('candidates.change_password') }}">Đổi mật khẩu</a></li>
-                                    </ul>
-                                 </li>
-                              </ul>
-                           </li>
+                           @if($showCandidateMenu ?? auth()->guest())
+                              <li class="has-children">
+                                 <a href="#">Cho Ứng Viên</a>
+                                 <ul>
+                                    <li class="has-inner-child">
+                                       <a href="#">Tìm việc làm</a>
+                                       <ul>
+                                          <li><a href="{{ route('candidates.browse_job') }}">Tất cả việc làm</a></li>
+                                          <li><a href="{{ route('candidates.sidebar') }}">Dạng lưới (Sidebar)</a></li>
+                                          <li><a href="{{ route('candidates.joblist_sidebar') }}">Dạng danh sách</a></li>
+                                       </ul>
+                                    </li>
+                                    <li><a href="{{ route('candidates.browse_categories') }}">Danh mục ngành nghề</a></li>
+                                    <li><a href="{{ route('candidates.browse_companies') }}">Địa chỉ việc làm</a></li>
+                                    <li><a href="{{ route('candidates.candidate_detail') }}">Chi tiết ứng viên</a></li>
+                                    <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (CV)</a></li>
+                                 </ul>
+                              </li>
                            @endif
-                           @if(($canEmployerMenu ?? false) || auth()->guest())
-                           <li class="has-children" @auth x-cloak x-show="active === 'employer'"
-                              x-transition:enter="transition ease-out duration-250"
-                              x-transition:enter-start="opacity-0 -translate-y-1"
-                              x-transition:enter-end="opacity-100 translate-y-0"
-                              x-transition:leave="transition ease-in duration-180"
-                              x-transition:leave-start="opacity-100 translate-y-0"
-                              x-transition:leave-end="opacity-0 -translate-y-1" @endauth>
-                              <a href="#">Cho Nhà Tuyển Dụng</a>
-                              <ul>
-                                 <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                                 <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
-                                 <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
-                                 <li class="has-inner-child">
-                                    <a href="#">Quản lý tuyển dụng</a>
-                                    <ul>
-                                       <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
-                                       <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
-                                       <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
-                                       <li><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a></li>
-                                       <li><a href="{{ route('employers.transaction') }}">Giao dịch</a></li>
-                                       <li><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
-                                    </ul>
-                                 </li>
-                              </ul>
-                           </li>
+                           @if($showEmployerMenu ?? auth()->guest())
+                              <li class="has-children">
+                                 <a href="#">Cho Nhà Tuyển Dụng</a>
+                                 <ul>
+                                    <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                    <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
+                                    <li class="has-inner-child">
+                                       <a href="#">Quản lý tuyển dụng</a>
+                                       <ul>
+                                          <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
+                                          <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
+                                          <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
+                                          <li><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a>
+                                          </li>
+                                          <li><a href="{{ route('employers.transaction') }}">Giao dịch</a></li>
+                                          <li><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
+                                       </ul>
+                                    </li>
+                                 </ul>
+                              </li>
                            @endif
                            <li class="has-children">
                               <a href="#">Trang phụ</a>
@@ -412,10 +565,6 @@
                                     </ul>
                                  </li>
                                  <li><a href="{{ route('pages.job') }}">Trang việc làm</a></li>
-                                 @guest
-                                    <li><a href="{{ route('auth.login') }}">Đăng nhập</a></li>
-                                    <li><a href="{{ route('auth.sign_up') }}">Đăng ký</a></li>
-                                 @endguest
                                  <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                               </ul>
                            </li>
@@ -425,44 +574,112 @@
                </div>
 
                <div class="col-lg-4">
+
                   <div class="header-right-menu">
                      <ul>
                         @auth
+                           <!-- Chuyển chế độ (Nếu có) -->
                            @if($showRoleSwitcher ?? false)
                               <li>
-                                 <div class="role-switcher" role="group" aria-label="Chuyển chế độ"
-                                    :data-active="active">
+                                 <div class="role-switcher" role="group">
                                     <button type="button" wire:click="switchTo('candidate')"
-                                       wire:loading.attr="disabled" wire:target="switchTo"
-                                       @click="active = 'candidate'"
-                                       class="role-switcher__btn is-candidate"
-                                       :class="{ 'is-active': active === 'candidate' }">Ứng
+                                       class="role-switcher__btn {{ !$isEmployerHeader ? 'is-active' : '' }}">Ứng
                                        viên</button>
                                     <button type="button" wire:click="switchTo('employer')"
-                                       wire:loading.attr="disabled" wire:target="switchTo"
-                                       @click="active = 'employer'"
-                                       class="role-switcher__btn is-employer"
-                                       :class="{ 'is-active': active === 'employer' }">Nhà
-                                       tuyển dụng</button>
+                                       class="role-switcher__btn {{ $isEmployerHeader ? 'is-active' : '' }}">Nhà tuyển
+                                       dụng</button>
                                  </div>
                               </li>
                            @endif
-                        @endauth
-                        @auth
-                           <li x-cloak x-show="active === 'employer'"><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
+
+                           <!-- Mục đăng tin (Cho nhà tuyển dụng) -->
+                           @if($isEmployerHeader)
+                              <li><a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a></li>
+                           @endif
+
+                           @auth
+                              <!-- Chỉ can thiệp vào khối User Menu này -->
+                              <li class="userbox-menu"
+                                 style="position: relative; list-style: none; display: inline-block; margin-left: 10px; vertical-align: middle;">
+
+                                 <!-- Icon đại diện (Avatar hoặc Chữ) -->
+                                 <div class="userbox-trigger" style="display: flex; align-items: center; cursor: pointer;">
+                                    @if(Auth::user()->avatar)
+                                       <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
+                                          style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                    @else
+                                       <div
+                                          style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff7e3e 0%, #ff5722 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                          {{ substr(Auth::user()->name, 0, 1) }}
+                                       </div>
+                                    @endif
+                                 </div>
+
+                                 <!-- Khối Dropdown Menu -->
+                                 <div class="userbox-dropdown">
+                                    <div class="userbox-account-info"
+                                       style="padding: 12px 20px; border-bottom: 1px solid #f1f5f9;">
+                                       <span
+                                          style="display: block; font-weight: 700; color: #1e293b; font-size: 14px; line-height: 1.2;">{{ Auth::user()->name }}</span>
+                                       <span
+                                          style="display: block; color: #64748b; font-size: 11px; margin-top: 2px;">{{ Auth::user()->email }}</span>
+                                    </div>
+
+                                    <ul class="dropdown-list-wrapper">
+                                       <li>
+                                          <a href="{{ route('candidates.candidate_dashboard') }}" class="user-link">
+                                             <span>Tổng quan hồ sơ</span>
+                                          </a>
+                                       </li>
+                                       <li>
+                                          <a href="{{ route('candidates.candidate_profile') }}" class="user-link">
+                                             <span>Thông tin cá nhân</span>
+                                          </a>
+                                       </li>
+                                       <li>
+                                          <a href="{{ route('candidates.manage_jobs') }}" class="user-link">
+                                             <span>Việc làm của tôi</span>
+                                          </a>
+                                       </li>
+                                       <li>
+                                          <a href="{{ route('candidates.messages') }}" class="user-link">
+                                             <span>Tin nhắn</span>
+                                          </a>
+                                       </li>
+                                       <li>
+                                          <a href="{{ route('candidates.earnings') }}" class="user-link">
+                                             <span>Thu nhập</span>
+                                          </a>
+                                       </li>
+                                       <li>
+                                          <a href="{{ route('candidates.change_password') }}" class="user-link">
+                                             <span>Đổi mật khẩu</span>
+                                          </a>
+                                       </li>
+
+                                       <!-- Logout Section -->
+                                       <div>
+                                          <li class="logout-section">
+                                             <div class="logout-wrapper">
+                                                <livewire:client.logout-button />
+                                             </div>
+                                          </li>
+                                       </div>
+                                       
+                                    </ul>
+                                 </div>
+                              </li>
+
+                           @endauth
                         @endauth
                         @guest
                            <li><a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal"><i
                                     class="fa fa-user"></i> Đăng ký</a></li>
                            <li><a href="{{ route('auth.login') }}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
                         @endguest
-                        @auth
-                           <li>
-                              <livewire:client.logout-button />
-                           </li>
-                        @endauth
                      </ul>
                   </div>
+
                </div>
             </div>
          </div>
@@ -509,4 +726,3 @@
       </div>
    </div>
 </div>
-

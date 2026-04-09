@@ -13,6 +13,8 @@ use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -334,10 +336,8 @@ class ApplyJob extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        return view('livewire.client.apply-job', [
-            'hasExistingCv' => $this->hasExistingCv,
-            'existingCvName' => $this->existingCvName,
-            'existingCvUrl' => $this->existingCvUrl,
-        ]);
+        return view('livewire.client.apply-job');
     }
 }
+
+

@@ -756,22 +756,6 @@
                                         <div class="apply-cv-badge">CV la diem nhan quan trong nhat</div>
                                         <label>CV</label>
 
-                                        @if ($hasExistingCv)
-                                            <label class="apply-checkbox">
-                                                <input type="checkbox" wire:model="use_existing_cv">
-                                                <span>Dùng lại CV đã có trong hồ sơ ứng viên của tôi</span>
-                                            </label>
-
-                                            @if ($use_existing_cv && $existingCvName)
-                                                <div class="apply-existing-file">
-                                                    <strong>CV đang được sử dụng</strong>
-                                                    <div>{{ $existingCvName }}</div>
-                                                    @if ($existingCvUrl)
-                                                        <a href="{{ $existingCvUrl }}" target="_blank" rel="noopener">Xem CV hiện tại</a>
-                                                    @endif
-                                                </div>
-                                            @endif
-                                        @endif
 
                                         <input type="file" wire:model="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
                                         <div wire:loading wire:target="cv" class="apply-upload-hint">Đang tải lên...</div>
@@ -791,3 +775,4 @@
         </div>
     </section>
 </div>
+
