@@ -124,13 +124,13 @@
                         <div class="sigle-top-job">
                             <div class="top-job-company-image">
                                 <div class="company-logo-img">
-                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">
+                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
                                         <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
                                             alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
                                             style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;">
                                     </a>
                                 </div>
-                                    <h3><a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">{{ $job->title }}</a></h3>
+                                    <h3><a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a></h3>
                                     <p class="company-state" style="margin: 8px 0 0;">
                                     <i class="fa fa-building-o"></i> {{ $job->branch?->name ?? 'Chưa cập nhật' }}
                                     </p>
@@ -206,14 +206,14 @@
                                 <li>
                                     <div class="top-company-list">
                                             <div class="company-list-logo">
-                                                <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">
+                                                <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
                                                     <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
                                                     alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
                                                     style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;">
                                                 </a>
                                             </div>
                                             <div class="company-list-details">
-                                                <h3><a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">{{ $job->title }}</a></h3>
+                                                <h3><a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a></h3>
                                             <p class="company-state"><i class="fa fa-building-o"></i> {{ $job->branch?->name ?? 'Chưa cập nhật' }}</p>
                                             @php
                                                 $cityText = \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Chưa cập nhật');

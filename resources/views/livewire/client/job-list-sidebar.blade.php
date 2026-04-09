@@ -159,13 +159,13 @@
                                 <div class="sigle-top-job">
                                     <div class="top-job-company-image">
                                         <div class="company-logo-img">
-                                            <a href="#">
+                                            <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
                                                 <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
                                                     alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
                                                     style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;">
                                             </a>
                                         </div>
-                                        <h3><a href="#">{{ $job->title }}</a></h3>
+                                        <h3><a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a></h3>
                                     </div>
                                     <div class="top-job-company-desc">
                                         <ul>

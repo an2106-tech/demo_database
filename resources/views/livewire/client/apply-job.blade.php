@@ -524,13 +524,176 @@
             width: 44%;
         }
 
-        .apply-alert {
-            background: #ebfff3;
-            border: 1px solid #bfe4c9;
+        .apply-modal-backdrop {
+            align-items: center;
+            animation: applyModalBackdropIn 0.28s ease;
+            background: rgba(29, 19, 12, 0.58);
+            backdrop-filter: blur(4px);
+            display: flex;
+            inset: 0;
+            justify-content: center;
+            padding: 20px;
+            position: fixed;
+            z-index: 1200;
+        }
+
+        .apply-modal {
+            animation: applyModalPopIn 0.36s cubic-bezier(0.2, 0.9, 0.25, 1);
+            background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
+            border: 1px solid #e2c4ad;
+            border-radius: 26px;
+            box-shadow: 0 28px 60px rgba(41, 29, 20, 0.22);
+            max-width: 520px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .apply-modal__head {
+            background: linear-gradient(135deg, #fff1e4 0%, #f8deca 100%);
+            padding: 28px 28px 18px;
+            text-align: center;
+        }
+
+        .apply-modal__icon {
+            align-items: center;
+            animation: applyModalBadgeIn 0.5s ease 0.12s both;
+            background: linear-gradient(135deg, #b85d1f, #df8d54);
+            border-radius: 50%;
+            box-shadow: 0 14px 28px rgba(184, 93, 31, 0.28);
+            color: #fff;
+            display: inline-flex;
+            font-size: 28px;
+            height: 72px;
+            justify-content: center;
+            margin-bottom: 18px;
+            width: 72px;
+        }
+
+        .apply-modal__head h3 {
+            animation: applyModalContentIn 0.34s ease 0.12s both;
+            color: #2d1a10;
+            font-size: 28px;
+            margin: 0 0 10px;
+        }
+
+        .apply-modal__head p {
+            animation: applyModalContentIn 0.34s ease 0.18s both;
+            color: #5e4738;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        .apply-modal__body {
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            padding: 24px 28px 28px;
+        }
+
+        .apply-modal__note {
+            animation: applyModalContentIn 0.34s ease 0.24s both;
+            background: #fff6ef;
+            border: 1px solid #ebd4c2;
             border-radius: 18px;
-            color: #206842;
-            margin-bottom: 20px;
+            color: #5d483c;
+            line-height: 1.7;
             padding: 16px 18px;
+        }
+
+        .apply-modal__actions {
+            animation: applyModalContentIn 0.34s ease 0.3s both;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 0;
+        }
+
+        .apply-modal__actions button {
+            background: linear-gradient(135deg, #b85d1f, #d07d43);
+            border: 1px solid rgba(122, 56, 16, 0.18);
+            border-radius: 999px;
+            box-shadow: 0 14px 30px rgba(122, 56, 16, 0.18);
+            color: #fff !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 700;
+            line-height: 1;
+            min-height: 52px;
+            min-width: 180px;
+            padding: 0 24px;
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .apply-modal__actions button:hover {
+            box-shadow: 0 18px 36px rgba(122, 56, 16, 0.24);
+            transform: translateY(-1px);
+        }
+
+        .apply-modal__actions button:focus {
+            color: #fff !important;
+            outline: none;
+        }
+
+        @keyframes applyModalBackdropIn {
+            from {
+                background: rgba(29, 19, 12, 0);
+                opacity: 0;
+            }
+
+            to {
+                background: rgba(29, 19, 12, 0.58);
+                opacity: 1;
+            }
+        }
+
+        @keyframes applyModalPopIn {
+            0% {
+                opacity: 0;
+                transform: translateY(26px) scale(0.92);
+            }
+
+            65% {
+                opacity: 1;
+                transform: translateY(-4px) scale(1.01);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes applyModalBadgeIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.72) rotate(-12deg);
+            }
+
+            70% {
+                opacity: 1;
+                transform: scale(1.08) rotate(2deg);
+            }
+
+            100% {
+                opacity: 1;
+                transform: scale(1) rotate(0);
+            }
+        }
+
+        @keyframes applyModalContentIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         @keyframes applyShine {
@@ -569,8 +732,42 @@
             .apply-actions button {
                 width: 100%;
             }
+
+            .apply-modal__head,
+            .apply-modal__body {
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .apply-modal__actions button {
+                width: 100%;
+            }
         }
     </style>
+
+    @if ($showSuccessModal)
+        <div class="apply-modal-backdrop" wire:keydown.escape.window="closeSuccessModal">
+            <div class="apply-modal" role="dialog" aria-modal="true" aria-labelledby="apply-success-title">
+                <div class="apply-modal__head">
+                    <div class="apply-modal__icon">
+                        <i class="fa fa-check"></i>
+                    </div>
+                    <h3 id="apply-success-title">Ứng tuyển thành công</h3>
+                    <p>Hồ sơ của bạn đã được gửi đến nhà tuyển dụng.</p>
+                </div>
+
+                <div class="apply-modal__body">
+                    <div class="apply-modal__note">
+                        Chúng tôi sẽ xem xét hồ sơ và liên hệ với bạn sớm nhất có thể. Bạn có thể đóng cửa sổ này để tiếp tục xem thông tin công việc.
+                    </div>
+
+                    <div class="apply-modal__actions">
+                        <button type="button" wire:click="closeSuccessModal">Đã hiểu</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
@@ -588,10 +785,6 @@
 
     <section class="candidate-dashboard-area section_70 apply-job-page">
         <div class="container">
-            @if (session('status'))
-                <div class="apply-alert">{{ session('status') }}</div>
-            @endif
-
             <div class="apply-shell">
                 <aside class="apply-sidebar">
                     <div class="apply-hero">

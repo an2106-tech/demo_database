@@ -56,14 +56,24 @@ class CategorySeeder extends Seeder
                 'image' => ''
             ],
         ];
+
         foreach ($categories as $item) {
-            Category::create([
-                'name' => $item['name'],
+            $category = Category::withTrashed()->firstOrNew([
                 'slug' => Str::slug($item['name']),
+            ]);
+
+            $category->fill([
+                'name' => $item['name'],
                 'icon' => null,
                 'image' => $item['image'],
-                'status' => 1, 
+                'status' => true,
             ]);
+
+            if ($category->trashed()) {
+                $category->restore();
+            }
+
+            $category->save();
         }
     }
 }

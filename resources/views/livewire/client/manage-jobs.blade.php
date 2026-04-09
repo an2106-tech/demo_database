@@ -1,184 +1,95 @@
 <div>
     <section class="jobguru-breadcromb-area">
-         <div class="breadcromb-top section_100">
+        <div class="breadcromb-top section_100">
             <div class="container">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="breadcromb-box">
-                        <h3>Bảng điều khiển</h3>
-                     </div>
-                  </div>
-               </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="breadcromb-box">
+                            <h3>Quản lý đơn ứng tuyển</h3>
+                        </div>
+                    </div>
+                </div>
             </div>
-         </div>
-         <div class="breadcromb-bottom">
-            <div class="container">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="breadcromb-box-pagin">
-                        <ul>
-                           <li><a href="#">Trang chủ</a></li>
-                           <li><a href="#">Ứng viên</a></li>
-                           <li class="active-breadcromb"><a href="#">Quản lý công việc</a></li>
-                        </ul>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
-      <section class="candidate-dashboard-area section_70">
-         <div class="container">
+        </div>
+    </section>
+
+    <section class="candidate-dashboard-area section_70">
+        <div class="container">
             <div class="row">
-               <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
-                  <div class="dashboard-left">
-                     <ul class="dashboard-menu">
-                        <li>
-                           <a href="candidate-dashboard.html">
-                           <i class="fa fa-tachometer"></i>
-                           Bảng điều khiển
-                           </a>
-                        </li>
-                        <li><a href="candidate-profile.html"><i class="fa fa-users"></i>Hồ sơ của tôi</a></li>
-                        <li><a href="message.html"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
-                        <li class="active">
-                           <a href="manage-jobs.html">
-                           <i class="fa fa-briefcase"></i>
-                           Quản lý công việc
-                           </a>
-                        </li>
-                        <li><a href="candidate-earnings.html"><i class="fa fa-rocket"></i>Thu nhập</a></li>
-                        <li><a href="change-password.html"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
-                        <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
-                     </ul>
-                  </div>
-               </div>
-               <div class="col-lg-9 col-md-8 mx-auto">
-                  <div class="dashboard-right ">
-                     <div class="manage-jobs">
-                        <div class="manage-jobs-heading">
-                           <h3>Danh sách công việc của tôi</h3>
+                <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
+                    @include('livewire.client.partials.candidate-sidebar')
+                </div>
+
+                <div class="col-lg-9 col-md-8 mx-auto">
+                    <div class="dashboard-right">
+                        <div class="manage-jobs">
+                            <div class="manage-jobs-heading">
+                                <h3>Danh sách hồ sơ đã ứng tuyển</h3>
+                            </div>
+
+                            <div class="single-manage-jobs table-responsive">
+                                @if ($applications->isEmpty())
+                                    <div class="alert alert-info mb-0">
+                                        Bạn chưa có hồ sơ ứng tuyển nào.
+                                    </div>
+                                @else
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Vị trí</th>
+                                                <th>Chi nhánh</th>
+                                                <th>Ngày ứng tuyển</th>
+                                                <th>Trạng thái</th>
+                                                <th>Hành động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($applications as $application)
+                                                @php
+                                                    $job = $application->job;
+                                                    $status = $application->status;
+                                                    $statusValue = $status instanceof \App\Enums\StatusApplicationEnum ? $status->value : (string) $status;
+                                                    $statusLabel = $status instanceof \App\Enums\StatusApplicationEnum ? $status->getLabel() : ucfirst((string) $status);
+                                                    $statusClass = match ($statusValue) {
+                                                        'new' => 'pending',
+                                                        'screening' => 'pending',
+                                                        'interview' => 'active',
+                                                        'offer' => 'active',
+                                                        'hired' => 'approved',
+                                                        'rejected' => 'expired',
+                                                        default => 'pending',
+                                                    };
+                                                @endphp
+                                                <tr>
+                                                    <td class="manage-jobs-title">
+                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}">
+                                                            {{ $job?->title ?? 'Vị trí không còn khả dụng' }}
+                                                        </a>
+                                                    </td>
+                                                    <td class="table-date">
+                                                        {{ $job?->branch?->name ?? '-' }}
+                                                    </td>
+                                                    <td class="table-date">
+                                                        {{ optional($application->applied_at ?? $application->created_at)->format('d/m/Y H:i') }}
+                                                    </td>
+                                                    <td>
+                                                        <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
+                                                    </td>
+                                                    <td class="action">
+                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}" class="action-edit" title="Xem chi tiết">
+                                                            <i class="fa fa-eye"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                @endif
+                            </div>
                         </div>
-                        <div class="single-manage-jobs table-responsive">
-                           <table class="table">
-                              <thead>
-                                 <tr>
-                                    <th>Tiêu đề</th>
-                                    <th>Ngày đăng</th>
-                                    <th>Ngày hết hạn</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
-                                 </tr>
-                              </thead>
-                              <tbody>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Frontend React Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Full Stack PHP Developer </a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="expired">Hết hạn</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Node.js Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Frontend React Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Full Stack PHP Developer </a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="expired">Hết hạn</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Node.js Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Frontend React Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Full Stack PHP Developer </a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="expired">Hết hạn</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                                 <tr>
-                                    <td class="manage-jobs-title"><a href="#">Node.js Developer</a></td>
-                                    <td class="table-date">28 Tháng 6, 2018</td>
-                                    <td class="table-date">10 Tháng 7, 2018</td>
-                                    <td><span class="pending">Đang chờ duyệt</span></td>
-                                    <td class="action">
-                                       <a href="#" class="action-edit"><i class="fa fa-pencil-square-o"></i></a>
-                                       <a href="#" class="action-delete"><i class="fa fa-trash-o"></i></a>
-                                    </td>
-                                 </tr>
-                              </tbody>
-                           </table>
-                           <div class="pagination-box-row">
-                              <p>Trang 1 trên 6</p>
-                              <ul class="pagination">
-                                 <li class="active"><a href="#">1</a></li>
-                                 <li><a href="#">2</a></li>
-                                 <li><a href="#">3</a></li>
-                                 <li>...</li>
-                                 <li><a href="#">6</a></li>
-                                 <li><a href="#"><i class="fa fa-angle-double-right"></i></a></li>
-                              </ul>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
+                    </div>
+                </div>
             </div>
-         </div>
-      </section>
-      </div>
+        </div>
+    </section>
+</div>

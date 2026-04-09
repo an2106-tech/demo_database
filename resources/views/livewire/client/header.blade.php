@@ -292,39 +292,40 @@
       }
 
       .jobguru-header-area .role-switcher {
+         --switch-gap: .3rem;
+         --switch-pad: .32rem;
          position: relative;
          isolation: isolate;
          display: inline-grid;
          grid-template-columns: repeat(2, minmax(0, 1fr));
          align-items: center;
-         gap: .3rem;
+         gap: var(--switch-gap);
          min-width: 228px;
-         padding: .32rem;
+         padding: var(--switch-pad);
          border-radius: 999px;
          border: 1px solid rgba(14, 116, 144, .16);
-         background: linear-gradient(135deg, rgba(255, 255, 255, .92), rgba(240, 249, 255, .88));
+         background: linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(240, 249, 255, .92));
          backdrop-filter: blur(16px);
          box-shadow: 0 18px 45px rgba(14, 116, 144, .12);
+         overflow: hidden;
       }
 
       .jobguru-header-area .role-switcher::before {
          content: "";
          position: absolute;
-         top: .32rem;
-         bottom: .32rem;
-         left: .32rem;
-         width: calc(50% - .47rem);
+         top: var(--switch-pad);
+         bottom: var(--switch-pad);
+         left: var(--switch-pad);
+         width: calc(50% - ((var(--switch-gap) / 2) + var(--switch-pad)));
          border-radius: 999px;
-         background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%);
-         box-shadow: 0 10px 24px rgba(14, 116, 144, .22);
-         transition: transform .28s cubic-bezier(.22, 1, .36, 1), background .22s ease, box-shadow .22s ease;
+         background: linear-gradient(135deg, #f37021 0%, #ff8a1d 100%);
+         box-shadow: 0 10px 24px rgba(243, 112, 33, .24);
+         transition: transform .34s cubic-bezier(.22, 1, .36, 1), box-shadow .24s ease;
          z-index: 0;
       }
 
-      .jobguru-header-area .role-switcher:has(.role-switcher__btn.is-employer.is-active)::before {
-         transform: translateX(calc(100% + .3rem));
-         background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
-         box-shadow: 0 10px 24px rgba(22, 163, 74, .24);
+      .jobguru-header-area .role-switcher[data-active='employer']::before {
+         transform: translateX(calc(100% + var(--switch-gap)));
       }
 
       .jobguru-header-area .role-switcher__btn {
@@ -336,15 +337,14 @@
          display: inline-flex;
          align-items: center;
          justify-content: center;
-         gap: .5rem;
          min-height: 44px;
-         color: #0f172a;
+         color: #28415b;
          padding: .75rem 1.05rem;
          border-radius: 999px;
          font-weight: 800;
          letter-spacing: .01em;
          line-height: 1;
-         transition: color .2s ease, transform .2s ease, opacity .2s ease;
+         transition: color .22s ease, transform .18s ease;
       }
 
       .jobguru-header-area .role-switcher__btn:hover {
@@ -378,17 +378,9 @@
          opacity: 1;
       }
 
-      .jobguru-header-area .role-switcher__btn:not(.is-active) {
-         color: #334155;
-      }
-
-      .jobguru-header-area .role-switcher__btn:not(.is-active):hover {
-         color: #0f172a;
-      }
-
       .jobguru-header-area .role-switcher__btn[disabled] {
          cursor: wait;
-         opacity: .85;
+         opacity: .9;
       }
 
       .jobguru-header-area .role-switcher__btn-label {
@@ -537,13 +529,13 @@
                            @auth
                               @if($showRoleSwitcher ?? false)
                                  <li>
-                                    <div class="role-switcher" role="group" aria-label="Chuyển chế độ">
+                                    <div class="role-switcher" role="group" x-data="{ active: @entangle('type').live }" :data-active="active" aria-label="Chuyển chế độ">
                                        <button type="button" wire:click="switchTo('candidate')"
-                                          class="role-switcher__btn is-candidate {{ !$isEmployerHeader ? 'is-active' : '' }}">
+                                          wire:loading.attr="disabled" wire:target="switchTo" @click="active = 'candidate'" class="role-switcher__btn is-candidate" :class="{ 'is-active': active === 'candidate' }">
                                           Ứng viên
                                        </button>
                                        <button type="button" wire:click="switchTo('employer')"
-                                          class="role-switcher__btn is-employer {{ $isEmployerHeader ? 'is-active' : '' }}">
+                                          wire:loading.attr="disabled" wire:target="switchTo" @click="active = 'employer'" class="role-switcher__btn is-employer" :class="{ 'is-active': active === 'employer' }">
                                           Nhà tuyển dụng
                                        </button>
                                     </div>
@@ -704,3 +696,4 @@
       </div>
    </div>
 </div>
+

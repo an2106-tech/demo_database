@@ -108,7 +108,7 @@
                                                                     }
                                                                 @endphp
                                                                 <li style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 6px 0; border-bottom: 1px dashed #eee;">
-                                                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
+                                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"
                                                                         style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                                                         {{ $job->title }}
                                                                     </a>

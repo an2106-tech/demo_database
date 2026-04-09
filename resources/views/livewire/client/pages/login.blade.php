@@ -35,11 +35,6 @@
                   <div class="login-title">
                      <h3>Đăng nhập</h3>
                   </div>
-                  @if (session('status'))
-                     <div class="alert alert-success" style="margin-bottom:16px;">
-                        {{ session('status') }}
-                     </div>
-                  @endif
                   <form wire:submit.prevent="login">
                      <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
                      <div class="single-login-field">

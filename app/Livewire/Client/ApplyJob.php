@@ -42,6 +42,8 @@ class ApplyJob extends Component
 
     public $cv = null;
 
+    public bool $showSuccessModal = false;
+
     public function updatedCv(): void
     {
         $this->resetValidation('cv');
@@ -165,8 +167,12 @@ class ApplyJob extends Component
         );
 
         $this->cv = null;
+        $this->showSuccessModal = true;
+    }
 
-        session()->flash('status', 'Đã nộp ứng tuyển thành công. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.');
+    public function closeSuccessModal(): void
+    {
+        $this->showSuccessModal = false;
     }
 
     protected function resolveExistingCandidate(): ?Candidate
@@ -339,5 +345,3 @@ class ApplyJob extends Component
         return view('livewire.client.apply-job');
     }
 }
-
-

@@ -453,14 +453,56 @@ class ApplicationsTable
 
     protected static function formatUserRole(?string $role): string
     {
-        return match ($role) {
-            'director' => 'Giám đốc',
-            'hr' => 'HR',
-            'pm' => 'PM',
-            'admin' => 'Super Admin',
-            default => strtoupper((string) $role),
-        };
-    }
+        return Action::make('interview')
+            ->label("Phỏng vấn")
+            ->icon('heroicon-o-calendar-days')
+            ->color(fn (Application $record): string => static::hasInterviewStatus($record) ? 'info' : 'warning')
+            ->modalWidth('3xl')
+            ->modalHeading(fn (Application $record): string => $record->latestInterview()->exists() ? "\u{0110}i\u{1EC1}u ch\u{1EC9}nh l\u{1ECB}ch ph\u{1ECF}ng v\u{1EA5}n" : "T\u{1EA1}o l\u{1ECB}ch ph\u{1ECF}ng v\u{1EA5}n")
+            ->modalDescription(fn (Application $record): string => "H\u{1ED3} s\u{01A1} #" . $record->id . ' - ' . ($record->candidate?->name ?? "\u{1EE8}ng vi\u{00EA}n"))
+            ->fillForm(fn (Application $record): array => static::getInterviewFormData($record))
+            ->form([
+                DateTimePicker::make('scheduled_at')
+                    ->label('Thời gian phỏng vấn')
+                    ->native(false)
+                    ->seconds(false)
+                    ->required(),
+                Select::make('type')
+                    ->label('Hình thức phỏng vấn')
+                    ->options([
+                        'online' => 'Online',
+                        'offline' => 'Offline',
+                    ])
+                    ->default('online')
+                    ->live()
+                    ->required(),
+                TextInput::make('meeting_link')
+                    ->label('Link phỏng vấn')
+                    ->url()
+                    ->maxLength(500)
+                    ->visible(fn (callable $get): bool => $get('type') === 'online')
+                    ->required(fn (callable $get): bool => $get('type') === 'online'),
+                Select::make('workplace_id')
+                    ->label('Địa điểm phỏng vấn')
+                    ->options(fn (Application $record): array => static::getWorkplaceOptions($record))
+                    ->searchable()
+                    ->preload()
+                    ->visible(fn (callable $get): bool => $get('type') === 'offline')
+                    ->required(fn (callable $get): bool => $get('type') === 'offline'),
+                Select::make('interviewer_id')
+                    ->label('Người phỏng vấn')
+                    ->options(fn (Application $record): array => static::getInterviewerOptions($record))
+                    ->searchable()
+                    ->preload()
+                    ->required(),
+                Textarea::make('notes')
+                    ->label('Ghi chu')
+                    ->rows(4)
+                    ->columnSpanFull(),
+            ])
+            ->action(function (Application $record, array $data): void {
+                $existingInterview = $record->latestInterview()->first();
+                $nextRound = max(1, $record->interviews()->count() + ($existingInterview ? 0 : 1));
 
     protected static function makePipelineAction(): Action
     {

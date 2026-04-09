@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 class InterviewCalendar extends TableWidget
 {
-    protected static ?string $heading = 'Lich phong van';
+    protected static ?string $heading = "L\u{1ECB}ch ph\u{1ECF}ng v\u{1EA5}n";
 
     protected int | string | array $columnSpan = 'full';
 
@@ -28,26 +28,26 @@ class InterviewCalendar extends TableWidget
                     ->label('ID')
                     ->sortable(),
                 TextColumn::make('application.candidate.name')
-                    ->label('Ung vien')
+                    ->label("\u{1EE8}ng vi\u{00EA}n")
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('application.job.title')
-                    ->label('Cong viec')
+                    ->label("C\u{00F4}ng vi\u{1EC7}c")
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('interviewer.name')
-                    ->label('Phong van vien')
+                    ->label("Ph\u{1ECF}ng v\u{1EA5}n vi\u{00EA}n")
                     ->searchable()
                     ->sortable(),
                 TextColumn::make('scheduled_at')
-                    ->label('Thoi gian')
+                    ->label("Th\u{1EDD}i gian")
                     ->dateTime('d/m/Y H:i')
                     ->sortable(),
                 TextColumn::make('round_number')
-                    ->label('Vong')
+                    ->label("V\u{00F2}ng")
                     ->sortable(),
                 TextColumn::make('type')
-                    ->label('Hinh thuc')
+                    ->label("H\u{00EC}nh th\u{1EE9}c")
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
                         'online' => 'Online',
@@ -59,12 +59,12 @@ class InterviewCalendar extends TableWidget
                         'gray' => 'offline',
                     ]),
                 TextColumn::make('result')
-                    ->label('Ket qua')
+                    ->label("K\u{1EBF}t qu\u{1EA3}")
                     ->badge()
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'pass' => 'Dat',
-                        'fail' => 'Rot',
-                        'pending' => 'Cho xu ly',
+                        'pass' => "\u{0110}\u{1EA1}t",
+                        'fail' => "R\u{1EDB}t",
+                        'pending' => "Ch\u{1EDD} x\u{1EED} l\u{00FD}",
                         default => $state ?? '-',
                     })
                     ->colors([
@@ -73,7 +73,7 @@ class InterviewCalendar extends TableWidget
                         'warning' => 'pending',
                     ]),
                 TextColumn::make('workplace.name')
-                    ->label('Dia diem')
+                    ->label("\u{0110}\u{1ECB}a \u{0111}i\u{1EC3}m")
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('-'),
                 TextColumn::make('meeting_link')
@@ -83,27 +83,27 @@ class InterviewCalendar extends TableWidget
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('notes')
-                    ->label('Ghi chu')
+                    ->label("Ghi ch\u{00FA}")
                     ->limit(40)
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->placeholder('-'),
             ])
             ->filters([
                 SelectFilter::make('result')
-                    ->label('Ket qua')
+                    ->label("K\u{1EBF}t qu\u{1EA3}")
                     ->options([
-                        'pending' => 'Cho xu ly',
-                        'pass' => 'Dat',
-                        'fail' => 'Rot',
+                        'pending' => "Ch\u{1EDD} x\u{1EED} l\u{00FD}",
+                        'pass' => "\u{0110}\u{1EA1}t",
+                        'fail' => "R\u{1EDB}t",
                     ]),
                 SelectFilter::make('type')
-                    ->label('Hinh thuc')
+                    ->label("H\u{00EC}nh th\u{1EE9}c")
                     ->options([
                         'online' => 'Online',
                         'offline' => 'Offline',
                     ]),
                 SelectFilter::make('interviewer_id')
-                    ->label('Phong van vien')
+                    ->label("Ph\u{1ECF}ng v\u{1EA5}n vi\u{00EA}n")
                     ->options($this->getInterviewerOptions()),
             ], layout: FiltersLayout::AboveContent)
             ->paginationPageOptions([10, 25, 50])

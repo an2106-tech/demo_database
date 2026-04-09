@@ -1,4 +1,4 @@
-﻿<div>
+<div>
     <section class="jobguru-banner-area home-banner">
         <div class="banner-slider owl-carousel">
             <div class="banner-single-slider slider-item-1">
@@ -211,7 +211,7 @@
                                                                         }
                                                                     ?>
                                                                     <li style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 6px 0; border-top: 1px dashed #eee;">
-                                                                        <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
+                                                                        <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"
                                                                             style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
                                                                             {{ $job->title }}
                                                                         </a>
@@ -356,7 +356,7 @@
                                                             <div class="branch-job-row">
                                                                 <i class="fa fa-heart-o" style="color:#a3a3a3;"></i>
                                                                 <div class="branch-job-title">
-                                                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}">{{ $job->title }}</a>
+                                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
                                                                 </div>
                                                                 <div class="branch-job-salary"><i class="fa fa-money"></i> {{ $salaryText }}</div>
                                                                 <div class="branch-job-deadline"><i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m') ?? '' }}</div>
@@ -406,8 +406,8 @@
                                                     <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
                                                 </div>
                                                 <div class="company-list-btn">
-                                                    <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
-                                                        class="jobguru-btn">Xem ứng tuyển</a>
+                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"
+                                                        class="jobguru-btn">Xem chi tiết</a>
                                                 </div>
                                             </div>
                                         </li>

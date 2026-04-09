@@ -248,7 +248,7 @@ class CandidateProfile extends Component
 
         $this->avatar = null;
         $this->cv = null;
-        session()->flash('status', 'Cập nhật hồ sơ thành công.');
+        $this->dispatch('app-notify', message: 'Cập nhật hồ sơ thành công.');
     }
 
     public function addExperience(): void

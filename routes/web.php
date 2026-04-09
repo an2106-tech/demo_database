@@ -1,6 +1,7 @@
 <?php
 
 use App\Livewire\Client\ApplyJob;
+use App\Livewire\Client\ApplicationDetail;
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
@@ -78,6 +79,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/browse-categories', BrowseCategories::class)->name('browse_categories');
     Route::get('/browse-companies', BrowseCompanies::class)->name('browse_companies');
     Route::get('/candidate-detail', CandidatesDetails::class)->name('candidate_detail');
+    Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
     Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
 
     Route::middleware(['auth', 'candidate.account'])->group(function () {
@@ -86,6 +88,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('candidate-profile', ClientCandidateProfile::class)->name('candidate_profile');
         Route::get('messages', Messages::class)->name('messages');
         Route::get('manage-jobs', ManageJobs::class)->name('manage_jobs');
+        Route::get('applications/{application}', ApplicationDetail::class)->name('application_detail');
         Route::get('earnings', Earnings::class)->name('earnings');
         Route::get('change-password', ClientChangePassword::class)->name('change_password');
     });
@@ -135,6 +138,4 @@ Route::middleware('auth')->group(function () {
     Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
     Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
 });
-
-
 

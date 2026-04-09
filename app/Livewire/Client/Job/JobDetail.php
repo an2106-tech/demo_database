@@ -3,9 +3,9 @@
 namespace App\Livewire\Client\Job;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 use App\Enums\VietnamProvince;
 use App\Models\RecruitmentJob;
+use Illuminate\Support\Facades\Route;
 
 class JobDetail extends Component
 {
@@ -20,11 +20,15 @@ class JobDetail extends Component
             ->findOrFail($id);
     }
 
-    #[Layout('layouts.employer')]
     public function render()
     {
+        $routeName = Route::currentRouteName();
+        $layout = str_starts_with((string) $routeName, 'employers.')
+            ? 'layouts.employer'
+            : 'layouts.client';
+
         return view('livewire.client.job.job-detail', [
             'job' => $this->job
-        ]);
+        ])->layout($layout);
     }
 }

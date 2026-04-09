@@ -593,10 +593,6 @@
 
     <section class="candidate-dashboard-area section_70 candidate-profile-page">
         <div class="container">
-            @if (session('status'))
-                <p class="cp-alert">{{ session('status') }}</p>
-            @endif
-
             <div class="row">
                 <div class="col-lg-3 col-md-4 dashboard-left-border">
                     @include('livewire.client.partials.candidate-sidebar')
