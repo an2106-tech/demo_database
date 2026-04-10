@@ -2,968 +2,503 @@
     $branch = $job->branch;
     $department = $job->department;
     $workplace = $job->workplace;
-    $salary = is_array($job->salary_range) ? $job->salary_range : [];
-    $salaryMin = $salary['min'] ?? null;
-    $salaryMax = $salary['max'] ?? null;
-    $branchCityDisplay = $branch?->city
-        ? ucwords(str_replace(['_', '-'], ' ', (string) $branch->city))
-        : null;
-    $salaryText = match (true) {
-        $salaryMin && $salaryMax => number_format((float) $salaryMin, 0, ',', '.') . ' - ' . number_format((float) $salaryMax, 0, ',', '.') . ' VND',
-        $salaryMin => 'Từ ' . number_format((float) $salaryMin, 0, ',', '.') . ' VND',
-        $salaryMax => 'Đến ' . number_format((float) $salaryMax, 0, ',', '.') . ' VND',
-        default => 'Thỏa thuận',
-    };
+    $salaryLabel = $job->salary_range ? (is_array($job->salary_range) ? ($job->salary_range['min'] ? number_format($job->salary_range['min'], 0, ',', '.') . ' - ' . number_format($job->salary_range['max'], 0, ',', '.') : 'Thỏa thuận') : $job->salary_range) : 'Thỏa thuận';
+    $branchCityDisplay = \App\Enums\VietnamProvince::tryFrom((string)($branch?->city ?? ''))?->label() ?? $branch?->city;
 @endphp
 
-<div>
+<div class="apply-premium-container">
     <style>
-        .apply-job-page {
-            --apply-primary: #b85d1f;
-            --apply-primary-dark: #7a3810;
-            --apply-secondary: #e39b5d;
-            --apply-text: #1f1712;
-            --apply-muted: #62554d;
-            --apply-border: #dcc8b8;
-            --apply-surface: #fff;
-            --apply-surface-soft: #faf4ee;
-            --apply-shadow: 0 16px 42px rgba(41, 29, 20, 0.1);
-            position: relative;
-        }
-
-        .apply-job-page::before,
-        .apply-job-page::after {
-            border-radius: 999px;
-            content: "";
-            filter: blur(14px);
-            position: absolute;
-            z-index: 0;
-        }
-
-        .apply-job-page::before {
-            background: rgba(184, 93, 31, 0.09);
-            height: 180px;
-            left: -30px;
-            top: 40px;
-            width: 180px;
-        }
-
-        .apply-job-page::after {
-            background: rgba(227, 155, 93, 0.14);
-            height: 220px;
-            right: -40px;
-            top: 240px;
-            width: 220px;
+        .apply-premium-container {
+            --fpt-orange: #f37021;
+            --fpt-orange-dark: #d65a12;
+            --fpt-blue: #1e2d7d;
+            --soft-gray: #f8fafc;
+            --border-light: #e2e8f0;
+            --text-dark: #0f172a;
+            --text-light: #64748b;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            min-height: 100vh;
+            padding: 160px 0 60px; /* Increased top padding to 160px for maximum clearance */
+            font-family: 'Lexend', 'Inter', sans-serif;
         }
 
         .apply-shell {
-            align-items: start;
+            max-width: 1200px;
+            margin: 0 auto;
             display: grid;
-            gap: 24px;
-            grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.35fr);
-            position: relative;
-            z-index: 1;
+            grid-template-columns: 400px 1fr;
+            gap: 40px;
+            padding: 0 20px;
         }
 
-        .apply-sidebar,
-        .apply-form-card {
-            background: var(--apply-surface);
-            border: 1px solid var(--apply-border);
-            border-radius: 24px;
-            box-shadow: var(--apply-shadow);
-            overflow: hidden;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-
-        .apply-sidebar:hover,
-        .apply-form-card:hover {
-            box-shadow: 0 20px 52px rgba(41, 29, 20, 0.14);
-            transform: translateY(-2px);
-        }
-
-        .apply-sidebar {
-            position: sticky;
-            top: 24px;
-        }
-
-        .apply-hero {
-            background: linear-gradient(135deg, #fbf1e8 0%, #f0dfcf 100%);
-            border-bottom: 1px solid var(--apply-border);
-            overflow: hidden;
-            padding: 26px 24px;
-            position: relative;
-        }
-
-        .apply-hero::before {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0));
-            content: "";
-            height: 120px;
-            position: absolute;
-            right: -10px;
-            top: -28px;
-            transform: rotate(18deg);
-            width: 160px;
-        }
-
-        .apply-eyebrow {
-            color: var(--apply-primary-dark);
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .apply-title {
-            color: #1c140f;
-            font-size: 28px;
-            font-weight: 800;
-            line-height: 1.25;
-            margin: 0 0 10px;
-        }
-
-        .apply-subtitle {
-            color: #534841;
-            font-size: 14px;
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        .apply-highlight-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 18px;
-        }
-
-        .apply-chip {
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid rgba(122, 56, 16, 0.16);
-            border-radius: 999px;
-            color: #593f31;
-            font-size: 12px;
-            font-weight: 700;
-            padding: 9px 12px;
-        }
-
-        .apply-summary,
-        .apply-section {
-            padding: 22px 24px;
-        }
-
-        .apply-summary h3,
-        .apply-section h3 {
-            color: #1d1511;
-            font-size: 18px;
-            margin: 0 0 14px;
-        }
-
-        .apply-list {
-            display: grid;
-            gap: 12px;
-        }
-
-        .apply-item {
-            background: var(--apply-surface-soft);
-            border: 1px solid #e2d3c6;
-            border-radius: 16px;
-            padding: 14px 16px 14px 20px;
-            position: relative;
-            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-        }
-
-        .apply-item::before {
-            background: linear-gradient(180deg, var(--apply-primary), #ff9b57);
-            border-radius: 999px;
-            content: "";
-            height: calc(100% - 18px);
-            left: 10px;
-            opacity: 0;
-            position: absolute;
-            top: 9px;
-            transition: opacity 0.2s ease;
-            width: 4px;
-        }
-
-        .apply-item:hover {
-            background: #fffdfb;
-            border-color: #cfae94;
-            transform: translateX(4px);
-        }
-
-        .apply-item:hover::before {
-            opacity: 1;
-        }
-
-        .apply-item span {
-            color: var(--apply-muted);
-            display: block;
-            font-size: 12px;
-            letter-spacing: 0.04em;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .apply-item strong,
-        .apply-item div {
-            color: var(--apply-text);
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        .apply-note {
-            background: #f3e7dc;
-            border: 1px dashed #cda98b;
-            border-radius: 18px;
-            color: #5c473a;
-            line-height: 1.7;
-            padding: 16px;
-        }
-
-        .apply-form-head {
-            background: linear-gradient(135deg, #ffffff 0%, #f7ede4 100%);
-            border-bottom: 1px solid var(--apply-border);
-            padding: 28px 28px 22px;
-            position: relative;
-        }
-
-        .apply-form-head::after {
-            background: linear-gradient(90deg, var(--apply-primary), var(--apply-secondary));
-            border-radius: 999px;
-            bottom: 0;
-            content: "";
-            height: 4px;
-            left: 28px;
-            position: absolute;
-            width: 150px;
-        }
-
-        .apply-form-head h3 {
-            color: #1d1511;
-            font-size: 26px;
-            margin: 0;
-        }
-
-        .apply-form-body {
-            padding: 28px;
-        }
-
-        .apply-form-spotlight {
-            display: grid;
-            gap: 12px;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin: 0 0 22px;
-        }
-
-        .apply-spot-card {
-            background: linear-gradient(135deg, #fff8f1 0%, #f7eadf 100%);
-            border: 1px solid #dcc3af;
-            border-radius: 18px;
-            padding: 14px 16px;
-        }
-
-        .apply-spot-card strong {
-            color: var(--apply-primary-dark);
-            display: block;
-            font-size: 22px;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-
-        .apply-spot-card span {
-            color: #5b4b40;
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 1.6;
-        }
-
-        .apply-steps {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 0 0 22px;
-        }
-
-        .apply-step {
-            align-items: center;
-            background: #f8eee6;
-            border: 1px solid #ddc9b8;
-            border-radius: 999px;
-            color: #5c4638;
-            display: inline-flex;
-            font-size: 13px;
-            font-weight: 700;
-            gap: 8px;
-            padding: 8px 12px;
-        }
-
-        .apply-step b {
-            align-items: center;
-            background: linear-gradient(135deg, var(--apply-primary), #ff984d);
-            border-radius: 50%;
-            color: #fff;
-            display: inline-flex;
-            font-size: 11px;
-            height: 20px;
-            justify-content: center;
-            width: 20px;
-        }
-
-        .apply-form-grid {
-            display: grid;
-            gap: 18px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .apply-form-grid .full {
-            grid-column: 1 / -1;
-        }
-
-        .apply-field {
-            background: var(--apply-surface-soft);
-            border: 1px solid #e3d5c8;
-            border-radius: 18px;
-            padding: 16px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-        }
-
-        .apply-field:hover {
-            border-color: #cba990;
-            box-shadow: 0 10px 24px rgba(122, 56, 16, 0.08);
-            transform: translateY(-1px);
-        }
-
-        .apply-field--cv {
-            background: linear-gradient(135deg, #fff8f1 0%, #fff 100%);
-            border: 1px solid #d2aa8a;
-            box-shadow: 0 16px 32px rgba(122, 56, 16, 0.08);
-            position: relative;
-        }
-
-        .apply-field--cv::before {
-            background: linear-gradient(90deg, var(--apply-primary), var(--apply-secondary));
-            border-radius: 999px;
-            content: "";
-            height: 5px;
-            left: 16px;
-            position: absolute;
-            top: 0;
-            width: 132px;
-        }
-
-        .apply-field .single-input {
-            margin: 0;
-        }
-
-        .apply-field label {
-            color: #2e221c;
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.04em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-
-        .apply-field--cv .single-input > label {
-            color: var(--apply-primary-dark);
-            font-size: 14px;
-        }
-
-        .apply-cv-badge {
-            background: rgba(184, 93, 31, 0.1);
-            border: 1px solid rgba(184, 93, 31, 0.16);
-            border-radius: 999px;
-            color: var(--apply-primary-dark);
-            display: inline-flex;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 14px;
-            padding: 8px 12px;
-        }
-
-        .apply-field input,
-        .apply-field textarea {
+        /* Sidebar Design - Premium Glassmorphism */
+        .job-card-sidebar {
             background: #fff;
-            border: 1px solid #d5c6b9;
-            border-radius: 14px;
-            box-shadow: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-            width: 100%;
-        }
-
-        .apply-field input {
-            min-height: 52px;
-        }
-
-        .apply-field textarea {
-            min-height: 150px;
-            padding-top: 12px;
-            resize: vertical;
-        }
-
-        .apply-field input:focus,
-        .apply-field textarea:focus {
-            border-color: rgba(184, 93, 31, 0.58);
-            box-shadow: 0 0 0 4px rgba(184, 93, 31, 0.14);
-        }
-
-        .apply-field--cv input[type="file"] {
-            background: #fffdfa;
-            border: 2px dashed #cfa27f;
-            border-radius: 16px;
-            margin-top: 8px;
-            min-height: 68px;
-            padding: 14px;
-        }
-
-        .apply-checkbox {
-            align-items: flex-start;
-            color: #493a31;
-            display: flex;
-            font-size: 14px;
-            font-weight: 500;
-            gap: 10px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-            text-transform: none;
-        }
-
-        .apply-checkbox input {
-            appearance: auto;
-            -webkit-appearance: checkbox;
-            border: none;
-            border-radius: 0;
-            box-shadow: none;
-            flex: 0 0 auto;
-            height: 16px;
-            margin-top: 3px;
-            min-height: 16px;
-            padding: 0;
-            width: 16px;
-        }
-
-        .apply-checkbox span {
-            color: #493a31;
-            display: inline;
-            font-size: 14px;
-            font-weight: 500;
-            margin: 0;
-            text-transform: none;
-        }
-
-        .apply-existing-file {
-            background: linear-gradient(135deg, #fff 0%, #fffaf6 100%);
-            border: 1px solid #d8c6b6;
-            border-radius: 14px;
-            color: #43352d;
-            margin-top: 12px;
-            padding: 12px 14px;
-        }
-
-        .apply-existing-file strong {
-            color: #2f2f2f;
-            display: block;
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .apply-existing-file a {
-            color: var(--apply-primary-dark);
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .apply-upload-hint {
-            color: var(--apply-muted);
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        .apply-error {
-            color: #cf3c3c;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        .apply-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 22px;
-        }
-
-        .apply-actions button {
-            background: linear-gradient(135deg, var(--apply-primary), #d69a67);
-            border: none;
-            border-radius: 999px;
-            box-shadow: 0 14px 34px rgba(122, 56, 16, 0.26);
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            min-height: 56px;
-            min-width: 220px;
+            border-radius: 32px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
             overflow: hidden;
-            padding: 0 28px;
-            position: relative;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: sticky;
+            top: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
-        .apply-actions button:hover {
-            box-shadow: 0 18px 38px rgba(122, 56, 16, 0.32);
-            transform: translateY(-2px);
-        }
-
-        .apply-actions button::after {
-            animation: applyShine 3.2s linear infinite;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-            content: "";
-            inset: 0 auto 0 -60%;
-            position: absolute;
-            transform: skewX(-22deg);
-            width: 44%;
-        }
-
-        .apply-modal-backdrop {
-            align-items: center;
-            animation: applyModalBackdropIn 0.28s ease;
-            background: rgba(29, 19, 12, 0.58);
-            backdrop-filter: blur(4px);
-            display: flex;
-            inset: 0;
-            justify-content: center;
-            padding: 20px;
-            position: fixed;
-            z-index: 1200;
-        }
-
-        .apply-modal {
-            animation: applyModalPopIn 0.36s cubic-bezier(0.2, 0.9, 0.25, 1);
-            background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
-            border: 1px solid #e2c4ad;
-            border-radius: 26px;
-            box-shadow: 0 28px 60px rgba(41, 29, 20, 0.22);
-            max-width: 520px;
-            overflow: hidden;
-            width: 100%;
-        }
-
-        .apply-modal__head {
-            background: linear-gradient(135deg, #fff1e4 0%, #f8deca 100%);
-            padding: 28px 28px 18px;
+        .job-card-header {
+            background: linear-gradient(135deg, var(--fpt-orange) 0%, var(--fpt-orange-dark) 100%);
+            padding: 40px 30px;
             text-align: center;
-        }
-
-        .apply-modal__icon {
-            align-items: center;
-            animation: applyModalBadgeIn 0.5s ease 0.12s both;
-            background: linear-gradient(135deg, #b85d1f, #df8d54);
-            border-radius: 50%;
-            box-shadow: 0 14px 28px rgba(184, 93, 31, 0.28);
             color: #fff;
-            display: inline-flex;
-            font-size: 28px;
-            height: 72px;
+        }
+
+        .company-logo-wrapper {
+            width: 100px;
+            height: 100px;
+            background: #fff;
+            border-radius: 24px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            margin-bottom: 18px;
-            width: 72px;
+            padding: 15px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
-        .apply-modal__head h3 {
-            animation: applyModalContentIn 0.34s ease 0.12s both;
-            color: #2d1a10;
-            font-size: 28px;
-            margin: 0 0 10px;
+        .company-logo-wrapper img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
 
-        .apply-modal__head p {
-            animation: applyModalContentIn 0.34s ease 0.18s both;
-            color: #5e4738;
-            font-size: 15px;
-            line-height: 1.7;
-            margin: 0;
+        .sidebar-job-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            line-height: 1.3;
+            color: #ffffff;
         }
 
-        .apply-modal__body {
+        .sidebar-company-name {
+            font-size: 0.95rem;
+            font-weight: 500;
+            opacity: 0.9;
+            color: #ffffff;
+        }
+
+        .job-meta-list {
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            gap: 22px;
-            padding: 24px 28px 28px;
+            gap: 20px;
         }
 
-        .apply-modal__note {
-            animation: applyModalContentIn 0.34s ease 0.24s both;
-            background: #fff6ef;
-            border: 1px solid #ebd4c2;
-            border-radius: 18px;
-            color: #5d483c;
-            line-height: 1.7;
-            padding: 16px 18px;
-        }
-
-        .apply-modal__actions {
-            animation: applyModalContentIn 0.34s ease 0.3s both;
+        .meta-entry {
             display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin-top: 0;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border-radius: 16px;
+            background: var(--soft-gray);
+            transition: all 0.3s ease;
         }
 
-        .apply-modal__actions button {
-            background: linear-gradient(135deg, #b85d1f, #d07d43);
-            border: 1px solid rgba(122, 56, 16, 0.18);
-            border-radius: 999px;
-            box-shadow: 0 14px 30px rgba(122, 56, 16, 0.18);
-            color: #fff !important;
-            display: inline-flex;
+        .meta-entry:hover {
+            background: #fff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transform: translateX(5px);
+        }
+
+        .meta-icon-box {
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            border-radius: 12px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
+            color: var(--fpt-orange);
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .meta-content label {
+            display: block;
+            font-size: 0.75rem;
             font-weight: 700;
-            line-height: 1;
-            min-height: 52px;
-            min-width: 180px;
-            padding: 0 24px;
-            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-transform: uppercase;
+            color: var(--text-light);
+            margin-bottom: 2px;
         }
 
-        .apply-modal__actions button:hover {
-            box-shadow: 0 18px 36px rgba(122, 56, 16, 0.24);
-            transform: translateY(-1px);
+        .meta-content span {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 0.95rem;
         }
 
-        .apply-modal__actions button:focus {
-            color: #fff !important;
+        /* Form Design - Clean & High-End */
+        .apply-form-container {
+            background: #fff;
+            border-radius: 32px;
+            padding: 50px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f5f9;
+        }
+
+        .form-headline {
+            margin-bottom: 40px;
+        }
+
+        .form-headline h2 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+        }
+
+        .form-headline h2 span {
+            color: var(--fpt-orange);
+        }
+
+        .form-headline p {
+            color: var(--text-light);
+            font-size: 1.1rem;
+        }
+
+        .section-separator {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 35px 0 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .section-separator::after {
+            content: "";
+            height: 2px;
+            flex-grow: 1;
+            background: linear-gradient(90deg, #f1f5f9, transparent);
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .premium-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .premium-field label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            margin-left: 5px;
+        }
+
+        .premium-input {
+            height: 56px;
+            border: 2px solid #f1f5f9;
+            border-radius: 16px;
+            padding: 0 20px;
+            font-size: 1rem;
+            font-weight: 500;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        .premium-input:focus {
+            border-color: var(--fpt-orange);
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(243, 112, 33, 0.08);
             outline: none;
         }
 
-        @keyframes applyModalBackdropIn {
-            from {
-                background: rgba(29, 19, 12, 0);
-                opacity: 0;
-            }
-
-            to {
-                background: rgba(29, 19, 12, 0.58);
-                opacity: 1;
-            }
+        textarea.premium-input {
+            height: auto;
+            min-height: 140px;
+            padding: 18px 20px;
         }
 
-        @keyframes applyModalPopIn {
-            0% {
-                opacity: 0;
-                transform: translateY(26px) scale(0.92);
-            }
-
-            65% {
-                opacity: 1;
-                transform: translateY(-4px) scale(1.01);
-            }
-
-            100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
+        /* Modern File Upload */
+        .upload-wrapper {
+            border: 2px dashed #cbd5e1;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        @keyframes applyModalBadgeIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.72) rotate(-12deg);
-            }
-
-            70% {
-                opacity: 1;
-                transform: scale(1.08) rotate(2deg);
-            }
-
-            100% {
-                opacity: 1;
-                transform: scale(1) rotate(0);
-            }
+        .upload-wrapper:hover {
+            border-color: var(--fpt-orange);
+            background: #fff5ef;
         }
 
-        @keyframes applyModalContentIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .upload-icon-anim {
+            width: 64px;
+            height: 64px;
+            background: var(--fpt-orange);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.6rem;
+            box-shadow: 0 8px 16px rgba(243, 112, 33, 0.2);
         }
 
-        @keyframes applyShine {
-            0% { left: -60%; }
-            100% { left: 140%; }
+        .upload-hint h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .upload-hint p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin: 0;
+        }
+
+        .existing-cv-pill {
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .existing-cv-pill span {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .existing-cv-pill a {
+            color: var(--fpt-orange);
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        /* Submit Button */
+        .submit-trigger {
+            width: 100%;
+            height: 64px;
+            background: linear-gradient(135deg, var(--fpt-orange), var(--fpt-orange-dark));
+            border: none;
+            border-radius: 18px;
+            color: #fff;
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            margin-top: 40px;
+            box-shadow: 0 12px 24px rgba(243, 112, 33, 0.25);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .submit-trigger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(243, 112, 33, 0.35);
+        }
+
+        .submit-trigger:active {
+            transform: translateY(0);
+        }
+
+        /* Success Animation */
+        .celebration-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .celebration-card {
+            background: #fff;
+            padding: 60px 40px;
+            border-radius: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        }
+
+        .celebration-icon {
+            font-size: 4rem;
+            color: #10b981;
+            margin-bottom: 25px;
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .celebration-card h3 {
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+        }
+
+        @keyframes bounceIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         @media (max-width: 991px) {
-            .apply-shell {
-                grid-template-columns: 1fr;
-            }
-
-            .apply-sidebar {
-                position: static;
-            }
+            .apply-shell { grid-template-columns: 1fr; }
+            .job-card-sidebar { position: static; }
         }
 
         @media (max-width: 767px) {
-            .apply-form-spotlight,
-            .apply-form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .apply-form-head,
-            .apply-form-body,
-            .apply-hero,
-            .apply-summary,
-            .apply-section {
-                padding: 18px;
-            }
-
-            .apply-title {
-                font-size: 24px;
-            }
-
-            .apply-actions button {
-                width: 100%;
-            }
-
-            .apply-modal__head,
-            .apply-modal__body {
-                padding-left: 18px;
-                padding-right: 18px;
-            }
-
-            .apply-modal__actions button {
-                width: 100%;
-            }
+            .grid-row { grid-template-columns: 1fr; }
+            .apply-form-container { padding: 30px; }
+            .form-headline h2 { font-size: 1.8rem; }
         }
     </style>
 
     @if ($showSuccessModal)
-        <div class="apply-modal-backdrop" wire:keydown.escape.window="closeSuccessModal">
-            <div class="apply-modal" role="dialog" aria-modal="true" aria-labelledby="apply-success-title">
-                <div class="apply-modal__head">
-                    <div class="apply-modal__icon">
-                        <i class="fa fa-check"></i>
-                    </div>
-                    <h3 id="apply-success-title">Ứng tuyển thành công</h3>
-                    <p>Hồ sơ của bạn đã được gửi đến nhà tuyển dụng.</p>
-                </div>
-
-                <div class="apply-modal__body">
-                    <div class="apply-modal__note">
-                        Chúng tôi sẽ xem xét hồ sơ và liên hệ với bạn sớm nhất có thể. Bạn có thể đóng cửa sổ này để tiếp tục xem thông tin công việc.
-                    </div>
-
-                    <div class="apply-modal__actions">
-                        <button type="button" wire:click="closeSuccessModal">Đã hiểu</button>
-                    </div>
-                </div>
+    <div class="celebration-overlay" wire:click="closeSuccessModal">
+        <div class="celebration-card" wire:click.stop>
+            <div class="celebration-icon">
+                <i class="fa fa-check-circle"></i>
             </div>
+            <h3>Khởi động hành trình mới!</h3>
+            <p class="text-muted">Hồ sơ của bạn đã được gửi thành công đến đội ngũ tuyển dụng <strong>{{ $branch?->name }}</strong>. Chúng tôi sẽ phản hồi trong thời gian sớm nhất.</p>
+            <button class="submit-trigger" wire:click="closeSuccessModal" style="margin-top: 25px;">Đã rõ, xin cảm ơn!</button>
         </div>
+    </div>
     @endif
 
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>&#7912;ng tuy&#7875;n</h3>
-                        </div>
+    <div class="apply-shell">
+        <!-- Sidebar -->
+        <aside class="job-card-sidebar">
+            <div class="job-card-header">
+                <div class="company-logo-wrapper">
+                    <img src="{{ $branch?->image ? asset('storage/' . $branch->image) : asset('assets/img/company-logo-1.png') }}" alt="{{ $branch?->name }}">
+                </div>
+                <h1 class="sidebar-job-title">{{ $job->title }}</h1>
+                <p class="sidebar-company-name">{{ $branch?->name }}</p>
+            </div>
+
+            <div class="job-meta-list">
+                <div class="meta-entry">
+                    <div class="meta-icon-box"><i class="fa fa-money"></i></div>
+                    <div class="meta-content">
+                        <label>Mức lương</label>
+                        <span>{{ $salaryLabel }}</span>
+                    </div>
+                </div>
+                <div class="meta-entry">
+                    <div class="meta-icon-box"><i class="fa fa-map-marker"></i></div>
+                    <div class="meta-content">
+                        <label>Địa điểm</label>
+                        <span>{{ $branchCityDisplay ?? 'Toàn quốc' }}</span>
+                    </div>
+                </div>
+                <div class="meta-entry">
+                    <div class="meta-icon-box"><i class="fa fa-calendar"></i></div>
+                    <div class="meta-content">
+                        <label>Hạn nộp hồ sơ</label>
+                        <span>{{ $job->deadline?->format('d/m/Y') ?? 'Tuyển liên tục' }}</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </aside>
 
-    <section class="candidate-dashboard-area section_70 apply-job-page">
-        <div class="container">
-            <div class="apply-shell">
-                <aside class="apply-sidebar">
-                    <div class="apply-hero">
-                        <div class="apply-eyebrow">Đơn ứng tuyển</div>
-                        <h1 class="apply-title">{{ $job->title }}</h1>
-                        <p class="apply-subtitle">
-                            Hoàn thiện thông tin ứng tuyển để đội ngũ tuyển dụng xem xét hồ sơ của bạn nhanh hơn.
-                        </p>
-                        <div class="apply-highlight-row">
-                            <div class="apply-chip">Phản hồi nhanh</div>
-                            <div class="apply-chip">Nộp hồ sơ trong 1 phút</div>
-                            @if ($branchCityDisplay)
-                                <div class="apply-chip">{{ $branchCityDisplay }}</div>
-                            @endif
-                        </div>
+        <!-- Main Form -->
+        <main class="apply-form-container">
+            <div class="form-headline">
+                <h2>Khởi đầu <span>hành trình mới</span></h2>
+                <p>Gửi hồ sơ ngay để bắt đầu hành trình sự nghiệp đầy khát vọng cùng chúng tôi.</p>
+            </div>
+
+            <form wire:submit.prevent="submit">
+                <div class="section-separator">Thông tin của bạn</div>
+
+                <div class="grid-row">
+                    <div class="premium-field">
+                        <label>Họ và tên *</label>
+                        <input type="text" wire:model="name" class="premium-input" placeholder="Nguyễn Văn A">
+                        @error('name') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
                     </div>
-
-                    <div class="apply-summary">
-                        <h3>Tóm tắt vị trí</h3>
-                        <div class="apply-list">
-                            <div class="apply-item">
-                                <span>Mức lương</span>
-                                <strong>{{ $salaryText }}</strong>
-                            </div>
-                            <div class="apply-item">
-                                <span>Chi nhánh</span>
-                                <div>{{ $branch?->name ?: 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="apply-item">
-                                <span>Phòng ban</span>
-                                <div>{{ $department?->name ?: 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="apply-item">
-                                <span>Hình thức làm việc</span>
-                                <div>{{ $workplace?->name ?: 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="apply-item">
-                                <span>Hạn nộp hồ sơ</span>
-                                <div>{{ $job->deadline?->format('d/m/Y') ?: 'Không giới hạn' }}</div>
-                            </div>
-                            <div class="apply-item">
-                                <span>Số lượng tuyển</span>
-                                <div>{{ $job->positions_count ?: 'Chưa cập nhật' }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    @guest
-                        <div class="apply-section">
-                            <h3>Thông tin chi nhánh</h3>
-                            <div class="apply-list">
-                                <div class="apply-item">
-                                    <span>Tên chi nhánh</span>
-                                    <div>{{ $branch?->name ?: 'Chưa cập nhật' }}</div>
-                                </div>
-                                <div class="apply-item">
-                                    <span>Địa chỉ</span>
-                                    <div>
-                                        {{ $branch?->address ?: 'Chưa cập nhật địa chỉ' }}
-                                        @if ($branchCityDisplay)
-                                            <br>{{ $branchCityDisplay }}
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="apply-item">
-                                    <span>Liên hệ</span>
-                                    <div>
-                                        {{ $branch?->phone ?: 'Chưa cập nhật số điện thoại' }}
-                                        @if ($branch?->email_contact)
-                                            <br>{{ $branch->email_contact }}
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="apply-note" style="margin-top: 16px;">
-                                Bạn vẫn có thể ứng tuyển mà không cần đăng nhập. Chỉ cần điền thông tin cơ bản và tải CV lên.
-                            </div>
-                        </div>
-                    @endguest
-                </aside>
-
-                <div class="apply-form-card">
-                    <div class="apply-form-head">
-                        <h3>Nộp hồ sơ cho vị trí này</h3>
-                    </div>
-
-                    <div class="apply-form-body">
-                        <form wire:submit.prevent="submit" enctype="multipart/form-data">
-                            <div class="apply-form-spotlight">
-                                <div class="apply-spot-card">
-                                    <strong>01</strong>
-                                    <span>Điền thông tin cơ bản để nhà tuyển dụng liên hệ nhanh hơn</span>
-                                </div>
-                                <div class="apply-spot-card">
-                                    <strong>CV</strong>
-                                    <span>Hồ sơ có CV rõ ràng sẽ được xem xét dễ dàng hơn</span>
-                                </div>
-                                <div class="apply-spot-card">
-                                    <strong>10MB</strong>
-                                    <span>Hỗ trợ PDF, DOC, DOCX với dung lượng tối đa 10MB</span>
-                                </div>
-                            </div>
-
-                            <div class="apply-steps">
-                                <div class="apply-step"><b>1</b> Điền thông tin</div>
-                                <div class="apply-step"><b>2</b> Chọn CV phù hợp</div>
-                                <div class="apply-step"><b>3</b> Gửi ứng tuyển</div>
-                            </div>
-
-                            <div class="apply-form-grid">
-                                <div class="apply-field">
-                                    <div class="single-input">
-                                        <label>H&#7885; v&#224; t&#234;n</label>
-                                        <input type="text" wire:model.defer="name" placeholder="Nhập họ và tên">
-                                        @error('name')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field">
-                                    <div class="single-input">
-                                        <label>Email</label>
-                                        <input type="email" wire:model.defer="email" placeholder="Nhập email">
-                                        @error('email')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field">
-                                    <div class="single-input">
-                                        <label>Số điện thoại</label>
-                                        <input type="text" wire:model.defer="phone" placeholder="Nhập số điện thoại">
-                                        @error('phone')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field">
-                                    <div class="single-input">
-                                        <label>Số năm kinh nghiệm</label>
-                                        <input type="number" min="0" wire:model.defer="experience_years" placeholder="Ví dụ: 2">
-                                        @error('experience_years')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field full">
-                                    <div class="single-input">
-                                        <label>Tiêu đề hồ sơ</label>
-                                        <input type="text" wire:model.defer="profile_title" placeholder="Ví dụ: Backend Developer">
-                                        @error('profile_title')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field full">
-                                    <div class="single-input">
-                                        <label>Mục tiêu nghề nghiệp</label>
-                                        <textarea wire:model.defer="career_objective" rows="5" placeholder="Giới thiệu ngắn gọn về định hướng công việc và thế mạnh của bạn"></textarea>
-                                        @error('career_objective')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-
-                                <div class="apply-field apply-field--cv full">
-                                    <div class="single-input">
-                                        <label>CV</label>
-
-
-                                        <input type="file" wire:model="cv" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
-                                        <div wire:loading wire:target="cv" class="apply-upload-hint">Đang tải lên...</div>
-                                        <div class="apply-upload-hint">Hỗ trợ PDF, DOC, DOCX. Dung lượng tối đa 10MB.</div>
-                                        @error('cv')<div class="apply-error">{{ $message }}</div>@enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="apply-actions">
-                                <button type="submit" wire:loading.attr="disabled">Nộp ứng tuyển</button>
-                            </div>
-                        </form>
+                    <div class="premium-field">
+                        <label>Địa chỉ Email *</label>
+                        <input type="email" wire:model="email" class="premium-input" placeholder="example@email.com">
+                        @error('email') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
+
+                <div class="grid-row">
+                    <div class="premium-field">
+                        <label>Số điện thoại</label>
+                        <input type="text" wire:model="phone" class="premium-input" placeholder="09xx xxx xxx">
+                        @error('phone') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
+                    </div>
+                    <div class="premium-field">
+                        <label>Số năm kinh nghiệm</label>
+                        <input type="number" wire:model="experience_years" class="premium-input" placeholder="Ví dụ: 2">
+                        @error('experience_years') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="section-separator">Chi tiết chuyên môn</div>
+
+                <div class="premium-field mb-4">
+                    <label>Vị trí hiện tại / Tiêu đề hồ sơ</label>
+                    <input type="text" wire:model="profile_title" class="premium-input" placeholder="VD: Senior Web Developer">
+                    @error('profile_title') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="premium-field mb-4">
+                    <label>Tải lên Hồ sơ (CV) *</label>
+                    <div class="upload-wrapper" onclick="document.getElementById('cv-file').click()">
+                        <input type="file" id="cv-file" wire:model="cv" hidden>
+                        <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>
+                        <div class="upload-hint">
+                            <h4>Nhấp để chọn file hồ sơ</h4>
+                            <p>Định dạng hỗ trợ: PDF, DOC, DOCX (Tối đa 10MB)</p>
+                        </div>
+                    </div>
+                    @error('cv') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
+
+                    @if ($this->existingCvName)
+                    <div class="existing-cv-pill">
+                        <div>
+                            <i class="fa fa-file-pdf-o text-primary me-2"></i>
+                            <span>{{ $this->existingCvName }}</span>
+                        </div>
+                        <a href="{{ $this->existingCvUrl }}" target="_blank">Xem ngay</a>
+                    </div>
+                    @endif
+                </div>
+
+                <div class="premium-field">
+                    <label>Giới thiệu ngắn gọn hoặc mục tiêu nghề nghiệp</label>
+                    <textarea wire:model="career_objective" class="premium-input" placeholder="Hãy viết vài dòng chân thành về định hướng của bạn..."></textarea>
+                    @error('career_objective') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
+                </div>
+
+                <button type="submit" class="submit-trigger" wire:loading.attr="disabled">
+                    <span wire:loading.remove>Xác nhận và gửi đơn ứng tuyển</span>
+                    <span wire:loading><i class="fa fa-spinner fa-spin"></i> Đang xử lý hồ sơ...</span>
+                </button>
+            </form>
+        </main>
+    </div>
 </div>

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Client\pages;
+namespace App\Livewire\Client\Pages;
 
 use App\Models\Post;
 use Livewire\Component;
