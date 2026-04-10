@@ -1,7 +1,5 @@
 <?php
-
-namespace App\Livewire\Client\employers;
-
+namespace App\Livewire\Client\Employers;
 use App\Models\Candidate;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
