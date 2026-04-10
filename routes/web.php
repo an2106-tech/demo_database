@@ -8,12 +8,11 @@ use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidateDashboard;
 use App\Livewire\Client\CandidateProfile as ClientCandidateProfile;
 use App\Livewire\Client\CandidatesDetails;
-use App\Livewire\Client\ChangePassword as ClientChangePassword;
+use App\Livewire\Client\Employers\ChangePassword as EmployerChangePassword;
 use App\Livewire\Client\Earnings;
 use App\Livewire\Client\Employers\BrowseCandidates;
 use App\Livewire\Client\Employers\CandidateEarnings;
-use App\Livewire\Client\Employers\CandidateProfile as EmployerCandidateProfile;
-use App\Livewire\Client\Employers\ChangePassword as EmployerChangePassword;
+use App\Livewire\Client\Employers\CandidateProfile as EmpCandidateProfile;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
@@ -91,7 +90,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('manage-jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('applications/{application}', ApplicationDetail::class)->name('application_detail');
         Route::get('earnings', Earnings::class)->name('earnings');
-        Route::get('change-password', ClientChangePassword::class)->name('change_password');
+        Route::get('change-password', EmployerChangePassword::class)->name('change_password');
     });
 });
 
@@ -115,7 +114,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
         Route::get('/transaction', Transaction::class)->name('transaction');
         Route::get('/change-password', EmployerChangePassword::class)->name('change_password');
-        Route::get('/candidate-profile', EmployerCandidateProfile::class)->name('candidate_profile');
+        Route::get('/candidate-profile', EmpCandidateProfile::class)->name('candidate_profile');
         Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');
         Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
     });
