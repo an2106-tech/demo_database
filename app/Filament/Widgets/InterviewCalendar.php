@@ -28,9 +28,13 @@ class InterviewCalendar extends CalendarWidget
     protected bool $eventClickEnabled = false;
 
     protected array $options = [
-        'allDaySlot' => false,
-        'nowIndicator' => true,
-        'slotDuration' => '00:30:00',
+        'allDaySlot'     => false,
+        'nowIndicator'   => true,
+        'slotDuration'   => '00:30:00',
+        'scrollTime'     => '08:00:00',   // scroll to 8AM on load, events outside still visible
+        'height'         => 'auto',
+        'eventMinHeight' => 60,
+        'expandRows'     => true,
     ];
 
     protected function getEvents(FetchInfo $info): Collection | array | Builder
@@ -60,15 +64,20 @@ class InterviewCalendar extends CalendarWidget
 
     protected function toCalendarEvent(Interview $interview): CalendarEvent
     {
+        // Pass UTC Carbon directly – FullCalendar displays in browser local timezone (ICT).
         $start = $interview->scheduled_at;
         $end = $start->copy()->addMinutes(max(15, (int) ($interview->duration_minutes ?: 60)));
         [$backgroundColor, $textColor] = $this->resolveEventColors($interview);
 
-        $candidateName = $interview->application?->candidate?->name ?? 'Ung vien';
-        $jobTitle = $interview->application?->job?->title ?? 'Chua co vi tri';
+        $candidateName = $interview->application?->candidate?->name ?? 'Ứng viên';
+        $jobTitle      = $interview->application?->job?->title ?? 'Chưa có vị trí';
+
+        // Shorter title = less truncation in the fixed-height TimeGrid block.
+        // The hover tooltip (injected via JS renderHook) shows the full details.
+        $blockTitle = $candidateName . ' - ' . $jobTitle;
 
         return CalendarEvent::make($interview)
-            ->title($candidateName . ' - ' . $jobTitle)
+            ->title($blockTitle)
             ->start($start)
             ->end($end)
             ->backgroundColor($backgroundColor)

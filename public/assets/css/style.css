@@ -531,9 +531,13 @@ li {
 
 .btntoTop:before {
 	color: #fff;
-	content: "ï„‚";
+	/* FontAwesome icon: angle-up */
+	content: "\f106";
 	display: inline-block;
-	font: 20px "FontAwesome";
+	font-family: "FontAwesome";
+	font-size: 20px;
+	font-style: normal;
+	font-weight: normal;
 	vertical-align: middle;
 }
 
@@ -544,7 +548,10 @@ li {
 	bottom: 30px;
 	cursor: pointer;
 	height: 60px;
-	line-height: 53px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 1;
 	opacity: 0;
 	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
 	position: fixed;
@@ -872,6 +879,14 @@ header,
 
 .jobguru-header-area.page-header .header-right-menu ul li a.post-jobs {
 	color: #fff !important
+}
+
+/* Keep CTA text readable when header becomes sticky on page-header pages. */
+.jobguru-header-area.page-header.sticky .header-right-menu>ul>li>a.post-jobs,
+.jobguru-header-area.page-header.sticky .header-right-menu>ul>li>a.post-jobs:hover,
+.jobguru-header-area.page-header.sticky .header-right-menu>ul>li>a.post-jobs:focus {
+	color: #fff !important;
+	text-decoration: none;
 }
 
 
@@ -5818,6 +5833,13 @@ CUSTOM - CLIENT HEADER/FOOTER (Livewire)
 
 .jobguru-header-area.page-header .post-jobs:hover {
 	background: #d85a13;
+}
+
+/* Sticky header overrides should not turn CTA link blue */
+.jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs,
+.jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:hover,
+.jobguru-header-area.stick-top.sticky .header-right-menu ul li a.post-jobs:focus {
+	color: #fff !important;
 }
 
 /* Home banner closer to reference (image-led banner, search pill at bottom) */

@@ -32,17 +32,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 col-lg-3 mx-auto dashboard-left-border">
-                    <div class="dashboard-left">
-                        <ul class="dashboard-menu">
-                            <li><a href="{{ route('employers.dashboard') }}"><i class="fa fa-tachometer"></i>Bảng điều khiển</a></li>
-                            <li><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Hồ sơ công ty</a></li>
-                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
-                            <li class="active"><a href="{{ route('employers.post_job') }}"><i class="fa fa-bullhorn"></i>Đăng tin tuyển dụng</a></li>
-                            <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-briefcase"></i>Quản lý tin đăng</a></li>
-                            <li><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-user-circle"></i>Quản lý ứng viên</a></li>
-                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
-                        </ul>
-                    </div>
+                    @include('livewire.client.partials.employer-sidebar')
                 </div>
 
                 <div class="col-md-8 col-lg-9 mx-auto">
@@ -144,6 +134,31 @@
                                                 <label for="job-positions">Số lượng cần tuyển</label>
                                                 <input id="job-positions" type="number" min="1" max="99" wire:model.defer="positions_count">
                                                 @error('positions_count') <span class="text-danger">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+
+                                        <div class="single-resume-feild feild-flex-2">
+                                            <div class="single-input">
+                                                <label for="job-skills">Kỹ năng</label>
+                                                <select id="job-skills" wire:model.defer="skills" multiple size="6">
+                                                    @foreach ($skillsOptions as $skill)
+                                                        <option value="{{ $skill->id }}">{{ $skill->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <small style="display: block; margin-top: 6px; color: #6b7280;">
+                                                    Giữ Ctrl (Windows) / Cmd (Mac) để chọn nhiều kỹ năng.
+                                                </small>
+                                                @error('skills') <span class="text-danger">{{ $message }}</span> @enderror
+                                                @error('skills.*') <span class="text-danger">{{ $message }}</span> @enderror
+                                            </div>
+                                            <div class="single-input">
+                                                <label for="job-skills-level">Trình độ kỹ năng</label>
+                                                <select id="job-skills-level" wire:model.defer="skills_level">
+                                                    <option value="junior">Junior</option>
+                                                    <option value="mid">Mid</option>
+                                                    <option value="senior">Senior</option>
+                                                </select>
+                                                @error('skills_level') <span class="text-danger">{{ $message }}</span> @enderror
                                             </div>
                                         </div>
 

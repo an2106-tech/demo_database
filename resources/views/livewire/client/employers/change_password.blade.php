@@ -31,22 +31,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-4 dashboard-left-border">
-                    <div class="dashboard-left">
-                        <ul class="dashboard-menu">
-                            <li>
-                                <a href="{{ route('employers.dashboard') }}">
-                                    <i class="fa fa-tachometer"></i>
-                                    Bảng điều khiển
-                                </a>
-                            </li>
-                            <li><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Hồ sơ của tôi</a></li>
-                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
-                            <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-briefcase"></i>Quản lý công việc</a></li>
-                            <li><a href="{{ route('employers.candidate_earnings') }}"><i class="fa fa-rocket"></i>Thu nhập</a></li>
-                            <li class="active"><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
-                        </ul>
-                    </div>
+                    @include('livewire.client.partials.employer-sidebar')
                 </div>
                 <div class="col-lg-9 col-md-8">
                     <div class="dashboard-right">

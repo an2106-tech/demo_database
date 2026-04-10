@@ -17,6 +17,7 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
+use Illuminate\Support\HtmlString;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -81,6 +82,31 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ]);
+            ])
+            ->renderHook(
+                'panels::body.end',
+                fn (): HtmlString => new HtmlString(<<<'HTML'
+                <script>
+                (function () {
+                    function attachCalendarTooltips() {
+                        document.querySelectorAll(".fc-timegrid-event:not([data-fc-tip])").forEach(function (el) {
+                            var time  = el.querySelector(".fc-event-time")?.textContent?.trim() ?? "";
+                            var title = el.querySelector(".fc-event-title")?.textContent?.trim() ?? "";
+                            if (title) {
+                                el.setAttribute("title", time ? time + "\n" + title : title);
+                                el.setAttribute("data-fc-tip", "1");
+                                el.style.cursor = "default";
+                            }
+                        });
+                    }
+                    var observer = new MutationObserver(attachCalendarTooltips);
+                    document.addEventListener("DOMContentLoaded", function () {
+                        observer.observe(document.body, { childList: true, subtree: true });
+                        attachCalendarTooltips();
+                    });
+                })();
+                </script>
+                HTML)
+            );
     }
 }

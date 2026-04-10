@@ -6,6 +6,7 @@ use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Branch;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
+use App\Models\Skill;
 use App\Models\Workplace;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -35,6 +36,10 @@ class PostJob extends Component
     public ?string $salary_min = null;
 
     public ?string $salary_max = null;
+
+    public array $skills = [];
+
+    public string $skills_level = 'mid';
 
     public function mount(): void
     {
@@ -72,6 +77,9 @@ class PostJob extends Component
             'status' => ['required', 'in:draft,published'],
             'salary_min' => ['nullable', 'numeric', 'min:0'],
             'salary_max' => ['nullable', 'numeric', 'min:0'],
+            'skills' => ['required', 'array', 'min:1'],
+            'skills.*' => ['integer', 'distinct', 'exists:skills,id'],
+            'skills_level' => ['required', 'in:junior,mid,senior'],
         ];
     }
 
@@ -132,6 +140,15 @@ class PostJob extends Component
             'created_by' => Auth::id(),
         ]);
 
+        $pivotData = [];
+        foreach (($validated['skills'] ?? []) as $skillId) {
+            $pivotData[(int) $skillId] = [
+                'level' => $validated['skills_level'],
+                'is_required' => true,
+            ];
+        }
+        $job->skills()->sync($pivotData);
+
         session()->flash(
             'status',
             $job->status === StatusRecruitmentJobsEnum::PUBLISHED
@@ -162,10 +179,15 @@ class PostJob extends Component
             ->orderBy('name')
             ->get();
 
+        $skillsOptions = Skill::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return view('livewire.client.employers.post_job', [
             'branches' => $branches,
             'departments' => $departments,
             'workplaces' => $workplaces,
+            'skillsOptions' => $skillsOptions,
             'isBranchLocked' => (bool) $user?->branchScopeId(),
         ]);
     }

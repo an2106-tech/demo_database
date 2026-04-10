@@ -31,27 +31,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-4 dashboard-left-border">
-                    <div class="dashboard-left">
-                        <ul class="dashboard-menu">
-                            <li>
-                                <a href="candidate-dashboard.html">
-                                    <i class="fa fa-tachometer"></i>
-                                    Bảng điều khiển
-                                </a>
-                            </li>
-                            <li class="active">
-                                <a href="candidate-profile.html">
-                                    <i class="fa fa-users"></i>
-                                    Hồ sơ của tôi
-                                </a>
-                            </li>
-                            <li><a href="message.html"><i class="fa fa-envelope-open"></i>tin nhắn</a></li>
-                            <li><a href="manage-jobs.html"><i class="fa fa-briefcase"></i>quản lý công việc</a></li>
-                            <li><a href="candidate-earnings.html"><i class="fa fa-rocket"></i>thu nhập</a></li>
-                            <li><a href="change-password.html"><i class="fa fa-lock"></i>đổi mật khẩu</a></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
-                        </ul>
-                    </div>
+                    @include('livewire.client.partials.employer-sidebar')
                 </div>
                 <div class="col-lg-9 col-md-8">
                     <div class="dashboard-right">

@@ -115,11 +115,11 @@ class InterviewCalendarService
 
     protected function formatScheduledDate(CarbonInterface $date): string
     {
-        return $date
-            ->copy()
-            ->shiftTimezone($this->interviewTimezone())
-            ->utc()
-            ->format('Ymd\THis\Z');
+        // $date is already a UTC Carbon instance (stored as UTC in DB).
+        // shiftTimezone() only relabels the timezone without converting the clock value,
+        // so calling ->utc() after it would produce a time 7 hours too early.
+        // Simply convert to UTC and format directly.
+        return $date->copy()->utc()->format('Ymd\THis\Z');
     }
 
     protected function formatUtcDate(CarbonInterface $date): string

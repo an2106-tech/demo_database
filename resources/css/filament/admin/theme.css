@@ -4,3 +4,76 @@
 @source '../../../../resources/views/filament/**/*';
 @source '../../../../vendor/guava/calendar/resources/**/*';
 @import '../../../../vendor/guava/calendar/resources/css/theme.css';
+
+/* FullCalendar – allow event text to wrap fully without truncation */
+.fc-timegrid-event .fc-event-main {
+    overflow: visible !important;
+}
+
+.fc-timegrid-event .fc-event-title {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.fc-timegrid-event .fc-event-time {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.fc-timegrid-event-harness .fc-timegrid-event {
+    overflow: visible !important;
+}
+
+/* EventCalendar (Guava Calendar uses ec-* classes) – allow event text to wrap fully without truncation */
+.ec-day-grid .ec-event,
+.ec-time-grid .ec-event {
+    overflow: visible !important;
+}
+
+.ec-day-grid .ec-event .ec-event-body,
+.ec-time-grid .ec-event .ec-event-body {
+    overflow: visible !important;
+}
+
+.ec-day-grid .ec-event .ec-event-title,
+.ec-time-grid .ec-event .ec-event-title {
+    display: block;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    -webkit-line-clamp: unset !important;
+    line-clamp: unset !important;
+    max-height: none !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+.ec-day-grid .ec-event .ec-event-time,
+.ec-time-grid .ec-event .ec-event-time {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+/* Time grid events have a fixed height (duration-based). Keep time visible but tighten typography so text fits. */
+.ec-time-grid .ec-event .ec-event-body {
+    padding: 2px 4px;
+}
+
+.ec-time-grid .ec-event .ec-event-time {
+    display: block;
+    margin: 0;
+    line-height: 1.1;
+    font-size: 0.65rem;
+}
+
+.ec-time-grid .ec-event .ec-event-title {
+    margin: 0;
+    line-height: 1.1;
+    font-size: 0.7rem;
+}

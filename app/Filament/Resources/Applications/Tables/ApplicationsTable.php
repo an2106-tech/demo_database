@@ -83,7 +83,7 @@ class ApplicationsTable
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'profile' => 'Hồ so',
+                        'profile' => 'Hồ sơ',
                         'cv' => 'CV',
                         default => $state ?? '-',
                     })
@@ -99,7 +99,7 @@ class ApplicationsTable
                         'website' => 'Website',
                         'facebook' => 'Facebook',
                         'linkedin' => 'LinkedIn',
-                        'referral' => 'Giới thi?u',
+                        'referral' => 'Giới thiệu',
                         'other' => 'Khác',
                         default => $state ?? '-',
                     })
@@ -128,17 +128,19 @@ class ApplicationsTable
                         return match (true) {
                             $min && $max => "{$min} - {$max} VND",
                             $min !== null => "Từ {$min} VND",
-                            $max !== null => "Ðến {$max} VND",
+                            $max !== null => "Đến {$max} VND",
                             default => '-',
                         };
                     }),
                 TextColumn::make('applied_at')
                     ->label('Ngày ứng tuyển')
                     ->dateTime('d/m/Y H:i')
+                    ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label('Ngày tạo')
                     ->dateTime('d/m/Y H:i')
+                    ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
@@ -155,7 +157,7 @@ class ApplicationsTable
                     })
                     ->visible(fn () => (bool) Auth::user()?->hasRole('super_admin')),
                 SelectFilter::make('job_id')
-                    ->label('Công vi?c')
+                    ->label('Công việc')
                     ->options(fn () => RecruitmentJob::query()->orderBy('title')->limit(500)->pluck('title', 'id')->all())
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('job_id', $data['value']) : $query;
@@ -169,12 +171,12 @@ class ApplicationsTable
                         return filled($data['value'] ?? null) ? $query->where('candidate_id', $data['value']) : $query;
                     }),
                 SelectFilter::make('source')
-                    ->label('Ngu?n')
+                    ->label('Nguồn')
                     ->options([
                         'website' => 'Website',
                         'facebook' => 'Facebook',
                         'linkedin' => 'LinkedIn',
-                        'referral' => 'Giới thi?u',
+                        'referral' => 'Giới thiệu',
                         'other' => 'Khác',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
@@ -189,8 +191,8 @@ class ApplicationsTable
                 SelectFilter::make('cv_state')
                     ->label('Tình trạng CV')
                     ->options([
-                        'has_cv' => 'Ðã có CV',
-                        'missing_cv' => 'Chua có CV',
+                        'has_cv' => 'Đã có CV',
+                        'missing_cv' => 'Chưa có CV',
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
@@ -204,15 +206,15 @@ class ApplicationsTable
                 Filter::make('applied_at_range')
                     ->label('Ngày ứng tuyển')
                     ->form([
-                        DatePicker::make('applied_from')->label('Từ ngày')->native(false)->displayFormat('d/m/Y'),
-                        DatePicker::make('applied_until')->label('Ðến ngày')->native(false)->displayFormat('d/m/Y'),
+                        DatePicker::make('applied_from')->label('Từ ngày')->native(false)->displayFormat('d/m/Y')->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
+                        DatePicker::make('applied_until')->label('Đến ngày')->native(false)->displayFormat('d/m/Y')->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when(filled($data['applied_from'] ?? null), fn (Builder $q) => $q->whereDate('applied_at', '>=', $data['applied_from']))
                             ->when(filled($data['applied_until'] ?? null), fn (Builder $q) => $q->whereDate('applied_at', '<=', $data['applied_until']));
                     }),
-                TrashedFilter::make()->label('Bản ghi dã xóa'),
+                TrashedFilter::make()->label('Bản ghi đã xóa'),
             ])
             ->filtersFormColumns(3)
             ->recordActions([
@@ -247,7 +249,7 @@ class ApplicationsTable
 
                             Notification::make()
                                 ->success()
-                                ->title('Ðã gửi offer')
+                                ->title('Đã gửi offer')
                                 ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
                                 ->send();
                         } catch (\Throwable $exception) {
@@ -261,7 +263,7 @@ class ApplicationsTable
                             Notification::make()
                                 ->warning()
                                 ->title('Gửi offer thất bại')
-                                ->body('Offer dã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
+                                ->body('Offer đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
                                 ->send();
                         }
                     })
@@ -278,7 +280,7 @@ class ApplicationsTable
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->label('Xóa dã chặnn'),
+                    DeleteBulkAction::make()->label('Xóa đã chọn'),
                     ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
                     RestoreBulkAction::make()->label('Khôi phục'),
                 ]),
@@ -453,56 +455,14 @@ class ApplicationsTable
 
     protected static function formatUserRole(?string $role): string
     {
-        return Action::make('interview')
-            ->label("Phỏng vấn")
-            ->icon('heroicon-o-calendar-days')
-            ->color(fn (Application $record): string => static::hasInterviewStatus($record) ? 'info' : 'warning')
-            ->modalWidth('3xl')
-            ->modalHeading(fn (Application $record): string => $record->latestInterview()->exists() ? "\u{0110}i\u{1EC1}u ch\u{1EC9}nh l\u{1ECB}ch ph\u{1ECF}ng v\u{1EA5}n" : "T\u{1EA1}o l\u{1ECB}ch ph\u{1ECF}ng v\u{1EA5}n")
-            ->modalDescription(fn (Application $record): string => "H\u{1ED3} s\u{01A1} #" . $record->id . ' - ' . ($record->candidate?->name ?? "\u{1EE8}ng vi\u{00EA}n"))
-            ->fillForm(fn (Application $record): array => static::getInterviewFormData($record))
-            ->form([
-                DateTimePicker::make('scheduled_at')
-                    ->label('Thời gian phỏng vấn')
-                    ->native(false)
-                    ->seconds(false)
-                    ->required(),
-                Select::make('type')
-                    ->label('Hình thức phỏng vấn')
-                    ->options([
-                        'online' => 'Online',
-                        'offline' => 'Offline',
-                    ])
-                    ->default('online')
-                    ->live()
-                    ->required(),
-                TextInput::make('meeting_link')
-                    ->label('Link phỏng vấn')
-                    ->url()
-                    ->maxLength(500)
-                    ->visible(fn (callable $get): bool => $get('type') === 'online')
-                    ->required(fn (callable $get): bool => $get('type') === 'online'),
-                Select::make('workplace_id')
-                    ->label('Địa điểm phỏng vấn')
-                    ->options(fn (Application $record): array => static::getWorkplaceOptions($record))
-                    ->searchable()
-                    ->preload()
-                    ->visible(fn (callable $get): bool => $get('type') === 'offline')
-                    ->required(fn (callable $get): bool => $get('type') === 'offline'),
-                Select::make('interviewer_id')
-                    ->label('Người phỏng vấn')
-                    ->options(fn (Application $record): array => static::getInterviewerOptions($record))
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-                Textarea::make('notes')
-                    ->label('Ghi chu')
-                    ->rows(4)
-                    ->columnSpanFull(),
-            ])
-            ->action(function (Application $record, array $data): void {
-                $existingInterview = $record->latestInterview()->first();
-                $nextRound = max(1, $record->interviews()->count() + ($existingInterview ? 0 : 1));
+        return match ($role) {
+            'director' => 'Giám đốc',
+            'pm' => 'Quản lý dự án',
+            'hr' => 'Nhân sự',
+            'admin' => 'Quản trị viên',
+            default => (string) $role,
+        };
+    }
 
     protected static function makePipelineAction(): Action
     {
@@ -515,7 +475,7 @@ class ApplicationsTable
             ->modalWidth(fn (Application $record): string => static::canManageInterview($record) ? '3xl' : '4xl')
             ->modalHeading(function (Application $record): string {
                 if (static::canManageInterview($record)) {
-                    return $record->interviews()->exists() ? 'Ðiều chỉnh lịch phỏng vấn' : 'Tạo lịch phỏng vấn';
+                    return $record->interviews()->exists() ? 'Điều chỉnh lịch phỏng vấn' : 'Tạo lịch phỏng vấn';
                 }
 
                 if (static::canManageOffer($record)) {
@@ -524,7 +484,7 @@ class ApplicationsTable
 
                 return 'Xử lý hồ sơ';
             })
-            ->modalDescription(fn (Application $record): string => 'Hồ sơ #' . $record->id . ' - ' . ($record->candidate?->name ?? '?ng viên'))
+            ->modalDescription(fn (Application $record): string => 'Hồ sơ #' . $record->id . ' - ' . ($record->candidate?->name ?? 'Ứng viên'))
             ->fillForm(function (Application $record): array {
                 if (static::canManageInterview($record)) {
                     return static::getInterviewFormData($record);
@@ -542,7 +502,12 @@ class ApplicationsTable
             ->form(function (Application $record): array {
                 if (static::canManageInterview($record)) {
                     return [
-                        DateTimePicker::make('scheduled_at')->label('Thời gian phỏng vấn')->native(false)->seconds(false)->required(),
+                        DateTimePicker::make('scheduled_at')
+                            ->label('Thời gian phỏng vấn')
+                            ->native(false)
+                            ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                            ->seconds(false)
+                            ->required(),
                         Select::make('type')
                             ->label('Hình thức phỏng vấn')
                             ->options(['online' => 'Online', 'offline' => 'Offline'])
@@ -556,14 +521,14 @@ class ApplicationsTable
                             ->visible(fn (callable $get): bool => $get('type') === 'online')
                             ->required(fn (callable $get): bool => $get('type') === 'online'),
                         Select::make('workplace_id')
-                            ->label('Ðịa điểm phỏng vấn')
+                            ->label('Địa điểm phỏng vấn')
                             ->options(fn (Application $record): array => static::getWorkplaceOptions($record))
                             ->searchable()
                             ->preload()
                             ->visible(fn (callable $get): bool => $get('type') === 'offline')
                             ->required(fn (callable $get): bool => $get('type') === 'offline'),
                         Select::make('interviewer_id')
-                            ->label('Nguời phỏng vấn')
+                            ->label('Người phỏng vấn')
                             ->options(fn (Application $record): array => static::getInterviewerOptions($record))
                             ->searchable()
                             ->preload()
@@ -574,7 +539,12 @@ class ApplicationsTable
 
                 return [
                     TextInput::make('salary_offered')->label('Mức lương đề nghị')->numeric()->minValue(0)->required()->suffix('VND'),
-                    DatePicker::make('start_date')->label('Ngày bắt đầu dự kiến')->native(false)->displayFormat('d/m/Y')->required(),
+                    DatePicker::make('start_date')
+                        ->label('Ngày bắt đầu dự kiến')
+                        ->native(false)
+                        ->displayFormat('d/m/Y')
+                        ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                        ->required(),
                     TextInput::make('probation_months')->label('Thời gian thử việc')->numeric()->minValue(0)->default(2)->required()->suffix('tháng'),
                     Textarea::make('content')
                         ->label('Nội dung thư mời nhận việc')
@@ -636,14 +606,14 @@ class ApplicationsTable
                         $interview->forceFill(['invite_sent_at' => now()])->save();
                     }
 
-                    $notification = Notification::make()->title($existingInterview ? 'Ðã cập nhật lịch phỏng vấn' : 'Ðã tạo lịch phỏng vấn');
+                    $notification = Notification::make()->title($existingInterview ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn');
 
                     if ($failedCount > 0) {
                         $notification->warning()->body("Lịch phỏng vấn đã được lưu, gửi email thành công {$sentCount} và thất bại {$failedCount}.");
                     } elseif ($sentCount === 0) {
                         $notification->warning()->body('Lịch phỏng vấn đã được lưu nhưng không tìm thấy email để gửi thông báo.');
                     } else {
-                        $notification->success()->body("Ðã lưu lịch phỏng vấn và gửi {$sentCount} email thông báo.");
+                        $notification->success()->body("Đã lưu lịch phỏng vấn và gửi {$sentCount} email thông báo.");
                     }
 
                     $notification->send();
@@ -670,11 +640,12 @@ class ApplicationsTable
 
                 Notification::make()
                     ->success()
-                    ->title($existingOffer ? 'Ðã lưu offer' : 'Ðã tạo offer')
-                    ->body('Offer dã được lưu. Có thể ấn gửi offer để gửi email cho ứng viên.')
+                    ->title($existingOffer ? 'Đã lưu offer' : 'Đã tạo offer')
+                    ->body('Offer đã được lưu. Có thể ấn gửi offer để gửi email cho ứng viên.')
                     ->send();
             })
             ->visible(fn (Application $record): bool => static::getPipelineActionLabel($record) !== null)
             ->disabled(fn (Application $record): bool => static::getPipelineActionLabel($record) === null);
     }
 }
+
