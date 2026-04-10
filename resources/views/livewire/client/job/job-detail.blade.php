@@ -778,6 +778,25 @@
 
                     <div class="jd-block">
                         <div class="jd-block-head">
+                            <div class="jd-block-icon"><i class="fa fa-th-large"></i></div>
+                            <div>
+                                <h3>Danh mục nghề nghiệp</h3>
+                            </div>
+                        </div>
+
+                        @if ($job->categories->isNotEmpty())
+                            <div class="jd-skills">
+                                @foreach ($job->categories as $category)
+                                    <div class="jd-skill">{{ $category->name }}</div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="jd-empty">Tin đăng này chưa được phân loại danh mục cụ thể.</p>
+                        @endif
+                    </div>
+
+                    <div class="jd-block">
+                        <div class="jd-block-head">
                             <div class="jd-block-icon"><i class="fa fa-code"></i></div>
                             <div>
                                 <h3>Kỹ năng liên quan</h3>

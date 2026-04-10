@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Models\User;
@@ -14,6 +15,7 @@ class RecruitmentJobSeeder extends Seeder
     {
         $departments = Department::query()->get();
         $workplaces = Workplace::query()->get();
+        $categories = Category::query()->get();
         $creator = User::query()->first();
 
         if ($departments->isEmpty() || $workplaces->isEmpty() || ! $creator) {
@@ -225,7 +227,7 @@ class RecruitmentJobSeeder extends Seeder
             $department = $departments[$index % $departments->count()];
             $workplace = $workplaces[$index % $workplaces->count()];
 
-            RecruitmentJob::query()->updateOrCreate(
+            $recruitmentJob = RecruitmentJob::query()->updateOrCreate(
                 ['slug' => $job['slug']],
                 [
                     'title' => $job['title'],
@@ -244,6 +246,12 @@ class RecruitmentJobSeeder extends Seeder
                     'updated_at' => now(),
                 ],
             );
+
+            if ($categories->isNotEmpty()) {
+                $recruitmentJob->categories()->sync(
+                    $categories->random(min($categories->count(), rand(1, 2)))->pluck('id')
+                );
+            }
         }
     }
 }

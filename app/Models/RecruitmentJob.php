@@ -58,4 +58,9 @@ class RecruitmentJob extends Model
         return $this->belongsToMany(Skill::class, 'job_skills', 'job_id', 'skill_id')
             ->withPivot(['level', 'is_required']);
     }
+
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class, 'recruitment_job_category', 'recruitment_job_id', 'category_id');
+    }
 }

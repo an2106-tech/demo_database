@@ -218,7 +218,7 @@
                    <div class="row g-4 category-grid">
                        @forelse ($categories as $category)
                            <div class="col-lg-3 col-md-6 col-sm-6">
-                               <a href="{{ route('candidates.browse_job') }}" class="single-category-holder category-card">
+                               <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder category-card">
                                    <div class="category-holder-icon">
                                        @php($icon = trim((string) ($category->icon ?? '')))
                                        <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>

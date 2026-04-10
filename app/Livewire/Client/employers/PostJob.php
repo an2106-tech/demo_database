@@ -8,6 +8,7 @@ use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Models\Skill;
 use App\Models\Workplace;
+use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -31,13 +32,15 @@ class PostJob extends Component
 
     public int $positions_count = 1;
 
-    public string $status = StatusRecruitmentJobsEnum::PUBLISHED->value;
+    public string $status = StatusRecruitmentJobsEnum::PENDING->value;
 
     public ?string $salary_min = null;
 
     public ?string $salary_max = null;
 
     public array $skills = [];
+
+    public array $selected_categories = [];
 
     public string $skills_level = 'mid';
 
@@ -69,6 +72,7 @@ class PostJob extends Component
             }
 
             $this->skills = $job->skills->pluck('id')->toArray();
+            $this->selected_categories = $job->categories->pluck('id')->toArray();
             $firstSkill = $job->skills->first();
             if ($firstSkill) {
                 $this->skills_level = $firstSkill->pivot->level ?? 'mid';
@@ -104,12 +108,14 @@ class PostJob extends Component
             'public_url' => ['nullable', 'url', 'max:2048', 'unique:recruitment_jobs,public_url'],
             'deadline' => ['nullable', 'date', 'after_or_equal:today'],
             'positions_count' => ['required', 'integer', 'min:1', 'max:99'],
-            'status' => ['required', 'in:draft,published'],
+            'status' => ['required', 'in:draft,pending,published'],
             'salary_min' => ['nullable', 'numeric', 'min:0'],
             'salary_max' => ['nullable', 'numeric', 'min:0'],
             'skills' => ['required', 'array', 'min:1'],
             'skills.*' => ['integer', 'distinct', 'exists:skills,id'],
             'skills_level' => ['required', 'in:junior,mid,senior'],
+            'selected_categories' => ['required', 'array', 'min:1'],
+            'selected_categories.*' => ['integer', 'distinct', 'exists:categories,id'],
         ];
     }
 
@@ -192,12 +198,15 @@ class PostJob extends Component
         }
         $job->skills()->sync($pivotData);
 
-        session()->flash(
-            'status',
-            $job->status === StatusRecruitmentJobsEnum::PUBLISHED
-                ? 'Tin tuyển dụng đã được đăng thành công.'
-                : 'Tin tuyển dụng đã được lưu nháp.'
-        );
+        $job->categories()->sync($validated['selected_categories']);
+
+        $statusMessage = match ($job->status) {
+            StatusRecruitmentJobsEnum::PUBLISHED => 'Tin tuyển dụng đã được đăng thành công.',
+            StatusRecruitmentJobsEnum::PENDING => 'Tin tuyển dụng đã được gửi và đang chờ phê duyệt.',
+            default => 'Tin tuyển dụng đã được lưu nháp.',
+        };
+
+        session()->flash('status', $statusMessage);
 
         return redirect()->route('employers.manage_jobs');
     }
@@ -226,11 +235,16 @@ class PostJob extends Component
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $categoriesOptions = Category::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         return view('livewire.client.employers.post_job', [
             'branches' => $branches,
             'departments' => $departments,
             'workplaces' => $workplaces,
             'skillsOptions' => $skillsOptions,
+            'categoriesOptions' => $categoriesOptions,
             'isBranchLocked' => (bool) $user?->branchScopeId(),
         ]);
     }

@@ -3,75 +3,177 @@
         /** @var \Illuminate\Support\Collection<int, \App\Models\Department>|\App\Models\Department[] $departments */
     @endphp
     <style>
-        .browse-jobs-page .job-browse-action {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .browse-jobs-page .job-browse-action .dropdown .btn-dropdown {
-            white-space: nowrap;
-            padding-right: 34px;
-            flex: 0 0 auto;
-        }
-
-        .browse-jobs-page .job-view-toggle {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .browse-jobs-page .job-view-toggle button {
-            width: 46px;
-            height: 46px;
-            border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, .35);
+        .browse-jobs-page .browse-job-head-option {
             background: #fff;
-            display: inline-flex;
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, .06);
+            border: 1px solid rgba(226, 232, 240, .8);
+            margin-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .browse-jobs-page .job-browse-search-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 200px 220px auto;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .browse-jobs-page .form-control, 
+        .browse-jobs-page .form-select {
+            height: 50px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, .3);
+            background: #f8fafc;
+            padding: 0 16px;
+            font-size: 14px;
+            transition: all .2s;
+        }
+
+        .browse-jobs-page .form-control:focus, 
+        .browse-jobs-page .form-select:focus {
+            background: #fff;
+            border-color: #2f7ff7;
+            box-shadow: 0 0 0 4px rgba(47, 127, 247, .1);
+            outline: none;
+        }
+
+        .browse-jobs-page .btn-reset {
+            height: 50px;
+            padding: 0 24px;
+            border-radius: 12px;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            font-weight: 700;
+            display: flex;
             align-items: center;
             justify-content: center;
-            line-height: 1;
+            gap: 8px;
+            white-space: nowrap;
+            transition: all .2s;
         }
 
-        .browse-jobs-page .job-view-toggle button.active {
-            border-color: #2f7ff7;
-            box-shadow: 0 0 0 3px rgba(47, 127, 247, .15);
+        .browse-jobs-page .btn-reset:hover {
+            background: #fa5a1f;
+            transform: translateY(-1px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, .2);
         }
 
-        .browse-jobs-page .job-view-toggle button:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(47, 127, 247, .15);
-        }
-
-        /* Equal-Height Cards and Bottom-Aligned Buttons */
-        .browse-jobs-page .row > .col-md-6,
-        .browse-jobs-page .row > .col-lg-4 {
+        .browse-jobs-page .job-browse-action-bar {
             display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(226, 232, 240, .6);
+        }
+
+        .browse-jobs-page .email-alerts-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f1f5f9;
+            padding: 8px 16px;
+            border-radius: 100px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .browse-jobs-page .job-view-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .browse-jobs-page .view-toggle-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, .2);
+            background: #fff;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+        }
+
+        .browse-jobs-page .view-toggle-btn.active {
+            background: #2f7ff7;
+            color: #fff;
+            border-color: #2f7ff7;
+            box-shadow: 0 8px 16px rgba(47, 127, 247, .25);
+        }
+
+        .browse-jobs-page .sort-dropdown .btn-sort {
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, .2);
+            background: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 991px) {
+            .browse-jobs-page .job-browse-search-wrapper {
+                grid-template-columns: 1fr 1fr;
+            }
+            .browse-jobs-page .btn-reset {
+                grid-column: span 2;
+            }
+        }
+
+        @media (max-width: 575px) {
+            .browse-jobs-page .job-browse-search-wrapper {
+                grid-template-columns: 1fr;
+            }
+            .browse-jobs-page .btn-reset {
+                grid-column: span 1;
+            }
+            .browse-jobs-page .email-alerts-box span {
+                display: none;
+            }
+        }
+
+        /* Equal-Height Cards */
+        .browse-jobs-page .job-grid-row {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .browse-jobs-page .job-item-col {
+            display: flex;
+            margin-bottom: 24px;
         }
 
         .browse-jobs-page .sigle-top-job {
             display: flex;
             flex-direction: column;
             width: 100%;
-            height: 100%;
+            background: #fff;
+            border: 1px solid rgba(226, 232, 240, .8);
+            border-radius: 18px;
+            padding: 24px;
+            transition: all .3s;
         }
 
-        .browse-jobs-page .top-job-company-desc {
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 auto;
-        }
-
-        .browse-jobs-page .top-job-company-desc ul {
-            flex: 1 1 auto;
-            margin-bottom: 20px; /* spacing before the button */
-        }
-
-        .browse-jobs-page .top-job-company-btn {
-            margin-top: auto; /* pushes button to the very bottom */
+        .browse-jobs-page .sigle-top-job:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(15, 23, 42, .08);
+            border-color: rgba(47, 127, 247, .3);
         }
     </style>
+
     <!-- Breadcrumb -->
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
@@ -108,50 +210,55 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="browse-job-head-option">
-                        <div class="job-browse-search">
-                            <form class="d-flex flex-wrap gap-2 align-items-center w-100" wire:submit.prevent>
-                                <input type="search" class="form-control flex-grow-1" style="min-width:200px;border-radius:12px;"
-                                    placeholder="Từ khóa (VD: Laravel, Kế toán...)"
-                                    wire:model.live.debounce.400ms="q">
-                                <input type="text" class="form-control" style="max-width:200px;border-radius:12px;"
-                                    placeholder="Khu vực"
-                                    wire:model.live.debounce.400ms="city">
-                                <select class="form-select" style="max-width:220px;border-radius:12px;" wire:model.live="department_id">
-                                    <option value="">Phòng ban</option>
-                                    @foreach(($departments ?? []) as $d)
-                                        <option value="{{ $d->id }}">{{ $d->name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="button" class="jobguru-btn" wire:click="$set('q', ''); $set('city', ''); $set('department_id', null)">
-                                    Xóa lọc
-                                </button>
-                            </form>
+                        <div class="job-browse-search-wrapper">
+                            <input type="search" class="form-control"
+                                placeholder="Từ khóa (Laravel, Kế toán...)"
+                                wire:model.live.debounce.400ms="q">
+                            
+                            <input type="text" class="form-control"
+                                placeholder="Khu vực"
+                                wire:model.live.debounce.400ms="city">
+                            
+                            <select class="form-select" wire:model.live="department_id">
+                                <option value="">Tất cả phòng ban</option>
+                                @foreach(($departments ?? []) as $d)
+                                    <option value="{{ $d->id }}">{{ $d->name }}</option>
+                                @endforeach
+                            </select>
+
+                            <button type="button" class="btn-reset" wire:click="$set('q', ''); $set('city', ''); $set('department_id', null)">
+                                <i class="fa fa-refresh"></i> Xóa lọc
+                            </button>
                         </div>
-                        <div class="job-browse-action">
-                            <div class="email-alerts">
-                                <input type="checkbox" class="styled" id="b_1">
-                                <label class="styled" for="b_1">Nhận thông báo qua email cho tìm kiếm này</label>
+
+                        <div class="job-browse-action-bar">
+                            <div class="email-alerts-box">
+                                <input type="checkbox" id="email-alert-chk">
+                                <label for="email-alert-chk" class="mb-0"><span>Nhận thông báo qua email cho tìm kiếm này</span></label>
                             </div>
-                            <div class="dropdown">
-                                <button class="btn-dropdown dropdown-toggle" type="button" id="dropdowncur"
-                                    data-bs-toggle="dropdown" aria-haspopup="true" style="text-transform:none;">Sắp xếp theo</button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdowncur">
-                                    <li>Mới nhất</li>
-                                    <li>Cũ nhất</li>
-                                    <li>Ngẫu nhiên</li>
-                                </ul>
-                            </div>
-                            <div class="job-view-toggle">
-                                <button type="button"
-                                    class="{{ ($display ?? 'grid') === 'grid' ? 'active' : '' }}"
-                                    wire:click="setDisplay('grid')" title="Dạng lưới">
-                                    <i class="fa fa-th"></i>
-                                </button>
-                                <button type="button"
-                                    class="{{ ($display ?? 'grid') === 'list' ? 'active' : '' }}"
-                                    wire:click="setDisplay('list')" title="Dạng danh sách">
-                                    <i class="fa fa-list"></i>
-                                </button>
+
+                            <div class="job-view-controls">
+                                <div class="dropdown sort-dropdown">
+                                    <button class="btn-sort dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                        Sắp xếp theo
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#">Mới nhất</a></li>
+                                        <li><a class="dropdown-item" href="#">Cũ nhất</a></li>
+                                        <li><a class="dropdown-item" href="#">Ngẫu nhiên</a></li>
+                                    </ul>
+                                </div>
+
+                                <div class="job-view-toggle">
+                                    <button type="button" class="view-toggle-btn {{ ($display ?? 'grid') === 'grid' ? 'active' : '' }}"
+                                        wire:click="setDisplay('grid')" title="Dạng lưới">
+                                        <i class="fa fa-th"></i>
+                                    </button>
+                                    <button type="button" class="view-toggle-btn {{ ($display ?? 'grid') === 'list' ? 'active' : '' }}"
+                                        wire:click="setDisplay('list')" title="Dạng danh sách">
+                                        <i class="fa fa-list"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -27,10 +27,15 @@ class Login extends Component
         $this->role = $this->normalizeRole(is_string($requestedRole) ? $requestedRole : '');
     }
 
+    public function setRole(string $role): void
+    {
+        $this->resetErrorBag();
+        $this->role = $this->normalizeRole($role);
+    }
+
     public function login(): mixed
     {
         $credentials = $this->validate([
-            'role' => ['required', 'in:candidate,employer'],
             'email' => ['required', 'email'],
             'password' => ['required', 'string', 'min:6'],
             'remember' => ['boolean'],
@@ -62,8 +67,10 @@ class Login extends Component
             return null;
         }
 
-        if (in_array($user->role, ['hr', 'admin'], true)) {
-            session(['client_menu_type' => $this->role === 'candidate' ? 'candidate' : 'employer']);
+        if ($user->role === 'hr') {
+            session(['client_menu_type' => 'employer']);
+        } elseif ($user->role === 'candidate') {
+            session(['client_menu_type' => 'candidate']);
         } else {
             session()->forget('client_menu_type');
         }

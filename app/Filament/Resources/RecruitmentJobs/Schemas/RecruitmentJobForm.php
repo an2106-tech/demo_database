@@ -225,9 +225,17 @@ class RecruitmentJobForm
                                         return ['min' => $min, 'max' => $max];
                                     })()),
                             ]),
-                        Fieldset::make('Kỹ năng & Công khai')
+                        Fieldset::make('Phân loại & Kỹ năng')
                             ->columns(2)
                             ->schema([
+                                Select::make('categories')
+                                    ->label('Danh mục nghề nghiệp')
+                                    ->relationship('categories', 'name')
+                                    ->searchable()
+                                    ->preload()
+                                    ->multiple()
+                                    ->required()
+                                    ->rules(['required']),
                                 Select::make('skills')
                                     ->label('Kỹ năng')
                                     ->relationship('skills', 'name')

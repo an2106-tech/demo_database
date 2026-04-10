@@ -28,41 +28,60 @@
    </section>
    <section class="jobguru-login-area section_70">
       <div class="container">
-         <div class="row">
-            <div class="col-lg-4 offset-lg-4 col-sm-6 offset-sm-3">
-               <div class="login-box">
-                  <div class="login-title">
-                     <h3>Đăng nhập</h3>
+         <div class="row justify-content-center">
+            <div class="col-12 auth-card">
+               <div class="auth-shell auth-shell--candidate">
+                  <div class="auth-shell__aside">
+                     <div class="auth-shell__badge">Chào mừng</div>
+                     <h3 class="auth-shell__title">Hành trình mới đang chờ đón bạn</h3>
+                     <p class="auth-shell__subtitle">
+                        Đăng nhập để quản lý hồ sơ, theo dõi việc làm và kết nối với các cơ hội nghề nghiệp hấp dẫn nhất.
+                     </p>
+                     <ul class="auth-shell__list">
+                        <li><i class="fa fa-check-circle"></i> Bảo mật thông tin tuyệt đối</li>
+                        <li><i class="fa fa-check-circle"></i> Trải nghiệm mượt mà</li>
+                        <li><i class="fa fa-check-circle"></i> Hỗ trợ 24/7</li>
+                     </ul>
                   </div>
-                  <form wire:submit.prevent="login">
-                     <input type="hidden" wire:model="role" value="{{ request('role') === 'employer' ? 'employer' : 'candidate' }}">
-                     <div class="single-login-field">
-                        <input type="email" placeholder="Địa chỉ email" wire:model="email">
-                        @error('email')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
+                  <div class="auth-shell__main">
+                     <div class="auth-shell__header">
+                        <h3>Đăng nhập</h3>
+                        <p>Vui lòng nhập thông tin tài khoản của bạn.</p>
                      </div>
-                     <div class="single-login-field">
-                        <input type="password" placeholder="Mật khẩu" wire:model="password">
-                        @error('password')
-                           <p class="text-danger" style="margin:6px 0 0;">{{ $message }}</p>
-                        @enderror
+                     <form wire:submit.prevent="login" class="auth-form">
+                        <div class="single-login-field">
+                           <label>Email</label>
+                           <input type="email" placeholder="Địa chỉ email" class="form-control" wire:model="email">
+                           @error('email')
+                              <p class="text-danger invalid-text">{{ $message }}</p>
+                           @enderror
+                        </div>
+                        
+                        <div class="single-login-field">
+                           <label>Mật khẩu</label>
+                           <input type="password" placeholder="Mật khẩu" class="form-control" wire:model="password">
+                           @error('password')
+                              <p class="text-danger invalid-text">{{ $message }}</p>
+                           @enderror
+                        </div>
+                        
+                        <div class="remember-row single-login-field d-flex justify-content-between align-items-center mb-4">
+                           <div class="terms-field mb-0">
+                              <input type="checkbox" id="remember-login" wire:model="remember" style="width:16px; height:16px;">
+                              <div class="terms-copy">
+                                 <label for="remember-login" style="font-size:14px; margin-bottom:0;">Ghi nhớ đăng nhập</label>
+                              </div>
+                           </div>
+                           <a href="#" class="small text-muted">Quên mật khẩu?</a>
+                        </div>
+                        
+                        <div class="auth-actions single-login-field">
+                           <button type="submit" class="auth-submit-btn">Đăng nhập</button>
+                        </div>
+                     </form>
+                     <div class="auth-links mt-4 text-center">
+                        <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">Bạn chưa có tài khoản? Đăng ký ngay</a>
                      </div>
-                     <div class="remember-row single-login-field clearfix">
-                        <p class="checkbox remember">
-                           <input class="checkbox-spin" type="checkbox" id="remember-login" wire:model="remember">
-                           <label for="remember-login"><span></span>Duy trì đăng nhập</label>
-                        </p>
-                        <p class="lost-pass">
-                           <a href="#">Quên mật khẩu?</a>
-                        </p>
-                     </div>
-                     <div class="single-login-field">
-                        <button type="submit">Đăng nhập</button>
-                     </div>
-                  </form>
-                  <div class="dont_have">
-                     <a href="{{ route('auth.sign_up', ['role' => request('role') === 'employer' ? 'employer' : 'candidate']) }}">Chưa có tài khoản? Đăng ký ngay</a>
                   </div>
                </div>
             </div>

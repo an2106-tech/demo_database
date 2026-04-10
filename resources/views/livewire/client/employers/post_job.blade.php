@@ -285,6 +285,31 @@
                                             </div>
                                         </div>
 
+                                        <div class="single-resume-feild">
+                                            <div class="single-input" x-data="{
+                                                initSelect2() {
+                                                    $(this.$refs.select).select2({
+                                                        placeholder: 'Chọn một hoặc nhiều danh mục',
+                                                        width: '100%',
+                                                        allowClear: true
+                                                    }).on('change', (e) => {
+                                                        @this.set('selected_categories', $(this.$refs.select).val());
+                                                    });
+                                                }
+                                            }" x-init="initSelect2()">
+                                                <label for="job-categories">Danh mục nghề nghiệp</label>
+                                                <div wire:ignore>
+                                                    <select id="job-categories" x-ref="select" multiple="multiple">
+                                                        @foreach ($categoriesOptions as $category)
+                                                            <option value="{{ $category->id }}" @if(in_array($category->id, $selected_categories)) selected @endif>{{ $category->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                @error('selected_categories') <span class="text-danger">{{ $message }}</span> @enderror
+                                                @error('selected_categories.*') <span class="text-danger">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input" x-data="{
                                                 initSelect2() {
@@ -301,7 +326,7 @@
                                                 <div wire:ignore>
                                                     <select id="job-skills" x-ref="select" multiple="multiple">
                                                         @foreach ($skillsOptions as $skill)
-                                                            <option value="{{ $skill->id }}">{{ $skill->name }}</option>
+                                                            <option value="{{ $skill->id }}" @if(in_array($skill->id, $skills)) selected @endif>{{ $skill->name }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>

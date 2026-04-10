@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\RecruitmentJobs\Tables;
 
 use App\Models\Branch;
+use App\Models\Category;
 use App\Models\Department;
 use App\Models\Skill;
 use App\Models\Workplace;
@@ -13,6 +14,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Components\Grid as FormGrid;
+use Filament\Tables\Columns\SelectColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -30,34 +32,67 @@ class RecruitmentJobsTable
                 TextColumn::make('title')
                     ->label('Tiêu đề')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->wrap(),
+                TextColumn::make('categories.name')
+                    ->label('Danh mục')
+                    ->badge()
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('branch.image')
-                    ->label('Ảnh chi nhánh')
+                    ->label('Logo')
                     ->html()
                     ->formatStateUsing(fn (?string $state): HtmlString => new HtmlString(
                         $state
-                            ? '<img src="/storage/' . e($state) . '" alt="Ảnh chi nhánh" style="width:36px;height:36px;border-radius:9999px;object-fit:cover;" />'
+                            ? '<img src="/storage/' . e($state) . '" alt="Logo" style="width:32px;height:32px;border-radius:6px;object-fit:cover;" />'
                             : '<span style="color:#94a3b8;">-</span>'
-                    )),
+                    ))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('branch.name')
                     ->label('Chi nhánh')
-                    ->searchable(),
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('department.name')
                     ->label('Phòng ban')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('workplace.name')
                     ->label('Nơi làm việc')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('deadline')
-                    ->label('Ngày hết hạn')
+                    ->label('Hạn nộp')
                     ->date('d/m/Y')
-                    ->searchable(),
+                    ->sortable(),
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge()
-                    ->sortable(),
+                    ->sortable()
+                    ->action(
+                        \Filament\Actions\Action::make('updateStatus')
+                            ->label('Cập nhật trạng thái')
+                            ->modalHeading('Xác nhận thay đổi trạng thái')
+                            ->modalDescription('Bạn có chắc chắn muốn thay đổi trạng thái cho tin tuyển dụng này?')
+                            ->form([
+                                \Filament\Forms\Components\Select::make('status')
+                                    ->label('Chọn trạng thái mới')
+                                    ->options(\App\Enums\StatusRecruitmentJobsEnum::class)
+                                    ->required()
+                                    ->default(fn ($record) => $record->status),
+                            ])
+                            ->action(function ($record, array $data): void {
+                                $record->update(['status' => $data['status']]);
+                                \Filament\Notifications\Notification::make()
+                                    ->title('Thành công')
+                                    ->body('Trạng thái đã được cập nhật.')
+                                    ->success()
+                                    ->send();
+                            })
+                            ->modalSubmitActionLabel('Cập nhật')
+                    ),
                 TextColumn::make('salary_range')
                     ->label('Mức lương')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->state(function ($record): string {
                         $range = $record->salary_range;
 
@@ -74,6 +109,11 @@ class RecruitmentJobsTable
 
                         return $min ?? $max ?? '-';
                     }),
+                TextColumn::make('created_at')
+                    ->label('Ngày tạo')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
@@ -141,10 +181,47 @@ class RecruitmentJobsTable
 
                         return $query;
                     }),
+                SelectFilter::make('categories')
+                    ->label('Danh mục')
+                    ->options(fn () => Category::orderBy('name')->pluck('name', 'id')->all())
+                    ->searchable()
+                    ->multiple()
+                    ->query(function (Builder $query, array $data): Builder {
+                        if (blank($data['values'] ?? null)) {
+                            return $query;
+                        }
+
+                        return $query->whereHas(
+                            'categories',
+                            fn (Builder $categoryQuery) => $categoryQuery->whereIn('categories.id', $data['values'])
+                        );
+                    }),
             ])
             ->filtersFormColumns(4)
             ->filtersLayout(\Filament\Tables\Enums\FiltersLayout::AboveContent)
             ->recordActions([
+                \Filament\Actions\Action::make('updateStatus')
+                    ->label('Đổi trạng thái')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->modalHeading('Xác nhận thay đổi trạng thái')
+                    ->modalDescription('Bạn có chắc chắn muốn thay đổi trạng thái cho tin tuyển dụng này?')
+                    ->form([
+                        \Filament\Forms\Components\Select::make('status')
+                            ->label('Chọn trạng thái mới')
+                            ->options(\App\Enums\StatusRecruitmentJobsEnum::class)
+                            ->required()
+                            ->default(fn ($record) => $record->status),
+                    ])
+                    ->action(function ($record, array $data): void {
+                        $record->update(['status' => $data['status']]);
+                        \Filament\Notifications\Notification::make()
+                            ->title('Thành công')
+                            ->body('Trạng thái đã được cập nhật.')
+                            ->success()
+                            ->send();
+                    })
+                    ->modalSubmitActionLabel('Cập nhật'),
                 ViewAction::make()->label('Xem'),
                 EditAction::make()->label('Sửa'),
                 DeleteAction::make()->label('Xóa'),

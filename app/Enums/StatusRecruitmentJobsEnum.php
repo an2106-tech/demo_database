@@ -11,6 +11,7 @@ use Illuminate\Contracts\Support\Htmlable;
 enum StatusRecruitmentJobsEnum: string implements HasIcon, HasColor, HasLabel
 {
     case DRAFT = 'draft';
+    case PENDING = 'pending';
     case PUBLISHED = 'published';
     case CLOSED = 'closed';
     case ARCHIVED = 'archived';
@@ -20,6 +21,7 @@ enum StatusRecruitmentJobsEnum: string implements HasIcon, HasColor, HasLabel
     {
         return match ($this) {
             self::DRAFT => 'heroicon-o-pencil',
+            self::PENDING => 'heroicon-o-clock',
             self::PUBLISHED => 'heroicon-o-megaphone',
             self::CLOSED => 'heroicon-o-lock-closed',
             self::ARCHIVED => 'heroicon-o-archive-box',
@@ -31,9 +33,10 @@ enum StatusRecruitmentJobsEnum: string implements HasIcon, HasColor, HasLabel
     {
         return match ($this) {
             self::DRAFT => 'gray',
+            self::PENDING => 'warning',
             self::PUBLISHED => 'success',
-            self::CLOSED => 'warning',
-            self::ARCHIVED => 'danger',
+            self::CLOSED => 'danger',
+            self::ARCHIVED => 'info',
             self::EXPIRED => 'danger',
         };
     }
@@ -42,6 +45,7 @@ enum StatusRecruitmentJobsEnum: string implements HasIcon, HasColor, HasLabel
     {
         return match ($this) {
             self::DRAFT => 'Nháp',
+            self::PENDING => 'Chờ duyệt',
             self::PUBLISHED => 'Đang đăng',
             self::CLOSED => 'Đã đóng',
             self::ARCHIVED => 'Lưu trữ',

@@ -21,11 +21,14 @@ class BrowseJobs extends Component
 
     public ?int $department_id = null;
 
+    public ?int $category_id = null;
+
     protected array $queryString = [
         'display' => ['except' => 'grid'],
         'q' => ['except' => ''],
         'city' => ['except' => ''],
         'department_id' => ['except' => null],
+        'category_id' => ['except' => null],
     ];
 
     public function mount(): void
@@ -41,6 +44,9 @@ class BrowseJobs extends Component
         $this->city = (string) request()->query('city', '');
         $dept = request()->query('department_id');
         $this->department_id = $dept !== null && $dept !== '' ? (int) $dept : null;
+        
+        $cat = request()->query('category_id');
+        $this->category_id = $cat !== null && $cat !== '' ? (int) $cat : null;
 
         $this->normalizeDisplay();
     }
@@ -87,6 +93,12 @@ class BrowseJobs extends Component
 
         if (! empty($this->department_id)) {
             $jobsQuery->where('department_id', $this->department_id);
+        }
+
+        if (! empty($this->category_id)) {
+            $jobsQuery->whereHas('categories', function ($query) {
+                $query->where('categories.id', $this->category_id);
+            });
         }
 
         $jobs = $jobsQuery->latest()->get();

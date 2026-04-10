@@ -16,7 +16,7 @@ class JobDetail extends Component
     {
         $this->id = $id;
 
-        $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills'])
+        $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills', 'categories'])
             ->findOrFail($id);
     }
 

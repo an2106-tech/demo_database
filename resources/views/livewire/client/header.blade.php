@@ -1,4 +1,4 @@
-﻿<div x-data="{ active: @entangle('type').live }">
+<div x-data="{ active: @entangle('type').live }">
    <style>
       /* Khối Dropdown */
       .userbox-dropdown {
@@ -529,7 +529,8 @@
                            @auth
                               @if($showRoleSwitcher ?? false)
                                  <li>
-                                    <div class="role-switcher" role="group" x-data="{ active: @entangle('type').live }" :data-active="active" aria-label="Chuyển chế độ">
+                                                                         <div class="role-switcher" role="group" :data-active="active" aria-label="Chuyển chế độ">
+
                                        <button type="button" wire:click="switchTo('candidate')"
                                           wire:loading.attr="disabled" wire:target="switchTo" @click="active = 'candidate'" class="role-switcher__btn is-candidate" :class="{ 'is-active': active === 'candidate' }">
                                           Ứng viên

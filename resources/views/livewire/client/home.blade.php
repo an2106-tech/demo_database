@@ -1,4 +1,4 @@
-﻿<div>
+<div>
     @php
         /** @var \Illuminate\Support\Collection<int, \App\Models\Department>|\App\Models\Department[] $departments */
         /** @var \Illuminate\Support\Collection<int, \App\Models\RecruitmentJob>|\App\Models\RecruitmentJob[] $featuredJobs */
@@ -30,7 +30,7 @@
             <div class="row">
                 @forelse($categories as $category)
                     <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="#" class="single-category-holder account_cat">
+                        <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder account_cat">
                             <div class="category-holder-icon">
                                 @php
                                     $icon = trim((string) ($category->icon ?? ''));
@@ -167,19 +167,18 @@
                                             {{ $spotlight->branch?->name ?? 'Chi nhánh' }}</p>
                                     </div>
                                 </div>
-                                <ul class="list-unstyled home-premium-job-card__meta small text-muted mb-3">
-                                    <li><i class="fa fa-map-marker me-1"></i>{{ $citySpot }}</li>
+                                <ul class="home-premium-job-card__meta list-unstyled mb-0">
+                                    <li><i class="fa fa-map-marker"></i>{{ $citySpot }}</li>
                                     @if ($spotlight->department)
-                                        <li><i class="fa fa-sitemap me-1"></i>{{ $spotlight->department->name }}</li>
+                                        <li><i class="fa fa-sitemap"></i>{{ $spotlight->department->name }}</li>
                                     @endif
-                                    <li><i class="fa fa-money me-1"></i>{{ $salaryLabel }}</li>
+                                    <li><i class="fa fa-money"></i>{{ $salaryLabel }}</li>
                                 </ul>
-                                <div class="d-flex gap-2 mt-auto">
+                                <div class="home-premium-job-card__actions">
                                     <a href="{{ route('candidates.job_detail', ['id' => $spotlight->id]) }}"
-                                        class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1">Chi tiết</a>
+                                        class="btn btn-outline-secondary">Chi tiết</a>
                                     <a href="{{ route('candidates.apply_job', ['job' => $spotlight->id]) }}"
-                                        class="btn btn-primary btn-sm rounded-pill flex-grow-1 home-premium-btn-apply">Ứng
-                                        tuyển</a>
+                                        class="btn btn-primary home-premium-btn-apply">Ứng tuyển</a>
                                 </div>
                             </article>
                         </div>
@@ -189,50 +188,73 @@
         </div>
     </section>
 
-    <section class="home-premium-split-cta section_70">
+
+    <section class="how-works-area section_100" style="background: #f8fafc;">
         <div class="container">
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="home-premium-cta-panel home-premium-cta-panel--candidate h-100">
-                        <span class="badge rounded-pill bg-white text-dark mb-3">Ứng viên</span>
-                        <h3 class="fw-bold text-white mb-2">Sẵn sàng nhảy việc?</h3>
-                        <p class="text-white-50 mb-4">Hoàn thiện CV, lưu việc yêu thích và nhận gợi ý phù hợp năng lực.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ route('candidates.browse_job') }}"
-                                class="btn btn-light rounded-pill px-4 fw-semibold">Khám phá việc làm</a>
-                            @auth
-                                <a href="{{ route('candidates.submit_resume') }}"
-                                    class="btn btn-outline-light rounded-pill px-4">Cập nhật hồ sơ</a>
-                            @else
-                                <a href="{{ route('register', ['role' => 'candidate']) }}"
-                                    class="btn btn-outline-light rounded-pill px-4">Tạo tài khoản</a>
-                            @endauth
-                        </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center mb-5">
+                    <div class="site-heading">
+                        <h2 class="fw-bold display-6 mb-3">Quy Trình <span style="color: #f37021;">3 Bước</span></h2>
+                        <p class="text-muted fs-5">Khám phá lộ trình đơn giản để kết nối nhân tài và cơ hội việc làm mơ ước.</p>
                     </div>
                 </div>
-                <div class="col-lg-6">
-                    <div class="home-premium-cta-panel home-premium-cta-panel--employer h-100">
-                        <span class="badge rounded-pill bg-dark bg-opacity-25 text-white mb-3">Nhà tuyển dụng</span>
-                        <h3 class="fw-bold text-white mb-2">Tuyển đúng người, đúng lúc</h3>
-                        <p class="text-white-50 mb-4">Đăng tin, quản lý hồ sơ ứng viên và đồng bộ quy trình phỏng vấn.
-                        </p>
-                        <div class="d-flex flex-wrap gap-2">
-                            <a href="{{ route('employers.post_job') }}"
-                                class="btn btn-warning rounded-pill px-4 fw-semibold text-dark">Đăng tin ngay</a>
-                            @auth
-                                <a href="{{ route('employers.dashboard') }}"
-                                    class="btn btn-outline-light rounded-pill px-4">Vào dashboard</a>
-                            @else
-                                <a href="{{ route('register', ['role' => 'employer']) }}"
-                                    class="btn btn-outline-light rounded-pill px-4">Đăng ký doanh nghiệp</a>
-                            @endauth
+            </div>
+            <div class="row g-4">
+                <!-- Bước 1 -->
+                <div class="col-lg-4">
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">1</div>
+                            <div class="ms-3 h-px bg-light flex-grow-1 d-none d-lg-block"></div>
                         </div>
+                        <div class="mb-3" style="color: #f37021;">
+                            <i class="fa fa-user-plus fa-2x"></i>
+                        </div>
+                        <h3 class="fw-bold h4 mb-3">Tạo tài khoản</h3>
+                        <p class="text-muted mb-0">Đăng ký nhanh chóng với vai trò Ứng viên hoặc Nhà tuyển dụng để bắt đầu tham gia hệ sinh thái.</p>
+                    </div>
+                </div>
+                <!-- Bước 2 -->
+                <div class="col-lg-4">
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">2</div>
+                            <div class="ms-3 h-px bg-light flex-grow-1 d-none d-lg-block"></div>
+                        </div>
+                        <div class="mb-3" style="color: #f37021;">
+                            <i class="fa fa-search fa-2x"></i>
+                        </div>
+                        <h3 class="fw-bold h4 mb-3">Tìm kiếm / Đăng tuyển</h3>
+                        <p class="text-muted mb-0">Ứng viên tìm kiếm công việc phù hợp, Nhà tuyển dụng đăng tin và quản lý hồ sơ ứng tuyển dễ dàng.</p>
+                    </div>
+                </div>
+                <!-- Bước 3 -->
+                <div class="col-lg-4">
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">3</div>
+                        </div>
+                        <div class="mb-3" style="color: #f37021;">
+                            <i class="fa fa-handshake-o fa-2x"></i>
+                        </div>
+                        <h3 class="fw-bold h4 mb-3">Phỏng vấn & Kết nối</h3>
+                        <p class="text-muted mb-0">Tiến hành phỏng vấn trực tiếp và chốt thỏa thuận. Chúng tôi đồng hành cùng bạn trong mọi quy trình.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <style>
+    .how-works-item {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .how-works-item:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
+    .h-px { height: 1px; }
+    </style>
 
     <section class="jobguru-job-tab-area section_70">
         <div class="container">
@@ -264,7 +286,6 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
-
                                     <style>
                                         #pills-companies .branch-card {
                                             background: #fff;
@@ -274,34 +295,28 @@
                                             margin: 0 0 18px;
                                             box-shadow: 0 1px 2px rgba(0, 0, 0, .03)
                                         }
-
                                         #pills-companies .branch-header {
                                             display: flex;
                                             gap: 16px;
                                             align-items: flex-start
                                         }
-
                                         #pills-companies .branch-logo {
                                             flex: 0 0 auto
                                         }
-
                                         #pills-companies .branch-logo img {
                                             width: 86px;
                                             height: 64px;
                                             object-fit: contain
                                         }
-
                                         #pills-companies .branch-main {
                                             flex: 1;
                                             min-width: 0
                                         }
-
                                         #pills-companies .branch-title {
                                             font-size: 18px;
                                             font-weight: 600;
                                             margin: 0 0 6px
                                         }
-
                                         #pills-companies .branch-meta {
                                             display: flex;
                                             flex-wrap: wrap;
@@ -310,7 +325,6 @@
                                             color: #6b7280;
                                             align-items: center
                                         }
-
                                         #pills-companies .branch-action {
                                             flex: 0 0 auto;
                                             display: flex;
@@ -318,7 +332,6 @@
                                             gap: 12px;
                                             white-space: nowrap
                                         }
-
                                         #pills-companies .branch-rating {
                                             background: #f5a623;
                                             color: #fff;
@@ -328,13 +341,11 @@
                                             padding: 2px 6px;
                                             line-height: 18px
                                         }
-
                                         #pills-companies .branch-jobs {
                                             margin-top: 14px;
                                             border-top: 1px solid #eef0f3;
                                             padding-top: 12px
                                         }
-
                                         #pills-companies .branch-job-row {
                                             display: flex;
                                             align-items: center;
@@ -345,7 +356,6 @@
                                             padding: 12px 14px;
                                             margin-top: 10px
                                         }
-
                                         #pills-companies .branch-job-title {
                                             flex: 1;
                                             min-width: 0;
@@ -353,11 +363,9 @@
                                             white-space: nowrap;
                                             text-overflow: ellipsis
                                         }
-
                                         #pills-companies .branch-job-title a {
                                             font-weight: 500
                                         }
-
                                         #pills-companies .branch-job-salary {
                                             width: 220px;
                                             text-align: right;
@@ -365,7 +373,6 @@
                                             color: #6b7280;
                                             white-space: nowrap
                                         }
-
                                         #pills-companies .branch-job-deadline {
                                             width: 70px;
                                             text-align: right;
@@ -374,13 +381,11 @@
                                             white-space: nowrap
                                         }
                                     </style>
-
                                     @forelse($branches as $branch)
                                                                         @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
                                                                         <?php
                                         $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
                                             ?? ($branch->city ?? null);
-
                                         $branchTitle = (string) ($branch->name ?? '');
                                         $titleLower = function_exists('mb_strtolower')
                                             ? mb_strtolower($branchTitle, 'UTF-8')
@@ -388,7 +393,6 @@
                                         $cityLower = $cityLabel
                                             ? (function_exists('mb_strtolower') ? mb_strtolower($cityLabel, 'UTF-8') : strtolower($cityLabel))
                                             : '';
-
                                         if ($cityLabel && $cityLower !== '' && !str_contains($titleLower, $cityLower)) {
                                             $branchTitle .= ' - ' . $cityLabel;
                                         }
@@ -424,7 +428,6 @@
                                                                                         <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                                                                                     </div>
                                                                                 </div>
-
                                                                                 @if(($branch->recruitmentJobs ?? collect())->isNotEmpty())
                                                                                     <div class="branch-jobs">
                                                                                         @forelse(($branch->recruitmentJobs ?? collect())->values() as $job)
@@ -454,7 +457,6 @@
                                                                                         @endforelse
                                                                                     </div>
                                                                                 @endif
-
                                                                             </div>
                                                                         </li>
                                     @empty
@@ -524,150 +526,6 @@
         </div>
     </section>
 
-    <section class="home-premium-testimonials section_70">
-        <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="fw-bold">Ứng viên &amp; nhà tuyển dụng <span class="text-primary">nói gì</span></h2>
-                <p class="text-muted mb-0">Phản hồi thực tế từ cộng đồng sử dụng nền tảng.</p>
-            </div>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <blockquote class="home-premium-quote">
-                        <p>“Giao diện rõ ràng, lọc việc theo khu vực rất tiện. Mình ứng tuyển xong theo dõi được trạng
-                            thái.”</p>
-                        <footer><strong>Minh Anh</strong><span>— Sinh viên IT</span></footer>
-                    </blockquote>
-                </div>
-                <div class="col-md-4">
-                    <blockquote class="home-premium-quote">
-                        <p>“Team HR tiết kiệm thời gian sàng lọc. Tập trung ứng viên và tin đăng trên một hệ thống.”</p>
-                        <footer><strong>Chị Hương</strong><span>— Trưởng phòng Nhân sự</span></footer>
-                    </blockquote>
-                </div>
-                <div class="col-md-4">
-                    <blockquote class="home-premium-quote">
-                        <p>“Đăng tin nhanh, thông tin chi nhánh hiển thị đồng bộ. Ứng viên vào xem JD rất mượt.”</p>
-                        <footer><strong>Anh Tuấn</strong><span>— Quản lý chi nhánh</span></footer>
-                    </blockquote>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="jobguru-video-area section_100 home-premium-video">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="video-container">
-                        <h2>Xem nhanh cách nền tảng <br> hỗ trợ bạn tìm việc &amp; tuyển dụng.</h2>
-                        <div class="video-btn">
-                            <a class="popup-youtube" href="https://www.youtube.com/watch?v=k-R6AFn9-ek">
-                                <i class="fa fa-play"></i>
-                                Xem video giới thiệu
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <section class="how-works-area section_70">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="site-heading">
-                        <h2>Quy trình <span>3 bước</span></h2>
-                        <p>Từ đăng ký đến kết nối — đơn giản cho cả ứng viên và doanh nghiệp.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="how-works-box box-1">
-                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="" />
-                        <div class="works-box-icon">
-                            <i class="fa fa-user-plus"></i>
-                        </div>
-                        <div class="works-box-text">
-                            <p>Tạo tài khoản</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="how-works-box box-2">
-                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="" />
-                        <div class="works-box-icon">
-                            <i class="fa fa-file-text-o"></i>
-                        </div>
-                        <div class="works-box-text">
-                            <p>Hoàn hồ sơ / đăng tin</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="how-works-box box-3">
-                        <div class="works-box-icon">
-                            <i class="fa fa-rocket"></i>
-                        </div>
-                        <div class="works-box-text">
-                            <p>Kết nối &amp; phỏng vấn</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="home-premium-faq section_70">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-8 text-center mb-4">
-                    <h2 class="fw-bold">Câu hỏi <span class="text-primary">thường gặp</span></h2>
-                    <p class="text-muted mb-0">Giải đáp nhanh trước khi bạn bắt đầu.</p>
-                </div>
-                <div class="col-lg-8">
-                    <div class="accordion home-premium-accordion" id="homeFaq">
-                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
-                                    data-bs-target="#faq1">Ứng tuyển có mất phí không?</button>
-                            </h3>
-                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#homeFaq">
-                                <div class="accordion-body text-muted">Ứng viên tìm kiếm và nộp đơn qua nền tảng không
-                                    tính phí cơ bản. Các gói dịch vụ nâng cao (nếu có) sẽ được thông báo rõ trước khi sử
-                                    dụng.</div>
-                            </div>
-                        </div>
-                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button collapsed fw-semibold" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#faq2">Doanh nghiệp đăng tin tuyển dụng
-                                    thế nào?</button>
-                            </h3>
-                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
-                                <div class="accordion-body text-muted">Đăng ký tài khoản nhà tuyển dụng, điền thông tin
-                                    chi nhánh và tạo tin với mô tả vị trí, mức lương và hạn nộp. Tin ở trạng thái đã
-                                    duyệt sẽ hiển thị công khai cho ứng viên.</div>
-                            </div>
-                        </div>
-                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
-                            <h3 class="accordion-header">
-                                <button class="accordion-button collapsed fw-semibold" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#faq3">Dữ liệu cá nhân có được bảo
-                                    mật?</button>
-                            </h3>
-                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
-                                <div class="accordion-body text-muted">Chúng tôi áp dụng phân quyền tài khoản và các
-                                    biện pháp bảo vệ thông tin theo chuẩn ứng dụng web hiện đại. Bạn có thể cập nhật
-                                    hoặc yêu cầu hỗ trợ qua trang liên hệ.</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section class="jobguru-blog-area section_70">
         <div class="container">
             <div class="row">
@@ -703,21 +561,6 @@
         </div>
     </section>
 
-    <section class="home-premium-final-cta section_70">
-        <div class="container">
-            <div class="home-premium-final-cta__box text-center text-white">
-                <h2 class="fw-bold mb-2">Sẵn sàng bước tiếp?</h2>
-                <p class="mb-4 opacity-90">Tham gia cộng đồng ứng viên &amp; nhà tuyển dụng đang kết nối mỗi ngày.</p>
-                <div class="d-flex flex-wrap justify-content-center gap-2">
-                    <a href="{{ route('candidates.browse_job') }}"
-                        class="btn btn-light btn-lg rounded-pill px-4 fw-semibold">Tìm việc</a>
-                    <a href="{{ route('employers.post_job') }}"
-                        class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold">Đăng tuyển</a>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <section class="home-premium-newsletter section_50">
         <div class="container">
             <div class="row align-items-center g-4 home-premium-newsletter__row">
@@ -735,4 +578,3 @@
         </div>
     </section>
 </div>
-

@@ -19,7 +19,7 @@ return new class extends Migration
 
             $table->mediumText('description');
 
-            $table->enum('status', ['draft', 'published', 'closed', 'archived', 'expired'])
+            $table->enum('status', ['draft', 'pending', 'published', 'closed', 'archived', 'expired'])
                 ->default('draft');
 
             $table->json('salary_range')->nullable();
