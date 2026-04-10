@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Client\Pages;
+namespace App\Livewire\Client;
 
 use App\Enums\VietnamProvince;
 use App\Models\Branch;

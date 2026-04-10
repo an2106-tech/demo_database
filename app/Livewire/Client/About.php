@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Livewire\Client\Pages;
+namespace App\Livewire\Client;
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 
-class Contact extends Component
+class About extends Component
 {
     #[Layout('layouts.client')] 
     public function render()
     {
-        return view('livewire.client.pages.contact');
+        return view('livewire.client.pages.about');
     }
 }
