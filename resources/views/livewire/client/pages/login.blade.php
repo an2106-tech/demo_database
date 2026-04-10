@@ -17,9 +17,8 @@
                <div class="col-md-12">
                   <div class="breadcromb-box-pagin">
                      <ul>
-                        <li><a href="#">trang chủ</a></li>
-                        <li><a href="#">trang</a></li>
-                        <li class="active-breadcromb"><a href="#">Đăng nhập</a></li>
+                        <li><a href="{{ route('home') }}">Trang chủ</a></li>
+                        <li class="active-breadcromb"><a href="{{ route('auth.login') }}">Đăng nhập</a></li>
                      </ul>
                   </div>
                </div>

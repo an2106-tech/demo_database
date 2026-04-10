@@ -1,148 +1,4 @@
 <div>
-    <style>
-        .auth-card {
-            max-width: 920px;
-            margin: 0 auto;
-        }
-
-        .auth-header h3 {
-            margin: 0;
-            font-weight: 800;
-            letter-spacing: -.02em;
-        }
-
-        .auth-header p {
-            margin: .5rem 0 0;
-            color: #64748b;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .auth-form .single-login-field {
-            margin-bottom: 14px;
-        }
-
-        .auth-form .single-login-field label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .auth-form .candidate-grid > [class*="col-"] {
-            display: flex;
-        }
-
-        .auth-form .candidate-grid .single-login-field {
-            width: 100%;
-        }
-
-        .auth-form input.form-control,
-        .auth-form select.form-select {
-            width: 100%;
-            height: 48px;
-            padding: 10px 14px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            background: #fff;
-            transition: border-color .15s ease, box-shadow .15s ease;
-        }
-
-        .auth-form input.form-control:focus,
-        .auth-form select.form-select:focus {
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 .2rem rgba(59, 130, 246, .15);
-            outline: none;
-        }
-
-        .auth-form .invalid-text {
-            margin: 6px 0 0;
-            font-size: 13px;
-        }
-
-        .auth-form .terms-field {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 6px 0 18px;
-        }
-
-        .auth-form .terms-field input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            margin-top: 3px;
-            accent-color: #3b82f6;
-            flex: 0 0 auto;
-        }
-
-        .auth-form .terms-copy {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .auth-form .terms-copy label {
-            margin: 0;
-            font-weight: 700;
-            line-height: 1.5;
-            cursor: pointer;
-        }
-
-        .auth-actions {
-            margin-top: 12px;
-        }
-
-        .auth-actions .auth-submit-btn {
-            width: 100%;
-            min-height: 52px;
-            border: 0;
-            border-radius: 14px;
-            font-weight: 800;
-            letter-spacing: .01em;
-            background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
-            color: #fff;
-            box-shadow: 0 14px 32px rgba(37, 99, 235, .18);
-            transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
-        }
-
-        .auth-actions .auth-submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 16px 36px rgba(37, 99, 235, .22);
-            filter: brightness(1.02);
-        }
-
-        .auth-actions .auth-submit-btn:focus {
-            outline: none;
-            box-shadow: 0 0 0 .2rem rgba(59, 130, 246, .18), 0 14px 32px rgba(37, 99, 235, .18);
-        }
-
-        .auth-links {
-            margin-top: 14px;
-            display: grid;
-            gap: 8px;
-            text-align: center;
-        }
-
-        .auth-links a {
-            color: #0ea5e9;
-            font-weight: 700;
-        }
-
-        .auth-links a:hover {
-            text-decoration: underline;
-        }
-
-        .auth-note {
-            margin-top: 10px;
-            padding: 10px 12px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            color: #475569;
-            font-size: 13px;
-        }
-    </style>
-
     <section class="jobguru-breadcromb-area">
         <div class="breadcromb-top section_100">
             <div class="container">
@@ -162,12 +18,12 @@
             <div class="row justify-content-center">
                 <div class="col-12 auth-card">
                     <div class="login-box" style="max-width:100%;">
-                        <div class="login-title text-center auth-header">
-                            <h3>{{ $role === 'employer' ? 'Đăng ký nhà tuyển dụng' : 'Đăng ký ứng viên' }}</h3>
-                            <p>Các mục có dấu <span class="text-danger">*</span> là bắt buộc.</p>
-                        </div>
-
                         @if(auth()->check() && auth()->user()->role === 'hr' && $role === 'candidate')
+                            <div class="login-title text-center auth-header">
+                                <h3>Đăng ký ứng viên</h3>
+                                <p>Các mục có dấu <span class="text-danger">*</span> là bắt buộc.</p>
+                            </div>
+
                             <div class="auth-note">
                                 Tài khoản HR của bạn có thể kích hoạt thêm chế độ ứng viên bằng cùng email. Sau khi kích hoạt, bạn có thể dùng nút chuyển chế độ trên header để qua menu ứng viên.
                             </div>
@@ -183,6 +39,11 @@
                             </div>
                         @else
                             @if($role === 'employer')
+                                <div class="login-title text-center auth-header">
+                                    <h3>Đăng ký nhà tuyển dụng</h3>
+                                    <p>Các mục có dấu <span class="text-danger">*</span> là bắt buộc.</p>
+                                </div>
+
                                 <form wire:submit.prevent="register" class="auth-form">
                                     <div class="row">
                                         <div class="col-md-6">
@@ -290,7 +151,24 @@
                                     <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">Bạn là ứng viên? Đăng ký ứng viên</a>
                                 </div>
                             @else
-                                <form wire:submit.prevent="register" class="auth-form">
+                                <div class="auth-shell auth-shell--candidate">
+                                    <div class="auth-shell__aside">
+                                        <div class="auth-shell__badge">Ứng viên</div>
+                                        <h3 class="auth-shell__title">Tạo tài khoản để ứng tuyển nhanh</h3>
+                                        <p class="auth-shell__subtitle">Lưu việc yêu thích, nhận gợi ý phù hợp và theo dõi trạng thái hồ sơ.</p>
+                                        <ul class="auth-shell__list">
+                                            <li><i class="fa fa-check-circle"></i> Ứng tuyển 1 chạm với hồ sơ đã lưu</li>
+                                            <li><i class="fa fa-check-circle"></i> Nhận thông báo việc làm theo kỹ năng</li>
+                                            <li><i class="fa fa-check-circle"></i> Theo dõi lịch phỏng vấn &amp; phản hồi</li>
+                                        </ul>
+                                    </div>
+                                    <div class="auth-shell__main">
+                                        <div class="auth-shell__header">
+                                            <h3>Đăng ký ứng viên</h3>
+                                            <p>Các mục có dấu <span class="text-danger">*</span> là bắt buộc.</p>
+                                        </div>
+
+                                        <form wire:submit.prevent="register" class="auth-form">
                                     <div class="row candidate-grid">
                                         <div class="col-md-6">
                                             <div class="single-login-field">
@@ -348,14 +226,16 @@
                                         </div>
                                     </div>
 
-                                    <div class="auth-actions single-login-field">
-                                        <button type="submit" class="auth-submit-btn">Tạo tài khoản ứng viên</button>
-                                    </div>
-                                </form>
+                                            <div class="auth-actions single-login-field">
+                                                <button type="submit" class="auth-submit-btn">Tạo tài khoản ứng viên</button>
+                                            </div>
+                                        </form>
 
-                                <div class="auth-links">
-                                    <a href="{{ route('auth.login', ['role' => 'candidate']) }}">Bạn đã có tài khoản? Đăng nhập</a>
-                                    <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}">Bạn là nhà tuyển dụng? Đăng ký nhà tuyển dụng</a>
+                                        <div class="auth-links">
+                                            <a href="{{ route('auth.login', ['role' => 'candidate']) }}">Bạn đã có tài khoản? Đăng nhập</a>
+                                            <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}">Bạn là nhà tuyển dụng? Đăng ký nhà tuyển dụng</a>
+                                        </div>
+                                    </div>
                                 </div>
                             @endif
                         @endif

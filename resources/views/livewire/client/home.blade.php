@@ -1,47 +1,16 @@
-<div>
-    <section class="jobguru-banner-area home-banner">
-        <div class="banner-slider owl-carousel">
-            <div class="banner-single-slider slider-item-1">
-                <div class="slider-offset">
-                    {{-- <img src="{{ asset('assets/img/banner-tuyen-dung-11_1632972849.png') }}" alt=""> --}}
-                </div>
-            </div>
-            <div class="banner-single-slider slider-item-2">
-                <div class="slider-offset">
-                    {{-- <img src="{{ asset('assets/img/banner2.jpg') }}" alt=""> --}}
-                </div>
-            </div>
-        </div>
-        <div class="banner-text">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="banner-search" style="max-width:760px; margin:0 auto;">
-                            <h2>Thuê các chuyên gia tự do hàng đầu.</h2>
-                            <h4>Chúng tôi có 1542 cơ hội việc làm dành cho bạn! </h4>
-                            <form>
-                                <div class="banner-form-box">
-                                    <div class="banner-form-input">
-                                        <input type="text" placeholder="Chức danh, Từ khóa, hoặc Cụm từ">
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <input type="text" placeholder="Thành phố, Tỉnh hoặc Mã bưu điện">
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <select class="banner-select">
-                                            <option selected>Chọn lĩnh vực</option>
-                                            @forelse($categories as $category)
-                                                <option value="{{ $category->id }}">{{ $category->name }}</option>
-                                            @empty
-                                                <option disabled>Không có dữ liệu</option>
-                                            @endforelse
-                                        </select>
-                                    </div>
-                                    <div class="banner-form-input">
-                                        <button type="submit"><i class="fa fa-search"></i></button>
-                                    </div>
-                                </div>
-                            </form>
+﻿<div>
+    @php
+        /** @var \Illuminate\Support\Collection<int, \App\Models\Department>|\App\Models\Department[] $departments */
+        /** @var \Illuminate\Support\Collection<int, \App\Models\RecruitmentJob>|\App\Models\RecruitmentJob[] $featuredJobs */
+    @endphp
+    <section class="home-hero home-premium-hero">
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+                <div class="col-12">
+                    <div class="home-premium-hero-banner">
+                        <div class="banner-slider owl-carousel">
+                            <div class="banner-single-slider slider-item-1"></div>
+                            <div class="banner-single-slider slider-item-2"></div>
                         </div>
                     </div>
                 </div>
@@ -53,9 +22,8 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Danh mục <span>Phổ biến nhất</span></h2>
-                        <p>Một sự nghiệp tốt hơn đang chờ đón bạn. Chúng tôi sẽ giúp bạn tìm thấy nó. Chúng tôi là bước
-                            đệm đầu tiên để bạn đạt được mọi ước mơ.</p>
+                        <h2>Danh mục <span>nổi bật</span></h2>
+                        <p>Chọn lĩnh vực phù hợp — khám phá việc làm và lộ trình phát triển rõ ràng.</p>
                     </div>
                 </div>
             </div>
@@ -63,14 +31,18 @@
                 @forelse($categories as $category)
                     <div class="col-lg-3 col-md-6 col-sm-6">
                         <a href="#" class="single-category-holder account_cat">
-                        <div class="category-holder-icon">
-                            @php($icon = trim((string) ($category->icon ?? '')))
-                            <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
-                        </div>
+                            <div class="category-holder-icon">
+                                @php
+                                    $icon = trim((string) ($category->icon ?? ''));
+                                @endphp
+                                <i
+                                    class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                            </div>
                             <div class="category-holder-text">
                                 <h3>{{ $category->name }}</h3>
                             </div>
-                            <img src="{{ asset($category->image) }}" alt="{{ $category->name }}" /></a>
+                            <img src="{{ asset($category->image) }}" alt="{{ $category->name }}" />
+                        </a>
                     </div>
                 @empty
                     <div class="col-12">
@@ -81,35 +53,194 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="load-more">
-                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành nghề</a>
+                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
+                            nghề</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-            
-    <section class="jobguru-inner-hire-area section_100">
-        <div class="hire_circle"></div>
+
+    <section class="home-premium-why section_70">
         <div class="container">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="inner-hire-left">
-                        <h3>Tuyển dụng nhân sự</h3>
-
-                        <p>Tìm kiếm ứng viên tài năng cho doanh nghiệp của bạn một cách nhanh chóng và hiệu quả. Chúng
-                            tôi kết nối bạn với hàng ngàn chuyên gia sẵn sàng làm việc ngay lập tức. Hãy bắt đầu xây
+            <div class="row mb-4">
+                <div class="col-lg-8 mx-auto text-center">
+                    <h2 class="fw-bold mb-2">Vì sao chọn <span class="text-primary">nền tảng của chúng tôi</span></h2>
+                    <p class="text-muted mb-0">Trải nghiệm tìm việc &amp; tuyển dụng được tối ưu cho người dùng Việt Nam
+                        — nhanh, minh bạch, có quy trình.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon"><i class="fa fa-bolt"></i></div>
+                        <h3 class="h5 fw-bold">Ứng tuyển nhanh</h3>
+                        <p class="text-muted small mb-0">Hồ sơ tập trung, nộp đơn vài bước, theo dõi trạng thái rõ ràng.
                         </p>
-
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon home-premium-feature__icon--blue"><i
+                                class="fa fa-filter"></i></div>
+                        <h3 class="h5 fw-bold">Lọc thông minh</h3>
+                        <p class="text-muted small mb-0">Từ khóa, khu vực, phòng ban — tìm đúng vị trí bạn cần.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon home-premium-feature__icon--green"><i
+                                class="fa fa-shield"></i></div>
+                        <h3 class="h5 fw-bold">Dữ liệu an toàn</h3>
+                        <p class="text-muted small mb-0">Tài khoản phân quyền, bảo mật thông tin ứng viên &amp; doanh
+                            nghiệp.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon"><i class="fa fa-building"></i></div>
+                        <h3 class="h5 fw-bold">Đa chi nhánh</h3>
+                        <p class="text-muted small mb-0">Tập đoàn quản lý nhiều điểm tuyển, thống nhất quy trình.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon home-premium-feature__icon--blue"><i
+                                class="fa fa-comments"></i></div>
+                        <h3 class="h5 fw-bold">Trao đổi tập trung</h3>
+                        <p class="text-muted small mb-0">Kết nối nhà tuyển dụng — ứng viên trong một luồng xử lý.</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-4">
+                    <div class="home-premium-feature h-100">
+                        <div class="home-premium-feature__icon home-premium-feature__icon--green"><i
+                                class="fa fa-line-chart"></i></div>
+                        <h3 class="h5 fw-bold">Tối ưu tuyển dụng</h3>
+                        <p class="text-muted small mb-0">Theo dõi pipeline, hạn nộp hồ sơ và hiệu quả từng tin đăng.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
+
+    <section class="home-premium-spotlight section_70">
+        <div class="container">
+            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                <div>
+                    <h2 class="fw-bold mb-1">Việc làm <span class="text-primary">nổi bật</span></h2>
+                    <p class="text-muted mb-0">Tuyển gấp, lương cạnh tranh — cập nhật liên tục.</p>
+                </div>
+                <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả</a>
+            </div>
+            <div class="row g-4">
+                @php
+                    $homeFeaturedJobs = isset($featuredJobs) ? $featuredJobs : collect();
+                @endphp
+                @if ($homeFeaturedJobs->isEmpty())
+                    <div class="col-12">
+                        <div class="alert alert-light border text-center mb-0">Chưa có việc làm nổi bật. Quay lại sau nhé!
+                        </div>
+                    </div>
+                @else
+                    @foreach ($homeFeaturedJobs as $spotlight)
+                        @php
+                            $sr = is_array($spotlight->salary_range) ? $spotlight->salary_range : [];
+                            $salaryLabel = isset($sr['min'], $sr['max'])
+                                ? number_format((float) $sr['min']) . ' - ' . number_format((float) $sr['max']) . ' đ'
+                                : (!empty($spotlight->salary_range) ? 'Xem chi tiết' : 'Thỏa thuận');
+                            $citySpot = \App\Enums\VietnamProvince::tryFrom((string) ($spotlight->branch?->city ?? ''))?->label()
+                                ?? ($spotlight->branch?->city ?? '—');
+                        @endphp
+                        <div class="col-md-6 col-lg-4">
+                            <article class="home-premium-job-card h-100">
+                                <div class="home-premium-job-card__top">
+                                    <div class="home-premium-job-card__logo">
+                                        <img src="{{ $spotlight->branch?->image ? '/storage/' . ltrim($spotlight->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
+                                            alt="" width="48" height="48" loading="lazy">
+                                    </div>
+                                    <div class="flex-grow-1 min-w-0">
+                                        <h3 class="home-premium-job-card__title">
+                                            <a
+                                                href="{{ route('candidates.job_detail', ['id' => $spotlight->id]) }}">{{ $spotlight->title }}</a>
+                                        </h3>
+                                        <p class="home-premium-job-card__company text-truncate mb-0">
+                                            {{ $spotlight->branch?->name ?? 'Chi nhánh' }}</p>
+                                    </div>
+                                </div>
+                                <ul class="list-unstyled home-premium-job-card__meta small text-muted mb-3">
+                                    <li><i class="fa fa-map-marker me-1"></i>{{ $citySpot }}</li>
+                                    @if ($spotlight->department)
+                                        <li><i class="fa fa-sitemap me-1"></i>{{ $spotlight->department->name }}</li>
+                                    @endif
+                                    <li><i class="fa fa-money me-1"></i>{{ $salaryLabel }}</li>
+                                </ul>
+                                <div class="d-flex gap-2 mt-auto">
+                                    <a href="{{ route('candidates.job_detail', ['id' => $spotlight->id]) }}"
+                                        class="btn btn-outline-secondary btn-sm rounded-pill flex-grow-1">Chi tiết</a>
+                                    <a href="{{ route('candidates.apply_job', ['job' => $spotlight->id]) }}"
+                                        class="btn btn-primary btn-sm rounded-pill flex-grow-1 home-premium-btn-apply">Ứng
+                                        tuyển</a>
+                                </div>
+                            </article>
+                        </div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+    </section>
+
+    <section class="home-premium-split-cta section_70">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="home-premium-cta-panel home-premium-cta-panel--candidate h-100">
+                        <span class="badge rounded-pill bg-white text-dark mb-3">Ứng viên</span>
+                        <h3 class="fw-bold text-white mb-2">Sẵn sàng nhảy việc?</h3>
+                        <p class="text-white-50 mb-4">Hoàn thiện CV, lưu việc yêu thích và nhận gợi ý phù hợp năng lực.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('candidates.browse_job') }}"
+                                class="btn btn-light rounded-pill px-4 fw-semibold">Khám phá việc làm</a>
+                            @auth
+                                <a href="{{ route('candidates.submit_resume') }}"
+                                    class="btn btn-outline-light rounded-pill px-4">Cập nhật hồ sơ</a>
+                            @else
+                                <a href="{{ route('register', ['role' => 'candidate']) }}"
+                                    class="btn btn-outline-light rounded-pill px-4">Tạo tài khoản</a>
+                            @endauth
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="home-premium-cta-panel home-premium-cta-panel--employer h-100">
+                        <span class="badge rounded-pill bg-dark bg-opacity-25 text-white mb-3">Nhà tuyển dụng</span>
+                        <h3 class="fw-bold text-white mb-2">Tuyển đúng người, đúng lúc</h3>
+                        <p class="text-white-50 mb-4">Đăng tin, quản lý hồ sơ ứng viên và đồng bộ quy trình phỏng vấn.
+                        </p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="{{ route('employers.post_job') }}"
+                                class="btn btn-warning rounded-pill px-4 fw-semibold text-dark">Đăng tin ngay</a>
+                            @auth
+                                <a href="{{ route('employers.dashboard') }}"
+                                    class="btn btn-outline-light rounded-pill px-4">Vào dashboard</a>
+                            @else
+                                <a href="{{ route('register', ['role' => 'employer']) }}"
+                                    class="btn btn-outline-light rounded-pill px-4">Đăng ký doanh nghiệp</a>
+                            @endauth
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="jobguru-job-tab-area section_70">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Chi nhánh & <span>Việc làm</span></h2>
-                        <p>Thật dễ dàng. Chỉ cần đăng việc bạn cần hoàn thành và nhận báo giá cạnh tranh từ các
-                            freelancer trong vài phút.</p>
+                        <h2>Chi nhánh &amp; <span>việc làm mới</span></h2>
+                        <p>Xem doanh nghiệp đang tuyển mạnh và danh sách tin mới được duyệt.</p>
                     </div>
                 </div>
             </div>
@@ -133,172 +264,120 @@
                             aria-labelledby="pills-companies-tab">
                             <div class="top-company-tab">
                                 <ul>
-                                    {{--
-                                    @forelse($branches as $branch)
-                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
-                                        <li>
-                                            <div class="top-company-list" style="display:block;">
-                                                <?php
-                                                $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
-                                                    ?? ($branch->city ?? null);
-
-                                                $branchTitle = (string) ($branch->name ?? '');
-                                                $titleLower = function_exists('mb_strtolower')
-                                                    ? mb_strtolower($branchTitle, 'UTF-8')
-                                                    : strtolower($branchTitle);
-                                                $cityLower = $cityLabel
-                                                    ? (function_exists('mb_strtolower') ? mb_strtolower($cityLabel, 'UTF-8') : strtolower($cityLabel))
-                                                    : '';
-
-                                                if ($cityLabel && $cityLower !== '' && !str_contains($titleLower, $cityLower)) {
-                                                    $branchTitle .= ' - ' . $cityLabel;
-                                                }
-                                                ?>
-                                                <div class="row align-items-center" style="margin: 0;">
-                                                    <div class="col-12 col-md-2" style="padding: 18px 10px;">
-                                                        <div class="company-list-logo">
-                                                            <a href="#">
-                                                                <img src="{{ $branch->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
-                                                                    alt="{{ $branch->name }}"
-                                                                    style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;" />
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12 col-md-8" style="padding: 18px 10px;">
-                                                        <div class="company-list-details">
-                                                            <h3 style="margin-bottom: 6px;"><a href="#">{{ $branchTitle }}</a></h3>
-
-                                                    <?php if (false): ?>
-                                                    <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label() ?? ($branch->city ?? 'Địa điểm chưa xác định') }}
-                                                    </p>
-
-                                                    @if($branch->address)
-                                                        <p class="company-state"><i class="fa fa-location-arrow"></i>
-                                                            {{ $branch->address }}</p>
-                                                    @endif
-                                                    <p class="open-icon"><i
-                                                            class="fa fa-briefcase"></i>{{ (int) ($branch->published_jobs_count ?? 0) }}
-                                                        vị trí đang tuyển</p>
-                                                    <p class="varify"><i
-                                                            class="fa fa-check"></i>{{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
-                                                    </p>
-                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
-                                                    <?php endif; ?>
-
-                                                    <div style="display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size: 13px; color:#6b7280;">
-                                                        <span><i class="fa fa-map-marker"></i> {{ $cityLabel ?? 'Chưa cập nhật' }}</span>
-                                                        @if($branch->address)
-                                                            <span><i class="fa fa-location-arrow"></i> {{ $branch->address }}</span>
-                                                        @endif
-                                                        <span><i class="fa fa-briefcase"></i> {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang tuyển</span>
-                                                        <span><i class="fa fa-check"></i> {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}</span>
-                                                        <span class="rating-company" style="margin-left: auto;">{{ number_format(rand(37, 50) / 10, 1) }}</span>
-                                                    </div>
-
-                                                    <?php if (false): ?>
-                                                        <div style="margin-top: 10px;">
-                                                            <ul class="list-unstyled" style="margin: 0;">
-                                                                <?php foreach (($branch->recruitmentJobs ?? collect())->take(3) as $job): ?>
-                                                                    <?php
-                                                                        $salaryText = 'Thỏa thuận';
-                                                                        if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
-                                                                            $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
-                                                                        } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
-                                                                            $salaryText = implode(' - ', $job->salary_range);
-                                                                        } elseif (!empty($job->salary_range)) {
-                                                                            $salaryText = (string) $job->salary_range;
-                                                                        }
-                                                                    ?>
-                                                                    <li style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding: 6px 0; border-top: 1px dashed #eee;">
-                                                                        <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"
-                                                                            style="flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-                                                                            {{ $job->title }}
-                                                                        </a>
-                                                                        <span style="white-space:nowrap; font-size: 12px; color: #666;">
-                                                                            {{ $salaryText }}
-                                                                        </span>
-                                                                        <span style="white-space:nowrap; font-size: 12px; color: #666;">
-                                                                            {{ $job->deadline?->format('d/m') ?? '' }}
-                                                                        </span>
-                                                                    </li>
-                                                                <?php endforeach; ?>
-                                                            </ul>
-                                                        </div>
-                                                    <?php endif; ?>
-                                                </div>
-                                                </div>
-                                                <div class="col-12 col-md-2" style="padding: 18px 10px; text-align:right;">
-                                                <div class="company-list-btn">
-                                                    <a href="#" class="jobguru-btn">Xem hồ sơ</a>
-                                                </div>
-                                                </div>
-                                                </div>
-
-                                                <?php if (($branch->recruitmentJobs ?? collect())->isNotEmpty()): ?>
-                                                    <div class="row" style="margin: 0;">
-                                                        <div class="col-12 col-md-2"></div>
-                                                        <div class="col-12 col-md-10" style="padding: 0 10px 18px;">
-                                                            <ul class="list-unstyled" style="margin: 0;">
-                                                                <?php foreach (($branch->recruitmentJobs ?? collect())->take(5) as $job): ?>
-                                                                    <?php
-                                                                    $salaryText = 'Thỏa thuận';
-                                                                    if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
-                                                                        $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
-                                                                    } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
-                                                                        $salaryText = implode(' - ', $job->salary_range);
-                                                                    } elseif (!empty($job->salary_range)) {
-                                                                        $salaryText = (string) $job->salary_range;
-                                                                    }
-                                                                    ?>
-                                                                    <li style="display:flex; align-items:center; gap:10px; padding: 10px 0; border-top: 1px solid #f0f0f0;">
-                                                                        <div style="flex:1; min-width:0;">
-                                                                            <i class="fa fa-heart-o" style="margin-right: 10px; color:#a3a3a3;"></i>
-                                                                            <a href="{{ route('candidates.apply_job', ['job' => $job->id]) }}"
-                                                                                style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; max-width:100%;">
-                                                                                {{ $job->title }}
-                                                                            </a>
-                                                                        </div>
-                                                                        <div style="width: 210px; text-align:right; font-size:12px; color:#6b7280;">
-                                                                            <i class="fa fa-money"></i> {{ $salaryText }}
-                                                                        </div>
-                                                                        <div style="width: 70px; text-align:right; font-size:12px; color:#6b7280;">
-                                                                            <i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m') ?? '' }}
-                                                                        </div>
-                                                                    </li>
-                                                                <?php endforeach; ?>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </li>
-                                    @empty
-                                        <li>Không có chi nhánh nào.</li>
-                                    @endforelse
-                                    --}}
 
                                     <style>
-                                        #pills-companies .branch-card{background:#fff;border:1px solid #eef0f3;border-radius:12px;padding:18px;margin:0 0 18px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-                                        #pills-companies .branch-header{display:flex;gap:16px;align-items:flex-start}
-                                        #pills-companies .branch-logo{flex:0 0 auto}
-                                        #pills-companies .branch-logo img{width:86px;height:64px;object-fit:contain}
-                                        #pills-companies .branch-main{flex:1;min-width:0}
-                                        #pills-companies .branch-title{font-size:18px;font-weight:600;margin:0 0 6px}
-                                        #pills-companies .branch-meta{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:#6b7280;align-items:center}
-                                        #pills-companies .branch-action{flex:0 0 auto;display:flex;align-items:center;gap:12px;white-space:nowrap}
-                                        #pills-companies .branch-rating{background:#f5a623;color:#fff;font-weight:700;font-size:12px;border-radius:6px;padding:2px 6px;line-height:18px}
-                                        #pills-companies .branch-jobs{margin-top:14px;border-top:1px solid #eef0f3;padding-top:12px}
-                                        #pills-companies .branch-job-row{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid #edf0f3;border-radius:10px;padding:12px 14px;margin-top:10px}
-                                        #pills-companies .branch-job-title{flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
-                                        #pills-companies .branch-job-title a{font-weight:500}
-                                        #pills-companies .branch-job-salary{width:220px;text-align:right;font-size:12px;color:#6b7280;white-space:nowrap}
-                                        #pills-companies .branch-job-deadline{width:70px;text-align:right;font-size:12px;color:#6b7280;white-space:nowrap}
+                                        #pills-companies .branch-card {
+                                            background: #fff;
+                                            border: 1px solid #eef0f3;
+                                            border-radius: 12px;
+                                            padding: 18px;
+                                            margin: 0 0 18px;
+                                            box-shadow: 0 1px 2px rgba(0, 0, 0, .03)
+                                        }
+
+                                        #pills-companies .branch-header {
+                                            display: flex;
+                                            gap: 16px;
+                                            align-items: flex-start
+                                        }
+
+                                        #pills-companies .branch-logo {
+                                            flex: 0 0 auto
+                                        }
+
+                                        #pills-companies .branch-logo img {
+                                            width: 86px;
+                                            height: 64px;
+                                            object-fit: contain
+                                        }
+
+                                        #pills-companies .branch-main {
+                                            flex: 1;
+                                            min-width: 0
+                                        }
+
+                                        #pills-companies .branch-title {
+                                            font-size: 18px;
+                                            font-weight: 600;
+                                            margin: 0 0 6px
+                                        }
+
+                                        #pills-companies .branch-meta {
+                                            display: flex;
+                                            flex-wrap: wrap;
+                                            gap: 14px;
+                                            font-size: 13px;
+                                            color: #6b7280;
+                                            align-items: center
+                                        }
+
+                                        #pills-companies .branch-action {
+                                            flex: 0 0 auto;
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            white-space: nowrap
+                                        }
+
+                                        #pills-companies .branch-rating {
+                                            background: #f5a623;
+                                            color: #fff;
+                                            font-weight: 700;
+                                            font-size: 12px;
+                                            border-radius: 6px;
+                                            padding: 2px 6px;
+                                            line-height: 18px
+                                        }
+
+                                        #pills-companies .branch-jobs {
+                                            margin-top: 14px;
+                                            border-top: 1px solid #eef0f3;
+                                            padding-top: 12px
+                                        }
+
+                                        #pills-companies .branch-job-row {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 12px;
+                                            background: #fff;
+                                            border: 1px solid #edf0f3;
+                                            border-radius: 10px;
+                                            padding: 12px 14px;
+                                            margin-top: 10px
+                                        }
+
+                                        #pills-companies .branch-job-title {
+                                            flex: 1;
+                                            min-width: 0;
+                                            overflow: hidden;
+                                            white-space: nowrap;
+                                            text-overflow: ellipsis
+                                        }
+
+                                        #pills-companies .branch-job-title a {
+                                            font-weight: 500
+                                        }
+
+                                        #pills-companies .branch-job-salary {
+                                            width: 220px;
+                                            text-align: right;
+                                            font-size: 12px;
+                                            color: #6b7280;
+                                            white-space: nowrap
+                                        }
+
+                                        #pills-companies .branch-job-deadline {
+                                            width: 70px;
+                                            text-align: right;
+                                            font-size: 12px;
+                                            color: #6b7280;
+                                            white-space: nowrap
+                                        }
                                     </style>
 
                                     @forelse($branches as $branch)
-                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
-                                        <?php
+                                                                        @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
+                                                                        <?php
                                         $cityLabel = \App\Enums\VietnamProvince::tryFrom($branch->city ?? '')?->label()
                                             ?? ($branch->city ?? null);
 
@@ -313,59 +392,71 @@
                                         if ($cityLabel && $cityLower !== '' && !str_contains($titleLower, $cityLower)) {
                                             $branchTitle .= ' - ' . $cityLabel;
                                         }
-                                        ?>
-                                        <li>
-                                            <div class="branch-card">
-                                                <div class="branch-header">
-                                                    <div class="branch-logo">
-                                                        <a href="#">
-                                                            <img src="{{ $branch->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
-                                                                alt="{{ $branchTitle }}">
-                                                        </a>
-                                                    </div>
-                                                    <div class="branch-main">
-                                                        <div class="branch-title"><a href="#">{{ $branchTitle }}</a></div>
-                                                        <div class="branch-meta">
-                                                            <span><i class="fa fa-map-marker"></i> {{ $cityLabel ?? 'Chưa cập nhật' }}</span>
-                                                            <?php if (!empty($branch->address)): ?>
-                                                                <span><i class="fa fa-location-arrow"></i> {{ $branch->address }}</span>
-                                                            <?php endif; ?>
-                                                            <span><i class="fa fa-briefcase"></i> {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang tuyển</span>
-                                                            <span><i class="fa fa-check"></i> {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="branch-action">
-                                                        <span class="branch-rating">{{ number_format(rand(37, 50) / 10, 1) }}</span>
-                                                        <a href="#" class="jobguru-btn">Xem hồ sơ</a>
-                                                    </div>
-                                                </div>
+                                                                            ?>
+                                                                        <li>
+                                                                            <div class="branch-card">
+                                                                                <div class="branch-header">
+                                                                                    <div class="branch-logo">
+                                                                                        <a href="#">
+                                                                                            <img src="{{ $branch->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
+                                                                                                alt="{{ $branchTitle }}">
+                                                                                        </a>
+                                                                                    </div>
+                                                                                    <div class="branch-main">
+                                                                                        <div class="branch-title"><a href="#">{{ $branchTitle }}</a></div>
+                                                                                        <div class="branch-meta">
+                                                                                            <span><i class="fa fa-map-marker"></i>
+                                                                                                {{ $cityLabel ?? 'Chưa cập nhật' }}</span>
+                                                                                            <?php    if (!empty($branch->address)): ?>
+                                                                                            <span><i class="fa fa-location-arrow"></i>
+                                                                                                {{ $branch->address }}</span>
+                                                                                            <?php    endif; ?>
+                                                                                            <span><i class="fa fa-briefcase"></i>
+                                                                                                {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí đang
+                                                                                                tuyển</span>
+                                                                                            <span><i class="fa fa-check"></i>
+                                                                                                {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}</span>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="branch-action">
+                                                                                        <span
+                                                                                            class="branch-rating">{{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                                                        <a href="#" class="jobguru-btn">Xem hồ sơ</a>
+                                                                                    </div>
+                                                                                </div>
 
-                                                <?php if (($branch->recruitmentJobs ?? collect())->isNotEmpty()): ?>
-                                                    <div class="branch-jobs">
-                                                        <?php foreach ((($branch->recruitmentJobs ?? collect())->values()) as $job): ?>
-                                                            <?php
-                                                            $salaryText = 'Thỏa thuận';
-                                                            if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
-                                                                $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
-                                                            } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
-                                                                $salaryText = implode(' - ', $job->salary_range);
-                                                            } elseif (!empty($job->salary_range)) {
-                                                                $salaryText = (string) $job->salary_range;
-                                                            }
-                                                            ?>
-                                                            <div class="branch-job-row">
-                                                                <i class="fa fa-heart-o" style="color:#a3a3a3;"></i>
-                                                                <div class="branch-job-title">
-                                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
-                                                                </div>
-                                                                <div class="branch-job-salary"><i class="fa fa-money"></i> {{ $salaryText }}</div>
-                                                                <div class="branch-job-deadline"><i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m') ?? '' }}</div>
-                                                            </div>
-                                                        <?php endforeach; ?>
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </li>
+                                                                                @if(($branch->recruitmentJobs ?? collect())->isNotEmpty())
+                                                                                    <div class="branch-jobs">
+                                                                                        @forelse(($branch->recruitmentJobs ?? collect())->values() as $job)
+                                                                                            <div class="branch-job-row">
+                                                                                                <i class="fa fa-heart-o" style="color:#a3a3a3;"></i>
+                                                                                                <div class="branch-job-title">
+                                                                                                    <a
+                                                                                                        href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
+                                                                                                </div>
+                                                                                                <div class="branch-job-salary">
+                                                                                                    <i class="fa fa-money"></i>
+                                                                                                    @if(is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
+                                                                                                        {{ number_format($job->salary_range['min']) }} -
+                                                                                                        {{ number_format($job->salary_range['max']) }} VND
+                                                                                                    @elseif(is_array($job->salary_range) && count($job->salary_range) > 0)
+                                                                                                        {{ implode(' - ', $job->salary_range) }}
+                                                                                                    @elseif(!empty($job->salary_range))
+                                                                                                        {{ $job->salary_range }}
+                                                                                                    @else
+                                                                                                        Thỏa thuận
+                                                                                                    @endif
+                                                                                                </div>
+                                                                                                <div class="branch-job-deadline"><i class="fa fa-clock-o"></i>
+                                                                                                    {{ $job->deadline?->format('d/m') ?? '' }}</div>
+                                                                                            </div>
+                                                                                        @empty
+                                                                                        @endforelse
+                                                                                    </div>
+                                                                                @endif
+
+                                                                            </div>
+                                                                        </li>
                                     @empty
                                         <li>Không có chi nhánh nào.</li>
                                     @endforelse
@@ -386,7 +477,9 @@
                                                     </a>
                                                 </div>
                                                 <div class="company-list-details">
-                                                    <h3><a href="#">{{ $job->title }}</a></h3>
+                                                    <h3><a
+                                                            href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
+                                                    </h3>
                                                     <p class="company-state"><i class="fa fa-map-marker"></i>
                                                         {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Địa điểm chưa xác định') }}
                                                     </p>
@@ -394,7 +487,8 @@
                                                         {{ $job->created_at?->diffForHumans() }}</p>
                                                     <p class="varify"><i class="fa fa-check"></i>Giá:
                                                         @if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
-                                                            {{ number_format($job->salary_range['min']) }} - {{ number_format($job->salary_range['max']) }} VND
+                                                            {{ number_format($job->salary_range['min']) }} -
+                                                            {{ number_format($job->salary_range['max']) }} VND
                                                         @elseif (is_array($job->salary_range))
                                                             {{ implode(' - ', $job->salary_range) }}
                                                         @elseif (!empty($job->salary_range))
@@ -412,7 +506,7 @@
                                             </div>
                                         </li>
                                     @empty
-                                    <li>Không có công việc nào</li>
+                                        <li>Không có công việc nào</li>
                                     @endforelse
                                 </ul>
                             </div>
@@ -429,17 +523,47 @@
             </div>
         </div>
     </section>
-    <section class="jobguru-video-area section_100">
+
+    <section class="home-premium-testimonials section_70">
+        <div class="container">
+            <div class="text-center mb-5">
+                <h2 class="fw-bold">Ứng viên &amp; nhà tuyển dụng <span class="text-primary">nói gì</span></h2>
+                <p class="text-muted mb-0">Phản hồi thực tế từ cộng đồng sử dụng nền tảng.</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <blockquote class="home-premium-quote">
+                        <p>“Giao diện rõ ràng, lọc việc theo khu vực rất tiện. Mình ứng tuyển xong theo dõi được trạng
+                            thái.”</p>
+                        <footer><strong>Minh Anh</strong><span>— Sinh viên IT</span></footer>
+                    </blockquote>
+                </div>
+                <div class="col-md-4">
+                    <blockquote class="home-premium-quote">
+                        <p>“Team HR tiết kiệm thời gian sàng lọc. Tập trung ứng viên và tin đăng trên một hệ thống.”</p>
+                        <footer><strong>Chị Hương</strong><span>— Trưởng phòng Nhân sự</span></footer>
+                    </blockquote>
+                </div>
+                <div class="col-md-4">
+                    <blockquote class="home-premium-quote">
+                        <p>“Đăng tin nhanh, thông tin chi nhánh hiển thị đồng bộ. Ứng viên vào xem JD rất mượt.”</p>
+                        <footer><strong>Anh Tuấn</strong><span>— Quản lý chi nhánh</span></footer>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="jobguru-video-area section_100 home-premium-video">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="video-container">
-                        <h2>Thuê các chuyên gia tự do ngay hôm nay cho <br> bất kỳ công việc nào, vào bất kỳ lúc nào.
-                        </h2>
+                        <h2>Xem nhanh cách nền tảng <br> hỗ trợ bạn tìm việc &amp; tuyển dụng.</h2>
                         <div class="video-btn">
                             <a class="popup-youtube" href="https://www.youtube.com/watch?v=k-R6AFn9-ek">
                                 <i class="fa fa-play"></i>
-                                Cách thức hoạt động
+                                Xem video giới thiệu
                             </a>
                         </div>
                     </div>
@@ -452,121 +576,163 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Cách thức <span>Hoạt động</span></h2>
-                        <p>Thật dễ dàng. Chỉ cần đăng việc bạn cần hoàn thành và nhận báo giá cạnh tranh từ các
-                            freelancer trong vài phút</p>
+                        <h2>Quy trình <span>3 bước</span></h2>
+                        <p>Từ đăng ký đến kết nối — đơn giản cho cả ứng viên và doanh nghiệp.</p>
                     </div>
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-4">
                     <div class="how-works-box box-1">
-                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="works" />
+                        <img src="{{ asset('assets/img/arrow-right-top.png') }}" alt="" />
                         <div class="works-box-icon">
-                            <i class="fa fa-user"></i>
+                            <i class="fa fa-user-plus"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>Đăng ký</p>
+                            <p>Tạo tài khoản</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="how-works-box box-2">
-                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="works" />
+                        <img src="{{ asset('assets/img/arrow-right-bottom.png') }}" alt="" />
                         <div class="works-box-icon">
-                            <i class="fa fa-gavel"></i>
+                            <i class="fa fa-file-text-o"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>Đăng tin tuyển dụng</p>
+                            <p>Hoàn hồ sơ / đăng tin</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="how-works-box box-3">
                         <div class="works-box-icon">
-                            <i class="fa fa-thumbs-up"></i>
+                            <i class="fa fa-rocket"></i>
                         </div>
                         <div class="works-box-text">
-                            <p>Chọn chuyên gia</p>
+                            <p>Kết nối &amp; phỏng vấn</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <section class="home-premium-faq section_70">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center mb-4">
+                    <h2 class="fw-bold">Câu hỏi <span class="text-primary">thường gặp</span></h2>
+                    <p class="text-muted mb-0">Giải đáp nhanh trước khi bạn bắt đầu.</p>
+                </div>
+                <div class="col-lg-8">
+                    <div class="accordion home-premium-accordion" id="homeFaq">
+                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
+                                    data-bs-target="#faq1">Ứng tuyển có mất phí không?</button>
+                            </h3>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#homeFaq">
+                                <div class="accordion-body text-muted">Ứng viên tìm kiếm và nộp đơn qua nền tảng không
+                                    tính phí cơ bản. Các gói dịch vụ nâng cao (nếu có) sẽ được thông báo rõ trước khi sử
+                                    dụng.</div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq2">Doanh nghiệp đăng tin tuyển dụng
+                                    thế nào?</button>
+                            </h3>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
+                                <div class="accordion-body text-muted">Đăng ký tài khoản nhà tuyển dụng, điền thông tin
+                                    chi nhánh và tạo tin với mô tả vị trí, mức lương và hạn nộp. Tin ở trạng thái đã
+                                    duyệt sẽ hiển thị công khai cho ứng viên.</div>
+                            </div>
+                        </div>
+                        <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm overflow-hidden">
+                            <h3 class="accordion-header">
+                                <button class="accordion-button collapsed fw-semibold" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#faq3">Dữ liệu cá nhân có được bảo
+                                    mật?</button>
+                            </h3>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
+                                <div class="accordion-body text-muted">Chúng tôi áp dụng phân quyền tài khoản và các
+                                    biện pháp bảo vệ thông tin theo chuẩn ứng dụng web hiện đại. Bạn có thể cập nhật
+                                    hoặc yêu cầu hỗ trợ qua trang liên hệ.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="jobguru-blog-area section_70">
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
                     <div class="site-heading">
-                        <h2>Bài viết <span>Mới nhất</span></h2>
-                        <p>Tìm hiểu các bí quyết và tin tức mới nhất để phát triển sự nghiệp của bạn một cách nhanh
-                            chóng.</p>
+                        <h2>Bài viết &amp; <span>career tips</span></h2>
+                        <p>Kỹ năng phỏng vấn, xu hướng ngành và câu chuyện nghề nghiệp.</p>
                     </div>
                 </div>
             </div>
             <div class="row">
-               @forelse($posts as $post)
-                <div class="col-lg-4 col-md-12">
-                    <a href="#">
-                        <div class="single-blog">
-                            <div class="blog-image">
-                                <img src="{{ asset($post->image) }}" alt="{{$post->title}}" style="height: 200px;" />
-                                <h5>{{$post->title}}</h5>
-                                <p>{{$post->created_at->format('d/m') }}</p>
+                @forelse($posts as $post)
+                    <div class="col-lg-4 col-md-12">
+                        <a href="{{ route('pages.blog') }}">
+                            <div class="single-blog">
+                                <div class="blog-image">
+                                    <img src="{{ asset($post->image) }}" alt="{{$post->title}}" style="height: 200px;" />
+                                    <h5>{{$post->title}}</h5>
+                                    <p>{{$post->created_at->format('d/m') }}</p>
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
-                 @empty
+                        </a>
+                    </div>
+                @empty
                     <div class="col-12">
                         <p>Không có bài viết nào</p>
                     </div>
                 @endforelse
             </div>
+            <div class="text-center mt-4">
+                <a href="{{ route('pages.blog') }}" class="jobguru-btn">Xem tất cả bài viết</a>
+            </div>
         </div>
     </section>
 
-    <div class="modal fade" id="selectRoleModal" tabindex="-1" aria-labelledby="selectRoleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog modal-fullscreen-md-down">
-            <div class="modal-content">
-                <div class="modal-header pb-0">
-                    <div>
-                        <h5 class="modal-title" id="selectRoleModalLabel">Chào bạn!</h5>
-                        <p style="margin: .4rem 0 0; color:#6b7280;">Chọn nhóm phù hợp để bắt đầu trải nghiệm.</p>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="role-panel">
-                        <div class="role-card">
-                            <img class="role-card-img" src="{{ asset('assets/img/anh-tuyen-dung-6.webp') }}"
-                                alt="Nhà tuyển dụng" />
-                            <div class="role-card-body">
-                                <h4 class="role-card-title">Tôi là nhà tuyển dụng</h4>
-                                <p class="role-card-text">Đăng tin, quản lý ứng viên và mở rộng đội ngũ nhân sự của bạn
-                                    nhanh chóng.</p>
-                                <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}"
-                                    class="btn btn-success role-card-button">Chọn nhà tuyển dụng</a>
-                            </div>
-                        </div>
-                        <div class="role-card">
-                            <img class="role-card-img" src="{{ asset('assets/img/uv.webp') }}"
-                                alt="Ứng viên tìm việc" width="800" height="600" loading="lazy"
-                                decoding="async" />
-                            <div class="role-card-body">
-                                <h4 class="role-card-title">Tôi là ứng viên tìm việc</h4>
-                                <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển
-                                    của
-                                    bạn.</p>
-                                <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
-                                    class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
-                            </div>
-                        </div>
-                    </div>
+    <section class="home-premium-final-cta section_70">
+        <div class="container">
+            <div class="home-premium-final-cta__box text-center text-white">
+                <h2 class="fw-bold mb-2">Sẵn sàng bước tiếp?</h2>
+                <p class="mb-4 opacity-90">Tham gia cộng đồng ứng viên &amp; nhà tuyển dụng đang kết nối mỗi ngày.</p>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a href="{{ route('candidates.browse_job') }}"
+                        class="btn btn-light btn-lg rounded-pill px-4 fw-semibold">Tìm việc</a>
+                    <a href="{{ route('employers.post_job') }}"
+                        class="btn btn-outline-light btn-lg rounded-pill px-4 fw-semibold">Đăng tuyển</a>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="home-premium-newsletter section_50">
+        <div class="container">
+            <div class="row align-items-center g-4 home-premium-newsletter__row">
+                <div class="col-lg-7">
+                    <h3 class="fw-bold mb-2">Nhận cập nhật việc làm &amp; sự kiện tuyển dụng</h3>
+                    <p class="text-muted mb-0">Chúng tôi sẽ gửi những thông tin hữu ích, không spam. Bạn cũng có thể
+                        liên hệ trực tiếp để hợp tác.</p>
+                </div>
+                <div class="col-lg-5 text-lg-end">
+                    <a href="{{ route('pages.contact') }}"
+                        class="btn btn-primary btn-lg rounded-pill px-5 fw-semibold home-premium-btn-apply">Liên hệ /
+                        Đăng ký nhận tin</a>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
+

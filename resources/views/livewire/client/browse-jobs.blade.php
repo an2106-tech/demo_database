@@ -1,4 +1,7 @@
 <div class="browse-jobs-page">
+    @php
+        /** @var \Illuminate\Support\Collection<int, \App\Models\Department>|\App\Models\Department[] $departments */
+    @endphp
     <style>
         .browse-jobs-page .job-browse-action {
             display: flex;
@@ -78,9 +81,22 @@
                 <div class="col-md-12">
                     <div class="browse-job-head-option">
                         <div class="job-browse-search">
-                            <form>
-                                <input type="search" placeholder="Tìm kiếm việc làm tại đây...">
-                                <button type="submit"><i class="fa fa-search"></i></button>
+                            <form class="d-flex flex-wrap gap-2 align-items-center w-100" wire:submit.prevent>
+                                <input type="search" class="form-control flex-grow-1" style="min-width:200px;border-radius:12px;"
+                                    placeholder="Từ khóa (VD: Laravel, Kế toán...)"
+                                    wire:model.live.debounce.400ms="q">
+                                <input type="text" class="form-control" style="max-width:200px;border-radius:12px;"
+                                    placeholder="Khu vực"
+                                    wire:model.live.debounce.400ms="city">
+                                <select class="form-select" style="max-width:220px;border-radius:12px;" wire:model.live="department_id">
+                                    <option value="">Phòng ban</option>
+                                    @foreach(($departments ?? []) as $d)
+                                        <option value="{{ $d->id }}">{{ $d->name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="button" class="jobguru-btn" wire:click="$set('q', ''); $set('city', ''); $set('department_id', null)">
+                                    Xóa lọc
+                                </button>
                             </form>
                         </div>
                         <div class="job-browse-action">

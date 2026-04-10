@@ -4,6 +4,7 @@ namespace App\Livewire\Client;
 
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Enums\StatusRecruitmentJobsEnum;
 use Carbon\Carbon;
@@ -14,8 +15,17 @@ class BrowseJobs extends Component
 
     public string $display = 'grid';
 
+    public string $q = '';
+
+    public string $city = '';
+
+    public ?int $department_id = null;
+
     protected array $queryString = [
         'display' => ['except' => 'grid'],
+        'q' => ['except' => ''],
+        'city' => ['except' => ''],
+        'department_id' => ['except' => null],
     ];
 
     public function mount(): void
@@ -26,6 +36,11 @@ class BrowseJobs extends Component
                 $this->display = $requestedView;
             }
         }
+
+        $this->q = (string) request()->query('q', '');
+        $this->city = (string) request()->query('city', '');
+        $dept = request()->query('department_id');
+        $this->department_id = $dept !== null && $dept !== '' ? (int) $dept : null;
 
         $this->normalizeDisplay();
     }
@@ -49,18 +64,36 @@ class BrowseJobs extends Component
     public function render()
     {
         $now = Carbon::now();
-        $jobs = RecruitmentJob::query()
+        $jobsQuery = RecruitmentJob::query()
             ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
             ->where(function ($q) use ($now) {
                 $q->whereNull('deadline')
                     ->orWhere('deadline', '>=', $now);
             })
-            ->with(['branch:id,name,image,city,address', 'workplace:id,name'])
-            ->latest()
-            ->get();
+            ->with(['branch:id,name,image,city,address', 'workplace:id,name', 'department:id,name']);
+
+        if (trim($this->q) !== '') {
+            $jobsQuery->where('title', 'like', '%' . trim($this->q) . '%');
+        }
+
+        if (trim($this->city) !== '') {
+            $city = trim($this->city);
+            $jobsQuery->whereHas('branch', function ($query) use ($city) {
+                $query->where('city', 'like', '%' . $city . '%')
+                    ->orWhere('address', 'like', '%' . $city . '%')
+                    ->orWhere('name', 'like', '%' . $city . '%');
+            });
+        }
+
+        if (! empty($this->department_id)) {
+            $jobsQuery->where('department_id', $this->department_id);
+        }
+
+        $jobs = $jobsQuery->latest()->get();
 
         return view('livewire.client.browse-jobs', [
-            'jobs' => $jobs
+            'jobs' => $jobs,
+            'departments' => Department::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 }

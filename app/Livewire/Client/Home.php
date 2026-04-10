@@ -4,6 +4,7 @@ namespace App\Livewire\Client;
 
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Post;
@@ -19,7 +20,25 @@ class Home extends Component
     public function render()
     {
         $now = Carbon::now();
-        $jobs = RecruitmentJob::with('branch')->latest()->get();
+
+        $publishedJobsQuery = RecruitmentJob::query()
+            ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
+            ->where(function ($q) use ($now) {
+                $q->whereNull('deadline')
+                    ->orWhere('deadline', '>=', $now);
+            });
+
+        $jobs = (clone $publishedJobsQuery)
+            ->with(['branch', 'department'])
+            ->latest()
+            ->take(20)
+            ->get();
+
+        $featuredJobs = (clone $publishedJobsQuery)
+            ->with(['branch', 'department'])
+            ->latest()
+            ->take(6)
+            ->get();
 
         $branches = Branch::query()
             ->where('is_active', true)
@@ -51,17 +70,34 @@ class Home extends Component
             ])
             ->latest()
             ->get();
+
+        $departments = Department::query()
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
         $categories = Schema::hasTable('categories')
             ? Category::query()
                 ->orderBy('name')
                 ->get(['id', 'name', 'slug', 'icon', 'image'])
             : collect();
-        $posts = Post::latest()->get();
+        $posts = Post::latest()->take(6)->get();
+
+        $publishedJobsCount = (clone $publishedJobsQuery)->count();
+        $activeBranchesCount = Branch::query()->where('is_active', true)->count();
+        $departmentsCount = Department::query()->count();
+
         return view('livewire.client.home', [
             'branches' => $branches,
             'jobs' => $jobs,
+            'featuredJobs' => $featuredJobs,
+            'departments' => $departments,
             'categories' => $categories,
             'posts' => $posts,
+            'stats' => [
+                'published_jobs' => $publishedJobsCount,
+                'active_branches' => $activeBranchesCount,
+                'departments' => $departmentsCount,
+            ],
         ]);
     }
 }

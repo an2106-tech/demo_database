@@ -1,5 +1,5 @@
 <div>
-    <footer class="jobguru-footer-area {{ ($isEmployerFooter ?? false) ? 'footer--employer' : 'footer--candidate' }}">
+    <footer class="jobguru-footer-area client-app-footer {{ ($isEmployerFooter ?? false) ? 'footer--employer' : 'footer--candidate' }}">
         <div class="footer-top section_50">
             <div class="container">
                 <div class="row">

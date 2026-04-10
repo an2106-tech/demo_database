@@ -1,4 +1,4 @@
-<div x-data="{ active: @entangle('type').live }">
+﻿<div x-data="{ active: @entangle('type').live }">
    <style>
       /* Khối Dropdown */
       .userbox-dropdown {
@@ -256,7 +256,7 @@
          content: "";
          position: absolute;
          inset: 0;
-         background: linear-gradient(135deg, rgba(59, 130, 246, .18), rgba(16, 185, 129, .14));
+         background: linear-gradient(135deg, rgba(243, 112, 33, .18), rgba(255, 159, 74, .12));
          pointer-events: none;
       }
 
@@ -438,7 +438,7 @@
       }
    </style>
 
-   <header class="jobguru-header-area stick-top forsticky page-header">
+   <header class="jobguru-header-area stick-top forsticky page-header client-app-header">
       <div class="menu-animation">
          <div class="container-fluid">
             <div class="row">
@@ -547,22 +547,6 @@
                                  <a href="{{route('auth.post_jobs')}}" class="post-jobs">Đăng tin ngay</a>
                               </li>
                            @endif
-                           @guest
-                              <li>
-                                 <a href="#" data-bs-toggle="modal" data-bs-target="#selectRoleModal">
-                                    <i class="fa fa-user"></i>
-                                    Đăng ký
-                                 </a>
-                              </li>
-                              <li>
-                                 <a href="{{ route('auth.login') }}">
-                                    <i class="fa fa-lock"></i>
-                                    Đăng nhập
-                                 </a>
-                              </li>
-                           @endguest
-
-
 
 
 
@@ -662,13 +646,13 @@
             <div class="modal-header pb-0">
                <div>
                   <h5 class="modal-title" id="selectRoleModalLabel">Chào bạn!</h5>
-                  <p style="margin: .4rem 0 0; color:#6b7280;">Chọn nhóm phù hợp để bắt đầu trải nghiệm.</p>
+                  <p class="role-modal-subtitle">Chọn nhóm phù hợp để bắt đầu trải nghiệm.</p>
                </div>
                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
             </div>
             <div class="modal-body">
                <div class="role-panel">
-                  <div class="role-card">
+                   <div class="role-card role-card--candidate">
                      <img class="role-card-img" src="{{ asset('assets/img/anh-tuyen-dung-6.webp') }}"
                         alt="Nhà tuyển dụng" />
                      <div class="role-card-body">
@@ -676,10 +660,10 @@
                         <p class="role-card-text">Đăng tin, quản lý ứng viên và mở rộng đội ngũ nhân sự của bạn nhanh
                            chóng.</p>
                         <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}"
-                           class="btn btn-success role-card-button">Chọn nhà tuyển dụng</a>
+                           class="role-card-button role-card-button--employer">Chọn nhà tuyển dụng</a>
                      </div>
                   </div>
-                  <div class="role-card">
+                  <div class="role-card role-card--employer">
                      <img class="role-card-img" src="{{ asset('assets/img/uv.webp') }}" alt="Ứng viên tìm việc"
                         width="800" height="600" loading="lazy" decoding="async" />
                      <div class="role-card-body">
@@ -687,7 +671,7 @@
                         <p class="role-card-text">Tìm việc phù hợp, nộp hồ sơ và quản lý thông tin ứng tuyển của bạn.
                         </p>
                         <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
-                           class="btn btn-outline-success role-card-button">Chọn ứng viên</a>
+                           class="role-card-button role-card-button--candidate">Chọn ứng viên</a>
                      </div>
                   </div>
                </div>
@@ -696,4 +680,5 @@
       </div>
    </div>
 </div>
+
 
