@@ -73,7 +73,7 @@
             font-weight: 800;
             margin-bottom: 10px;
             line-height: 1.3;
-            color: #ffffff;
+            color: #ffffff !important;
         }
 
         .sidebar-company-name {

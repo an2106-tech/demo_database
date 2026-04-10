@@ -454,66 +454,22 @@
                   <div class="header-menu">
                      <nav id="navigation">
                         <ul id="jobguru_navigation">
-                           <li class="active">
-                              <a href="/">Trang chủ</a>
-                           </li>
+                           <li class="active"><a href="/">Trang chủ</a></li>
 
                            @if($showCandidateMenu ?? auth()->guest())
-                              <li class="has-children">
-                                 <a href="#">Cho Ứng Viên</a>
-                                 <ul>
-                                    <li class="has-inner-child">
-                                       <a href="#">Tìm việc làm</a>
-                                       <ul>
-                                          <li><a href="{{ route('candidates.browse_job') }}">Tất cả việc làm</a></li>
-                                          <li><a href="{{ route('candidates.sidebar') }}">Dạng lưới (Sidebar)</a></li>
-                                          <li><a href="{{ route('candidates.joblist_sidebar') }}">Dạng danh sách</a></li>
-                                       </ul>
-                                    </li>
-                                    <li><a href="{{ route('candidates.browse_categories') }}">Danh mục ngành nghề</a></li>
-                                    <li><a href="{{ route('candidates.browse_companies') }}">Địa chỉ việc làm</a></li>
-                                    <li><a href="{{ route('candidates.candidate_detail') }}">Chi tiết ứng viên</a></li>
-                                    <li><a href="{{ route('candidates.submit_resume') }}">Nộp hồ sơ (CV)</a></li>
-                                 </ul>
-                              </li>
+                              <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
+                              <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
+                              <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
                            @endif
+
                            @if($showEmployerMenu ?? auth()->guest())
-                              <li class="has-children">
-                                 <a href="#">Cho Nhà Tuyển Dụng</a>
-                                 <ul>
-                                    <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                                    <li><a href="{{ route('employers.single_company') }}">Thông tin công ty</a></li>
-                                    <li><a href="{{ route('employers.post_job') }}">Đăng tin tuyển dụng</a></li>
-                                    <li class="has-inner-child">
-                                       <a href="#">Quản lý tuyển dụng</a>
-                                       <ul>
-                                          <li><a href="{{ route('employers.dashboard') }}">Bảng điều khiển</a></li>
-                                          <li><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
-                                          <li><a href="{{ route('employers.message') }}">Tin nhắn</a></li>
-                                          <li><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a>
-                                          </li>
-                                          <li><a href="{{ route('employers.transaction') }}">Giao dịch</a></li>
-                                          <li><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
-                                       </ul>
-                                    </li>
-                                 </ul>
-                              </li>
+                              <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                              <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
                            @endif
-                           <li class="has-children">
-                              <a href="#">Trang phụ</a>
-                              <ul>
-                                 <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
-                                 <li class="has-inner-child">
-                                    <a href="#">Tin tức/Blog</a>
-                                    <ul>
-                                       <li><a href="{{ route('pages.blog') }}">Danh sách bài viết</a></li>
-                                       <li><a href="{{ route('pages.single') }}">Chi tiết bài viết</a></li>
-                                    </ul>
-                                 </li>
-                                 <li><a href="{{ route('pages.job') }}">Trang việc làm</a></li>
-                                 <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
-                              </ul>
-                           </li>
+
+                           <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
+                           <li><a href="{{ route('pages.blog') }}">Tin tức</a></li>
+                           <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                         </ul>
                      </nav>
                   </div>
