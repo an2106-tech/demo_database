@@ -17,7 +17,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'name' => 'Tư vấn tài chính',
-                'image' => 'assets/img/categories/nhansu.jpg'
+                'image' => 'assets/img/categories/taichinh.jpg'
             ],
             [
                 'name' => 'Kế hoạch kinh doanh',
@@ -41,7 +41,7 @@ class CategorySeeder extends Seeder
             ],
             [
                 'name' => 'Nghiên cứu thị trường',
-                'image' => 'assets/img/categories/nhansu.jpg'
+                'image' => 'assets/img/categories/nghiencuu.jpg'
             ],
             [
                 'name' => 'Bán hàng',
@@ -52,8 +52,12 @@ class CategorySeeder extends Seeder
                 'image' => 'assets/img/categories/xaydung.jpg'
             ],
             [
+                'name' => 'Logistics',
+                'image' => 'assets/img/categories/logistics.jpg'
+            ],
+            [
                 'name' => 'Khác',
-                'image' => ''
+                'image' => 'assets/img/categories/khac.jpg'
             ],
         ];
 
