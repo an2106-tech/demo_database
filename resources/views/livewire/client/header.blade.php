@@ -597,32 +597,32 @@
 
                                     <ul class="dropdown-list-wrapper">
                                        <li>
-                                          <a href="{{ route('candidates.candidate_dashboard') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.dashboard') : route('candidates.candidate_dashboard') }}" class="user-link">
                                              <span>Tổng quan hồ sơ</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ route('candidates.candidate_profile') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.company_profile') : route('candidates.candidate_profile') }}" class="user-link">
                                              <span>Thông tin cá nhân</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ route('candidates.manage_jobs') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.manage_jobs') : route('candidates.manage_jobs') }}" class="user-link">
                                              <span>Việc làm của tôi</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ route('candidates.messages') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.message') : route('candidates.messages') }}" class="user-link">
                                              <span>Tin nhắn</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ route('candidates.earnings') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.transaction') : route('candidates.earnings') }}" class="user-link">
                                              <span>Thu nhập</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ route('candidates.change_password') }}" class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.change_password') : route('candidates.change_password') }}" class="user-link">
                                              <span>Đổi mật khẩu</span>
                                           </a>
                                        </li>

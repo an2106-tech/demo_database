@@ -39,15 +39,14 @@
                                     Bảng điều khiển
                                 </a>
                             </li>
-                            <li class="active"><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Company
-                                    Profile</a></li>
-                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>messages</a></li>
-                            <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>post a job</a></li>
-                            <li><a href="manage-candidates.html"><i class="fa fa-briefcase"></i>manage candidates</a>
+                            <li class="active"><a href="{{ route('employers.company_profile') }}"><i class="fa fa-users"></i>Hồ sơ công ty</a></li>
+                            <li><a href="{{ route('employers.message') }}"><i class="fa fa-envelope-open"></i>Tin nhắn</a></li>
+                            <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-envelope-open"></i>Đăng tin tuyển dụng</a></li>
+                            <li><a href="{{ route('employers.manage_candidates') }}"><i class="fa fa-briefcase"></i>Quản lý ứng viên</a>
                             </li>
-                            <li><a href="transaction.html"><i class="fa fa-rocket"></i>transaction</a></li>
-                            <li><a href="change-password.html"><i class="fa fa-lock"></i>change password</a></li>
-                            <li><a href="#"><i class="fa fa-power-off"></i>LogOut</a></li>
+                            <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-rocket"></i>Giao dịch</a></li>
+                            <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-lock"></i>Đổi mật khẩu</a></li>
+                            <li><a href="#"><i class="fa fa-power-off"></i>Đăng xuất</a></li>
                         </ul>
                     </div>
                 </div>

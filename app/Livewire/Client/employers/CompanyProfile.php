@@ -7,7 +7,7 @@ use Livewire\Attributes\Layout;
 
 class CompanyProfile extends Component
 {
-    #[Layout('layouts.client')]
+    #[Layout('layouts.employer')]
     public function render()
     {
         return view('livewire.client.employers.company_profile');

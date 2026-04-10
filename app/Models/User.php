@@ -94,7 +94,10 @@ class User extends Authenticatable
             return null;
         }
 
-        if ($this->hasAnyRole(['director', 'pm', 'hr']) && $this->branch_id) {
+        $hasBranchScopedRole = in_array($this->role, ['director', 'pm', 'hr'], true)
+            || $this->hasAnyRole(['director', 'pm', 'hr']);
+
+        if ($hasBranchScopedRole && $this->branch_id) {
             return (int) $this->branch_id;
         }
 

@@ -17,6 +17,7 @@ use App\Livewire\Client\Employers\ChangePassword as EmployerChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
+use App\Livewire\Client\Employers\ManageJobs as EmployerManageJobs;
 use App\Livewire\Client\Employers\Message as EmployerMessage;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
@@ -24,9 +25,9 @@ use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
-use App\Livewire\Client\ManageJobs as CandidateManageJobs;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
+use App\Livewire\Client\PostJobs as ClientPostJobs;
 use App\Livewire\Client\pages\About as PagesAbout;
 use App\Livewire\Client\pages\Blog;
 use App\Livewire\Client\pages\Contact;
@@ -97,16 +98,16 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
 Route::prefix('auth')->name('auth.')->group(function () {
     Route::get('/login', PagesLogin::class)->name('login');
     Route::get('/sign-up', PagesRegister::class)->name('sign_up');
-    Route::get('/post-jobs', PostJob::class)->name('post_jobs');
+    Route::get('/post-jobs', ClientPostJobs::class)->name('post_jobs');
 });
 
 Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/browse', BrowseCandidates::class)->name('browse');
     Route::get('/single-company', SingleCompany::class)->name('single_company');
-    Route::get('/post-job', PostJob::class)->name('post_job');
     Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
 
     Route::middleware(['auth', 'employer.account'])->group(function () {
+        Route::get('/post-job', PostJob::class)->name('post_job');
         Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
         Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
         Route::get('/message', EmployerMessage::class)->name('message');
@@ -114,7 +115,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/transaction', Transaction::class)->name('transaction');
         Route::get('/change-password', EmployerChangePassword::class)->name('change_password');
         Route::get('/candidate-profile', EmployerCandidateProfile::class)->name('candidate_profile');
-        Route::get('/manage-jobs', CandidateManageJobs::class)->name('manage_jobs');
+        Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');
         Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
     });
 });
@@ -138,4 +139,3 @@ Route::middleware('auth')->group(function () {
     Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
     Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
 });
-
