@@ -275,6 +275,7 @@ class ApplicationForm
             ])
             ->columns(1);
     }
+
     public static function getAllowedStatusOptions(?Application $record = null): array
     {
         $currentStatus = $record?->status instanceof StatusApplicationEnum
@@ -321,5 +322,3 @@ class ApplicationForm
         };
     }
 }
-
-
