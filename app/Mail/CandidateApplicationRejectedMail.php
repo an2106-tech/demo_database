@@ -18,7 +18,6 @@ class CandidateApplicationRejectedMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
-
     protected string $htmlBody;
 
     public function __construct(
@@ -39,7 +38,7 @@ class CandidateApplicationRejectedMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.candidate-application-received',
+            view: 'emails.candidate-application-rejected', // Bạn có thể dùng chung view hiển thị {!! $htmlBody !!}
             with: [
                 'subjectLine' => $this->subjectLine,
                 'htmlBody' => $this->htmlBody,
@@ -49,29 +48,25 @@ class CandidateApplicationRejectedMail extends Mailable
 
     protected function resolveTemplate(): array
     {
-        $fallbackSubject = 'Cập nhật kết quả hồ sơ ứng tuyển';
+        // 1. Cập nhật mẫu Rejection Email chuyên nghiệp, giữ uy tín thương hiệu
+        $fallbackSubject = '[{{app_name}}] - Thông báo kết quả ứng tuyển vị trí {{job_title}}';
+        
         $fallbackBody = implode("\n", [
-            '<p>Chào {{candidate_name}},</p>',
-            '<p>Cảm ơn bạn đã quan tâm và ứng tuyển vào vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p>Sau quá trình xem xét kỹ lưỡng, rất tiếc hiện tại chúng tôi chưa thể tiếp tục hồ sơ của bạn cho vị trí này.</p>',
-            '<p>Thông tin hồ sơ:</p>',
-            '<ul>',
-            '<li>Mã hồ sơ ứng tuyển: #{{application_id}}</li>',
-            '<li>Vị trí: {{job_title}}</li>',
-            '<li>Thời gian cập nhật: {{updated_at}}</li>',
-            '</ul>',
-            '<p><strong>Lý do:</strong> {{rejected_reason}}</p>',
-            '<p>Chúng tôi đánh giá cao sự quan tâm của bạn và sẽ lưu lại hồ sơ cho những cơ hội phù hợp hơn trong tương lai.</p>',
-            '<p>Hy vọng sẽ có cơ hội được đồng hành cùng bạn trong thời gian tới.</p>',
-            '<p>Trân trọng,<br>{{app_name}}</p>',
+            '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
+            '<p>Cảm ơn bạn đã dành thời gian quan tâm đến cơ hội nghề nghiệp và tham gia quá trình tuyển dụng cho vị trí <strong>{{job_title}}</strong> tại <strong>{{app_name}}</strong>.</p>',
+            '<p>Sau khi cân nhắc kỹ lưỡng các tiêu chí chuyên môn và định hướng hiện tại, chúng tôi rất tiếc phải thông báo rằng chưa thể đồng hành cùng bạn trong thời điểm này.</p>',
+            '<p>Đây là một quyết định khó khăn vì chúng tôi đã nhận được rất nhiều hồ sơ chất lượng. Tuy nhiên, chúng tôi đánh giá cao những kỹ năng và kinh nghiệm mà bạn đã chia sẻ. Hồ sơ của bạn sẽ được lưu giữ trong danh sách tiềm năng của chúng tôi và chúng tôi sẽ chủ động liên hệ nếu có vị trí phù hợp hơn trong tương lai.</p>',
+            '<p>Một lần nữa, cảm ơn bạn và chúc bạn sớm tìm được cơ hội nghề nghiệp như ý.</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
         $body = $fallbackBody;
 
+        // Kiểm tra database để lấy template rejection (nếu có)
         if (Schema::hasTable('email_templates')) {
             $template = EmailTemplate::query()
-                ->where('type', 'rejection')
+                ->where('type', 'rejection') // Đổi từ auto_reply sang rejection
                 ->where('is_active', true)
                 ->latest('id')
                 ->first();
@@ -82,14 +77,12 @@ class CandidateApplicationRejectedMail extends Mailable
             }
         }
 
+        // Thay thế placeholder
         $replacements = [
             '{{candidate_name}}' => e($this->candidate->name),
-            '{{candidate_email}}' => e((string) $this->candidate->email),
-            '{{job_title}}' => e($this->job->title),
+            '{{job_title}}'      => e($this->job->title),
+            '{{app_name}}'       => e((string) config('app.name')),
             '{{application_id}}' => (string) $this->application->id,
-            '{{updated_at}}' => e($this->formatDisplayDate($this->application->updated_at)),
-            '{{rejected_reason}}' => e($this->application->rejected_reason ?: 'Chưa có ghi chú cụ thể.'),
-            '{{app_name}}' => e((string) config('app.name')),
         ];
 
         return [
@@ -101,11 +94,11 @@ class CandidateApplicationRejectedMail extends Mailable
     protected function formatDisplayDate($date): string
     {
         if (! $date) {
-            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y H:i');
+            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y');
         }
 
         return $date->copy()
             ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
-            ->format('d/m/Y H:i');
+            ->format('d/m/Y');
     }
 }

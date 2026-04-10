@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Mail;
-
 use App\Models\Application;
 use App\Models\Candidate;
 use App\Models\EmailTemplate;
@@ -18,7 +16,6 @@ class CandidateApplicationReceivedMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
-
     protected string $htmlBody;
 
     public function __construct(
@@ -49,25 +46,27 @@ class CandidateApplicationReceivedMail extends Mailable
 
     protected function resolveTemplate(): array
     {
-        $fallbackSubject = 'Xác nhận đã nhận hồ sơ ứng tuyển';
+        // 1. Cập nhật mẫu Acknowledgement Email chuyên nghiệp vào Fallback
+        $fallbackSubject = '[{{app_name}}] - Xác nhận tiếp nhận hồ sơ ứng tuyển vị trí {{job_title}}';
+        
         $fallbackBody = implode("\n", [
-            '<p>Chào {{candidate_name}},</p>',
-            '<p>Cảm ơn bạn đã quan tâm và ứng tuyển vào vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p>Chúng tôi đã nhận được hồ sơ của bạn với các thông tin sau:</p>',
+            '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
+            '<p>Cảm ơn bạn đã quan tâm và dành thời gian gửi hồ sơ ứng tuyển vị trí <strong>{{job_title}}</strong> tại </p>',
+            '<p>Chúng tôi xác nhận đã nhận được hồ sơ của bạn thành công với các thông tin sau:</p>',
             '<ul>',
-            '<li>Mã hồ sơ ứng tuyển: #{{application_id}}</li>',
-            '<li>Vị trí: {{job_title}}</li>',
+            '<li>Mã hồ sơ: #{{application_id}}</li>',
+            '<li>Vị trí ứng tuyển: {{job_title}}</li>',
             '<li>Thời gian nộp: {{applied_at}}</li>',
-            '<li>Email ứng tuyển: {{candidate_email}}</li>',
             '</ul>',
-            '<p>Bộ phận tuyển dụng sẽ xem xét hồ sơ và liên hệ với bạn trong thời gian sớm nhất nếu hồ sơ phù hợp.</p>',
-            '<p>Chúng tôi trân trọng sự quan tâm của bạn đối với {{app_name}} và hy vọng sẽ có cơ hội hợp tác cùng bạn.</p>',
-            '<p>Trân trọng,<br>{{app_name}}</p>',
+            '<p>Hiện tại, bộ phận Tuyển dụng đang trong quá trình xem xét các hồ sơ phù hợp với tiêu chí của vị trí này. Nếu hồ sơ của bạn đáp ứng các yêu cầu công việc, chúng tôi sẽ liên hệ với bạn trong vòng 3-5 ngày làm việc để trao đổi thêm về các bước tiếp theo.</p>',
+            '<p>Chúc bạn một ngày làm việc hiệu quả và nhiều năng lượng!</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
         $body = $fallbackBody;
 
+        // Kiểm tra database để lấy template động (nếu có)
         if (Schema::hasTable('email_templates')) {
             $template = EmailTemplate::query()
                 ->where('type', 'auto_reply')
@@ -81,6 +80,7 @@ class CandidateApplicationReceivedMail extends Mailable
             }
         }
 
+        // Thực hiện thay thế các placeholder bằng dữ liệu thực tế
         $replacements = [
             '{{candidate_name}}' => e($this->candidate->name),
             '{{candidate_email}}' => e((string) $this->candidate->email),

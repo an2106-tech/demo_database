@@ -21,7 +21,6 @@ class CandidateOfferMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
-
     protected string $htmlBody;
 
     public function __construct(
@@ -64,26 +63,31 @@ class CandidateOfferMail extends Mailable
 
         return [
             Attachment::fromStorageDisk('local', $path)
-                ->as('Thu-moi-nhan-viec.pdf')
+                ->as('Thu-moi-nhan-viec-' . \Illuminate\Support\Str::slug($this->candidate->name) . '.pdf')
                 ->withMime('application/pdf'),
         ];
     }
 
     protected function resolveTemplate(): array
     {
-        $fallbackSubject = 'Thư mời nhận việc - {{job_title}}';
+        // 1. Cập nhật nội dung Offer chuyên nghiệp theo yêu cầu
+        $fallbackSubject = 'Thư mời làm việc (Job Offer) – Vị trí {{job_title}} – {{app_name}}';
+        
         $fallbackBody = implode("\n", [
-            '<p>Chào {{candidate_name}},</p>',
-            '<p>Chúc mừng bạn đã vượt qua các vòng đánh giá cho vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p>Chúng tôi trân trọng gửi đến bạn thư mời nhận việc với các thông tin chính sau:</p>',
+            '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
+            '<p>Thay mặt ban lãnh đạo <strong>{{app_name}}</strong>, tôi rất vui mừng thông báo rằng chúng tôi chính thức mời bạn gia nhập công ty với vị trí <strong>{{job_title}}</strong>.</p>',
+            '<p>Chúng tôi rất ấn tượng với năng lực chuyên môn và thái độ làm việc của bạn trong suốt quá trình phỏng vấn. Chúng tôi tin rằng bạn sẽ là một mảnh ghép tuyệt vời cho đội ngũ của chúng tôi.</p>',
+            '<p>Dưới đây là tóm tắt một số thông tin cơ bản:</p>',
             '<ul>',
-            '<li>Mức lương đề nghị: {{salary_offered}}</li>',
-            '<li>Ngày bắt đầu dự kiến: {{start_date}}</li>',
-            '<li>Thời gian thử việc: {{probation_months}}</li>',
+            '<li><strong>Mức lương đề nghị:</strong> {{salary_offered}}</li>',
+            '<li><strong>Ngày bắt đầu làm việc:</strong> {{start_date}}</li>',
+            '<li><strong>Thời gian thử việc:</strong> {{probation_months}}</li>',
             '</ul>',
+            '<p><strong>Vui lòng xem file PDF đính kèm</strong> để biết chi tiết về các điều khoản công việc, quyền lợi bảo hiểm, và chính sách phúc lợi dành cho bạn.</p>',
             '<div>{{offer_content}}</div>',
-            '<p>Nếu bạn đồng ý với đề nghị này, vui lòng phản hồi lại bộ phận tuyển dụng để chúng tôi hỗ trợ các bước tiếp theo.</p>',
-            '<p>Trân trọng,<br>{{app_name}}</p>',
+            '<p>Để xác nhận lời mời này, bạn vui lòng phản hồi email này hoặc ký tên vào bản Offer Letter đính kèm và gửi lại cho chúng tôi trước ngày <strong>{{expiration_date}}</strong>.</p>',
+            '<p>Chào mừng bạn đến với đội ngũ của chúng tôi!</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
@@ -107,8 +111,9 @@ class CandidateOfferMail extends Mailable
             '{{candidate_email}}' => e((string) $this->candidate->email),
             '{{job_title}}' => e($this->job->title),
             '{{salary_offered}}' => e(number_format((float) $this->offer->salary_offered, 0, ',', '.').' VND'),
-            '{{start_date}}' => e(optional($this->offer->start_date)->format('d/m/Y') ?? 'Chua cap nhat'),
-            '{{probation_months}}' => e((string) $this->offer->probation_months.' thang'),
+            '{{start_date}}' => e(optional($this->offer->start_date)->format('d/m/Y') ?? 'Chưa cập nhật'),
+            '{{probation_months}}' => e((string) $this->offer->probation_months.' tháng'),
+            '{{expiration_date}}' => e(optional($this->offer->expires_at)->format('d/m/Y') ?? 'hết hạn sau 3 ngày'),
             '{{offer_content}}' => $this->resolveOfferContentHtml(),
             '{{app_name}}' => e((string) config('app.name')),
         ];
@@ -124,13 +129,9 @@ class CandidateOfferMail extends Mailable
         $content = trim((string) $this->offer->content);
 
         if ($content !== '') {
-            return nl2br(e($content));
+            return '<div style="margin: 15px 0; padding: 10px; border-left: 4px solid #eee;">' . nl2br(e($content)) . '</div>';
         }
 
-        if ($this->offer->offer_letter_template_id) {
-            return '<p><em>Nội dung chi tiết xem file PDF đính kèm.</em></p>';
-        }
-
-        return nl2br(e($content));
+        return '';
     }
 }

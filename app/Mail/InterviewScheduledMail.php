@@ -18,7 +18,6 @@ class InterviewScheduledMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
-
     protected string $htmlBody;
 
     public function __construct(
@@ -66,22 +65,24 @@ class InterviewScheduledMail extends Mailable
         $interviewer = $this->interview->interviewer;
         $locationText = app(InterviewCalendarService::class)->resolveLocation($this->interview);
 
-        $fallbackSubject = 'L?ch ph?ng v?n - {{candidate_name}} - {{job_title}}';
+        // 1. Cập nhật mẫu Interview Invitation chuyên nghiệp
+        $fallbackSubject = 'Thư mời phỏng vấn vị trí {{job_title}} - {{app_name}}';
+        
         $fallbackBody = implode("\n", [
-            '<p>Xin chào,</p>',
-            '<p>L?ch ph?ng v?n dã du?c s?p x?p cho h? so ?ng tuy?n c?a ?ng viên.</p>',
-            '<p><strong>Thông tin l?ch ph?ng v?n</strong></p>',
-            '<ul>',
-            '<li>?ng viên: {{candidate_name}}</li>',
-            '<li>V? trí: {{job_title}}</li>',
-            '<li>Th?i gian: {{scheduled_at}}</li>',
-            '<li>Hình th?c: {{interview_type}}</li>',
-            '<li>Ð?a di?m / Link: {{interview_location}}</li>',
-            '<li>Ngu?i ph?ng v?n: {{interviewer_name}}</li>',
+            '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
+            '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ! Sau khi xem xét các kỹ năng và kinh nghiệm của bạn, chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn để trao đổi chi tiết hơn về sự phù hợp của bạn với đội ngũ <strong>{{app_name}}</strong>.</p>',
+            '<p><strong>Thông tin chi tiết về buổi phỏng vấn:</strong></p>',
+            '<ul style="line-height: 1.6;">',
+            '<li><strong>Vị trí ứng tuyển:</strong> {{job_title}}</li>',
+            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
+            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
+            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
+            '<li><strong>Người phỏng vấn:</strong> {{interviewer_name}}</li>',
             '</ul>',
-            '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
-            '<p>Vui lòng s?p x?p th?i gian tham gia ph?ng v?n theo l?ch dã du?c thi?t l?p.</p>',
-            '<p>Trân tr?ng,<br>{{app_name}}</p>',
+            '<p><strong>Ghi chú từ bộ phận tuyển dụng:</strong> {{interview_notes}}</p>',
+            '<p>Vui lòng phản hồi email này để xác nhận sự tham gia của bạn. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>',
+            '<p>Mong sớm được gặp bạn!</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
@@ -101,14 +102,14 @@ class InterviewScheduledMail extends Mailable
         }
 
         $replacements = [
-            '{{candidate_name}}' => e($candidate?->name ?? '?ng viên'),
+            '{{candidate_name}}' => e($candidate?->name ?? 'Ứng viên'),
             '{{candidate_email}}' => e((string) ($candidate?->email ?? '')),
-            '{{job_title}}' => e($job?->title ?? 'V? trí ?ng tuy?n'),
+            '{{job_title}}' => e($job?->title ?? 'Vị trí ứng tuyển'),
             '{{scheduled_at}}' => e($this->formatDisplayDate($this->interview->scheduled_at)),
-            '{{interview_type}}' => e($this->interview->type === 'online' ? 'Online' : 'Offline'),
+            '{{interview_type}}' => e($this->interview->type === 'online' ? 'Phỏng vấn Online' : 'Phỏng vấn trực tiếp (Offline)'),
             '{{interview_location}}' => e($locationText),
-            '{{interviewer_name}}' => e($interviewer?->name ?? 'N/A'),
-            '{{interview_notes}}' => e($this->interview->notes ?: 'Không có'),
+            '{{interviewer_name}}' => e($interviewer?->name ?? 'Hội đồng tuyển dụng'),
+            '{{interview_notes}}' => e($this->interview->notes ?: 'Không có ghi chú bổ sung'),
             '{{recipient_label}}' => e($this->recipientLabel),
             '{{app_name}}' => e((string) config('app.name')),
         ];
@@ -127,6 +128,6 @@ class InterviewScheduledMail extends Mailable
 
         return $date->copy()
             ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
-            ->format('d/m/Y H:i');
+            ->format('H:i, \n\g\à\y d/m/Y');
     }
 }
