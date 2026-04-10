@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire\Client\Employers;
+namespace App\Livewire\Client\Employers; //sửa rồi
 
 use Livewire\Component;
 use Livewire\Attributes\Layout;

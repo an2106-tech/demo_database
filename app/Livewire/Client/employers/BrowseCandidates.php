@@ -10,6 +10,7 @@ use Livewire\Component;
 class BrowseCandidates extends Component
 {
     #[Layout('layouts.employer')]
+    //sửa mới
     public function render()
     {
         /** @var User|null $user */
