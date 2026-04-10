@@ -11,10 +11,12 @@ use App\Models\Branch;
 use App\Models\Candidate;
 use App\Models\Interview;
 use App\Models\Offer;
+use App\Models\OfferLetterTemplate;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
+use App\Services\OfferPdfService;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -38,6 +40,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 
 class ApplicationsTable
 {
@@ -76,7 +79,7 @@ class ApplicationsTable
                 TextColumn::make('cv_path')
                     ->label('CV')
                     ->formatStateUsing(fn (?string $state): string => $state ? 'Mã CV' : '-')
-                    ->url(fn ($record) => $record->cv_path ? asset('storage/' . ltrim($record->cv_path, '/')) : null)
+                    ->url(fn ($record) => $record->cv_path ? asset('storage/'.ltrim($record->cv_path, '/')) : null)
                     ->openUrlInNewTab(),
                 TextColumn::make('apply_method')
                     ->label('Cách nộp hồ sơ')
@@ -165,7 +168,7 @@ class ApplicationsTable
                 SelectFilter::make('candidate_id')
                     ->label('Ứng viên')
                     ->options(fn () => Candidate::query()->orderBy('name')->limit(500)->get()->mapWithKeys(fn (Candidate $candidate) => [
-                        $candidate->id => "#{$candidate->id} - {$candidate->name}" . ($candidate->email ? " ({$candidate->email})" : ''),
+                        $candidate->id => "#{$candidate->id} - {$candidate->name}".($candidate->email ? " ({$candidate->email})" : ''),
                     ])->all())
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('candidate_id', $data['value']) : $query;
@@ -224,7 +227,7 @@ class ApplicationsTable
                     ->color('primary')
                     ->requiresConfirmation()
                     ->modalHeading('Gửi offer cho ứng viên')
-                    ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới ' . ($record->candidate?->email ?: 'email ứng viên'))
+                    ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'))
                     ->action(function (Application $record): void {
                         $offer = $record->offers()->latest('id')->first();
                         $candidate = $record->candidate;
@@ -241,6 +244,11 @@ class ApplicationsTable
                         }
 
                         try {
+                            if ($offer->offer_letter_template_id) {
+                                app(OfferPdfService::class)->refreshForOffer($offer);
+                                $offer->refresh();
+                            }
+
                             Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
 
                             $offer->forceFill([
@@ -268,6 +276,31 @@ class ApplicationsTable
                         }
                     })
                     ->visible(fn (Application $record): bool => static::canSendOffer($record)),
+                Action::make('download_offer_pdf')
+                    ->label('Tải PDF offer')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->color('gray')
+                    ->visible(fn (Application $record): bool => filled($record->latestOffer?->pdf_path))
+                    ->action(function (Application $record) {
+                        $offer = $record->offers()->latest('id')->first();
+                        $disk = Storage::disk('local');
+
+                        if (! $offer || ! $offer->pdf_path || ! $disk->exists($offer->pdf_path)) {
+                            Notification::make()
+                                ->warning()
+                                ->title('Chưa có file PDF')
+                                ->body('Chọn mẫu thư offer và lưu lại, hoặc kiểm tra quyền ghi storage.')
+                                ->send();
+
+                            return null;
+                        }
+
+                        return response()->download(
+                            $disk->path($offer->pdf_path),
+                            'thu-moi-nhan-viec-'.$offer->id.'.pdf',
+                            ['Content-Type' => 'application/pdf'],
+                        );
+                    }),
                 ViewAction::make()
                     ->modal()
                     ->modalWidth('7xl')
@@ -402,16 +435,33 @@ class ApplicationsTable
             ->where('branch_id', $branchId)
             ->where('is_active', true)
             ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['director', 'pm', 'hr']))
-            ->with('branch')
+            ->with(['branch', 'roles'])
             ->orderBy('name')
             ->get()
             ->mapWithKeys(fn (User $user): array => [
-                $user->id => trim(implode(' - ', array_filter([
-                    $user->name . ($user->role ? ' (' . static::formatUserRole($user->role) . ')' : ''),
-                    $user->branch?->name,
-                ]))),
+                $user->id => static::formatInterviewerOptionLabel($user),
             ])
             ->all();
+    }
+
+    protected static function formatInterviewerOptionLabel(User $user): string
+    {
+        $roleKey = $user->role;
+
+        if (! filled($roleKey)) {
+            $allowed = ['director', 'pm', 'hr'];
+            $roleKey = $user->roles->first(fn ($r) => in_array($r->name, $allowed, true))?->name;
+        }
+
+        $nameWithRole = $user->name;
+
+        if (filled($roleKey)) {
+            $nameWithRole .= ' ('.static::formatUserRole($roleKey).')';
+        }
+
+        $branchName = $user->branch?->name;
+
+        return trim(implode(' - ', array_filter([$nameWithRole, $branchName])));
     }
 
     protected static function getInterviewRecipients(Application $record): array
@@ -446,8 +496,8 @@ class ApplicationsTable
     {
         $parts = array_filter([
             $workplace->name,
-            $workplace->room ? 'Phòng ' . $workplace->room : null,
-            $workplace->floor ? 'Tầng ' . $workplace->floor : null,
+            $workplace->room ? 'Phòng '.$workplace->room : null,
+            $workplace->floor ? 'Tầng '.$workplace->floor : null,
         ]);
 
         return implode(' - ', $parts);
@@ -457,10 +507,9 @@ class ApplicationsTable
     {
         return match ($role) {
             'director' => 'Giám đốc',
-            'pm' => 'Quản lý dự án',
-            'hr' => 'Nhân sự',
-            'admin' => 'Quản trị viên',
-            default => (string) $role,
+            'pm' => 'PM',
+            'hr' => 'HR',
+            default => $role ? strtoupper($role) : '',
         };
     }
 
@@ -484,7 +533,7 @@ class ApplicationsTable
 
                 return 'Xử lý hồ sơ';
             })
-            ->modalDescription(fn (Application $record): string => 'Hồ sơ #' . $record->id . ' - ' . ($record->candidate?->name ?? 'Ứng viên'))
+            ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? '?ng viên'))
             ->fillForm(function (Application $record): array {
                 if (static::canManageInterview($record)) {
                     return static::getInterviewFormData($record);
@@ -493,6 +542,7 @@ class ApplicationsTable
                 $offer = $record->offers()->latest('id')->first();
 
                 return [
+                    'offer_letter_template_id' => $offer?->offer_letter_template_id,
                     'salary_offered' => $offer?->salary_offered,
                     'start_date' => $offer?->start_date,
                     'probation_months' => $offer?->probation_months ?? 2,
@@ -538,6 +588,19 @@ class ApplicationsTable
                 }
 
                 return [
+                    Select::make('offer_letter_template_id')
+                        ->label('Mẫu thư offer (PDF)')
+                        ->placeholder('Không dùng mẫu — soạn toàn bộ trong ô nội dung bên dưới')
+                        ->options(fn (): array => OfferLetterTemplate::query()
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->orderBy('name')
+                            ->pluck('name', 'id')
+                            ->all())
+                        ->searchable()
+                        ->preload()
+                        ->live()
+                        ->columnSpanFull(),
                     TextInput::make('salary_offered')->label('Mức lương đề nghị')->numeric()->minValue(0)->required()->suffix('VND'),
                     DatePicker::make('start_date')
                         ->label('Ngày bắt đầu dự kiến')
@@ -547,11 +610,11 @@ class ApplicationsTable
                         ->required(),
                     TextInput::make('probation_months')->label('Thời gian thử việc')->numeric()->minValue(0)->default(2)->required()->suffix('tháng'),
                     Textarea::make('content')
-                        ->label('Nội dung thư mời nhận việc')
-                        ->rows(10)
-                        ->required()
+                        ->label('Nội dung bổ sung (email + cuối PDF)')
+                        ->rows(8)
+                        ->required(fn (callable $get): bool => blank($get('offer_letter_template_id')))
                         ->columnSpanFull()
-                        ->helperText('Bước MVP cho phép soạn tay. Sau bổ sung PDF'),
+                        ->helperText('Nếu chọn mẫu: placeholder {{candidate_name}}, lương, ngày… được điền tự động trong PDF; ô này là phần ghi chú thêm (không bắt buộc). Không chọn mẫu: soạn tay toàn bộ nội dung thư tại đây như trước.'),
                 ];
             })
             ->action(function (Application $record, array $data): void {
@@ -562,7 +625,7 @@ class ApplicationsTable
                     $interview = $existingInterview ?? new Interview([
                         'application_id' => $record->id,
                         'round_number' => $roundNumber,
-                        'round_name' => 'Phỏng vấn vòng ' . $roundNumber,
+                        'round_name' => 'Phỏng vấn vòng '.$roundNumber,
                         'duration_minutes' => 60,
                         'result' => 'pending',
                     ]);
@@ -629,19 +692,27 @@ class ApplicationsTable
 
                 $offer->fill([
                     'application_id' => $record->id,
+                    'offer_letter_template_id' => $data['offer_letter_template_id'] ?? null,
                     'salary_offered' => $data['salary_offered'],
                     'start_date' => $data['start_date'],
                     'probation_months' => $data['probation_months'],
-                    'content' => $data['content'],
+                    'content' => $data['content'] ?? '',
                 ]);
                 $offer->save();
 
+                app(OfferPdfService::class)->refreshForOffer($offer);
+                $offer->refresh();
+
                 $record->forceFill(['status' => StatusApplicationEnum::OFFER])->save();
+
+                $pdfHint = filled($offer->pdf_path)
+                    ? ' PDF đã tạo — có thể tải từ cột thao tác hoặc file đính kèm khi gửi email.'
+                    : '';
 
                 Notification::make()
                     ->success()
-                    ->title($existingOffer ? 'Đã lưu offer' : 'Đã tạo offer')
-                    ->body('Offer đã được lưu. Có thể ấn gửi offer để gửi email cho ứng viên.')
+                    ->title($existingOffer ? 'Ðã lưu offer' : 'Ðã tạo offer')
+                    ->body('Offer đã được lưu.'.$pdfHint.' Có thể gửi email offer cho ứng viên.')
                     ->send();
             })
             ->visible(fn (Application $record): bool => static::getPipelineActionLabel($record) !== null)

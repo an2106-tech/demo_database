@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             UserSeeder::class,
             EmailTemplateSeeder::class,
+            OfferLetterTemplateSeeder::class,
             SkillSeeder::class,
             RecruitmentJobSeeder::class,
             JobSkillSeeder::class,
@@ -35,7 +36,7 @@ class DatabaseSeeder extends Seeder
             CandidateSkillSeeder::class,
             ApplicationDemoSeeder::class,
             CategorySeeder::class,
-            PostSeeder::class
+            PostSeeder::class,
         ]);
     }
 }

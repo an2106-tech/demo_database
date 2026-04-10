@@ -9,10 +9,12 @@ use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateOfferMail extends Mailable
 {
@@ -47,6 +49,24 @@ class CandidateOfferMail extends Mailable
                 'htmlBody' => $this->htmlBody,
             ],
         );
+    }
+
+    /**
+     * @return array<int, Attachment>
+     */
+    public function attachments(): array
+    {
+        $path = $this->offer->pdf_path;
+
+        if (! $path || ! Storage::disk('local')->exists($path)) {
+            return [];
+        }
+
+        return [
+            Attachment::fromStorageDisk('local', $path)
+                ->as('Thu-moi-nhan-viec.pdf')
+                ->withMime('application/pdf'),
+        ];
     }
 
     protected function resolveTemplate(): array
@@ -86,10 +106,10 @@ class CandidateOfferMail extends Mailable
             '{{candidate_name}}' => e($this->candidate->name),
             '{{candidate_email}}' => e((string) $this->candidate->email),
             '{{job_title}}' => e($this->job->title),
-            '{{salary_offered}}' => e(number_format((float) $this->offer->salary_offered, 0, ',', '.') . ' VND'),
+            '{{salary_offered}}' => e(number_format((float) $this->offer->salary_offered, 0, ',', '.').' VND'),
             '{{start_date}}' => e(optional($this->offer->start_date)->format('d/m/Y') ?? 'Chua cap nhat'),
-            '{{probation_months}}' => e((string) $this->offer->probation_months . ' thang'),
-            '{{offer_content}}' => nl2br(e((string) $this->offer->content)),
+            '{{probation_months}}' => e((string) $this->offer->probation_months.' thang'),
+            '{{offer_content}}' => $this->resolveOfferContentHtml(),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
@@ -97,5 +117,20 @@ class CandidateOfferMail extends Mailable
             strtr($subject, $replacements),
             strtr($body, $replacements),
         ];
+    }
+
+    protected function resolveOfferContentHtml(): string
+    {
+        $content = trim((string) $this->offer->content);
+
+        if ($content !== '') {
+            return nl2br(e($content));
+        }
+
+        if ($this->offer->offer_letter_template_id) {
+            return '<p><em>Nội dung chi tiết xem file PDF đính kèm.</em></p>';
+        }
+
+        return nl2br(e($content));
     }
 }

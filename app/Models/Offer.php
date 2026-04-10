@@ -12,6 +12,7 @@ class Offer extends Model
 
     protected $fillable = [
         'application_id',
+        'offer_letter_template_id',
         'content',
         'salary_offered',
         'start_date',
@@ -36,5 +37,10 @@ class Offer extends Model
     public function application(): BelongsTo
     {
         return $this->belongsTo(Application::class);
+    }
+
+    public function letterTemplate(): BelongsTo
+    {
+        return $this->belongsTo(OfferLetterTemplate::class, 'offer_letter_template_id');
     }
 }
