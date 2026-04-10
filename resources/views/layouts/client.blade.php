@@ -168,6 +168,7 @@
     <script src="{{ asset('assets/js/jarallax-video.min.js') }}"></script>
     <script src="{{ asset('assets/js/custom-scrollbar.js') }}"></script>
     <script src="{{ asset('assets/js/main.js') }}"></script>
+    @stack('scripts')
 
     @livewireScripts
 

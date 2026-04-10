@@ -7,84 +7,135 @@ use Livewire\Component;
 use App\Models\Branch;
 use App\Enums\StatusRecruitmentJobsEnum;
 use Carbon\Carbon;
+use Livewire\WithPagination;
+use App\Enums\VietnamProvince; // Import Enum của bạn
 
 class BrowseCompanies extends Component
 {
+    use WithPagination;
+
+    // Các thuộc tính liên kết với bộ lọc
+    public $search = ''; // Keyword tìm kiếm chính
+    public $date_filter = 'all'; // Lọc theo ngày đăng: 'all', 'hour', '24h', '7d', '14d', '30d'
+    public $salary_range = [0, 10000]; // Mặc định từ 0 - 10 nghìn (tùy chỉnh theo CSDL)
+    // --- Thuộc tính mới cho Địa điểm ---
+    public $selected_cities = [];      // Lưu các giá trị enum (vd: ['ha_noi', 'can_tho'])
+    public $search_city_keyword = '';  // Keyword tìm kiếm trong dropdown
+    public $applied_cities = [];       // Lưu giá trị thực sự dùng để query DB
+    // Trong class BrowseCompanies
+    public $salary_min = 0; // Giá trị lương tối thiểu người dùng chọn
+
+
+    // Cấu hình query string để giữ trạng thái bộ lọc khi phân trang hoặc làm mới trang
+    protected $queryString = [
+        'search' => ['except' => ''],
+        'date_filter' => ['except' => 'all'],
+        'applied_cities' => ['as' => 'cities', 'except' => []],
+    ];
+
+
+    // Hàm này sẽ được gọi mỗi khi $search thay đổi để reset về trang 1
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     #[Layout('layouts.client')]
+    
+    // Hàm xóa tất cả
+    public function clearAllCities()
+    {
+        $this->selected_cities = [];
+        $this->applied_cities = [];
+        $this->resetPage();
+    }
+
+    // Hàm nhấn nút "Áp dụng"
+    public function applyCityFilter()
+    {
+        $this->applied_cities = $this->selected_cities;
+        $this->resetPage();
+        // Dispatch browser event để tự động đóng dropdown (nếu cần)
+        $this->dispatch('close-city-dropdown');
+    }
+
     public function render()
     {
-        // 1. Khởi tạo thời gian hiện tại để làm mốc so sánh cho các tin tuyển dụng (tránh dùng now() nhiều lần gây lệch giây)
         $now = Carbon::now();
 
-        // 2. Bắt đầu xây dựng truy vấn lấy danh sách chi nhánh (Branch)
-        $branches = Branch::query()
-            // [WHERE] Chỉ lấy những chi nhánh được đánh dấu là đang hoạt động
+        // 1. Lấy danh sách tỉnh thành từ Enum và lọc theo keyword tìm kiếm trong dropdown
+        $provincesList = VietnamProvince::options();
+        if (!empty($this->search_city_keyword)) {
+            $provincesList = array_filter($provincesList, function ($label) {
+                return str_contains(mb_strtolower($label), mb_strtolower($this->search_city_keyword));
+            });
+        }
+
+        $query = Branch::query()
             ->where('is_active', true)
-            ->select(['id', 'name', 'image', 'city', 'address', 'is_active'])
+            ->select(['id', 'name', 'image', 'city', 'address', 'email_contact', 'is_active']);
 
-            // [WHERE HAS] Chỉ lấy Chi nhánh nếu nó có ít nhất một tin tuyển dụng thỏa mãn các điều kiện:
-            ->whereHas('recruitmentJobs', function ($query) use ($now) {
-                // - Tin tuyển dụng phải ở trạng thái Đã xuất bản
-                $query->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
-                    // - Và phải còn hạn (deadline là rỗng HOẶC deadline lớn hơn hoặc bằng thời điểm hiện tại)
-                    ->where(function ($q) use ($now) {
-                        $q->whereNull('deadline')
-                            ->orWhere('deadline', '>=', $now);
+        // 2. Lọc theo KEYWORD chính (Search Box ngoài)
+        if (!empty($this->search)) {
+            $query->where(function ($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                    ->orWhere('address', 'like', '%' . $this->search . '%')
+                    ->orWhereHas('recruitmentJobs', function ($sub) {
+                        $sub->where('title', 'like', '%' . $this->search . '%');
                     });
-            })
+            });
+        }
 
-            // [WITH COUNT] Đếm số lượng tin tuyển dụng thỏa mãn điều kiện và đặt tên cột là 'published_jobs_count'
-            ->withCount([
-                'recruitmentJobs as published_jobs_count' => fn($query) => $query
-                    ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
-                    ->where(function ($q) use ($now) {
-                        $q->whereNull('deadline')
-                            ->orWhere('deadline', '>=', $now);
-                    }),
-            ])
+        // 3. Lọc theo ĐỊA ĐIỂM (Chỉ lọc khi đã nhấn Áp dụng)
+        if (!empty($this->applied_cities)) {
+            $query->whereIn('city', $this->applied_cities);
+        }
 
-            // [WITH / EAGER LOADING] Lấy danh sách chi tiết các tin tuyển dụng đi kèm (tránh lỗi N+1 query)
-            ->with([
-                'recruitmentJobs' => fn($query) => $query
-                    // - Chỉ lấy tin đã xuất bản và còn hạn
-                    ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
-                    ->where(function ($q) use ($now) {
-                        $q->whereNull('deadline')
-                            ->orWhere('deadline', '>=', $now);
-                    })
-                    // - Sắp xếp tin mới nhất lên trên
-                    ->orderByDesc('created_at')
-                    // - Chỉ lấy các trường cần thiết của tin tuyển dụng để tiết kiệm tài nguyên
-                    ->select(['id', 'branch_id', 'title', 'salary_range', 'deadline', 'created_at']),
-            ])
+        // --- BỘ LỌC NGÀY ĐĂNG ---
+        if ($this->date_filter !== 'all') {
+            $threshold = match ($this->date_filter) {
+                'hour' => $now->copy()->subHour(),
+                '24h'  => $now->copy()->subDay(),
+                '7d'   => $now->copy()->subDays(7),
+                '14d'  => $now->copy()->subDays(14),
+                '30d'  => $now->copy()->subDays(30),
+                default => null
+            };
 
-            // [ORDER BY] Sắp xếp danh sách chi nhánh theo thời gian tạo mới nhất
-            ->latest()
+            if ($threshold) {
+                $query->whereHas('recruitmentJobs', function ($q) use ($threshold) {
+                    $q->where('created_at', '>=', $threshold);
+                });
+            }
+        }
 
-            // [GET] Thực thi truy vấn và chỉ lấy các cột cần thiết của bảng Chi nhánh
-            ->get();
+        // --- ĐIỀU KIỆN TIN TUYỂN DỤNG CHUNG (Status, Deadline, Salary) ---
+        $jobCondition = function ($query) use ($now) {
+            $query->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('deadline')->orWhere('deadline', '>=', $now);
+                });
 
-        // 3. Phân nhóm (Grouping) các chi nhánh đã lấy được theo chữ cái đầu tiên của tên
-        $branchesByLetter = $branches->groupBy(function (Branch $branch) {
-            // Chuyển tên về dạng chuỗi, nếu không có tên thì để rỗng
-            $name = (string) ($branch->name ?? '');
+            // Lọc: Chỉ lấy các công ty có công việc mà lương MAX >= mức người dùng chọn
+            // (Hoặc tùy biến theo logic của bạn: lương MIN >= $this->salary_min)
+            if ($this->salary_min > 0) {
+                $query->whereRaw("CAST(JSON_EXTRACT(salary_range, '$.max') AS UNSIGNED) >= ?", [$this->salary_min]);
+            }
+        };
 
-            // Sử dụng mb_substr để lấy ký tự đầu tiên (hỗ trợ tốt các ký tự có dấu/UTF-8)
-            $firstChar = function_exists('mb_substr')
-                ? mb_substr($name, 0, 1, 'UTF-8')
-                : substr($name, 0, 1);
+        // Áp dụng điều kiện cho whereHas và withCount
+        $query->whereHas('recruitmentJobs', $jobCondition)
+            ->withCount(['recruitmentJobs as published_jobs_count' => $jobCondition])
+            ->with(['recruitmentJobs' => function ($q) use ($jobCondition) {
+                $jobCondition($q);
+                $q->orderByDesc('created_at')->select(['id', 'branch_id', 'title', 'salary_range', 'deadline', 'created_at']);
+            }]);
 
-            // Chuyển về chữ hoa. Nếu tên rỗng thì đưa vào nhóm ký tự đặc biệt '#'
-            return strtoupper($firstChar !== '' ? $firstChar : '#');
-        });
-
-        // 4. Tạo mảng ký tự từ A đến Z để hiển thị bộ lọc nhanh trên giao diện
-        $letters = range('A', 'Z');
+        $branches = $query->latest()->paginate(10);
 
         return view('livewire.client.browse-companies', [
-            'branches' => $branches,
-            'branchesByLetter' => $branchesByLetter,
-            'letters' => $letters,
+            'branches' => $query->latest()->paginate(10),
+            'provincesList' => $provincesList
         ]);
     }
 }
