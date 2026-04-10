@@ -41,12 +41,42 @@ class PostJob extends Component
 
     public string $skills_level = 'mid';
 
-    public function mount(): void
+    public ?int $jobId = null;
+
+    public function mount($id = null): void
     {
         $user = Auth::user();
 
-        if ($user?->branchScopeId()) {
-            $this->branch_id = $user->branchScopeId();
+        if ($id) {
+            $job = RecruitmentJob::findOrFail($id);
+            if ($job->created_by !== Auth::id()) {
+                abort(403);
+            }
+            $this->jobId = $job->id;
+            $this->title = $job->title;
+            $this->description = $job->description ?? '';
+            $this->branch_id = $job->branch_id;
+            $this->department_id = $job->department_id;
+            $this->workplace_id = $job->workplace_id;
+            $this->public_url = $job->public_url;
+            $this->deadline = $job->deadline ? $job->deadline->format('Y-m-d') : null;
+            $this->positions_count = $job->positions_count;
+            $this->status = $job->status->value ?? 'draft';
+
+            if (is_array($job->salary_range)) {
+                $this->salary_min = $job->salary_range['min'] ?? null;
+                $this->salary_max = $job->salary_range['max'] ?? null;
+            }
+
+            $this->skills = $job->skills->pluck('id')->toArray();
+            $firstSkill = $job->skills->first();
+            if ($firstSkill) {
+                $this->skills_level = $firstSkill->pivot->level ?? 'mid';
+            }
+        } else {
+            if ($user?->branchScopeId()) {
+                $this->branch_id = $user->branchScopeId();
+            }
         }
     }
 
@@ -125,9 +155,8 @@ class PostJob extends Component
             }
         }
 
-        $job = RecruitmentJob::create([
+        $data = [
             'title' => trim($validated['title']),
-            'slug' => $this->generateUniqueSlug($validated['title']),
             'description' => trim($validated['description']),
             'status' => $validated['status'],
             'salary_range' => $this->buildSalaryRange(),
@@ -137,8 +166,22 @@ class PostJob extends Component
             'department_id' => $validated['department_id'] ?: null,
             'branch_id' => $branchId,
             'workplace_id' => $validated['workplace_id'] ?: null,
-            'created_by' => Auth::id(),
-        ]);
+        ];
+
+        if ($this->jobId) {
+            $job = RecruitmentJob::findOrFail($this->jobId);
+            if ($job->created_by !== Auth::id()) {
+                abort(403);
+            }
+            if ($job->title !== trim($validated['title'])) {
+                $data['slug'] = $this->generateUniqueSlug($validated['title']);
+            }
+            $job->update($data);
+        } else {
+            $data['slug'] = $this->generateUniqueSlug($validated['title']);
+            $data['created_by'] = Auth::id();
+            $job = RecruitmentJob::create($data);
+        }
 
         $pivotData = [];
         foreach (($validated['skills'] ?? []) as $skillId) {

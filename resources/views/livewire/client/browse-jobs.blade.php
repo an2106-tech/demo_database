@@ -43,6 +43,34 @@
             outline: none;
             box-shadow: 0 0 0 3px rgba(47, 127, 247, .15);
         }
+
+        /* Equal-Height Cards and Bottom-Aligned Buttons */
+        .browse-jobs-page .row > .col-md-6,
+        .browse-jobs-page .row > .col-lg-4 {
+            display: flex;
+        }
+
+        .browse-jobs-page .sigle-top-job {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        .browse-jobs-page .top-job-company-desc {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .browse-jobs-page .top-job-company-desc ul {
+            flex: 1 1 auto;
+            margin-bottom: 20px; /* spacing before the button */
+        }
+
+        .browse-jobs-page .top-job-company-btn {
+            margin-top: auto; /* pushes button to the very bottom */
+        }
     </style>
     <!-- Breadcrumb -->
     <section class="jobguru-breadcromb-area">

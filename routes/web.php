@@ -108,6 +108,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
 
     Route::middleware(['auth', 'employer.account'])->group(function () {
         Route::get('/post-job', PostJob::class)->name('post_job');
+        Route::get('/edit-job/{id}', PostJob::class)->name('edit_job');
         Route::get('/dashboard', EmployersDashboard::class)->name('dashboard');
         Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
         Route::get('/message', EmployerMessage::class)->name('message');

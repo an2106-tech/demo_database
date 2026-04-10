@@ -45,11 +45,7 @@
                                 </p>
                             </div>
 
-                            @if (session('status'))
-                                <div class="alert alert-success" style="margin-bottom: 24px;">
-                                    {{ session('status') }}
-                                </div>
-                            @endif
+
 
                             <div class="single-manage-jobs table-responsive">
                                 <table class="table">
@@ -60,6 +56,7 @@
                                             <th>Ngày tạo</th>
                                             <th>Hạn nộp</th>
                                             <th>Trạng thái</th>
+                                            <th>Hành động</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -89,10 +86,18 @@
                                                     @endphp
                                                     <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
                                                 </td>
+                                                <td style="white-space: nowrap;">
+                                                    <a href="{{ route('employers.edit_job', ['id' => $job->id]) }}" class="btn btn-sm" style="color: #ff7800; background: rgba(255, 120, 0, 0.1); border: 1px solid #ff7800; border-radius: 6px; padding: 6px 12px; margin-right: 8px; font-size: 13px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(255,120,0,0.1);">
+                                                        <i class="fa fa-pencil" style="margin-right: 4px;"></i> Sửa
+                                                    </a>
+                                                    <button type="button" onclick="confirmDeleteJob({{ $job->id }});" class="btn btn-sm" style="color: #dc3545; background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; border-radius: 6px; padding: 6px 12px; border: none; font-size: 13px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(220,53,69,0.1);">
+                                                        <i class="fa fa-trash-o" style="margin-right: 4px;"></i> Xoá
+                                                    </button>
+                                                </td>
                                             </tr>
                                         @empty
                                             <tr>
-                                                <td colspan="5" style="text-align: center; padding: 32px 16px;">
+                                                <td colspan="6" style="text-align: center; padding: 32px 16px;">
                                                     Bạn chưa có tin tuyển dụng nào. <a href="{{ route('employers.post_job') }}">Đăng tin đầu tiên ngay</a>.
                                                 </td>
                                             </tr>
@@ -106,4 +111,23 @@
             </div>
         </div>
     </section>
+
+    <script>
+        function confirmDeleteJob(jobId) {
+            Swal.fire({
+                title: 'Lưu ý!',
+                text: "Bạn có chắc chắn muốn xoá tin đăng này? Hành động này không thể hoàn tác.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="fa fa-trash-o"></i> Vâng, xoá ngay',
+                cancelButtonText: 'Huỷ'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('deleteJob', jobId);
+                }
+            })
+        }
+    </script>
 </div>

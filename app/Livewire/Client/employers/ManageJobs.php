@@ -22,4 +22,18 @@ class ManageJobs extends Component
             'jobs' => $jobs,
         ]);
     }
+
+    public function deleteJob($id)
+    {
+        $job = RecruitmentJob::where('id', $id)->where('created_by', Auth::id())->first();
+
+        if ($job) {
+            $job->skills()->detach();
+            $job->delete();
+            session()->flash('status', 'Xoá tin tuyển dụng thành công!');
+            $this->redirect(route('employers.manage_jobs'), navigate: true);
+        } else {
+            session()->flash('error', 'Không tìm thấy tin tuyển dụng hoặc không có quyền xoá.');
+        }
+    }
 }

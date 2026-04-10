@@ -65,6 +65,40 @@
     <script src="{{ asset('assets/js/main.js') }}"></script>
 
     @livewireScripts
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (session('status'))
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: '{!! session('status') !!}',
+                    showConfirmButton: false,
+                    timer: 3500,
+                    timerProgressBar: true,
+                    showClass: {
+                        popup: 'animate__animated animate__jackInTheBox'
+                    },
+                    hideClass: {
+                        popup: 'animate__animated animate__zoomOut'
+                    }
+                });
+            @endif
+
+            @if (session('error'))
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: '{!! session('error') !!}',
+                    showConfirmButton: true,
+                    confirmButtonColor: '#ff7800',
+                    showClass: {
+                        popup: 'animate__animated animate__shakeX'
+                    }
+                });
+            @endif
+        });
+    </script>
 </body>
 
 </html>
