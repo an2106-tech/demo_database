@@ -78,48 +78,11 @@ class EditApplication extends EditRecord
     protected function afterSave(): void
     {
         if (! $this->record?->candidate_id || empty($this->record->cv_path)) {
-            $this->sendRejectedEmailIfNeeded();
-
             return;
         }
 
         Candidate::query()
             ->whereKey($this->record->candidate_id)
             ->update(['cv_file' => $this->record->cv_path]);
-
-        $this->sendRejectedEmailIfNeeded();
-    }
-
-    protected function sendRejectedEmailIfNeeded(): void
-    {
-        $currentStatus = $this->record->status instanceof StatusApplicationEnum
-            ? $this->record->status
-            : StatusApplicationEnum::tryFrom((string) $this->record->status);
-
-        $previousStatus = $this->originalStatus instanceof StatusApplicationEnum
-            ? $this->originalStatus
-            : StatusApplicationEnum::tryFrom((string) $this->originalStatus);
-
-        if ($currentStatus !== StatusApplicationEnum::REJECTED || $previousStatus === StatusApplicationEnum::REJECTED) {
-            return;
-        }
-
-        $candidate = $this->record->candidate;
-        $job = $this->record->job;
-
-        if (! $candidate?->email || ! $job) {
-            return;
-        }
-
-        try {
-            Mail::to($candidate->email)->send(new CandidateApplicationRejectedMail($candidate, $this->record, $job));
-        } catch (\Throwable $exception) {
-            Log::warning('Failed to send rejection email to candidate.', [
-                'application_id' => $this->record->id,
-                'candidate_id' => $candidate->id,
-                'recipient' => $candidate->email,
-                'error' => $exception->getMessage(),
-            ]);
-        }
     }
 }

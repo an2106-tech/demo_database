@@ -613,8 +613,7 @@ class ApplicationsTable
                         ->label('Nội dung bổ sung (email + cuối PDF)')
                         ->rows(8)
                         ->required(fn (callable $get): bool => blank($get('offer_letter_template_id')))
-                        ->columnSpanFull()
-                        ->helperText('Nếu chọn mẫu: placeholder {{candidate_name}}, lương, ngày… được điền tự động trong PDF; ô này là phần ghi chú thêm (không bắt buộc). Không chọn mẫu: soạn tay toàn bộ nội dung thư tại đây như trước.'),
+                        ->columnSpanFull(),
                 ];
             })
             ->action(function (Application $record, array $data): void {

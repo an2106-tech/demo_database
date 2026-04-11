@@ -160,6 +160,7 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            height: 100%;
             background: #fff;
             border: 1px solid rgba(226, 232, 240, .8);
             border-radius: 18px;
@@ -269,10 +270,10 @@
                     </div>
                 </div>
             </div>
-            <div class="row" style="{{ ($display ?? 'grid') === 'list' ? 'display:none;' : '' }}">
+            <div class="row g-4" style="{{ ($display ?? 'grid') === 'list' ? 'display:none;' : '' }}">
                 @forelse ($jobs as $job)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="sigle-top-job">
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="sigle-top-job h-100">
                             <div class="top-job-company-image">
                                 <div class="company-logo-img">
                                     <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">

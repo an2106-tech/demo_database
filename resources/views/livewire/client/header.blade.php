@@ -436,6 +436,16 @@
             width: 100%;
          }
       }
+      /* Ngăn chặn menu chính bị xuống dòng */
+      #jobguru_navigation li a {
+         white-space: nowrap !important;
+         padding-left: 8px !important;
+         padding-right: 8px !important;
+      }
+      .site-logo {
+         padding-right: 15px !important;
+         margin-right: 10px !important;
+      }
    </style>
 
    <header class="jobguru-header-area stick-top forsticky page-header client-app-header">
@@ -450,22 +460,40 @@
                   </div>
                   <div class="jobguru-responsive-menu"></div>
                </div>
-               <div class="col-lg-6">
+               <div class="col-lg-7">
                   <div class="header-menu">
                      <nav id="navigation">
                         <ul id="jobguru_navigation">
                            <li class="active"><a href="/">Trang chủ</a></li>
+                           
+                           @guest
+                              <li class="has-children">
+                                 <a href="#">Tìm việc làm</a>
+                                 <ul>
+                                    <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
+                                    <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
+                                    <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
+                                 </ul>
+                              </li>
+                              <li class="has-children">
+                                 <a href="#">Tuyển dụng</a>
+                                 <ul>
+                                    <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
+                                 </ul>
+                              </li>
+                           @else
+                              @if($showCandidateMenu ?? false)
+                                 <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
+                                 <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
+                                 <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
+                              @endif
 
-                           @if($showCandidateMenu ?? auth()->guest())
-                              <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
-                              <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                              <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
-                           @endif
-
-                           @if($showEmployerMenu ?? auth()->guest())
-                              <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                              <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
-                           @endif
+                              @if($showEmployerMenu ?? false)
+                                 <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                 <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
+                              @endif
+                           @endguest
 
                            <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
                            <li><a href="{{ route('pages.blog') }}">Tin tức</a></li>
@@ -475,7 +503,7 @@
                   </div>
                </div>
 
-               <div class="col-lg-4">
+               <div class="col-lg-3">
 
                   <div class="header-right-menu">
                      <ul>

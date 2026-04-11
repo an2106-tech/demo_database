@@ -36,28 +36,28 @@
                 <div class="col-md-8 col-lg-9">
                     <div class="dashboard-right">
                         <div class="welcome-dashboard">
-                            <h3>Chào mừng trở lại, <span>Arino inc !</span></h3>
+                            <h3>Chào mừng trở lại, <span>{{ $user->name }}!</span></h3>
                         </div>
                         <div class="row">
                             <div class="col-lg-4 col-md-6">
                                 <div class="widget_card_page grid_flex widget_bg_blue">
                                     <div class="widget-icon">
-                                        <i class="fa fa-gavel"></i>
+                                        <i class="fa fa-briefcase"></i>
                                     </div>
                                     <div class="widget-page-text">
-                                        <h4>1426</h4>
-                                        <h2>Lượt đấu thầu</h2>
+                                        <h4>{{ $totalJobs }}</h4>
+                                        <h2>Việc làm đã đăng</h2>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-lg-4 col-md-6">
                                 <div class="widget_card_page grid_flex  widget_bg_purple">
                                     <div class="widget-icon">
-                                        <i class="fa fa-usd"></i>
+                                        <i class="fa fa-file-text-o"></i>
                                     </div>
                                     <div class="widget-page-text">
-                                        <h4>$12,000</h4>
-                                        <h2> Thanh toán</h2>
+                                        <h4>{{ $totalApplications }}</h4>
+                                        <h2>Hồ sơ đã nhận</h2>
                                     </div>
                                 </div>
                             </div>
@@ -67,8 +67,8 @@
                                         <i class="fa fa-users"></i>
                                     </div>
                                     <div class="widget-page-text">
-                                        <h4>127</h4>
-                                        <h2>Ứng viên</h2>
+                                        <h4>{{ $totalCandidates }}</h4>
+                                        <h2>Ứng viên ứng tuyển</h2>
                                     </div>
                                 </div>
                             </div>

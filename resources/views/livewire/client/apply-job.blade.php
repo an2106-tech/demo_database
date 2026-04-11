@@ -466,24 +466,34 @@
                 </div>
 
                 <div class="premium-field mb-4">
-                    <label>Tải lên Hồ sơ (CV) *</label>
+                    <label>
+                        @if($this->existingCvUrl)
+                            Sử dụng CV trong hồ sơ hoặc tải lên bản mới
+                        @else
+                            Tải lên Hồ sơ (CV) *
+                        @endif
+                    </label>
                     <div class="upload-wrapper" onclick="document.getElementById('cv-file').click()">
                         <input type="file" id="cv-file" wire:model="cv" hidden>
                         <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>
                         <div class="upload-hint">
-                            <h4>Nhấp để chọn file hồ sơ</h4>
-                            <p>Định dạng hỗ trợ: PDF, DOC, DOCX (Tối đa 10MB)</p>
+                            <h4>Nhấp để chọn file hồ sơ mới</h4>
+                            @if($this->existingCvUrl)
+                                <p class="text-primary fw-bold">Hệ thống sẽ dùng CV hiện tại nếu bạn không chọn file mới.</p>
+                            @else
+                                <p>Định dạng hỗ trợ: PDF, DOC, DOCX (Tối đa 10MB)</p>
+                            @endif
                         </div>
                     </div>
                     @error('cv') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
 
                     @if ($this->existingCvName)
-                    <div class="existing-cv-pill">
+                    <div class="existing-cv-pill" style="background: #eff6ff; border-color: #bfdbfe;">
                         <div>
                             <i class="fa fa-file-pdf-o text-primary me-2"></i>
-                            <span>{{ $this->existingCvName }}</span>
+                            <span>CV hiện tại: <strong>{{ $this->existingCvName }}</strong></span>
                         </div>
-                        <a href="{{ $this->existingCvUrl }}" target="_blank">Xem ngay</a>
+                        <a href="{{ $this->existingCvUrl }}" target="_blank" class="text-primary"><i class="fa fa-eye"></i> Xem bản cũ</a>
                     </div>
                     @endif
                 </div>

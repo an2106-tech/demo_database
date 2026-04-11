@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'UTC'),
 
     'interview_timezone' => env('INTERVIEW_TIMEZONE', 'Asia/Saigon'),
 

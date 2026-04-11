@@ -82,7 +82,7 @@ class ApplyJob extends Component
             'career_objective' => ['nullable', 'string', 'max:4000'],
         ];
 
-        $rules['cv'] = ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
+        $rules['cv'] = [$this->existing_cv_url ? 'nullable' : 'required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
 
         $this->validate($rules);
 
@@ -206,16 +206,16 @@ class ApplyJob extends Component
     {
         $candidate = $this->resolveExistingCandidate() ?? new Candidate();
 
+        if (! $candidate->exists && Auth::check()) {
+            $candidate->user_id = Auth::id();
+        }
+
         $candidate->fill([
             'name' => trim($this->name),
             'email' => trim($this->email),
             'phone' => is_string($this->phone) ? trim($this->phone) : null,
             'experience_years' => $this->experience_years,
         ]);
-
-        if (! $candidate->exists && Auth::check()) {
-            $candidate->user_id = Auth::id();
-        }
 
         $candidate->save();
 

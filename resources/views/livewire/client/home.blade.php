@@ -29,8 +29,8 @@
             </div>
             <div class="row">
                 @forelse($categories as $category)
-                    <div class="col-lg-3 col-md-6 col-sm-6">
-                        <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder account_cat">
+                    <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
+                        <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder account_cat h-100 d-flex flex-column">
                             <div class="category-holder-icon">
                                 @php
                                     $icon = trim((string) ($category->icon ?? ''));
@@ -538,11 +538,11 @@
             </div>
             <div class="row">
                 @forelse($posts as $post)
-                    <div class="col-lg-4 col-md-12">
-                        <a href="{{ route('pages.blog') }}">
-                            <div class="single-blog">
+                    <div class="col-lg-4 col-md-12 mb-4">
+                        <a href="{{ route('pages.blog') }}" class="h-100 d-block">
+                            <div class="single-blog h-100 d-flex flex-column">
                                 <div class="blog-image">
-                                    <img src="{{ asset($post->image) }}" alt="{{$post->title}}" style="height: 200px;" />
+                                    <img src="{{ asset($post->image) }}" alt="{{$post->title}}" style="height: 200px; object-fit: cover;" />
                                     <h5>{{$post->title}}</h5>
                                     <p>{{$post->created_at->format('d/m') }}</p>
                                 </div>

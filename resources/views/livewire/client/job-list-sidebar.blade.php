@@ -155,8 +155,8 @@
 
                     <div class="row">
                         @forelse ($jobs as $job)
-                            <div class="col-md-6">
-                                <div class="sigle-top-job">
+                            <div class="col-md-6 mb-4">
+                                <div class="sigle-top-job h-100 d-flex flex-column">
                                     <div class="top-job-company-image">
                                         <div class="company-logo-img">
                                             <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
