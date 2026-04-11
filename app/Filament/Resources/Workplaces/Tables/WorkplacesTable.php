@@ -37,7 +37,6 @@ class WorkplacesTable
                     ->modal()
                     ->label('Xem'),
                 EditAction::make()
-                    ->modal()
                     ->label('Sửa')
                     ->modalSubmitActionLabel('Lưu'),
                 DeleteAction::make()
