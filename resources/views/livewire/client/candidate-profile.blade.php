@@ -1,1394 +1,821 @@
 @php
     $sections = [
-        ['id' => 'profile-title', 'label' => 'Tiêu đề hồ sơ'],
-        ['id' => 'personal-info', 'label' => 'Thông tin cá nhân'],
-        ['id' => 'career-objective', 'label' => 'Mục tiêu nghề nghiệp'],
-        ['id' => 'desired-job', 'label' => 'Công việc mong muốn'],
-        ['id' => 'experiences', 'label' => 'Kinh nghiệm'],
-        ['id' => 'educations', 'label' => 'Học vấn'],
-        ['id' => 'certifications', 'label' => 'Chứng chỉ'],
-        ['id' => 'languages', 'label' => 'Ngôn ngữ'],
-        ['id' => 'skills', 'label' => 'Kỹ năng'],
-        ['id' => 'achievements', 'label' => 'Thành tích'],
-        ['id' => 'activities', 'label' => 'Hoạt động'],
-        ['id' => 'references', 'label' => 'Người tham khảo'],
+        ['id' => 'personal-info', 'label' => 'Thông tin cá nhân', 'icon' => 'fa-user'],
+        ['id' => 'career-objective', 'label' => 'Mục tiêu nghề nghiệp', 'icon' => 'fa-bullseye'],
+        ['id' => 'desired-job', 'label' => 'Công việc mong muốn', 'icon' => 'fa-crosshairs'],
+        ['id' => 'experiences', 'label' => 'Kinh nghiệm', 'icon' => 'fa-briefcase'],
+        ['id' => 'educations', 'label' => 'Học vấn', 'icon' => 'fa-graduation-cap'],
+        ['id' => 'skills', 'label' => 'Kỹ năng', 'icon' => 'fa-wrench'],
+        ['id' => 'languages', 'label' => 'Ngôn ngữ', 'icon' => 'fa-language'],
+        ['id' => 'certifications', 'label' => 'Chứng chỉ', 'icon' => 'fa-certificate'],
+        ['id' => 'extra-info', 'label' => 'Đính kèm & Khác', 'icon' => 'fa-paperclip'],
     ];
 
-    $completedBlocks = collect([
+    $filledCount = collect([
         filled($profile_title),
-        filled($phone) || filled($experience_years) || collect($personal_info)->filter(fn ($value) => filled($value))->isNotEmpty(),
+        filled($phone),
+        collect($personal_info)->filter(fn ($value) => filled($value))->isNotEmpty(),
         filled($career_objective),
         collect($desired_job)->filter(fn ($value) => filled($value))->isNotEmpty(),
         collect($experiences)->isNotEmpty(),
         collect($educations)->isNotEmpty(),
         collect($skills)->isNotEmpty(),
+        collect($languages)->isNotEmpty(),
     ])->filter()->count();
+    
+    $completeness = round(($filledCount / 9) * 100);
+    $completedBlocks = $filledCount;
 @endphp
 
-<div>
+<div x-data="{ activeSection: $wire.entangle('activeSection') }">
     <style>
         .candidate-profile-page {
-            --cp-primary: #f37021;
-            --cp-primary-dark: #d95f16;
-            --cp-accent: #f37021;
-            --cp-text: #2f2f2f;
-            --cp-muted: #6e6e6e;
-            --cp-border: #f1dfd2;
-            --cp-surface: #ffffff;
-            --cp-surface-soft: #fff8f3;
-            --cp-shadow: 0 14px 35px rgba(25, 25, 25, 0.07);
-            color: var(--cp-text);
+            --cv-orange: #f37021;
+            --cv-navy: #2c3e50;
+            --cv-grey: #64748b;
+            --cv-bg: #f4f7f9;
+            --cv-white: #ffffff;
+            --cv-border: #e2e8f0;
+            --cv-radius: 20px;
+            --cv-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+            background-color: var(--cv-bg);
+            font-family: 'Inter', sans-serif;
+            color: #334155;
         }
 
-        .candidate-profile-page .dashboard-right {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .candidate-profile-page .candidate-profile {
-            background: transparent;
-            border-radius: 0;
-            padding: 0;
-        }
-
+        /* Hero Header */
         .cp-hero {
-            background: linear-gradient(135deg, #fff7f1 0%, #fff1e6 55%, #ffffff 55%, #ffffff 100%);
-            border-radius: 24px;
-            box-shadow: var(--cp-shadow);
-            overflow: hidden;
-            position: relative;
-        }
-
-        .cp-hero::after {
-            background: radial-gradient(circle at top right, rgba(243, 112, 33, 0.12), transparent 45%);
-            content: "";
-            inset: 0;
-            pointer-events: none;
-            position: absolute;
-        }
-
-        .cp-hero__inner {
-            align-items: stretch;
-            display: grid;
-            gap: 18px;
-            grid-template-columns: minmax(0, 1.65fr) minmax(280px, 0.95fr);
-            position: relative;
-            z-index: 1;
-        }
-
-        .cp-hero__main {
-            color: var(--cp-text);
-            padding: 32px;
-        }
-
-        .cp-hero__profile {
-            align-items: center;
-            display: flex;
-            gap: 18px;
-            margin-bottom: 18px;
-        }
-
-        .cp-avatar {
-            background: #fff;
-            border: 4px solid rgba(255, 255, 255, 0.92);
-            border-radius: 28px;
-            box-shadow: 0 18px 34px rgba(243, 112, 33, 0.16);
-            flex: 0 0 108px;
-            height: 108px;
-            overflow: hidden;
-            width: 108px;
-        }
-
-        .cp-avatar img {
-            display: block;
-            height: 100%;
-            object-fit: cover;
-            width: 100%;
-        }
-
-        .cp-avatar__content strong {
-            color: #272727;
-            display: block;
-            font-size: 17px;
-            margin-bottom: 6px;
-        }
-
-        .cp-avatar__content span {
-            color: var(--cp-muted);
-            display: block;
-            font-size: 13px;
-            line-height: 1.6;
-            margin-bottom: 12px;
-        }
-
-        .cp-avatar__action {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .cp-avatar__upload {
-            background: linear-gradient(135deg, #f37021 0%, #ff8a1d 100%);
-            border-radius: 999px;
-            color: #fff;
-            cursor: pointer;
-            display: inline-flex;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 10px 16px;
-            transition: transform .18s ease, box-shadow .18s ease;
-            box-shadow: 0 12px 22px rgba(243, 112, 33, 0.22);
-        }
-
-        .cp-avatar__upload:hover {
-            transform: translateY(-1px);
-        }
-
-        .cp-avatar__hint {
-            color: var(--cp-muted);
-            font-size: 12px;
-            line-height: 1.5;
-        }
-
-        .cp-eyebrow {
-            letter-spacing: 0.08em;
-            margin-bottom: 10px;
-            opacity: 0.82;
-            text-transform: uppercase;
+            background: linear-gradient(135deg, #f37021 0%, #e65c00 100%) !important;
+            padding: 40px 32px !important;
+            color: white !important;
+            border-radius: var(--cv-radius) !important;
+            margin-bottom: 30px !important;
+            border: none !important;
+            box-shadow: 0 15px 40px rgba(243, 112, 33, 0.25) !important;
         }
 
         .cp-hero__title {
-            color: #222;
-            font-size: 34px;
-            font-weight: 700;
-            line-height: 1.2;
-            margin: 0 0 10px;
+            color: white !important;
+            font-size: 32px !important;
+            font-weight: 800 !important;
         }
 
         .cp-hero__subtitle {
-            color: #666;
-            font-size: 15px;
-            line-height: 1.7;
-            margin: 0;
-            max-width: 720px;
+            color: rgba(255, 255, 255, 0.7) !important;
         }
 
-        .cp-hero__meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            list-style: none;
-            margin: 22px 0 0;
-            padding: 0;
+        .cp-avatar {
+            border-radius: 25px !important;
+            border: 4px solid rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
         }
 
-        .cp-hero__meta li {
-            background: #fff;
-            border: 1px solid #f3dfd0;
-            border-radius: 999px;
-            color: #4b4b4b;
-            padding: 10px 14px;
-        }
-
-        .cp-hero__side {
-            background: linear-gradient(180deg, #fffaf6 0%, #ffffff 100%);
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            justify-content: center;
-            padding: 28px;
-        }
-
-        .cp-stat-grid {
-            display: grid;
-            gap: 12px;
-        }
-
+        /* Sidebar Progress */
         .cp-stat-card {
-            background: var(--cp-surface);
-            border: 1px solid #f3dfd0;
-            border-radius: 18px;
-            padding: 16px 18px;
+            background: linear-gradient(135deg, var(--cv-orange) 0%, #e65c00 100%) !important;
+            padding: 30px 20px !important;
+            border-radius: 24px !important;
+            text-align: center !important;
+            color: white !important;
+            box-shadow: 0 15px 35px rgba(243, 112, 33, 0.25) !important;
+            margin-bottom: 25px !important;
+            border: none !important;
         }
 
-        .cp-stat-card strong {
-            color: var(--cp-primary-dark);
-            display: block;
-            font-size: 26px;
-            line-height: 1;
-            margin-bottom: 6px;
-        }
-
-        .cp-stat-card span {
-            color: var(--cp-muted);
-            display: block;
-            font-size: 13px;
-            line-height: 1.5;
-        }
-
-        .cp-form {
+        .cp-progress-circle {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 16px;
+            background: conic-gradient(rgba(255, 255, 255, 0.9) {{ $completeness }}%, rgba(255, 255, 255, 0.2) 0);
+            border-radius: 50%;
             display: flex;
-            flex-direction: column;
-            gap: 24px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
         }
 
+        .cp-progress-circle::after {
+            content: "";
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: #f37021;
+            border-radius: 50%;
+        }
+
+        .cp-progress-circle span {
+            position: relative;
+            z-index: 2;
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* Layout */
         .cp-layout {
             display: grid;
-            gap: 24px;
-            grid-template-columns: minmax(0, 240px) minmax(0, 1fr);
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
         }
 
-        .cp-toc {
-            align-self: start;
-            background: var(--cp-surface);
-            border: 1px solid var(--cp-border);
-            border-radius: 22px;
-            box-shadow: var(--cp-shadow);
-            padding: 22px;
-            position: sticky;
-            top: 20px;
-        }
-
-        .cp-toc h3 {
-            color: var(--cp-primary-dark);
-            font-size: 18px;
-            margin: 0 0 8px;
-        }
-
-        .cp-toc p {
-            color: var(--cp-muted);
-            font-size: 13px;
-            line-height: 1.6;
-            margin: 0 0 16px;
-        }
-
-        .cp-toc ul {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .cp-toc a {
-            background: var(--cp-surface-soft);
-            border: 1px solid transparent;
-            border-radius: 14px;
-            color: var(--cp-text);
-            display: block;
-            font-size: 13px;
-            font-weight: 500;
-            padding: 11px 13px;
-            transition: all 0.2s ease;
-        }
-
-        .cp-toc a:hover,
-        .cp-toc a:focus {
-            border-color: rgba(243, 112, 33, 0.25);
-            color: var(--cp-primary);
-            text-decoration: none;
-            transform: translateX(2px);
-        }
-
-        .cp-panel,
-        .cp-repeat-card,
-        .cp-toc,
-        .cp-upload,
-        .cp-field,
-        .cp-stat-card {
-            scroll-margin-top: 110px;
-        }
-
-        .cp-content {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
+        @media (max-width: 1024px) {
+            .cp-layout { grid-template-columns: 1fr; }
         }
 
         .cp-panel {
-            background: var(--cp-surface);
-            border: 1px solid var(--cp-border);
-            border-radius: 22px;
-            box-shadow: var(--cp-shadow);
+            background: var(--cv-white) !important;
+            border-radius: var(--cv-radius) !important;
+            border: 1px solid var(--cv-border) !important;
+            box-shadow: var(--cv-shadow) !important;
+            margin-bottom: 16px !important;
+            padding: 0 !important;
             overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         .cp-panel__header {
-            align-items: center;
-            background: linear-gradient(180deg, #fffaf6 0%, #fff4eb 100%);
-            border-bottom: 1px solid var(--cp-border);
+            background: #fff !important;
+            border-bottom: 1.5px solid transparent !important;
+            padding: 20px 24px !important;
+            cursor: pointer;
             display: flex;
-            gap: 16px;
             justify-content: space-between;
-            padding: 22px 24px;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        
+        .cp-panel__header:hover {
+            background: #fcfdfe !important;
         }
 
-        .cp-panel__title {
-            margin: 0;
+        .cp-panel.active {
+            border-color: var(--cv-orange) !important;
+            box-shadow: 0 10px 40px rgba(243, 112, 33, 0.08) !important;
+        }
+
+        .cp-panel.active .cp-panel__header {
+            border-bottom-color: #f8fafc !important;
+            background: #fffbf9 !important;
         }
 
         .cp-panel__title h3 {
-            color: var(--cp-primary-dark);
-            font-size: 21px;
-            margin: 0 0 6px;
+            color: var(--cv-navy) !important;
+            font-size: 17px !important;
+            font-weight: 800 !important;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 0;
         }
 
-        .cp-panel__title p {
-            color: var(--cp-muted);
+        .cp-panel-icon {
+            width: 34px;
+            height: 34px;
+            background: #f1f5f9;
+            color: var(--cv-navy);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
             font-size: 14px;
-            line-height: 1.6;
-            margin: 0;
+            transition: all 0.3s;
+        }
+
+        .cp-panel.active .cp-panel-icon {
+            background: var(--cv-orange);
+            color: white;
         }
 
         .cp-panel__body {
-            padding: 24px;
+            padding: 24px 24px 32px !important;
         }
 
-        .cp-grid {
-            display: grid;
-            gap: 18px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+        .cp-panel__chevron {
+            font-size: 14px;
+            color: #cbd5e1;
+            transition: transform 0.3s;
         }
 
-        .cp-grid--3 {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+        .cp-panel.active .cp-panel__chevron {
+            transform: rotate(180deg);
+            color: var(--cv-orange);
         }
 
-        .cp-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-        }
-
+        /* Form Fields */
         .cp-field {
-            background: var(--cp-surface-soft);
-            border: 1px solid transparent;
-            border-radius: 18px;
-            padding: 16px;
+            background: #fff !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 12px 18px !important;
+            transition: all 0.2s ease !important;
         }
 
-        .cp-field .single-input {
-            margin: 0;
+        .cp-field:focus-within {
+            border-color: var(--cv-orange) !important;
+            box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.08) !important;
         }
 
-        .cp-field label,
-        .cp-upload label {
-            color: var(--cp-primary-dark);
-            display: block;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.01em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+        .cp-field label {
+            color: #64748b !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            font-size: 11px !important;
+            letter-spacing: 0.05em !important;
+            margin-bottom: 4px;
         }
-
-        .cp-field input,
-        .cp-field textarea,
-        .cp-upload input[type="file"] {
-            background: #fff;
-            border: 1px solid #ead8ca;
-            border-radius: 14px;
-            box-shadow: none;
-            min-height: 52px;
-            width: 100%;
-        }
-
-        .cp-field textarea {
-            min-height: 140px;
-            padding-top: 14px;
-            resize: vertical;
-        }
-
-        .cp-field input[disabled] {
-            background: #f7f2ed;
-            color: #7a7068;
-        }
-
-        .cp-error {
-            color: #d64545;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        .cp-inline-note {
-            color: var(--cp-muted);
-            font-size: 13px;
-            line-height: 1.6;
-            margin: 0;
-        }
-
-        .cp-repeat-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .cp-repeat-card {
-            background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
-            border: 1px solid var(--cp-border);
-            border-radius: 20px;
-            padding: 18px;
-        }
-
-        .cp-repeat-card__head {
-            align-items: center;
-            display: flex;
-            gap: 12px;
-            justify-content: space-between;
-            margin-bottom: 14px;
-        }
-
-        .cp-repeat-card__head h4 {
-            color: var(--cp-text);
-            font-size: 17px;
-            margin: 0;
-        }
-
-        .cp-btn {
-            align-items: center;
-            background: var(--cp-primary);
+        
+        .cp-field input, .cp-field textarea {
             border: none;
-            border-radius: 999px;
-            color: #fff;
-            display: inline-flex;
-            font-size: 13px;
-            font-weight: 700;
-            gap: 8px;
-            justify-content: center;
-            min-height: 44px;
-            padding: 0 18px;
-            transition: all 0.2s ease;
+            outline: none;
+            width: 100%;
+            background: transparent;
+            font-size: 15px;
+            padding: 0;
         }
 
-        .cp-btn:hover,
-        .cp-btn:focus {
-            background: var(--cp-primary-dark);
-            color: #fff;
-            text-decoration: none;
+        /* Sidebar Nav */
+        .cp-toc {
+            background: white !important;
+            border-radius: 20px !important;
+            padding: 15px !important;
+            box-shadow: var(--cv-shadow) !important;
+            border: 1px solid var(--cv-border) !important;
+            position: sticky;
+            top: 100px; /* Adjusted for fixed header height (approx 80px) + 20px gap */
         }
 
-        .cp-btn--danger {
-            background: #fff1f0;
-            color: #c24741;
-        }
-
-        .cp-btn--danger:hover,
-        .cp-btn--danger:focus {
-            background: #ffdeda;
-            color: #a9342d;
-        }
-
-        .cp-upload {
-            background: linear-gradient(180deg, #fffaf7 0%, #fff4ec 100%);
-            border: 1px dashed #e8c8b2;
-            border-radius: 20px;
-            padding: 20px;
-        }
-
-        .cp-upload__actions {
+        .cp-toc-link {
+            padding: 10px 14px !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            color: var(--cv-navy) !important;
+            background: transparent !important;
+            display: flex !important;
             align-items: center;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 14px;
+            text-decoration: none !important;
+            transition: all 0.2s !important;
+            margin-bottom: 2px;
+            font-size: 14px;
         }
 
-        .cp-upload__link {
-            color: var(--cp-primary);
-            font-weight: 700;
+        .cp-toc-link:hover, .cp-toc-link.active {
+            background: #fff5ee !important;
+            color: var(--cv-orange) !important;
+        }
+        
+        .cp-sidebar-group {
+            border-top: 1px solid #f1f5f9;
+            margin-top: 15px;
+            padding-top: 15px;
         }
 
-        .cp-submit {
+        /* Better Buttons */
+        .cp-btn {
+            border-radius: 12px !important;
+            padding: 12px 24px !important;
+            font-weight: 700 !important;
+            transition: all 0.3s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 8px !important;
+            border: none !important;
+            cursor: pointer !important;
+            font-size: 14px !important;
+        }
+
+        .cp-btn-primary {
+            background: linear-gradient(135deg, #f37021 0%, #e65c00 100%) !important;
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(243, 112, 33, 0.25) !important;
+        }
+
+        .cp-btn-primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.35) !important;
+            filter: brightness(1.05) !important;
+        }
+
+        .cp-btn-primary:active {
+            transform: translateY(0) !important;
+        }
+
+        /* Section Saving */
+        .cp-section-save {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px dashed #e2e8f0;
             display: flex;
             justify-content: flex-end;
-        }
-
-        .cp-submit button {
-            background: linear-gradient(135deg, var(--cp-accent), #ff934f);
-            border: none;
-            border-radius: 999px;
-            box-shadow: 0 15px 35px rgba(243, 112, 33, 0.24);
-            color: #fff;
-            font-size: 15px;
-            font-weight: 700;
-            min-height: 56px;
-            min-width: 220px;
-            padding: 0 28px;
-        }
-
-        .cp-alert {
-            background: #ebfff4;
-            border: 1px solid #bfe6cc;
-            border-radius: 18px;
-            color: #226942;
-            margin: 0 0 24px;
-            padding: 16px 20px;
-        }
-
-        @media (max-width: 1199px) {
-            .cp-layout,
-            .cp-hero__inner {
-                grid-template-columns: 1fr;
-            }
-
-            .cp-toc {
-                position: static;
-            }
-        }
-
-        @media (max-width: 767px) {
-            .candidate-profile-page .dashboard-right {
-                gap: 18px;
-            }
-
-            .cp-hero__main,
-            .cp-hero__side,
-            .cp-panel__header,
-            .cp-panel__body,
-            .cp-toc {
-                padding: 18px;
-            }
-
-            .cp-hero__title {
-                font-size: 28px;
-            }
-
-            .cp-grid,
-            .cp-grid--3 {
-                grid-template-columns: 1fr;
-            }
-
-            .cp-repeat-card__head,
-            .cp-panel__header {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .cp-submit {
-                justify-content: stretch;
-            }
-
-            .cp-submit button {
-                width: 100%;
-            }
+            gap: 12px;
         }
     </style>
 
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Thông tin cá nhân</h3>
+    <div style="height: 120px; width: 100%;"></div>
+    <section class="candidate-dashboard-area section_70 candidate-profile-page" style="padding-top: 0; padding-bottom: 80px;">
+        <div class="container">
+            <div class="cp-layout">
+                <!-- Sidebar Left -->
+                <aside class="dashboard-left">
+                    <div class="cp-toc">
+                        <div class="cp-stat-card">
+                            <div class="cp-progress-circle">
+                                <span>{{ $completeness }}%</span>
+                            </div>
+                            <p style="font-weight: 800; color: white; margin-bottom: 4px; font-size: 15px;">Hoàn thiện hồ sơ</p>
+                            <p style="font-size: 12px; color: rgba(255,255,255,0.8); margin: 0;">Hãy đạt 100% để nổi bật nhất!</p>
+                        </div>
+
+                        <p style="font-weight: 800; color: var(--cv-orange); text-transform: uppercase; font-size: 11px; letter-spacing: 0.1em; border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; padding-left: 10px;">Danh mục hồ sơ</p>
+                        
+                        <nav style="display: flex; flex-direction: column; gap: 2px;">
+                            @foreach ($sections as $section)
+                                <button type="button" 
+                                        @click="activeSection = '{{ $section['id'] }}'" 
+                                        :class="{ 'active': activeSection === '{{ $section['id'] }}' }"
+                                        class="cp-toc-link"
+                                        style="border: none; text-align: left; width: 100%;">
+                                    <i class="fa {{ $section['icon'] }}" style="width: 20px; margin-right: 12px; opacity: 0.7;"></i>
+                                    {{ $section['label'] }}
+                                </button>
+                            @endforeach
+                        </nav>
+
+                        <div class="cp-sidebar-group">
+                            <a href="{{ route('candidates.candidate_dashboard') }}" class="cp-toc-link">
+                                <i class="fa fa-tachometer" style="width: 20px; margin-right: 12px; opacity: 0.7;"></i>
+                                Bảng điều khiển
+                            </a>
+                            <div style="margin-top: 10px; padding: 0 10px;">
+                                <livewire:client.logout-button />
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
+                </aside>
 
-    <section class="candidate-dashboard-area section_70 candidate-profile-page">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-4 dashboard-left-border">
-                    @include('livewire.client.partials.candidate-sidebar')
-                </div>
-
-                <div class="col-lg-9 col-md-8">
-                    <div class="dashboard-right">
-                        <div class="cp-hero">
-                            <div class="cp-hero__inner">
-                                <div class="cp-hero__main">
-                                    <div class="cp-hero__profile">
-                                        <div class="cp-avatar">
-                                            <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Ảnh đại diện">
-                                        </div>
-                                        <div class="cp-avatar__content">
-                                            <strong>Ảnh đại diện</strong>
-                                            <span>Tải ảnh chân dung rõ mặt để hồ sơ trông chuyên nghiệp và dễ nhận diện hơn.</span>
-                                            <div class="cp-avatar__action">
-                                                <label class="cp-avatar__upload" for="avatar">Chọn ảnh mới</label>
-                                                <span class="cp-avatar__hint">Hỗ trợ JPG, PNG, WEBP. Tối đa 5MB.</span>
-                                            </div>
-                                            @error('avatar')
-                                                <div class="cp-error" style="margin-top: 10px;">{{ $message }}</div>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="cp-eyebrow">Hồ sơ ứng viên</div>
-                                    <h1 class="cp-hero__title">{{ $profile_title ?: 'Hoàn thiện hồ sơ để tăng cơ hội được liên hệ' }}</h1>
-                                    <p class="cp-hero__subtitle">
-                                        Cập nhật đầy đủ thông tin cá nhân, kinh nghiệm, học vấn và CV để nhà tuyển dụng dễ dàng đánh giá năng lực của bạn.
-                                    </p>
-
-                                    <ul class="cp-hero__meta">
-                                        <li>{{ $name }}</li>
-                                        <li>{{ $email }}</li>
-                                        <li>{{ $experience_years !== null ? $experience_years . ' năm kinh nghiệm' : 'Chưa cập nhật kinh nghiệm' }}</li>
-                                    </ul>
+                <!-- Main Content Right -->
+                <div class="cp-content">
+                    <div class="cp-hero">
+                        <div class="cp-hero__inner" style="display: flex; align-items: center; gap: 32px;">
+                            <div class="cp-hero__avatar-box">
+                                <div class="cp-avatar" style="width: 110px; height: 110px; flex-shrink: 0; overflow: hidden;">
+                                    <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover;">
                                 </div>
-
-                                <div class="cp-hero__side">
-                                    <div class="cp-stat-grid">
-                                        <div class="cp-stat-card">
-                                            <strong>{{ $completedBlocks }}/7</strong>
-                                            <span>Mục thông tin chính đã được điền</span>
-                                        </div>
-                                        <div class="cp-stat-card">
-                                            <strong>{{ count($experiences) + count($educations) + count($skills) }}</strong>
-                                            <span>Mục nội dung đã thêm vào hồ sơ</span>
-                                        </div>
-                                        <div class="cp-stat-card">
-                                            <strong>{{ $this->currentCvUrl ? 'Sẵn sàng' : 'Chưa có' }}</strong>
-                                            <span>Trạng thái file CV để nhà tuyển dụng tải xuống</span>
-                                        </div>
-                                    </div>
+                            </div>
+                            
+                            <div class="cp-hero__info">
+                                <h1 class="cp-hero__title" style="margin-bottom: 10px;">{{ $name }}</h1>
+                                <p class="cp-hero__subtitle" style="margin-bottom: 20px; font-size: 16px; opacity: 0.9;">
+                                    {{ $profile_title ?: 'Chưa cập nhật tiêu đề hồ sơ' }}
+                                </p>
+                                
+                                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                    <input type="file" id="avatar" wire:model="avatar" style="display: none;">
+                                    <label for="avatar" class="cp-btn" style="background: white; color: var(--cv-orange); cursor: pointer; padding: 12px 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: none;">
+                                        <i class="fa fa-camera"></i> Cập nhật ảnh
+                                    </label>
+                                    
+                                    <button type="button" class="cp-btn" data-bs-toggle="modal" data-bs-target="#cvPreviewModal" style="background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid rgba(255,255,255,0.4); padding: 12px 24px; backdrop-filter: blur(8px);">
+                                        <i class="fa fa-eye"></i> Xem trước CV
+                                    </button>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="candidate-profile">
-                            <form class="cp-form" wire:submit.prevent="save" method="POST" enctype="multipart/form-data">
-                                <input id="avatar" type="file" wire:model="avatar" accept="image/png,image/jpeg,image/webp" hidden>
-                                <div class="cp-layout">
-                                    <aside class="cp-toc">
-                                        <h3>Điều hướng nhanh</h3>
-                                        <p>Chuyển đến từng nhóm thông tin để cập nhật nhanh hơn.</p>
-                                        <ul>
-                                            @foreach ($sections as $section)
-                                                <li><a href="{{ url()->current() }}#{{ $section['id'] }}">{{ $section['label'] }}</a></li>
-                                            @endforeach
-                                        </ul>
-                                    </aside>
-
-                                    <div class="cp-content">
-                                        <section id="profile-title" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Thông tin tổng quan</h3>
-                                                    <p>Đặt một tiêu đề ngắn gọn, rõ vai trò mục tiêu và cấp độ kinh nghiệm của bạn.</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="cp-panel__body cp-stack">
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="profile_title">Tiêu đề hồ sơ</label>
-                                                            <input id="profile_title" type="text" wire:model.defer="profile_title" placeholder="Ví dụ: Backend Developer (PHP/Laravel)">
-                                                            @error('profile_title')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="experience_years">Số năm kinh nghiệm</label>
-                                                            <input id="experience_years" type="number" min="0" max="60" wire:model.defer="experience_years" placeholder="Ví dụ: 3">
-                                                            @error('experience_years')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label>Họ và tên</label>
-                                                            <input type="text" value="{{ $name }}" disabled>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label>Email</label>
-                                                            <input type="text" value="{{ $email }}" disabled>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="personal-info" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Thông tin cá nhân</h3>
-                                                    <p>Bổ sung thông tin liên hệ và các kênh hồ sơ trực tuyến để nhà tuyển dụng dễ dàng tiếp cận.</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="cp-panel__body cp-stack">
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="phone">Số điện thoại</label>
-                                                            <input id="phone" type="text" wire:model.defer="phone" placeholder="Nhập số điện thoại">
-                                                            @error('phone')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="date_of_birth">Ngày sinh</label>
-                                                            <input id="date_of_birth" type="date" wire:model.defer="personal_info.date_of_birth">
-                                                            @error('personal_info.date_of_birth')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="gender">Giới tính</label>
-                                                            <input id="gender" type="text" wire:model.defer="personal_info.gender" placeholder="Nam/Nữ/Khác">
-                                                            @error('personal_info.gender')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="country">Quốc gia</label>
-                                                            <input id="country" type="text" wire:model.defer="personal_info.country" placeholder="Ví dụ: Việt Nam">
-                                                            @error('personal_info.country')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="city">Thành phố</label>
-                                                            <input id="city" type="text" wire:model.defer="personal_info.city" placeholder="Ví dụ: Hà Nội">
-                                                            @error('personal_info.city')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="address">Địa chỉ</label>
-                                                            <input id="address" type="text" wire:model.defer="personal_info.address" placeholder="Số nhà, đường, quận/huyện">
-                                                            @error('personal_info.address')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="website">Website / Portfolio</label>
-                                                            <input id="website" type="text" wire:model.defer="personal_info.website" placeholder="https://...">
-                                                            @error('personal_info.website')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="linkedin">LinkedIn</label>
-                                                            <input id="linkedin" type="text" wire:model.defer="personal_info.linkedin" placeholder="https://linkedin.com/in/...">
-                                                            @error('personal_info.linkedin')
-                                                                <div class="cp-error">{{ $message }}</div>
-                                                            @enderror
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="career-objective" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Mục tiêu nghề nghiệp</h3>
-                                                    <p>Tóm tắt định hướng phát triển, giá trị bạn có thể đóng góp và kỳ vọng trong vai trò tiếp theo.</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-field">
-                                                    <div class="single-input">
-                                                        <label for="career_objective_input">Nội dung</label>
-                                                        <textarea id="career_objective_input" rows="5" wire:model.defer="career_objective" placeholder="Mô tả ngắn gọn mục tiêu nghề nghiệp của bạn..."></textarea>
-                                                        @error('career_objective')
-                                                            <div class="cp-error">{{ $message }}</div>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="desired-job" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Công việc mong muốn</h3>
-                                                    <p>Cho nhà tuyển dụng biết vai trò, cấp bậc, địa điểm và mức đãi ngộ bạn đang hướng tới.</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="cp-panel__body cp-stack">
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="desired_position">Vị trí</label>
-                                                            <input id="desired_position" type="text" wire:model.defer="desired_job.position" placeholder="Ví dụ: Backend Developer">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="desired_level">Cấp bậc</label>
-                                                            <input id="desired_level" type="text" wire:model.defer="desired_job.level" placeholder="Junior / Middle / Senior">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-grid">
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="desired_workplace">Hình thức làm việc</label>
-                                                            <input id="desired_workplace" type="text" wire:model.defer="desired_job.workplace" placeholder="Onsite / Remote / Hybrid">
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="cp-field">
-                                                        <div class="single-input">
-                                                            <label for="desired_salary">Mức lương kỳ vọng</label>
-                                                            <input id="desired_salary" type="text" wire:model.defer="desired_job.expected_salary" placeholder="VD: 20-30 triệu">
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-field">
-                                                    <div class="single-input">
-                                                        <label for="desired_location">Địa điểm mong muốn</label>
-                                                        <input id="desired_location" type="text" wire:model.defer="desired_job.location" placeholder="Ví dụ: Hà Nội, TP HCM, Remote">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="experiences" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Kinh nghiệm làm việc</h3>
-                                                    <p>Tập trung vào vai trò, kết quả nổi bật và tác động bạn đã tạo ra ở mỗi công việc.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addExperience">+ Thêm kinh nghiệm</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($experiences as $i => $exp)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Kinh nghiệm #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeExperience({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Công ty</label>
-                                                                        <input type="text" wire:model.defer="experiences.{{ $i }}.company">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Vị trí</label>
-                                                                        <input type="text" wire:model.defer="experiences.{{ $i }}.position">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Từ thời điểm</label>
-                                                                        <input type="text" wire:model.defer="experiences.{{ $i }}.from" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Đến thời điểm</label>
-                                                                        <input type="text" wire:model.defer="experiences.{{ $i }}.to" placeholder="MM/YYYY hoặc Hiện tại">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-field">
-                                                                <div class="single-input">
-                                                                    <label>Mô tả công việc</label>
-                                                                    <textarea rows="4" wire:model.defer="experiences.{{ $i }}.description"></textarea>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Bạn chưa thêm kinh nghiệm nào. Hãy thêm ít nhất một vai trò gần đây để hồ sơ thuyết phục hơn.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="educations" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Học vấn</h3>
-                                                    <p>Thêm trường học, chuyên ngành và những nội dung học tập liên quan đến vị trí ứng tuyển.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addEducation">+ Thêm học vấn</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($educations as $i => $edu)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Học vấn #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeEducation({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Trường học</label>
-                                                                        <input type="text" wire:model.defer="educations.{{ $i }}.school">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Bằng cấp / Chuyên ngành</label>
-                                                                        <input type="text" wire:model.defer="educations.{{ $i }}.degree">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Bắt đầu</label>
-                                                                        <input type="text" wire:model.defer="educations.{{ $i }}.from" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Kết thúc</label>
-                                                                        <input type="text" wire:model.defer="educations.{{ $i }}.to" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-field">
-                                                                <div class="single-input">
-                                                                    <label>Mô tả thêm</label>
-                                                                    <textarea rows="4" wire:model.defer="educations.{{ $i }}.description"></textarea>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Bạn chưa thêm thông tin học vấn.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="certifications" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Chứng chỉ khác</h3>
-                                                    <p>Nếu có các chứng chỉ chuyên môn, đây là nơi rất tốt để bổ sung điểm tin cậy cho hồ sơ.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addCertification">+ Thêm chứng chỉ</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($certifications as $i => $cert)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Chứng chỉ #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeCertification({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Tên chứng chỉ</label>
-                                                                        <input type="text" wire:model.defer="certifications.{{ $i }}.name">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Tổ chức cấp</label>
-                                                                        <input type="text" wire:model.defer="certifications.{{ $i }}.issuer">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Thời gian</label>
-                                                                        <input type="text" wire:model.defer="certifications.{{ $i }}.date" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Mô tả</label>
-                                                                        <input type="text" wire:model.defer="certifications.{{ $i }}.description">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Không có chứng chỉ nào được thêm.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="languages" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Ngôn ngữ</h3>
-                                                    <p>Liệt kê các ngôn ngữ và cấp độ sử dụng để tạo thêm lợi thế trong hồ sơ.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addLanguage">+ Thêm ngôn ngữ</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($languages as $i => $lang)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Ngôn ngữ #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeLanguage({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Ngôn ngữ</label>
-                                                                        <input type="text" wire:model.defer="languages.{{ $i }}.name">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Trình độ</label>
-                                                                        <input type="text" wire:model.defer="languages.{{ $i }}.level" placeholder="Cơ bản / Giao tiếp / Thành thạo">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Bạn chưa thêm ngôn ngữ nào.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="skills" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Kỹ năng chuyên môn</h3>
-                                                    <p>Chọn những kỹ năng phù hợp nhất với vị trí mục tiêu và cho biết mức độ thành thạo.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addSkill">+ Thêm kỹ năng</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($skills as $i => $skill)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Kỹ năng #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeSkill({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Kỹ năng</label>
-                                                                        <input type="text" wire:model.defer="skills.{{ $i }}.name">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Trình độ</label>
-                                                                        <input type="text" wire:model.defer="skills.{{ $i }}.level" placeholder="Cơ bản / Khá / Thành thạo">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Bạn chưa thêm kỹ năng chuyên môn.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="achievements" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Thành tích nổi bật</h3>
-                                                    <p>Đây là nơi để thêm giải thưởng, thành tích dự án hoặc cột mốc quan trọng trong sự nghiệp.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addAchievement">+ Thêm thành tích</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($achievements as $i => $ach)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Thành tích #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeAchievement({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Tiêu đề</label>
-                                                                        <input type="text" wire:model.defer="achievements.{{ $i }}.title">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Thời gian</label>
-                                                                        <input type="text" wire:model.defer="achievements.{{ $i }}.date" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-field">
-                                                                <div class="single-input">
-                                                                    <label>Mô tả</label>
-                                                                    <textarea rows="4" wire:model.defer="achievements.{{ $i }}.description"></textarea>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Chưa có thành tích nào được cập nhật.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="activities" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Hoạt động khác</h3>
-                                                    <p>Bổ sung các hoạt động cộng đồng, CLB, dự án cá nhân hoặc vai trò tình nguyện nếu phù hợp.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addActivity">+ Thêm hoạt động</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($activities as $i => $act)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Hoạt động #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeActivity({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid cp-grid--3">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Tiêu đề</label>
-                                                                        <input type="text" wire:model.defer="activities.{{ $i }}.title">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Bắt đầu</label>
-                                                                        <input type="text" wire:model.defer="activities.{{ $i }}.from" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Kết thúc</label>
-                                                                        <input type="text" wire:model.defer="activities.{{ $i }}.to" placeholder="MM/YYYY">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-field">
-                                                                <div class="single-input">
-                                                                    <label>Mô tả</label>
-                                                                    <textarea rows="4" wire:model.defer="activities.{{ $i }}.description"></textarea>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Không có hoạt động bổ sung nào.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section id="references" class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Người tham khảo</h3>
-                                                    <p>Chỉ thêm thông tin này khi bạn đã được sự đồng ý của người tham khảo.</p>
-                                                </div>
-
-                                                <button type="button" class="cp-btn" wire:click="addReference">+ Thêm người tham khảo</button>
-                                            </div>
-
-                                            <div class="cp-panel__body">
-                                                <div class="cp-repeat-list">
-                                                    @forelse ($references as $i => $ref)
-                                                        <div class="cp-repeat-card">
-                                                            <div class="cp-repeat-card__head">
-                                                                <h4>Người tham khảo #{{ $i + 1 }}</h4>
-                                                                <button type="button" class="cp-btn cp-btn--danger" wire:click="removeReference({{ $i }})">Xóa mục này</button>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Họ tên</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.name">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Công ty</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.company">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Chức danh</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.position">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Số điện thoại</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.phone">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div class="cp-grid">
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Email</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.email">
-                                                                    </div>
-                                                                </div>
-
-                                                                <div class="cp-field">
-                                                                    <div class="single-input">
-                                                                        <label>Ghi chú</label>
-                                                                        <input type="text" wire:model.defer="references.{{ $i }}.note">
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    @empty
-                                                        <p class="cp-inline-note">Bạn có thể bỏ qua mục này nếu chưa sẵn sàng chia sẻ người tham khảo.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        </section>
-
-                                        <section class="cp-panel">
-                                            <div class="cp-panel__header">
-                                                <div class="cp-panel__title">
-                                                    <h3>Thông tin bổ sung và CV</h3>
-                                                    <p>Cập nhật thêm điểm nhấn khác và tải lên CV phiên bản mới nhất của bạn.</p>
-                                                </div>
-                                            </div>
-
-                                            <div class="cp-panel__body cp-stack">
-                                                <div class="cp-field">
-                                                    <div class="single-input">
-                                                        <label for="extra_info">Thông tin bổ sung</label>
-                                                        <textarea id="extra_info" rows="4" wire:model.defer="extra" placeholder="Các hoạt động, giải thưởng, ghi chú hoặc thông tin bổ sung khác..."></textarea>
-                                                        @error('extra')
-                                                            <div class="cp-error">{{ $message }}</div>
-                                                        @enderror
-                                                    </div>
-                                                </div>
-
-                                                <div class="cp-upload">
-                                                    <label for="cv">CV (PDF/DOC/DOCX, tối đa 10MB)</label>
-                                                    <input
-                                                        id="cv"
-                                                        type="file"
-                                                        wire:model="cv"
-                                                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                                                    >
-
-                                                    @error('cv')
-                                                        <div class="cp-error">{{ $message }}</div>
-                                                    @enderror
-
-                                                    <div class="cp-upload__actions">
-                                                        <span class="cp-inline-note" wire:loading wire:target="cv">Đang tải lên file CV...</span>
-
-                                                        @if ($this->currentCvUrl)
-                                                            <a class="cp-upload__link" href="{{ $this->currentCvUrl }}" target="_blank" rel="noopener">Tải CV hiện tại</a>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
+                    </div>
+
+                    <div class="cp-form-sections">
+                        <form wire:submit.prevent="save">
+                            <div class="cp-stack">
+                                <!-- Sections will follow -->
+
+                                <!-- Profile Title -->
+                                <section id="personal-info" wire:key="sec-personal-info" class="cp-panel" :class="{ 'active': activeSection === 'personal-info' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'personal-info' ? null : 'personal-info'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-user"></i></span>
+                                                Thông tin cá nhân & Tổng quan
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
                                     </div>
-                                </div>
 
-                                <div class="cp-submit">
-                                    <button type="submit" wire:loading.attr="disabled">Cập nhật hồ sơ</button>
-                                </div>
-                            </form>
-                        </div>
+                                    <div x-show="activeSection === 'personal-info'" x-transition:enter="fade-enter" style="display: none;" class="cp-panel__body cp-stack">
+                                        <!-- Sub-section: Overview -->
+                                        <div style="margin-bottom: 30px;">
+                                            <h4 style="font-size: 14px; font-weight: 800; color: var(--cv-navy); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.05em;">Thông tin tổng quan</h4>
+                                            <div class="cp-grid">
+                                                <div class="cp-field">
+                                                    <label for="profile_title">Tiêu đề hồ sơ</label>
+                                                    <input id="profile_title" type="text" wire:model.defer="profile_title" placeholder="Ví dụ: Backend Developer (PHP/Laravel)">
+                                                    @error('profile_title') <div class="cp-error">{{ $message }}</div> @enderror
+                                                </div>
+                                                <div class="cp-field">
+                                                    <label for="experience_years">Số năm kinh nghiệm</label>
+                                                    <input id="experience_years" type="number" min="0" max="60" wire:model.defer="experience_years" placeholder="Ví dụ: 3">
+                                                    @error('experience_years') <div class="cp-error">{{ $message }}</div> @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Sub-section: Personal Details -->
+                                        <div>
+                                            <h4 style="font-size: 14px; font-weight: 800; color: var(--cv-navy); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 0.05em;">Thông tin liên hệ</h4>
+                                            <div class="cp-grid">
+                                                <div class="cp-field primary">
+                                                    <label for="phone">Số điện thoại</label>
+                                                    <input id="phone" type="text" wire:model.defer="phone" placeholder="Nhập số điện thoại">
+                                                    @error('phone') <div class="cp-error">{{ $message }}</div> @enderror
+                                                </div>
+                                                <div class="cp-field">
+                                                    <label for="date_of_birth">Ngày sinh</label>
+                                                    <input id="date_of_birth" type="date" wire:model.defer="personal_info.date_of_birth">
+                                                </div>
+                                            </div>
+
+                                            <div class="cp-grid" style="margin-top: 20px;">
+                                                <div class="cp-field">
+                                                    <label for="gender">Giới tính</label>
+                                                    <input id="gender" type="text" wire:model.defer="personal_info.gender" placeholder="Nam/Nữ/Khác">
+                                                </div>
+                                                <div class="cp-field">
+                                                    <label for="city">Thành phố</label>
+                                                    <input id="city" type="text" wire:model.defer="personal_info.city" placeholder="Ví dụ: Hà Nội">
+                                                </div>
+                                            </div>
+
+                                            <div class="cp-field" style="margin-top: 20px;">
+                                                <label for="address">Địa chỉ</label>
+                                                <input id="address" type="text" wire:model.defer="personal_info.address" placeholder="Số nhà, đường, quận/huyện">
+                                            </div>
+                                        </div>
+
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('career-objective')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="career-objective" wire:key="sec-career-objective" class="cp-panel" :class="{ 'active': activeSection === 'career-objective' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'career-objective' ? null : 'career-objective'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-bullseye"></i></span>
+                                                Mục tiêu nghề nghiệp
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'career-objective'" x-transition style="display: none;" class="cp-panel__body">
+                                        <div class="cp-field">
+                                            <label for="career_objective_input">Mô tả ngắn gọn giá trị bạn đóng góp và kỳ vọng của bạn</label>
+                                            <textarea id="career_objective_input" rows="5" wire:model.defer="career_objective" placeholder="Ví dụ: Mong muốn áp dụng kiến thức về Laravel để phát chính các hệ thống quy mô lớn..."></textarea>
+                                            @error('career_objective') <div class="cp-error">{{ $message }}</div> @enderror
+                                        </div>
+
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('desired-job')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="desired-job" wire:key="sec-desired-job" class="cp-panel" :class="{ 'active': activeSection === 'desired-job' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'desired-job' ? null : 'desired-job'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-crosshairs"></i></span>
+                                                Công việc mong muốn
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'desired-job'" x-transition style="display: none;" class="cp-panel__body cp-stack">
+                                        <div class="cp-grid">
+                                            <div class="cp-field">
+                                                <label for="desired_position">Vị trí mong muốn</label>
+                                                <input id="desired_position" type="text" wire:model.defer="desired_job.position" placeholder="Ví dụ: Senior Backend Developer">
+                                            </div>
+                                            <div class="cp-field">
+                                                <label for="desired_salary">Mức lương kỳ vọng</label>
+                                                <input id="desired_salary" type="text" wire:model.defer="desired_job.expected_salary" placeholder="VD: 25 - 35 triệu">
+                                            </div>
+                                        </div>
+
+                                        <div class="cp-grid" style="margin-top: 20px;">
+                                            <div class="cp-field">
+                                                <label for="desired_level">Cấp bậc</label>
+                                                <input id="desired_level" type="text" wire:model.defer="desired_job.level" placeholder="Nhân viên / Trưởng nhóm">
+                                            </div>
+                                            <div class="cp-field">
+                                                <label for="desired_workplace">Hình thức làm việc</label>
+                                                <input id="desired_workplace" type="text" wire:model.defer="desired_job.workplace" placeholder="Onsite / Remote / Hybrid">
+                                            </div>
+                                        </div>
+
+                                        <div class="cp-field" style="margin-top: 20px;">
+                                            <label for="desired_location">Địa điểm làm việc</label>
+                                            <input id="desired_location" type="text" wire:model.defer="desired_job.location" placeholder="Hồ Chí Minh, Hà Nội, Toàn quốc...">
+                                        </div>
+
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('experiences')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="experiences" wire:key="sec-experiences" class="cp-panel" :class="{ 'active': activeSection === 'experiences' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'experiences' ? null : 'experiences'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-briefcase"></i></span>
+                                                Kinh nghiệm làm việc
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'experiences'" x-transition style="display: none;" class="cp-panel__body">
+                                        <div class="cp-repeat-list">
+                                            @forelse ($experiences as $i => $exp)
+                                                <div class="cp-repeat-card">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                                        <h4 style="font-weight: 800; color: var(--cv-navy); margin: 0;">Kinh nghiệm #{{ $i + 1 }}</h4>
+                                                        <button type="button" wire:click="removeExperience({{ $i }})" style="color: #ef4444; background: none; border: none; font-size: 13px; font-weight: 700;">Gỡ bỏ</button>
+                                                    </div>
+
+                                                    <div class="cp-grid">
+                                                        <div class="cp-field">
+                                                            <label>Tên công ty</label>
+                                                            <input type="text" wire:model.defer="experiences.{{ $i }}.company" placeholder="VD: Google">
+                                                        </div>
+                                                        <div class="cp-field">
+                                                            <label>Chức danh</label>
+                                                            <input type="text" wire:model.defer="experiences.{{ $i }}.position" placeholder="VD: Senior Dev">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="cp-grid" style="margin-top: 20px;">
+                                                        <div class="cp-field">
+                                                            <label>Bắt đầu</label>
+                                                            <input type="text" wire:model.defer="experiences.{{ $i }}.from" placeholder="MM/YYYY">
+                                                        </div>
+                                                        <div class="cp-field">
+                                                            <label>Kết thúc</label>
+                                                            <input type="text" wire:model.defer="experiences.{{ $i }}.to" placeholder="MM/YYYY hoặc Hiện tại">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="cp-field" style="margin-top: 20px;">
+                                                        <label>Mô tả chi tiết</label>
+                                                        <textarea rows="4" wire:model.defer="experiences.{{ $i }}.description" placeholder="Mô tả công việc và thành tựu..."></textarea>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p style="color: #94a3b8; text-align: center; font-style: italic; padding: 20px;">Hãy thêm ít nhất một kinh nghiệm để hồ sơ nổi bật hơn.</p>
+                                            @endforelse
+                                        </div>
+
+                                        <button type="button" wire:click="addExperience" class="cp-btn-add" style="width: 100%; padding: 15px; margin-top: 10px;">
+                                            <i class="fa fa-plus-circle"></i> Thêm kinh nghiệm mới
+                                        </button>
+
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('educations')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="educations" wire:key="sec-educations" class="cp-panel" :class="{ 'active': activeSection === 'educations' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'educations' ? null : 'educations'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-graduation-cap"></i></span>
+                                                Học vấn & Bằng cấp
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'educations'" x-transition style="display: none;" class="cp-panel__body">
+                                        <div class="cp-repeat-list">
+                                            @forelse ($educations as $i => $edu)
+                                                <div class="cp-repeat-card">
+                                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                                        <h4 style="font-weight: 800; color: var(--cv-navy); margin: 0;">Học vấn #{{ $i+1 }}</h4>
+                                                        <button type="button" wire:click="removeEducation({{ $i }})" style="color: #ef4444; border: none; background: none; font-size: 13px;">Gỡ bỏ</button>
+                                                    </div>
+                                                    <div class="cp-grid">
+                                                        <div class="cp-field">
+                                                            <label>Trường / Khóa học</label>
+                                                            <input type="text" wire:model.defer="educations.{{ $i }}.school" placeholder="VD: ĐH Kinh tế Quốc dân">
+                                                        </div>
+                                                        <div class="cp-field">
+                                                            <label>Chuyên ngành / Bằng cấp</label>
+                                                            <input type="text" wire:model.defer="educations.{{ $i }}.degree" placeholder="VD: Cử nhân Marketing">
+                                                        </div>
+                                                    </div>
+                                                    <div class="cp-field" style="margin-top: 20px;">
+                                                        <label>Thời gian & Mô tả</label>
+                                                        <input type="text" wire:model.defer="educations.{{ $i }}.from" placeholder="Thời gian (VD: 2018 - 2022)">
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p style="text-align: center; color: #94a3b8; padding: 20px;">Chưa có thông tin học vấn.</p>
+                                            @endforelse
+                                        </div>
+                                        <button type="button" wire:click="addEducation" class="cp-btn-add" style="width: 100%; padding: 15px; margin-top: 10px;">+ Thêm học vấn</button>
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('skills')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="skills" wire:key="sec-skills" class="cp-panel" :class="{ 'active': activeSection === 'skills' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'skills' ? null : 'skills'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-wrench"></i></span>
+                                                Kỹ năng
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'skills'" x-transition style="display: none;" class="cp-panel__body">
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+                                            @forelse ($skills as $i => $skill)
+                                                <div style="background: #f8fafc; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px;">
+                                                    <div style="flex: 1;">
+                                                        <input type="text" wire:model.defer="skills.{{ $i }}.name" placeholder="Tên kỹ năng" style="width: 100%; border: none; background: transparent; font-weight: 700;">
+                                                    </div>
+                                                    <button type="button" wire:click="removeSkill({{ $i }})" style="color: #ef4444; border: none; background: none;"><i class="fa fa-trash"></i></button>
+                                                </div>
+                                            @empty
+                                                <p style="text-align: center; color: #94a3b8; padding: 20px; grid-column: 1/-1;">Chưa có kỹ năng nào.</p>
+                                            @endforelse
+                                        </div>
+                                        <button type="button" wire:click="addSkill" class="cp-btn-add" style="width: 100%; padding: 15px; margin-top: 20px;">+ Thêm kỹ năng mới</button>
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('languages')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="languages" wire:key="sec-languages" class="cp-panel" :class="{ 'active': activeSection === 'languages' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'languages' ? null : 'languages'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-language"></i></span>
+                                                Ngôn ngữ
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'languages'" x-transition style="display: none;" class="cp-panel__body">
+                                        <div class="cp-repeat-list">
+                                            @forelse ($languages as $i => $lang)
+                                                <div class="cp-repeat-card" style="padding: 15px; background: #fff; border: 1.5px solid #f1f5f9; margin-bottom: 10px;">
+                                                    <div style="display: flex; gap: 15px; align-items: center;">
+                                                        <div class="cp-field" style="flex: 2;">
+                                                            <label>Ngôn ngữ</label>
+                                                            <input type="text" wire:model.defer="languages.{{ $i }}.name" placeholder="VD: Tiếng Anh">
+                                                        </div>
+                                                        <div class="cp-field" style="flex: 1;">
+                                                            <label>Trình độ</label>
+                                                            <input type="text" wire:model.defer="languages.{{ $i }}.level" placeholder="IELTS 7.5">
+                                                        </div>
+                                                        <button type="button" wire:click="removeLanguage({{ $i }})" style="color: #ef4444; background: none; border: none;"><i class="fa fa-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            @empty
+                                                <p style="color: #94a3b8; text-align: center; font-style: italic; padding: 20px;">Ngoại ngữ là một điểm cộng lớn.</p>
+                                            @endforelse
+                                        </div>
+                                        <button type="button" wire:click="addLanguage" class="cp-btn-add" style="width: 100%; padding: 12px; margin-top: 10px;">+ Thêm ngôn ngữ</button>
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('certifications')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="certifications" wire:key="sec-certifications" class="cp-panel" :class="{ 'active': activeSection === 'certifications' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'certifications' ? null : 'certifications'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-certificate"></i></span>
+                                                Chứng chỉ
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'certifications'" x-transition style="display: none;" class="cp-panel__body">
+                                        @forelse ($certifications as $i => $cert)
+                                            <div style="margin-bottom: 20px; background: #fffbf9; padding: 20px; border-radius: 15px; border: 1px solid #ffedd5;">
+                                                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                                                    <input type="text" wire:model.defer="certifications.{{ $i }}.name" placeholder="Tên chứng chỉ" style="font-weight: 800; color: var(--cv-navy); font-size: 16px; border: none; background: transparent; width: 80%;">
+                                                    <button type="button" wire:click="removeCertification({{ $i }})" style="color: #ef4444; border: none; background: none;"><i class="fa fa-times-circle"></i></button>
+                                                </div>
+                                                <div class="cp-grid">
+                                                    <div class="cp-field"><label>Tổ chức cấp</label><input type="text" wire:model.defer="certifications.{{ $i }}.issuer"></div>
+                                                    <div class="cp-field"><label>Thời gian</label><input type="text" wire:model.defer="certifications.{{ $i }}.date"></div>
+                                                </div>
+                                            </div>
+                                        @empty
+                                            <p style="text-align: center; color: #94a3b8; padding: 20px;">Bạn chưa thêm chứng chỉ nào.</p>
+                                        @endforelse
+                                        <button type="button" wire:click="addCertification" class="cp-btn-add" style="width: 100%; padding: 15px;">+ Thêm chứng chỉ</button>
+                                        <div class="cp-section-save">
+                                            <button type="button" wire:click="saveSection('extra-info')" class="cp-btn cp-btn-primary">
+                                                Lưu & Tiếp tục <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+
+                                <section id="extra-info" wire:key="sec-extra-info" class="cp-panel" :class="{ 'active': activeSection === 'extra-info' }">
+                                    <div class="cp-panel__header" @click="activeSection = activeSection === 'extra-info' ? null : 'extra-info'">
+                                        <div class="cp-panel__title">
+                                            <h3>
+                                                <span class="cp-panel-icon"><i class="fa fa-paperclip"></i></span>
+                                                Đính kèm & Khác
+                                            </h3>
+                                        </div>
+                                        <i class="fa fa-chevron-down cp-panel__chevron"></i>
+                                    </div>
+
+                                    <div x-show="activeSection === 'extra-info'" x-transition style="display: none;" class="cp-panel__body cp-stack">
+                                        <div class="cp-field">
+                                            <label for="extra_info">Thông tin bổ sung (Giải thưởng, Sở thích...)</label>
+                                            <textarea id="extra_info" rows="5" wire:model.defer="extra" placeholder="Những điểm nhấn khác bạn muốn nhà tuyển dụng biết..."></textarea>
+                                        </div>
+
+                                        <div class="cp-upload" style="margin-top: 30px; background: #f8fafc; padding: 25px; border-radius: 16px; border: 2px dashed #e2e8f0;">
+                                            <label style="font-weight: 800; color: var(--cv-navy); display: block; margin-bottom: 10px;">Đính kèm file CV cá nhân (PDF/DOCX)</label>
+                                            <div style="display: flex; align-items: center; gap: 20px;">
+                                                <input id="cv" type="file" wire:model="cv" style="font-size: 13px;">
+                                                <div wire:loading wire:target="cv" style="font-size: 13px; color: var(--cv-orange);">Đang tải lên...</div>
+                                            </div>
+                                            
+                                            @if ($this->currentCvUrl)
+                                                <div style="margin-top: 15px;">
+                                                    <a href="{{ $this->currentCvUrl }}" target="_blank" style="color: var(--cv-orange); font-size: 14px; font-weight: 700; text-decoration: underline;">
+                                                        <i class="fa fa-file-pdf-o"></i> Xem CV hiện tại của bạn
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <div class="cp-section-save">
+                                            <button type="submit" class="cp-btn" style="background: var(--cv-navy); color: white;">
+                                                Hoàn tất & Cập nhật tất cả <i class="fa fa-check-double" style="margin-left: 8px;"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <!-- CV Preview Modal -->
+    <div wire:ignore.self class="modal fade" id="cvPreviewModal" tabindex="-1" aria-labelledby="cvPreviewModalLabel" aria-hidden="true" style="z-index: 99999;">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius: 24px; border: none; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.2);">
+                <div class="modal-header" style="background: #f37021; color: #fff; padding: 20px 30px; border: none;">
+                    <h5 class="modal-title" id="cvPreviewModalLabel" style="color: #fff; font-weight: 700; font-size: 20px;">Xem trước mẫu CV chuyên nghiệp</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: brightness(0) invert(1); opacity: 0.8;"></button>
+                </div>
+                <div class="modal-body" style="background: #f0f2f5; padding: 0;">
+                    <iframe src="{{ route('candidates.cv.download', ['preview' => 1]) }}" style="width: 100%; height: 75vh; border: none;"></iframe>
+                </div>
+                <div class="modal-footer" style="padding: 15px 30px; background: #fff; border-top: 1px solid #eee;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 20px; font-weight: 600;">Đóng</button>
+                    <a href="{{ route('candidates.cv.download') }}" class="btn btn-primary" style="background: #f37021; border: none; border-radius: 12px; padding: 10px 25px; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fa fa-download"></i> Tải về hồ sơ PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

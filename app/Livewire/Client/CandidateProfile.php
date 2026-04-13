@@ -71,6 +71,8 @@ class CandidateProfile extends Component
 
     public ?string $extra = null;
 
+    public string $activeSection = 'personal-info';
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -107,6 +109,12 @@ class CandidateProfile extends Component
 
     public function save(): void
     {
+        $this->saveSection();
+    }
+
+    public function saveSection(?string $nextSection = null): void
+    {
+        // Validation logic remains same as original save()
         $this->validate([
             'phone' => ['nullable', 'string', 'max:50'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
@@ -248,7 +256,12 @@ class CandidateProfile extends Component
 
         $this->avatar = null;
         $this->cv = null;
-        $this->dispatch('app-notify', message: 'Cập nhật hồ sơ thành công.');
+        
+        if ($nextSection) {
+            $this->activeSection = $nextSection;
+        }
+
+        $this->dispatch('app-notify', message: 'Cập nhật thành công.');
     }
 
     public function addExperience(): void

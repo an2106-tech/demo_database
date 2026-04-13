@@ -12,12 +12,37 @@ use Livewire\Attributes\Layout;
 class ManageCandidate extends Component
 {
     #[Layout('layouts.client')]
+    public function analyzeWithAi($submissionId, \App\Services\AiMatchingService $aiService)
+    {
+        $submission = \App\Models\CandidateJobSubmission::find($submissionId);
+        
+        if ($submission) {
+            $success = $aiService->calculateMatch($submission);
+            
+            if ($success) {
+                session()->flash('message', 'Phân tích AI hoàn tất cho ' . $submission->candidate->name);
+            } else {
+                session()->flash('error', 'Không thể phân tích AI. Vui lòng kiểm tra lại API Key hoặc nội dung CV.');
+            }
+        }
+    }
+
+    public function deleteCandidate($candidateId)
+    {
+        $candidate = Candidate::find($candidateId);
+        if ($candidate) {
+            $candidate->delete();
+            session()->flash('message', 'Đã xóa ứng viên thành công.');
+        }
+    }
+
     public function render()
     {
         /** @var User|null $user */
         $user = Auth::user();
 
         $candidates = Candidate::query()
+            ->with(['applications.job'])
             ->when(
                 $user?->branchScopeId(),
                 fn (Builder $query, int $branchId) => $query->whereHas(

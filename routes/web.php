@@ -86,6 +86,26 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('submit-resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate-dashboard', CandidateDashboard::class)->name('candidate_dashboard');
         Route::get('candidate-profile', ClientCandidateProfile::class)->name('candidate_profile');
+        Route::get('download-cv', function (\Illuminate\Http\Request $request) {
+            $user = auth()->user();
+            $candidate = app(\App\Services\CandidateAccountService::class)->resolveFor($user);
+            $resume = \App\Models\CandidateResume::where('candidate_id', $candidate->id)->first();
+            
+            if ($request->has('preview')) {
+                return view('pdf.cv-template', [
+                    'candidate' => $candidate,
+                    'resume' => $resume,
+                ]);
+            }
+
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cv-template', [
+                'candidate' => $candidate,
+                'resume' => $resume,
+            ]);
+            
+            return $pdf->download('CV_' . str_replace(' ', '_', $candidate->name) . '.pdf');
+        })->name('cv.download');
+
         Route::get('messages', Messages::class)->name('messages');
         Route::get('manage-jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('applications/{application}', ApplicationDetail::class)->name('application_detail');
