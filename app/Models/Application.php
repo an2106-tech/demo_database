@@ -118,4 +118,14 @@ class Application extends Model
     {
         return $this->hasOne(Offer::class)->latestOfMany();
     }
+
+    public function scorecards(): HasMany
+    {
+        return $this->hasMany(Scorecard::class);
+    }
+
+    public function latestScorecard(): HasOne
+    {
+        return $this->hasOne(Scorecard::class)->latestOfMany();
+    }
 }

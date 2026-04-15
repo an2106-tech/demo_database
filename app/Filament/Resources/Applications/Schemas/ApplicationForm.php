@@ -127,6 +127,10 @@ class ApplicationForm
                                             ->default(StatusApplicationEnum::NEW)
                                             ->live()
                                             ->required()
+                                            ->disabled(fn (string $operation): bool => $operation === 'edit')
+                                            ->helperText(fn (string $operation): ?string => $operation === 'edit'
+                                                ? 'Trạng thái được chuyển bằng các nút thao tác trong danh sách hồ sơ.'
+                                                : null)
                                             ->enum(StatusApplicationEnum::class),
 
                                         DateTimePicker::make('applied_at')

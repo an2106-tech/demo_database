@@ -16,6 +16,18 @@ class ListApplications extends ListRecords
     {
         $tabs = [
             'all' => Tab::make('Tất cả'),
+            'pending_interview_evaluation' => Tab::make('Chờ chấm PV')
+                ->modifyQueryUsing(fn (Builder $query): Builder => $query
+                    ->where('status', StatusApplicationEnum::INTERVIEW->value)
+                    ->whereHas('latestInterview', fn (Builder $interviewQuery): Builder => $interviewQuery
+                        ->where('scheduled_at', '<=', now())
+                        ->where('result', 'pending')))
+                ->badge(fn () => static::getResource()::getEloquentQuery()
+                    ->where('status', StatusApplicationEnum::INTERVIEW->value)
+                    ->whereHas('latestInterview', fn (Builder $interviewQuery): Builder => $interviewQuery
+                        ->where('scheduled_at', '<=', now())
+                        ->where('result', 'pending'))
+                    ->count()),
         ];
 
         foreach (StatusApplicationEnum::cases() as $status) {

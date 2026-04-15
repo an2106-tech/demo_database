@@ -17,6 +17,7 @@ class Offer extends Model
         'salary_offered',
         'start_date',
         'probation_months',
+        'expires_at',
         'status',
         'declined_reason',
         'response_at',
@@ -28,6 +29,7 @@ class Offer extends Model
     protected $casts = [
         'salary_offered' => 'decimal:2',
         'start_date' => 'date',
+        'expires_at' => 'datetime',
         'response_at' => 'datetime',
         'sent_at' => 'datetime',
         'accepted_at' => 'datetime',

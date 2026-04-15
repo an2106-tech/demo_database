@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Interview extends Model
@@ -47,5 +48,10 @@ class Interview extends Model
     public function workplace(): BelongsTo
     {
         return $this->belongsTo(Workplace::class);
+    }
+
+    public function scorecards(): HasMany
+    {
+        return $this->hasMany(Scorecard::class);
     }
 }

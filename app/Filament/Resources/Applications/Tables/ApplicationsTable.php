@@ -13,11 +13,14 @@ use App\Models\Interview;
 use App\Models\Offer;
 use App\Models\OfferLetterTemplate;
 use App\Models\RecruitmentJob;
+use App\Models\Scorecard;
+use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
 use App\Services\OfferPdfService;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -27,6 +30,8 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -52,6 +57,7 @@ class ApplicationsTable
 
         return $table
             ->defaultSort('applied_at', 'desc')
+            ->poll('10s')
             ->searchPlaceholder('Tìm theo ID, công việc, ứng viên...')
             ->columns([
                 TextColumn::make('pipeline_action')
@@ -117,6 +123,18 @@ class ApplicationsTable
                     ->label('Trạng thái')
                     ->badge()
                     ->sortable(),
+                TextColumn::make('offer_response')
+                    ->label('Phản hồi offer')
+                    ->state(fn (Application $record): ?string => static::getOfferResponseLabel($record))
+                    ->badge(fn (?string $state): bool => filled($state))
+                    ->color(fn (Application $record): string => static::getOfferResponseColor($record))
+                    ->placeholder('-'),
+                TextColumn::make('interview_follow_up')
+                    ->label('Nhắc việc')
+                    ->state(fn (Application $record): ?string => static::getInterviewFollowUpLabel($record))
+                    ->badge(fn (?string $state): bool => filled($state))
+                    ->color('danger')
+                    ->placeholder('-'),
                 TextColumn::make('salary_expected')
                     ->label('Lương mong muốn')
                     ->toggleable(isToggledHiddenByDefault: true)
@@ -221,97 +239,333 @@ class ApplicationsTable
             ])
             ->filtersFormColumns(3)
             ->recordActions([
-                Action::make('send_offer')
-                    ->label(fn (Application $record): string => $record->latestOffer?->sent_at ? 'Gửi lại offer' : 'Gửi offer')
-                    ->icon('heroicon-o-envelope')
-                    ->color('primary')
-                    ->requiresConfirmation()
-                    ->modalHeading('Gửi offer cho ứng viên')
-                    ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'))
-                    ->action(function (Application $record): void {
-                        $offer = $record->offers()->latest('id')->first();
-                        $candidate = $record->candidate;
-                        $job = $record->job;
+                static::makePipelineAction(),
+                ActionGroup::make([
+                    Action::make('evaluate_interview')
+                        ->label('Đánh giá PV')
+                        ->icon('heroicon-o-clipboard-document-check')
+                        ->color('info')
+                        ->modalWidth('4xl')
+                        ->modalHeading('Đánh giá phỏng vấn')
+                        ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? 'Ứng viên'))
+                        ->fillForm(function (Application $record): array {
+                            $interview = $record->interviews()->latest('id')->first();
+                            $scorecard = $record->scorecards()->latest('id')->first();
 
-                        if (! $offer || ! $candidate?->email || ! $job) {
-                            Notification::make()
-                                ->warning()
-                                ->title('Chưa thể gửi offer')
-                                ->body('Vui lòng tạo offer và kiểm tra email ứng viên trước khi gửi.')
-                                ->send();
+                            $defaultTemplate = ScorecardTemplate::query()
+                                ->where('is_default', true)
+                                ->latest('id')
+                                ->first();
 
-                            return;
-                        }
-
-                        try {
-                            if ($offer->offer_letter_template_id) {
-                                app(OfferPdfService::class)->refreshForOffer($offer);
-                                $offer->refresh();
+                            $criteria = $scorecard?->criteria;
+                            if (! is_array($criteria) || $criteria === []) {
+                                $criteria = $defaultTemplate?->criteria;
                             }
 
-                            Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+                            if (! is_array($criteria) || $criteria === []) {
+                                $criteria = [
+                                    ['name' => 'Kỹ thuật', 'score' => null],
+                                    ['name' => 'Tư duy / giải quyết vấn đề', 'score' => null],
+                                    ['name' => 'Giao tiếp', 'score' => null],
+                                    ['name' => 'Phù hợp văn hoá', 'score' => null],
+                                ];
+                            }
 
-                            $offer->forceFill([
-                                'sent_at' => now(),
+                            return [
+                                'interview_id' => $interview?->id,
+                                'template_id' => $scorecard?->template_id ?? $defaultTemplate?->id,
+                                'criteria' => $criteria,
+                                'average_score' => $scorecard?->average_score,
+                                'conclusion' => $scorecard?->conclusion ?? ($interview?->result !== 'pending' ? $interview?->result : null),
+                                'notes' => $scorecard?->notes,
+                                'rejected_reason' => $record->rejected_reason,
+                            ];
+                        })
+                        ->form([
+                            Select::make('template_id')
+                                ->label('Mẫu đánh giá')
+                                ->options(fn (): array => ScorecardTemplate::query()
+                                    ->orderByDesc('is_default')
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->all())
+                                ->searchable()
+                                ->preload()
+                                ->live()
+                                ->helperText('Chọn mẫu để gợi ý tiêu chí chấm điểm (nếu có).')
+                                ->afterStateUpdated(function ($state, callable $set): void {
+                                    if (blank($state)) {
+                                        return;
+                                    }
+
+                                    $criteria = ScorecardTemplate::query()->whereKey($state)->value('criteria');
+                                    if (is_array($criteria) && $criteria !== []) {
+                                        $set('criteria', $criteria);
+                                    }
+                                }),
+                            Hidden::make('interview_id'),
+                            Repeater::make('criteria')
+                                ->label('Tiêu chí chấm điểm')
+                                ->schema([
+                                    TextInput::make('name')->label('Tiêu chí')->required()->maxLength(120),
+                                    TextInput::make('score')->label('Điểm')->numeric()->minValue(0)->maxValue(10)->required(),
+                                ])
+                                ->minItems(1)
+                                ->defaultItems(4)
+                                ->columns(2)
+                                ->columnSpanFull(),
+                            Select::make('conclusion')
+                                ->label('Kết luận')
+                                ->options([
+                                    'pass' => 'Đạt (tiếp tục Offer)',
+                                    'hold' => 'Giữ lại / cân nhắc',
+                                    'fail' => 'Không đạt (từ chối)',
+                                ])
+                                ->required(),
+                            Textarea::make('notes')
+                                ->label('Nhận xét')
+                                ->rows(5)
+                                ->columnSpanFull(),
+                            Textarea::make('rejected_reason')
+                                ->label('Lý do từ chối (nếu Fail)')
+                                ->rows(3)
+                                ->visible(fn (callable $get): bool => $get('conclusion') === 'fail')
+                                ->required(fn (callable $get): bool => $get('conclusion') === 'fail')
+                                ->columnSpanFull(),
+                        ])
+                        ->action(function (Application $record, array $data): void {
+                            $interview = $record->interviews()->latest('id')->first();
+                            if (! $interview) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Chưa có lịch phỏng vấn')
+                                    ->body('Vui lòng tạo lịch phỏng vấn trước khi chấm điểm.')
+                                    ->send();
+
+                                return;
+                            }
+
+                            $criteria = $data['criteria'] ?? [];
+                            $scores = collect($criteria)
+                                ->map(fn ($row) => is_array($row) ? ($row['score'] ?? null) : null)
+                                ->filter(fn ($score) => $score !== null && $score !== '')
+                                ->map(fn ($score) => (float) $score);
+
+                            $average = $scores->count() > 0 ? round($scores->avg(), 2) : null;
+
+                            $scorecard = new Scorecard();
+                            $scorecard->fill([
+                                'application_id' => $record->id,
+                                'interview_id' => $interview->id,
+                                'template_id' => $data['template_id'] ?? null,
+                                'evaluator_id' => (int) Auth::id(),
+                                'criteria' => $criteria,
+                                'average_score' => $average,
+                                'notes' => $data['notes'] ?? null,
+                                'conclusion' => $data['conclusion'],
+                            ]);
+                            $scorecard->save();
+
+                            $conclusion = $data['conclusion'];
+                            $interviewResult = $conclusion === 'hold' ? 'pending' : $conclusion;
+                            $interview->forceFill(['result' => $interviewResult])->save();
+
+                            if ($conclusion === 'pass') {
+                                $record->forceFill([
+                                    'status' => StatusApplicationEnum::OFFER,
+                                    'rejected_reason' => null,
+                                ])->save();
+                            } elseif ($conclusion === 'fail') {
+                                $record->forceFill([
+                                    'status' => StatusApplicationEnum::REJECTED,
+                                    'rejected_reason' => $data['rejected_reason'] ?? $record->rejected_reason,
+                                ])->save();
+                            } else {
+                                $record->forceFill(['status' => StatusApplicationEnum::INTERVIEW])->save();
+                            }
+
+                            Notification::make()
+                                ->success()
+                                ->title('Đã lưu đánh giá phỏng vấn')
+                                ->body($conclusion === 'pass'
+                                    ? 'Ứng viên đạt — hồ sơ đã chuyển sang Offer.'
+                                    : ($conclusion === 'fail'
+                                        ? 'Ứng viên không đạt — hồ sơ đã chuyển sang Từ chối.'
+                                        : 'Đã lưu đánh giá — hồ sơ giữ ở Phỏng vấn.'))
+                                ->send();
+                        })
+                        ->visible(function (Application $record): bool {
+                            $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                            return $status === StatusApplicationEnum::INTERVIEW;
+                        }),
+                    Action::make('reject_application')
+                        ->label('Từ chối')
+                        ->icon('heroicon-o-x-circle')
+                        ->color('danger')
+                        ->modalHeading('Từ chối ứng viên')
+                        ->form([
+                            Textarea::make('rejected_reason')
+                                ->label('Lý do từ chối')
+                                ->rows(4)
+                                ->required(),
+                        ])
+                        ->action(function (Application $record, array $data): void {
+                            $record->forceFill([
+                                'status' => StatusApplicationEnum::REJECTED,
+                                'rejected_reason' => $data['rejected_reason'] ?? null,
                             ])->save();
 
                             Notification::make()
                                 ->success()
-                                ->title('Đã gửi offer')
-                                ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
+                                ->title('Đã từ chối ứng viên')
                                 ->send();
-                        } catch (\Throwable $exception) {
-                            Log::warning('Failed to send offer mail.', [
-                                'application_id' => $record->id,
-                                'offer_id' => $offer->id,
-                                'recipient' => $candidate->email,
-                                'error' => $exception->getMessage(),
-                            ]);
+                        })
+                        ->visible(function (Application $record): bool {
+                            $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                            return in_array($status, [
+                                StatusApplicationEnum::NEW,
+                                StatusApplicationEnum::SCREENING,
+                                StatusApplicationEnum::INTERVIEW,
+                                StatusApplicationEnum::OFFER,
+                            ], true);
+                        }),
+                    Action::make('send_offer')
+                        ->label(fn (Application $record): string => $record->latestOffer?->sent_at ? 'Gửi lại offer' : 'Gửi offer')
+                        ->icon('heroicon-o-envelope')
+                        ->color('primary')
+                        ->requiresConfirmation()
+                        ->modalHeading('Gửi offer cho ứng viên')
+                        ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'))
+                        ->action(function (Application $record): void {
+                            $offer = $record->offers()->latest('id')->first();
+                            $candidate = $record->candidate;
+                            $job = $record->job;
+
+                            if (! $offer || ! $candidate?->email || ! $job) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Chưa thể gửi offer')
+                                    ->body('Vui lòng tạo offer và kiểm tra email ứng viên trước khi gửi.')
+                                    ->send();
+
+                                return;
+                            }
+
+                            try {
+                                if ($offer->offer_letter_template_id) {
+                                    app(OfferPdfService::class)->refreshForOffer($offer);
+                                    $offer->refresh();
+                                }
+
+                                Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+
+                                $offer->forceFill([
+                                    'sent_at' => now(),
+                                ])->save();
+
+                                Notification::make()
+                                    ->success()
+                                    ->title('Đã gửi offer')
+                                    ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
+                                    ->send();
+                            } catch (\Throwable $exception) {
+                                Log::warning('Failed to send offer mail.', [
+                                    'application_id' => $record->id,
+                                    'offer_id' => $offer->id,
+                                    'recipient' => $candidate->email,
+                                    'error' => $exception->getMessage(),
+                                ]);
+
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Gửi offer thất bại')
+                                    ->body('Offer đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
+                                    ->send();
+                            }
+                        })
+                        ->visible(fn (Application $record): bool => static::canSendOffer($record)),
+                    Action::make('reopen_offer_response')
+                        ->label('Mở lại phản hồi')
+                        ->icon('heroicon-o-arrow-path')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Mở lại phản hồi offer')
+                        ->modalDescription('Đưa offer về trạng thái chờ phản hồi để có thể gửi lại cho ứng viên.')
+                        ->action(function (Application $record): void {
+                            $offer = $record->offers()->latest('id')->first();
+
+                            if (! $offer) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Chưa có offer để mở lại')
+                                    ->send();
+
+                                return;
+                            }
+
+                            $offer->forceFill([
+                                'status' => 'pending',
+                                'response_at' => null,
+                                'accepted_at' => null,
+                                'declined_reason' => null,
+                                'sent_at' => null,
+                                'expires_at' => now()->addDays(3),
+                            ])->save();
+
+                            $record->forceFill([
+                                'status' => StatusApplicationEnum::OFFER,
+                                'rejected_reason' => null,
+                            ])->save();
 
                             Notification::make()
-                                ->warning()
-                                ->title('Gửi offer thất bại')
-                                ->body('Offer đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
+                                ->success()
+                                ->title('Đã mở lại phản hồi offer')
+                                ->body('Bạn có thể chỉnh sửa và gửi lại offer mới cho ứng viên.')
                                 ->send();
-                        }
-                    })
-                    ->visible(fn (Application $record): bool => static::canSendOffer($record)),
-                Action::make('download_offer_pdf')
-                    ->label('Tải PDF offer')
-                    ->icon('heroicon-o-arrow-down-tray')
+                        })
+                        ->visible(fn (Application $record): bool => in_array($record->latestOffer?->status, ['accepted', 'declined', 'expired'], true)),
+                    Action::make('download_offer_pdf')
+                        ->label('Tải PDF offer')
+                        ->icon('heroicon-o-arrow-down-tray')
+                        ->color('gray')
+                        ->visible(fn (Application $record): bool => filled($record->latestOffer?->pdf_path))
+                        ->action(function (Application $record) {
+                            $offer = $record->offers()->latest('id')->first();
+                            $disk = Storage::disk('local');
+
+                            if (! $offer || ! $offer->pdf_path || ! $disk->exists($offer->pdf_path)) {
+                                Notification::make()
+                                    ->warning()
+                                    ->title('Chưa có file PDF')
+                                    ->body('Chọn mẫu thư offer và lưu lại, hoặc kiểm tra quyền ghi storage.')
+                                    ->send();
+
+                                return null;
+                            }
+
+                            return response()->download(
+                                $disk->path($offer->pdf_path),
+                                'thu-moi-nhan-viec-'.$offer->id.'.pdf',
+                                ['Content-Type' => 'application/pdf'],
+                            );
+                        }),
+                    ViewAction::make()
+                        ->modal()
+                        ->modalWidth('7xl')
+                        ->label('Xem')
+                        ->modalContent(fn ($record) => view('filament.applications.application-view', ['record' => $record])),
+                    EditAction::make()
+                        ->label('Sửa')
+                        ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record])),
+                    DeleteAction::make()->label('Xóa'),
+                ])
+                    ->label('Khác')
+                    ->icon('heroicon-o-ellipsis-horizontal')
                     ->color('gray')
-                    ->visible(fn (Application $record): bool => filled($record->latestOffer?->pdf_path))
-                    ->action(function (Application $record) {
-                        $offer = $record->offers()->latest('id')->first();
-                        $disk = Storage::disk('local');
-
-                        if (! $offer || ! $offer->pdf_path || ! $disk->exists($offer->pdf_path)) {
-                            Notification::make()
-                                ->warning()
-                                ->title('Chưa có file PDF')
-                                ->body('Chọn mẫu thư offer và lưu lại, hoặc kiểm tra quyền ghi storage.')
-                                ->send();
-
-                            return null;
-                        }
-
-                        return response()->download(
-                            $disk->path($offer->pdf_path),
-                            'thu-moi-nhan-viec-'.$offer->id.'.pdf',
-                            ['Content-Type' => 'application/pdf'],
-                        );
-                    }),
-                ViewAction::make()
-                    ->modal()
-                    ->modalWidth('7xl')
-                    ->label('Xem')
-                    ->modalContent(fn ($record) => view('filament.applications.application-view', ['record' => $record])),
-                EditAction::make()
-                    ->label('Sửa')
-                    ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record])),
-                DeleteAction::make()->label('Xóa'),
-            ])
-            ->toolbarActions([
+                    ->button(),
+            ])            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()->label('Xóa đã chọn'),
                     ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
@@ -359,6 +613,12 @@ class ApplicationsTable
 
     protected static function getPipelineActionLabel(Application $record): ?string
     {
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+        if ($status === StatusApplicationEnum::NEW) {
+            return 'Sàng lọc';
+        }
+
         if (static::canManageInterview($record)) {
             return static::getInterviewActionLabel($record);
         }
@@ -372,6 +632,12 @@ class ApplicationsTable
 
     protected static function getPipelineActionColor(Application $record): string
     {
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+        if ($status === StatusApplicationEnum::NEW) {
+            return 'warning';
+        }
+
         if (static::canManageInterview($record)) {
             return static::hasInterviewStatus($record) ? 'info' : 'warning';
         }
@@ -513,6 +779,45 @@ class ApplicationsTable
         };
     }
 
+    public static function isPendingInterviewEvaluation(Application $record): bool
+    {
+        $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+        $interview = $record->latestInterview;
+
+        if ($status !== StatusApplicationEnum::INTERVIEW || ! $interview || ! $interview->scheduled_at) {
+            return false;
+        }
+
+        return $interview->scheduled_at->lte(now()) && $interview->result === 'pending';
+    }
+
+    protected static function getInterviewFollowUpLabel(Application $record): ?string
+    {
+        return static::isPendingInterviewEvaluation($record) ? 'Chờ chấm phỏng vấn' : null;
+    }
+
+    protected static function getOfferResponseLabel(Application $record): ?string
+    {
+        return match ($record->latestOffer?->status) {
+            'accepted' => 'Đã đồng ý',
+            'declined' => 'Đã từ chối',
+            'expired' => 'Đã hết hạn',
+            'pending' => $record->latestOffer?->sent_at ? 'Chờ phản hồi' : 'Chưa gửi',
+            default => null,
+        };
+    }
+
+    protected static function getOfferResponseColor(Application $record): string
+    {
+        return match ($record->latestOffer?->status) {
+            'accepted' => 'success',
+            'declined' => 'danger',
+            'expired' => 'gray',
+            'pending' => 'warning',
+            default => 'gray',
+        };
+    }
+
     protected static function makePipelineAction(): Action
     {
         return Action::make('pipeline')
@@ -523,6 +828,11 @@ class ApplicationsTable
             ->color(fn (Application $record): string => static::getPipelineActionColor($record))
             ->modalWidth(fn (Application $record): string => static::canManageInterview($record) ? '3xl' : '4xl')
             ->modalHeading(function (Application $record): string {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                if ($status === StatusApplicationEnum::NEW) {
+                    return 'Chuyển sang sàng lọc';
+                }
                 if (static::canManageInterview($record)) {
                     return $record->interviews()->exists() ? 'Điều chỉnh lịch phỏng vấn' : 'Tạo lịch phỏng vấn';
                 }
@@ -533,8 +843,14 @@ class ApplicationsTable
 
                 return 'Xử lý hồ sơ';
             })
-            ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? '?ng viên'))
+            ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? 'Ứng viên'))
             ->fillForm(function (Application $record): array {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                if ($status === StatusApplicationEnum::NEW) {
+                    return [];
+                }
+
                 if (static::canManageInterview($record)) {
                     return static::getInterviewFormData($record);
                 }
@@ -546,10 +862,17 @@ class ApplicationsTable
                     'salary_offered' => $offer?->salary_offered,
                     'start_date' => $offer?->start_date,
                     'probation_months' => $offer?->probation_months ?? 2,
+                    'expires_at' => $offer?->expires_at,
                     'content' => $offer?->content,
                 ];
             })
             ->form(function (Application $record): array {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                if ($status === StatusApplicationEnum::NEW) {
+                    return [];
+                }
+
                 if (static::canManageInterview($record)) {
                     return [
                         DateTimePicker::make('scheduled_at')
@@ -590,7 +913,7 @@ class ApplicationsTable
                 return [
                     Select::make('offer_letter_template_id')
                         ->label('Mẫu thư offer (PDF)')
-                        ->placeholder('Không dùng mẫu — soạn toàn bộ trong ô nội dung bên dưới')
+                        ->placeholder('Không dùng mẫu - soạn toàn bộ trong ô nội dung bên dưới')
                         ->options(fn (): array => OfferLetterTemplate::query()
                             ->where('is_active', true)
                             ->orderBy('sort_order')
@@ -608,6 +931,13 @@ class ApplicationsTable
                         ->displayFormat('d/m/Y')
                         ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                         ->required(),
+                    DateTimePicker::make('expires_at')
+                        ->label('Hạn phản hồi offer')
+                        ->native(false)
+                        ->seconds(false)
+                        ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                        ->default(now()->addDays(3))
+                        ->required(),
                     TextInput::make('probation_months')->label('Thời gian thử việc')->numeric()->minValue(0)->default(2)->required()->suffix('tháng'),
                     Textarea::make('content')
                         ->label('Nội dung bổ sung (email + cuối PDF)')
@@ -617,6 +947,19 @@ class ApplicationsTable
                 ];
             })
             ->action(function (Application $record, array $data): void {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                if ($status === StatusApplicationEnum::NEW) {
+                    $record->forceFill(['status' => StatusApplicationEnum::SCREENING])->save();
+
+                    Notification::make()
+                        ->success()
+                        ->title('Đã chuyển sang sàng lọc')
+                        ->send();
+
+                    return;
+                }
+
                 if (static::canManageInterview($record)) {
                     $existingInterview = $record->interviews()->latest('id')->first();
                     $roundNumber = (int) ($existingInterview?->round_number ?: 1);
@@ -695,6 +1038,7 @@ class ApplicationsTable
                     'salary_offered' => $data['salary_offered'],
                     'start_date' => $data['start_date'],
                     'probation_months' => $data['probation_months'],
+                    'expires_at' => $data['expires_at'] ?? now()->addDays(3),
                     'content' => $data['content'] ?? '',
                 ]);
                 $offer->save();
@@ -705,12 +1049,12 @@ class ApplicationsTable
                 $record->forceFill(['status' => StatusApplicationEnum::OFFER])->save();
 
                 $pdfHint = filled($offer->pdf_path)
-                    ? ' PDF đã tạo — có thể tải từ cột thao tác hoặc file đính kèm khi gửi email.'
+                    ? ' PDF đã tạo - có thể tải từ cột thao tác hoặc file đính kèm khi gửi email.'
                     : '';
 
                 Notification::make()
                     ->success()
-                    ->title($existingOffer ? 'Ðã lưu offer' : 'Ðã tạo offer')
+                    ->title($existingOffer ? 'Đã lưu offer' : 'Đã tạo offer')
                     ->body('Offer đã được lưu.'.$pdfHint.' Có thể gửi email offer cho ứng viên.')
                     ->send();
             })
@@ -718,4 +1062,3 @@ class ApplicationsTable
             ->disabled(fn (Application $record): bool => static::getPipelineActionLabel($record) === null);
     }
 }
-

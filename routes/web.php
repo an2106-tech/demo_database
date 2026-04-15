@@ -36,6 +36,7 @@ use App\Livewire\Client\Register as PagesRegister;
 use App\Livewire\Client\Single;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\SubmitResume;
+use App\Http\Controllers\OfferResponseController;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
 
@@ -52,6 +53,15 @@ Route::get('/preview/public-file/{path}', function (string $path) {
         'X-Frame-Options' => 'SAMEORIGIN',
     ]);
 })->where('path', '.*')->name('public-file.preview');
+
+Route::prefix('offers')->name('offers.')->group(function () {
+    Route::get('/{offer}/respond/accept', [OfferResponseController::class, 'accept'])
+        ->middleware('signed')
+        ->name('respond.accept');
+    Route::get('/{offer}/respond/decline', [OfferResponseController::class, 'decline'])
+        ->middleware('signed')
+        ->name('respond.decline');
+});
 
 Route::redirect('/candidate-profile.html', '/candidates/candidate-profile');
 Route::redirect('/candidate-dashboard.html', '/candidates/candidate-dashboard');

@@ -3,17 +3,12 @@
 namespace App\Filament\Resources\Applications\Pages;
 
 use App\Filament\Resources\Applications\ApplicationResource;
-use App\Filament\Resources\Applications\Schemas\ApplicationForm;
-use App\Mail\CandidateApplicationRejectedMail;
 use App\Enums\StatusApplicationEnum;
 use App\Models\Candidate;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
-use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class EditApplication extends EditRecord
 {
@@ -36,13 +31,8 @@ class EditApplication extends EditRecord
 
         $candidateId = $data['candidate_id'] ?? null;
         $applyMethod = $data['apply_method'] ?? null;
-        $newStatus = $data['status'] ?? null;
-
-        if (! ApplicationForm::canMoveStatusForwardOnly($this->record->status, $newStatus)) {
-            throw ValidationException::withMessages([
-                'status' => 'Không thể chuyển trạng thái ứng tuyển.',
-            ]);
-        }
+        // Status is managed via table actions (buttons), not via the edit form.
+        $data['status'] = $this->record->status;
 
         if ($applyMethod === 'profile') {
             $data['cv_path'] = $data['cv_path'] ?? null;
