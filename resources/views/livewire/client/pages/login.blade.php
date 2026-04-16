@@ -31,19 +31,7 @@
          <div class="row justify-content-center">
             <div class="col-12 auth-card">
                <div class="auth-shell auth-shell--candidate">
-                  <div class="auth-shell__aside">
-                     <div class="auth-shell__badge">Chào mừng</div>
-                     <h3 class="auth-shell__title">Hành trình mới đang chờ đón bạn</h3>
-                     <p class="auth-shell__subtitle">
-                        Đăng nhập để quản lý hồ sơ, theo dõi việc làm và kết nối với các cơ hội nghề nghiệp hấp dẫn nhất.
-                     </p>
-                     <ul class="auth-shell__list">
-                        <li><i class="fa fa-check-circle"></i> Bảo mật thông tin tuyệt đối</li>
-                        <li><i class="fa fa-check-circle"></i> Trải nghiệm mượt mà</li>
-                        <li><i class="fa fa-check-circle"></i> Hỗ trợ 24/7</li>
-                     </ul>
-                  </div>
-                  <div class="auth-shell__main">
+                  <div class="auth-shell__main" style="width: 100%;">
                      <div class="auth-shell__header">
                         <h3>Đăng nhập</h3>
                         <p>Vui lòng nhập thông tin tài khoản của bạn.</p>

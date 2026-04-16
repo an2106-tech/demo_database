@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Client;
 
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Department;
@@ -33,6 +34,11 @@ class BrowseJobs extends Component
 
     public function mount(): void
     {
+        // Nếu employer (HR) đang đăng nhập, chuyển hướng đến login của nhà tuyển dụng
+        if (Auth::check() && Auth::user()->role === 'hr') {
+            redirect()->route('auth.login', ['role' => 'employer'])->send();
+        }
+
         if (! request()->has('display') && request()->has('view')) {
             $requestedView = request()->query('view');
             if (is_string($requestedView)) {

@@ -7,12 +7,10 @@ use App\Models\Branch;
 use App\Models\User;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class Register extends Component
 {
-    #[Layout('layouts.client')]
     public string $role = 'candidate';
 
     public ?string $next_route = null;
@@ -139,7 +137,7 @@ class Register extends Component
                 'role' => 'hr',
                 'branch_id' => $data['branch_id'],
                 'avatar' => null,
-                'is_active' => false,
+                'is_active' => true,
                 'metadata' => [
                     'account_type' => 'employer',
                     'account_types' => ['employer'],
@@ -151,9 +149,13 @@ class Register extends Component
         }
 
         if ($this->role === 'employer') {
+            Auth::login($user);
+            request()->session()->regenerate();
+            session(['client_menu_type' => 'employer']);
+
             return redirect()
-                ->route('auth.login', ['role' => 'employer'])
-                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo và đang chờ super admin duyệt.');
+                ->route('auth.post_jobs')
+                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo.');
         }
 
         Auth::login($user);
@@ -196,9 +198,15 @@ class Register extends Component
 
         $branches = $branchesQuery->get(['id', 'name', 'city']);
 
+        $layout = match ($this->role) {
+            'employer' => 'layouts.employer',
+            'candidate' => 'layouts.candidate',
+            default => 'layouts.client',
+        };
+
         return view('livewire.client.pages.register', [
             'branches' => $branches,
             'provinceOptions' => $provinceOptions,
-        ]);
+        ])->layout($layout);
     }
 }

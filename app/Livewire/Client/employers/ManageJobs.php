@@ -10,6 +10,15 @@ use Livewire\Component;
 class ManageJobs extends Component
 {
     #[Layout('layouts.employer')]
+
+    public function mount(): void
+    {
+        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
+        if (Auth::check() && Auth::user()->role === 'candidate') {
+            redirect()->route('auth.login', ['role' => 'candidate'])->send();
+        }
+    }
+
     public function render()
     {
         $jobs = RecruitmentJob::query()

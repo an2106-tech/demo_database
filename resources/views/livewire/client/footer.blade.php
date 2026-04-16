@@ -30,11 +30,18 @@
                             <h3>{{ ($isEmployerFooter ?? false) ? 'Nhà tuyển dụng' : 'Ứng viên' }}</h3>
                             <ul>
                                 @if ($isEmployerFooter ?? false)
-                                    <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-angle-double-right"></i> Đăng tin tuyển dụng</a></li>
-                                    <li><a href="{{ route('employers.browse') }}"><i class="fa fa-angle-double-right"></i> Tìm ứng viên</a></li>
-                                    <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-angle-double-right"></i> Quản lý tin tuyển dụng</a></li>
-                                    <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-angle-double-right"></i> Giao dịch</a></li>
-                                    <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-angle-double-right"></i> Bảo mật tài khoản</a></li>
+                                    @guest
+                                        <li><a href="{{ route('employers.portal') }}"><i class="fa fa-angle-double-right"></i> Trang nhà tuyển dụng</a></li>
+                                        <li><a href="{{ route('auth.sign_up', ['role' => 'employer']) }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-angle-double-right"></i> Tạo tài khoản HR</a></li>
+                                        <li><a href="{{ route('auth.login', ['role' => 'employer']) }}" target="_blank" rel="noopener noreferrer"><i class="fa fa-angle-double-right"></i> Đăng nhập HR</a></li>
+                                        <li><a href="{{ route('employers.browse') }}"><i class="fa fa-angle-double-right"></i> Tìm ứng viên</a></li>
+                                    @else
+                                        <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-angle-double-right"></i> Đăng tin tuyển dụng</a></li>
+                                        <li><a href="{{ route('employers.browse') }}"><i class="fa fa-angle-double-right"></i> Tìm ứng viên</a></li>
+                                        <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-angle-double-right"></i> Quản lý tin tuyển dụng</a></li>
+                                        <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-angle-double-right"></i> Giao dịch</a></li>
+                                        <li><a href="{{ route('employers.change_password') }}"><i class="fa fa-angle-double-right"></i> Bảo mật tài khoản</a></li>
+                                    @endguest
                                 @else
                                     <li><a href="{{ route('candidates.browse_job') }}"><i class="fa fa-angle-double-right"></i> Tìm việc làm</a></li>
                                     <li><a href="{{ route('candidates.browse_categories') }}"><i class="fa fa-angle-double-right"></i> Danh mục ngành nghề</a></li>
@@ -76,3 +83,4 @@
        
     </footer>
 </div>
+

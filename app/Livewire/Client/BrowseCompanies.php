@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Client;
 
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use App\Models\Branch;
@@ -33,6 +34,13 @@ class BrowseCompanies extends Component
         'applied_cities' => ['as' => 'cities', 'except' => []],
     ];
 
+    public function mount(): void
+    {
+        // Nếu employer (HR) đang đăng nhập, chuyển hướng đến login của nhà tuyển dụng
+        if (Auth::check() && Auth::user()->role === 'hr') {
+            redirect()->route('auth.login', ['role' => 'employer'])->send();
+        }
+    }
 
     // Hàm này sẽ được gọi mỗi khi $search thay đổi để reset về trang 1
     public function updatingSearch()

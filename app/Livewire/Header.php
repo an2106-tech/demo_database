@@ -63,7 +63,7 @@ class Header extends Component
 
         return $type === 'candidate'
             ? $this->redirectRoute('candidates.browse_job', navigate: true)
-            : $this->redirectRoute('employers.dashboard', navigate: true);
+            : $this->redirectRoute('auth.post_jobs', navigate: true);
     }
 
     public function render()

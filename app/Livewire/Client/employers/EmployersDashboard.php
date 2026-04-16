@@ -12,6 +12,15 @@ use Livewire\Component;
 class EmployersDashboard extends Component
 {
     #[Layout('layouts.employer')]
+
+    public function mount(): void
+    {
+        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
+        if (Auth::check() && Auth::user()->role === 'candidate') {
+            redirect()->route('auth.login', ['role' => 'candidate'])->send();
+        }
+    }
+
     public function render()
     {
         $user = Auth::user();

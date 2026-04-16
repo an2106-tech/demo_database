@@ -38,38 +38,8 @@
                                 <a href="{{ route('home') }}">Quay lại trang chủ</a>
                             </div>
                         @else
-                            <div class="auth-shell {{ $role === 'employer' ? 'auth-shell--employer' : 'auth-shell--candidate' }}" wire:key="register-shell-{{ $role }}">
-                                <div class="auth-shell__aside">
-                                    <div class="auth-shell__badge" wire:key="badge-{{ $role }}">
-                                        {{ $role === 'employer' ? 'Nhà tuyển dụng' : 'Ứng viên' }}
-                                    </div>
-                                    @if($role === 'employer')
-                                        <h3 class="auth-shell__title">Tuyển dụng hiệu quả, chuyên nghiệp</h3>
-                                        <p class="auth-shell__subtitle">Tiếp cận hàng ngàn ứng viên tiềm năng và quản lý quy trình phỏng vấn dễ dàng.</p>
-                                        <ul class="auth-shell__list">
-                                            <li><i class="fa fa-check-circle"></i> Đăng tin tuyển dụng nhanh chóng</li>
-                                            <li><i class="fa fa-check-circle"></i> Quản lý hồ sơ ứng viên tập trung</li>
-                                            <li><i class="fa fa-check-circle"></i> Hệ thống phỏng vấn tự động</li>
-                                        </ul>
-                                    @else
-                                        <h3 class="auth-shell__title">Tạo tài khoản để ứng tuyển nhanh</h3>
-                                        <p class="auth-shell__subtitle">Lưu việc yêu thích, nhận gợi ý phù hợp và theo dõi trạng thái hồ sơ.</p>
-                                        <ul class="auth-shell__list">
-                                            <li><i class="fa fa-check-circle"></i> Ứng tuyển 1 chạm với hồ sơ đã lưu</li>
-                                            <li><i class="fa fa-check-circle"></i> Nhận thông báo việc làm theo kỹ năng</li>
-                                            <li><i class="fa fa-check-circle"></i> Theo dõi lịch phỏng vấn &amp; phản hồi</li>
-                                        </ul>
-                                    @endif
-                                </div>
-                                <div class="auth-shell__main">
-                                    <div class="auth-tabs">
-                                        <div class="auth-tab {{ $role === 'candidate' ? 'active' : '' }}" wire:click="setRole('candidate')">
-                                            Tôi là ứng viên
-                                        </div>
-                                        <div class="auth-tab {{ $role === 'employer' ? 'active' : '' }}" wire:click="setRole('employer')">
-                                            Tôi là nhà tuyển dụng
-                                        </div>
-                                    </div>
+                            <div class="auth-shell {{ $role === 'employer' ? 'auth-shell--employer' : 'auth-shell--candidate' }}" wire:key="register-shell-{{ $role }}" style="max-width: 100%; display: block;">
+                                <div class="auth-shell__main" style="width: 100%;">
 
                                     <div class="auth-shell__header">
                                         <h3>Đăng ký {{ $role === 'employer' ? 'nhà tuyển dụng' : 'ứng viên' }}</h3>

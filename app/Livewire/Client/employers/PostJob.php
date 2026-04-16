@@ -48,6 +48,11 @@ class PostJob extends Component
 
     public function mount($id = null): void
     {
+        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
+        if (Auth::check() && Auth::user()->role === 'candidate') {
+            redirect()->route('auth.login', ['role' => 'candidate'])->send();
+        }
+
         $user = Auth::user();
 
         if ($id) {

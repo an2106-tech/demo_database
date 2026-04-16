@@ -40,15 +40,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/employer-portal.css') }}">
 
     @livewireStyles
 </head>
 
-<body class="employer-app">
-    <livewire:header type="employer" />
+<body class="candidate-app">
+    <livewire:header type="candidate" />
     {{ $slot }}
-    <livewire:footer type="employer" />
+    <livewire:footer type="candidate" />
 
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
@@ -92,7 +91,7 @@
                     title: 'Lỗi!',
                     text: '{!! session('error') !!}',
                     showConfirmButton: true,
-                    confirmButtonColor: '#ff7800',
+                    confirmButtonColor: '#0066cc',
                     showClass: {
                         popup: 'animate__animated animate__shakeX'
                     }

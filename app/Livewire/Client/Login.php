@@ -3,12 +3,10 @@
 namespace App\Livewire\Client;
 
 use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class Login extends Component
 {
-    #[Layout('layouts.client')]
     public string $role = 'candidate';
 
     public string $email = '';
@@ -69,11 +67,17 @@ class Login extends Component
 
         if ($user->role === 'hr') {
             session(['client_menu_type' => 'employer']);
-        } elseif ($user->role === 'candidate') {
-            session(['client_menu_type' => 'candidate']);
-        } else {
-            session()->forget('client_menu_type');
+
+            return redirect()->intended(route('employers.dashboard'));
         }
+
+        if ($user->role === 'candidate') {
+            session(['client_menu_type' => 'candidate']);
+
+            return redirect()->intended(route('candidates.candidate_dashboard'));
+        }
+
+        session()->forget('client_menu_type');
 
         return redirect()->intended(route('home'));
     }
@@ -91,6 +95,12 @@ class Login extends Component
 
     public function render()
     {
-        return view('livewire.client.pages.login');
+        $layout = match ($this->role) {
+            'employer' => 'layouts.employer',
+            'candidate' => 'layouts.candidate',
+            default => 'layouts.client',
+        };
+
+        return view('livewire.client.pages.login')->layout($layout);
     }
 }

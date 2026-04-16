@@ -11,6 +11,15 @@ use Livewire\Component;
 class ManageJobs extends Component
 {
     #[Layout('layouts.client')]
+
+    public function mount(): void
+    {
+        // Nếu employer (HR) đang đăng nhập, chuyển hướng đến login của nhà tuyển dụng
+        if (Auth::check() && Auth::user()->role === 'hr') {
+            redirect()->route('auth.login', ['role' => 'employer'])->send();
+        }
+    }
+
     public function render()
     {
         $user = Auth::user();
