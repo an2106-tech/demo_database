@@ -209,7 +209,7 @@
                                             @endphp
 
                                             <div class="bc2-company__job">
-                                                <a class="bc2-company__job-title" href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
+                                                <a class="bc2-company__job-title" href="{{ route('jobs.public', ['slug' => $job->slug]) }}">
                                                     {{ $job->title }}
                                                 </a>
                                                 <div class="bc2-company__job-meta">

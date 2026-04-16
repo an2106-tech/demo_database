@@ -128,7 +128,7 @@ class BrowseCompanies extends Component
             ->withCount(['recruitmentJobs as published_jobs_count' => $jobCondition])
             ->with(['recruitmentJobs' => function ($q) use ($jobCondition) {
                 $jobCondition($q);
-                $q->orderByDesc('created_at')->select(['id', 'branch_id', 'title', 'salary_range', 'deadline', 'created_at']);
+                $q->orderByDesc('created_at')->select(['id', 'branch_id', 'title', 'slug', 'salary_range', 'deadline', 'created_at']);
             }]);
 
         $branches = $query->latest()->paginate(10);

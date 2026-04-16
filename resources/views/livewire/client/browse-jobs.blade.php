@@ -105,7 +105,7 @@
             <div class="row g-4 bj2-results {{ $isListView ? 'bj2-results--list' : '' }}">
                 @forelse ($jobs as $job)
                     @php
-                        $detailUrl = route('candidates.job_detail', ['id' => $job->id]);
+                        $detailUrl = route('jobs.public', ['slug' => $job->slug]);
                         $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
                         $logoSrc = $job->branch?->image
                             ? '/storage/' . ltrim($job->branch->image, '/')

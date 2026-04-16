@@ -161,7 +161,7 @@
                                     <div class="flex-grow-1 min-w-0">
                                         <h3 class="home-premium-job-card__title">
                                             <a
-                                                href="{{ route('candidates.job_detail', ['id' => $spotlight->id]) }}">{{ $spotlight->title }}</a>
+                                                href="{{ route('jobs.public', ['slug' => $spotlight->slug]) }}">{{ $spotlight->title }}</a>
                                         </h3>
                                         <p class="home-premium-job-card__company text-truncate mb-0">
                                             {{ $spotlight->branch?->name ?? 'Chi nhánh' }}</p>
@@ -175,7 +175,7 @@
                                     <li><i class="fa fa-money"></i>{{ $salaryLabel }}</li>
                                 </ul>
                                 <div class="home-premium-job-card__actions">
-                                    <a href="{{ route('candidates.job_detail', ['id' => $spotlight->id]) }}"
+                                    <a href="{{ route('jobs.public', ['slug' => $spotlight->slug]) }}"
                                         class="btn btn-outline-secondary">Chi tiết</a>
                                     <a href="{{ route('candidates.apply_job', ['job' => $spotlight->id]) }}"
                                         class="btn btn-primary home-premium-btn-apply">Ứng tuyển</a>
@@ -435,7 +435,7 @@
                                                                                                 <i class="fa fa-heart-o" style="color:#a3a3a3;"></i>
                                                                                                 <div class="branch-job-title">
                                                                                                     <a
-                                                                                                        href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
+                                                                                                        href="{{ route('jobs.public', ['slug' => $job->slug]) }}">{{ $job->title }}</a>
                                                                                                 </div>
                                                                                                 <div class="branch-job-salary">
                                                                                                     <i class="fa fa-money"></i>
@@ -472,14 +472,14 @@
                                         <li>
                                             <div class="top-company-list">
                                                 <div class="company-list-logo">
-                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
+                                                    <a href="{{ route('jobs.public', ['slug' => $job->slug]) }}">
                                                         <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
                                                             alt="{{ $job->branch?->name ?? 'Chi nhánh' }}">
                                                     </a>
                                                 </div>
                                                 <div class="company-list-details">
                                                     <h3><a
-                                                            href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
+                                                            href="{{ route('jobs.public', ['slug' => $job->slug]) }}">{{ $job->title }}</a>
                                                     </h3>
                                                     <p class="company-state"><i class="fa fa-building-o"></i>
                                                         {{ $job->branch?->name ?? 'Chi nhánh' }}
@@ -506,7 +506,7 @@
                                                     </div>
                                                 </div>
                                                 <div class="company-list-btn">
-                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"
+                                                    <a href="{{ route('jobs.public', ['slug' => $job->slug]) }}"
                                                         class="jobguru-btn">Xem chi tiết</a>
                                                 </div>
                                             </div>

@@ -66,7 +66,7 @@ class Home extends Component
                             ->orWhere('deadline', '>=', $now);
                     })
                     ->orderByDesc('created_at')
-                    ->select(['id', 'branch_id', 'title', 'salary_range', 'deadline', 'created_at']),
+                    ->select(['id', 'branch_id', 'title', 'slug', 'salary_range', 'deadline', 'created_at']),
             ])
             ->latest()
             ->get();

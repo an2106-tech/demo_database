@@ -699,7 +699,7 @@
                                 Ứng tuyển ngay
                             </a>
                         @else
-                            <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}" class="jd-apply-btn">
+                            <a href="{{ route('jobs.public', ['slug' => $job->slug]) }}" class="jd-apply-btn">
                                 <i class="fa fa-external-link"></i>
                                 Xem giao diện ứng viên
                             </a>
