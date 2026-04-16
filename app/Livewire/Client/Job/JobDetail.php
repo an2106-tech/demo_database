@@ -12,12 +12,20 @@ class JobDetail extends Component
     public $id;
     public $job;
 
-    public function mount($id)
+    public function mount($id = null, $slug = null)
     {
-        $this->id = $id;
-
-        $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills', 'categories'])
-            ->findOrFail($id);
+        if ($slug !== null) {
+            // Public route: /jobs/{slug}
+            $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills', 'categories'])
+                ->where('slug', $slug)
+                ->firstOrFail();
+            $this->id = $this->job->id;
+        } else {
+            // Internal route: /candidates/job-detail/{id}
+            $this->id = $id;
+            $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills', 'categories'])
+                ->findOrFail($id);
+        }
     }
 
     public function render()

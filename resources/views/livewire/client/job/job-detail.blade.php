@@ -36,7 +36,7 @@
 
     $statusLabel = $job->status?->getLabel() ?? 'Đang tuyển';
     $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
-    $showApplyAction = request()->routeIs('candidates.*');
+    $showApplyAction = request()->routeIs('candidates.*') || request()->routeIs('jobs.public');
     $description = trim((string) ($job->description ?? ''));
     $descriptionParagraphs = collect(preg_split("/\\r\\n|\\r|\\n/", $description))
         ->map(fn ($line) => trim((string) $line))

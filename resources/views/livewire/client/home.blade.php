@@ -41,7 +41,7 @@
                             <div class="category-holder-text">
                                 <h3>{{ $category->name }}</h3>
                             </div>
-                            <img src="{{ asset($category->image) }}" alt="{{ $category->name }}" />
+                            <img src="{{ $category->image_url }}" alt="" role="presentation" loading="lazy" decoding="async" />
                         </a>
                     </div>
                 @empty
@@ -472,34 +472,38 @@
                                         <li>
                                             <div class="top-company-list">
                                                 <div class="company-list-logo">
-                                                    <a href="#">
+                                                    <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">
                                                         <img src="{{ $job->branch?->image ? '/storage/' . ltrim($job->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"
-                                                            alt="{{ $job->branch?->name ?? 'Chi nhánh' }}"
-                                                            style="display:block; width:100px; height:80px; margin:0 auto; object-fit:contain;">
+                                                            alt="{{ $job->branch?->name ?? 'Chi nhánh' }}">
                                                     </a>
                                                 </div>
                                                 <div class="company-list-details">
                                                     <h3><a
                                                             href="{{ route('candidates.job_detail', ['id' => $job->id]) }}">{{ $job->title }}</a>
                                                     </h3>
-                                                    <p class="company-state"><i class="fa fa-map-marker"></i>
-                                                        {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Địa điểm chưa xác định') }}
+                                                    <p class="company-state"><i class="fa fa-building-o"></i>
+                                                        {{ $job->branch?->name ?? 'Chi nhánh' }}
                                                     </p>
-                                                    <p class="open-icon"><i class="fa fa-clock-o"></i>
-                                                        {{ $job->created_at?->diffForHumans() }}</p>
-                                                    <p class="varify"><i class="fa fa-check"></i>Giá:
-                                                        @if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
-                                                            {{ number_format($job->salary_range['min']) }} -
-                                                            {{ number_format($job->salary_range['max']) }} VND
-                                                        @elseif (is_array($job->salary_range))
-                                                            {{ implode(' - ', $job->salary_range) }}
-                                                        @elseif (!empty($job->salary_range))
-                                                            {{ $job->salary_range }}
-                                                        @else
-                                                            Thỏa thuận
-                                                        @endif
-                                                    </p>
-                                                    <p class="rating-company">{{ number_format(rand(37, 50) / 10, 1) }}</p>
+                                                    <div class="meta-row">
+                                                        <p class="company-state"><i class="fa fa-map-marker"></i>
+                                                            {{ \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label() ?? ($job->branch?->city ?? 'Địa điểm chưa xác định') }}
+                                                        </p>
+                                                        <p class="open-icon"><i class="fa fa-clock-o"></i>
+                                                            {{ $job->created_at?->diffForHumans() }}</p>
+                                                        <p class="varify"><i class="fa fa-money"></i>
+                                                            @if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
+                                                                {{ number_format($job->salary_range['min']) }} -
+                                                                {{ number_format($job->salary_range['max']) }} VND
+                                                            @elseif (is_array($job->salary_range))
+                                                                {{ implode(' - ', $job->salary_range) }}
+                                                            @elseif (!empty($job->salary_range))
+                                                                {{ $job->salary_range }}
+                                                            @else
+                                                                Thỏa thuận
+                                                            @endif
+                                                        </p>
+                                                        <span class="rating-company"><i class="fa fa-star"></i> {{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                    </div>
                                                 </div>
                                                 <div class="company-list-btn">
                                                     <a href="{{ route('candidates.job_detail', ['id' => $job->id]) }}"

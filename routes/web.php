@@ -41,6 +41,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class)->name('home');
 
+// Public job detail page — shareable link for candidates (no login required)
+Route::get('/jobs/{slug}', JobDetail::class)->name('jobs.public');
+
 Route::get('/preview/public-file/{path}', function (string $path) {
     abort_unless(Storage::disk('public')->exists($path), 404);
 

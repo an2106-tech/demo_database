@@ -220,15 +220,18 @@
                            <div class="col-lg-3 col-md-6 col-sm-6">
                                <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder category-card">
                                    <div class="category-holder-icon">
-                                       @php($icon = trim((string) ($category->icon ?? '')))
-                                       <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                                       <i class="{{ $category->icon_class }}"></i>
                                    </div>
                                    <div class="category-holder-text">
                                        <h3>{{ $category->name }}</h3>
                                    </div>
-                                   @php($categoryImage = trim((string) ($category->image ?? '')))
-                                   <img src="{{ $categoryImage !== '' ? '/storage/' . ltrim($categoryImage, '/') : asset('assets/img/bg-3_3.jpg') }}"
-                                       alt="{{ $category->name }}" loading="lazy" decoding="async" />
+                                   <img
+                                       src="{{ $category->image_url }}"
+                                       alt=""
+                                       role="presentation"
+                                       loading="lazy"
+                                       decoding="async"
+                                   />
                                </a>
                            </div>
                        @empty

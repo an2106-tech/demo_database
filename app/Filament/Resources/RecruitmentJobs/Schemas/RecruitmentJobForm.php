@@ -259,12 +259,38 @@ class RecruitmentJobForm
                                     ->required()
                                     ->rules(['required'])
                                     ->dehydrated(false),
-                                TextInput::make('public_url')
-                                    ->label('Link công khai')
-                                    ->url()
-                                    ->unique(table: 'recruitment_jobs', column: 'public_url', ignoreRecord: true)
-                                    ->nullable()
-                                    ->rules(['nullable', 'url', 'max:2048']),
+                                Placeholder::make('public_link_display')
+                                    ->label('🔗 Link công khai cho ứng viên')
+                                    ->columnSpanFull()
+                                    ->content(function ($record): HtmlString|string {
+                                        if (! $record || ! filled($record->slug)) {
+                                            return new HtmlString(
+                                                '<span style="color:#94a3b8;font-size:13px;">'
+                                                . '💡 Lưu tin tuyển dụng để hệ thống tự tạo link chia sẻ'
+                                                . '</span>'
+                                            );
+                                        }
+
+                                        $url = route('jobs.public', ['slug' => $record->slug]);
+
+                                        return new HtmlString(
+                                            '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
+                                            . '<a href="' . e($url) . '" target="_blank" '
+                                            . 'style="color:#2563eb;word-break:break-all;font-size:13px;flex:1;min-width:200px;">'
+                                            . e($url)
+                                            . '</a>'
+                                            . '<button type="button" '
+                                            . 'onclick="navigator.clipboard.writeText(\'' . e($url) . '\');'
+                                            . 'this.innerHTML=\'✅ Đã copy!\';'
+                                            . 'setTimeout(()=>this.innerHTML=\'📋 Copy link\',2500)"'
+                                            . ' style="white-space:nowrap;padding:6px 14px;background:#f0fdf4;'
+                                            . 'border:1.5px solid #86efac;border-radius:8px;cursor:pointer;'
+                                            . 'font-size:12px;font-weight:600;color:#15803d;">'
+                                            . '📋 Copy link'
+                                            . '</button>'
+                                            . '</div>'
+                                        );
+                                    }),
                             ]),
                         Hidden::make('created_by')
                             ->default(fn () => Auth::id()),

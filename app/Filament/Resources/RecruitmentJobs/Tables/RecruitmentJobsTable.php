@@ -222,6 +222,14 @@ class RecruitmentJobsTable
                             ->send();
                     })
                     ->modalSubmitActionLabel('Cập nhật'),
+                \Filament\Actions\Action::make('viewPublicLink')
+                    ->label('🔗 Link ứng viên')
+                    ->icon('heroicon-o-link')
+                    ->color('info')
+                    ->url(fn ($record) => filled($record->slug) ? route('jobs.public', ['slug' => $record->slug]) : null)
+                    ->openUrlInNewTab()
+                    ->visible(fn ($record) => filled($record->slug))
+                    ->tooltip('Mở trang ứng tuyển công khai'),
                 ViewAction::make()->label('Xem'),
                 EditAction::make()->label('Sửa'),
                 DeleteAction::make()->label('Xóa'),

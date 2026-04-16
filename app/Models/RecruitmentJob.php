@@ -11,6 +11,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class RecruitmentJob extends Model
 {
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        // Auto-generate public_url whenever slug changes
+        static::saving(function (RecruitmentJob $job) {
+            if (filled($job->slug)) {
+                $job->public_url = route('jobs.public', ['slug' => $job->slug]);
+            }
+        });
+    }
     protected $fillable = [
         'title',
         'slug',
