@@ -72,14 +72,14 @@ class OfferResponseController extends Controller
             $payload['status'] = 'declined';
             $payload['declined_reason'] = 'Ung vien tu choi tu link email.';
             $payload['accepted_at'] = null;
-
+            // Ứng viên từ chối offer không đồng nghĩa HR từ chối hồ sơ.
+            // Giữ application ở trạng thái OFFER để admin quyết định offer lại hoặc reject chính thức.
             $application->forceFill([
-                'status' => StatusApplicationEnum::REJECTED,
-                'rejected_reason' => 'Ung vien da tu choi offer.',
+                'status' => StatusApplicationEnum::OFFER,
             ])->save();
 
             $title = 'Đã từ chối offer';
-            $message = "Phản hồi từ chối offer cho vị trí {$jobTitle} đã được ghi nhận.";
+            $message = "Phản hồi từ chối offer cho vị trí {$jobTitle} đã được ghi nhận. Bộ phận tuyển dụng sẽ liên hệ lại nếu cần đề xuất mới.";
             $status = 'warning';
         }
 

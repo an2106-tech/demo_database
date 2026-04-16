@@ -282,6 +282,12 @@ class ApplicationForm
 
     public static function getAllowedStatusOptions(?Application $record = null): array
     {
+        if (! $record) {
+            return [
+                StatusApplicationEnum::NEW->value => (string) StatusApplicationEnum::NEW->getLabel(),
+            ];
+        }
+
         $currentStatus = $record?->status instanceof StatusApplicationEnum
             ? $record->status
             : (is_string($record?->status) ? StatusApplicationEnum::tryFrom($record->status) : null);

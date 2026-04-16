@@ -118,6 +118,9 @@ class ApplyJob extends Component
                     'candidate_id' => $candidate->id,
                 ]);
 
+            $wasRecentlyCreated = ! $application->exists;
+            $wasRestoredFromTrash = false;
+
             $application->fill([
                 'cv_path' => $cvPath,
                 'source' => 'website',
@@ -127,6 +130,7 @@ class ApplyJob extends Component
 
             if ($application->trashed()) {
                 $application->deleted_at = null;
+                $wasRestoredFromTrash = true;
             }
 
             $application->save();
@@ -158,13 +162,16 @@ class ApplyJob extends Component
             return [
                 'candidate' => $candidate,
                 'application' => $application,
+                'should_send_received_mail' => $wasRecentlyCreated || $wasRestoredFromTrash,
             ];
         });
 
-        $this->sendApplicationReceivedMail(
-            $result['candidate'],
-            $result['application'],
-        );
+        if (($result['should_send_received_mail'] ?? false) === true) {
+            $this->sendApplicationReceivedMail(
+                $result['candidate'],
+                $result['application'],
+            );
+        }
 
         $this->cv = null;
         $this->showSuccessModal = true;

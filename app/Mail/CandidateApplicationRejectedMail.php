@@ -77,12 +77,18 @@ class CandidateApplicationRejectedMail extends Mailable
             }
         }
 
-        // Thay thế placeholder
+        $reason = trim((string) ($this->application->rejected_reason ?? ''));
+        $updatedAt = $this->application->updated_at;
+
+        // Thay thế placeholder (khớp mẫu trong EmailTemplateSeeder type=rejection)
         $replacements = [
             '{{candidate_name}}' => e($this->candidate->name),
-            '{{job_title}}'      => e($this->job->title),
-            '{{app_name}}'       => e((string) config('app.name')),
+            '{{candidate_email}}' => e((string) ($this->candidate->email ?? '')),
+            '{{job_title}}' => e($this->job->title),
+            '{{app_name}}' => e((string) config('app.name')),
             '{{application_id}}' => (string) $this->application->id,
+            '{{updated_at}}' => e($this->formatDisplayDateTime($updatedAt)),
+            '{{rejected_reason}}' => e($reason !== '' ? $reason : 'Không ghi rõ'),
         ];
 
         return [
@@ -100,5 +106,18 @@ class CandidateApplicationRejectedMail extends Mailable
         return $date->copy()
             ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
             ->format('d/m/Y');
+    }
+
+    protected function formatDisplayDateTime($date): string
+    {
+        $tz = config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
+
+        if (! $date) {
+            return now()->setTimezone($tz)->format('d/m/Y H:i');
+        }
+
+        return $date->copy()
+            ->setTimezone($tz)
+            ->format('d/m/Y H:i');
     }
 }
