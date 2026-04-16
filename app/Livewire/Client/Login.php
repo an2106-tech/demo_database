@@ -101,6 +101,9 @@ class Login extends Component
             default => 'layouts.client',
         };
 
-        return view('livewire.client.pages.login')->layout($layout);
+        /** @var mixed $view */
+        $view = view('livewire.client.pages.login');
+
+        return $view->layout($layout);
     }
 }

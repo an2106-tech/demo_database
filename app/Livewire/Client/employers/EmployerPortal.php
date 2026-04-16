@@ -18,9 +18,11 @@ class EmployerPortal extends Component
     {
         // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
         if (Auth::check() && Auth::user()->role === 'candidate') {
-            redirect()->route('auth.login', ['role' => 'candidate'])->send();
+            $this->redirectRoute('auth.login', ['role' => 'candidate']);
+            return;
         }
     }
+
 
     public function render()
     {
@@ -58,4 +60,3 @@ class EmployerPortal extends Component
         ]);
     }
 }
-

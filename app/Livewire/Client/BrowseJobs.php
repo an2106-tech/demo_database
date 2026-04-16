@@ -36,8 +36,10 @@ class BrowseJobs extends Component
     {
         // Nếu employer (HR) đang đăng nhập, chuyển hướng đến login của nhà tuyển dụng
         if (Auth::check() && Auth::user()->role === 'hr') {
-            redirect()->route('auth.login', ['role' => 'employer'])->send();
-        }
+            $this->redirectRoute('auth.login', ['role' => 'employer']);
+            return;
+        }  
+
 
         if (! request()->has('display') && request()->has('view')) {
             $requestedView = request()->query('view');
@@ -50,7 +52,7 @@ class BrowseJobs extends Component
         $this->city = (string) request()->query('city', '');
         $dept = request()->query('department_id');
         $this->department_id = $dept !== null && $dept !== '' ? (int) $dept : null;
-        
+
         $cat = request()->query('category_id');
         $this->category_id = $cat !== null && $cat !== '' ? (int) $cat : null;
 
