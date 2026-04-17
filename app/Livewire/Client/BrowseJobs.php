@@ -2,18 +2,16 @@
 
 namespace App\Livewire\Client;
 
-use Illuminate\Support\Facades\Auth;
-use Livewire\Attributes\Layout;
-use Livewire\Component;
+use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
-use App\Enums\StatusRecruitmentJobsEnum;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
+use Livewire\Component;
 
 class BrowseJobs extends Component
 {
     #[Layout('layouts.client')]
-
     public string $display = 'grid';
 
     public string $q = '';
@@ -34,13 +32,6 @@ class BrowseJobs extends Component
 
     public function mount(): void
     {
-        // Nếu employer (HR) đang đăng nhập, chuyển hướng đến login của nhà tuyển dụng
-        if (Auth::check() && Auth::user()->role === 'hr') {
-            $this->redirectRoute('auth.login', ['role' => 'employer']);
-            return;
-        }  
-
-
         if (! request()->has('display') && request()->has('view')) {
             $requestedView = request()->query('view');
             if (is_string($requestedView)) {

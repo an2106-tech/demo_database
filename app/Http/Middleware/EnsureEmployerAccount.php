@@ -16,13 +16,7 @@ class EnsureEmployerAccount
     {
         $user = Auth::user();
         if (! $user) {
-            return redirect()->route('auth.login', ['role' => 'employer']);
-        }
-
-        // HR/admin users can switch between candidate/employer menus. If they're currently in candidate
-        // mode, keep them in candidate routes to avoid confusing mixed dashboards.
-        if (in_array($user->role, ['hr', 'admin'], true) && session('client_menu_type') === 'candidate') {
-            return redirect()->route('candidates.browse_job');
+            return redirect()->route('employers.login');
         }
 
         if (in_array($user->role, ['hr', 'admin'], true)) {
@@ -35,6 +29,6 @@ class EnsureEmployerAccount
             return $next($request);
         }
 
-        return redirect()->route('home');
+        return redirect()->route('employers.portal');
     }
 }

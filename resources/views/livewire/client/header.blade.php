@@ -1,4 +1,4 @@
-<div x-data="{ active: @entangle('type').live }">
+<div x-data="{ active: @entangle('type').live, openUserMenu: false }">
    <style>
       /* Khối Dropdown */
       .userbox-dropdown {
@@ -22,8 +22,8 @@
          transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
       }
 
-      /* Hover hiện dropdown */
-      .userbox-menu:hover .userbox-dropdown {
+      /* Mở dropdown khi click icon user */
+      .userbox-menu.is-open .userbox-dropdown {
          opacity: 1;
          visibility: visible;
          transform: translateY(0);
@@ -181,12 +181,37 @@
          justify-content: flex-end;
          align-items: center;
          gap: .55rem;
-         flex-wrap: nowrap;
+         flex-wrap: nowrap !important;
+         white-space: nowrap;
       }
 
       .jobguru-header-area .header-right-menu ul>li {
          margin: 0;
          flex: 0 0 auto;
+         width: auto !important;
+      }
+
+      .jobguru-header-area .row {
+         display: flex;
+         align-items: center;
+         flex-wrap: nowrap;
+      }
+
+      .jobguru-header-area .col-lg-2 {
+         flex: 0 0 auto;
+         width: auto;
+         max-width: none;
+      }
+
+      .jobguru-header-area .col-lg-7 {
+         flex: 1 1 auto;
+         min-width: 0;
+      }
+
+      .jobguru-header-area .col-lg-3 {
+         flex: 0 0 auto;
+         width: auto;
+         max-width: none;
       }
 
       .jobguru-header-area .role-switcher {
@@ -198,7 +223,7 @@
          grid-template-columns: repeat(2, minmax(0, 1fr));
          align-items: center;
          gap: var(--switch-gap);
-         min-width: 228px;
+         min-width: 196px;
          padding: var(--switch-pad);
          border-radius: 999px;
          border: 1px solid rgba(14, 116, 144, .16);
@@ -235,9 +260,9 @@
          display: inline-flex;
          align-items: center;
          justify-content: center;
-         min-height: 44px;
+         min-height: 38px;
          color: #28415b;
-         padding: .75rem 1.05rem;
+         padding: .58rem .72rem;
          border-radius: 999px;
          font-weight: 800;
          letter-spacing: .01em;
@@ -286,33 +311,46 @@
       }
 
       .jobguru-header-area .role-switcher-cta {
-         position: relative;
-         isolation: isolate;
+         all: unset;
+         box-sizing: border-box;
          display: inline-flex;
          align-items: center;
          justify-content: center;
          min-height: 44px;
-         padding: .75rem 1.05rem;
+         padding: 12px 24px;
          border-radius: 999px;
-         border: 1px solid rgba(14, 116, 144, .16);
-         background: linear-gradient(135deg, rgba(255, 255, 255, .96), rgba(240, 249, 255, .92));
-         backdrop-filter: blur(16px);
-         box-shadow: 0 18px 45px rgba(14, 116, 144, .12);
-         color: #28415b;
-         font-weight: 800;
-         letter-spacing: .01em;
+         background: #ff8a1d;
+         border: none;
+         color: #fff !important;
+         -webkit-text-fill-color: #fff;
+         font-family: 'Inter', sans-serif;
+         font-size: 15px;
+         font-weight: 700;
          line-height: 1;
+         letter-spacing: 0;
          white-space: nowrap;
-         transition: transform .18s ease, box-shadow .24s ease;
+         text-decoration: none !important;
+         cursor: pointer;
+         opacity: 1 !important;
+         filter: none !important;
+         box-shadow: none !important;
+         transform: none !important;
+         transition: none !important;
       }
 
-      .jobguru-header-area .role-switcher-cta:hover {
-         transform: translateY(-1px);
-         box-shadow: 0 22px 55px rgba(14, 116, 144, .14);
-      }
-
-      .jobguru-header-area .role-switcher-cta:active {
-         transform: translateY(0);
+      .jobguru-header-area .role-switcher-cta:hover,
+      .jobguru-header-area .role-switcher-cta:focus,
+      .jobguru-header-area .role-switcher-cta:active,
+      .jobguru-header-area .role-switcher-cta:visited {
+         background: #ff8a1d;
+         color: #fff !important;
+         -webkit-text-fill-color: #fff;
+         color: #fff !important;
+         text-decoration: none !important;
+         opacity: 1 !important;
+         filter: none !important;
+         box-shadow: none !important;
+         transform: none !important;
       }
 
       .jobguru-header-area .header-right-menu .post-jobs {
@@ -321,14 +359,33 @@
       }
 
       .jobguru-header-area .header-right-menu .client-logout-btn {
-         width: auto;
-         min-width: max-content;
-         padding-inline: .95rem;
+         width: auto !important;
+         min-width: 0 !important;
+         padding: .45rem .6rem !important;
+      }
+
+      .jobguru-header-area .header-right-menu .client-logout-btn span {
+         white-space: nowrap;
+      }
+
+      .jobguru-header-area .header-right-menu {
+         overflow-x: auto;
+         -webkit-overflow-scrolling: touch;
+      }
+
+      .userbox-trigger {
+         appearance: none;
+         border: 0;
+         background: transparent;
+         padding: 0;
+         display: inline-flex;
+         align-items: center;
+         cursor: pointer;
       }
 
       @media (max-width: 1399px) {
          .jobguru-header-area .role-switcher {
-            min-width: 212px;
+            min-width: 178px;
          }
 
          .jobguru-header-area .role-switcher__btn {
@@ -342,30 +399,53 @@
 
       @media (max-width: 1199px) {
          .jobguru-header-area .header-right-menu ul {
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            gap: .4rem;
+         }
+
+         .jobguru-header-area .role-switcher {
+            min-width: 190px;
+         }
+
+         .jobguru-header-area .role-switcher__btn {
+            min-height: 40px;
+            padding: .62rem .75rem;
+            font-size: .92rem;
+         }
+
+         .jobguru-header-area .header-right-menu .client-logout-btn {
+            padding: .62rem .72rem;
          }
       }
 
       @media (max-width: 767px) {
          .jobguru-header-area .header-right-menu ul {
-            justify-content: stretch;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: .35rem;
+            overflow-x: auto;
+            padding-bottom: 2px;
          }
 
          .jobguru-header-area .header-right-menu ul>li {
-            width: 100%;
+            width: auto;
+            flex: 0 0 auto;
          }
 
          .jobguru-header-area .role-switcher {
-            min-width: 100%;
+            min-width: 175px;
          }
 
-         .jobguru-header-area .role-switcher-cta {
-            width: 100%;
+         .jobguru-header-area .role-switcher__btn {
+            min-height: 38px;
+            padding: .52rem .62rem;
+            font-size: .88rem;
          }
 
-         .jobguru-header-area .header-right-menu .post-jobs,
          .jobguru-header-area .header-right-menu .client-logout-btn {
-            width: 100%;
+            width: auto;
+            padding: .5rem .65rem;
+            min-width: 132px;
          }
       }
 
@@ -469,24 +549,12 @@
                         @auth
                            @if(($showRoleSwitcher ?? false) && !request()->routeIs('home'))
                               <li>
-                                 <div class="role-switcher" role="group" :data-active="active"
-                                    aria-label="Chuyển chế độ">
-
-                                    <a
-                                       href="{{ route('role.switch', ['type' => 'candidate']) }}"
-                                       class="role-switcher__btn is-candidate"
-                                       :class="{ 'is-active': active === 'candidate' }"
-                                    >
-                                       Ứng viên
-                                    </a>
-                                    <a
-                                       href="{{ route('role.switch', ['type' => 'employer']) }}"
-                                       class="role-switcher__btn is-employer"
-                                       :class="{ 'is-active': active === 'employer' }"
-                                    >
-                                       Nhà tuyển dụng
-                                    </a>
-                                 </div>
+                                 <a
+                                    href="{{ route('role.switch', ['type' => 'employer']) }}"
+                                    class="role-switcher-cta"
+                                 >
+                                    Khu Nhà Tuyển Dụng
+                                 </a>
                               </li>
                            @endif
                            @if($isEmployerHeader && !request()->routeIs('home'))
@@ -499,84 +567,75 @@
 
 
                            @auth
-                              <!-- Chá»‰ can thiá»‡p vÃ o khá»‘i User Menu này -->
-                              <li class="userbox-menu"
-                                 style="position: relative; list-style: none; display: inline-block; margin-left: 10px; vertical-align: middle;">
-
-                                 <!-- Icon đại diện (Avatar ho?c Ch?) -->
-                                 <div class="userbox-trigger" style="display: flex; align-items: center; cursor: pointer;">
+                              <li
+                                 class="userbox-menu"
+                                 :class="{ 'is-open': openUserMenu }"
+                                 @click.outside="openUserMenu = false"
+                                 style="position: relative; list-style: none; display: inline-block; margin-left: 10px; vertical-align: middle;"
+                              >
+                                 <button
+                                    type="button"
+                                    class="userbox-trigger"
+                                    @click="openUserMenu = !openUserMenu"
+                                    aria-label="Tài khoản"
+                                    :aria-expanded="openUserMenu.toString()"
+                                 >
                                     @if(Auth::user()->avatar)
                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
                                           style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                     @else
-                                       <div
-                                          style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff7e3e 0%, #ff5722 100%); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                       <span
+                                          style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff7e3e 0%, #ff5722 100%); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                                           {{ substr(Auth::user()->name, 0, 1) }}
-                                       </div>
+                                       </span>
                                     @endif
-                                 </div>
+                                 </button>
 
-                                 <!-- Khối Dropdown Menu -->
-                                 <div class="userbox-dropdown">
-                                    <div class="userbox-account-info"
-                                       style="padding: 12px 20px; border-bottom: 1px solid #f1f5f9;">
-                                       <span
-                                          style="display: block; font-weight: 700; color: #1e293b; font-size: 14px; line-height: 1.2;">{{ Auth::user()->name }}</span>
-                                       <span
-                                          style="display: block; color: #64748b; font-size: 11px; margin-top: 2px;">{{ Auth::user()->email }}</span>
+                                 <div class="userbox-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>
+                                    <div class="userbox-account-info" style="padding: 12px 20px; border-bottom: 1px solid #f1f5f9;">
+                                       <span style="display: block; font-weight: 700; color: #1e293b; font-size: 14px; line-height: 1.2;">{{ Auth::user()->name }}</span>
+                                       <span style="display: block; color: #64748b; font-size: 11px; margin-top: 2px;">{{ Auth::user()->email }}</span>
                                     </div>
 
                                     <ul class="dropdown-list-wrapper">
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.dashboard') : route('candidates.candidate_dashboard') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.dashboard') : route('candidates.candidate_dashboard') }}" class="user-link">
                                              <span>Tổng quan hồ sơ</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.company_profile') : route('candidates.candidate_profile') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.company_profile') : route('candidates.candidate_profile') }}" class="user-link">
                                              <span>Thông tin cá nhân</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.manage_jobs') : route('candidates.manage_jobs') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.manage_jobs') : route('candidates.manage_jobs') }}" class="user-link">
                                              <span>Việc làm của tôi</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.message') : route('candidates.messages') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.message') : route('candidates.messages') }}" class="user-link">
                                              <span>Tin nhắn</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.transaction') : route('candidates.earnings') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.transaction') : route('candidates.earnings') }}" class="user-link">
                                              <span>Thu nhập</span>
                                           </a>
                                        </li>
                                        <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.change_password') : route('candidates.change_password') }}"
-                                             class="user-link">
+                                          <a href="{{ $isEmployerHeader ? route('employers.change_password') : route('candidates.change_password') }}" class="user-link">
                                              <span>Đổi mật khẩu</span>
                                           </a>
                                        </li>
-
-                                       <!-- Logout Section -->
-                                       <div>
-                                          <li class="logout-section">
-                                             <div class="logout-wrapper">
-                                                <livewire:client.logout-button />
-                                             </div>
-                                          </li>
-                                       </div>
-
+                                       <li class="logout-section">
+                                          <div class="logout-wrapper">
+                                             <livewire:client.logout-button />
+                                          </div>
+                                       </li>
                                     </ul>
                                  </div>
                               </li>
-
                            @endauth
                         @endauth
                          @guest

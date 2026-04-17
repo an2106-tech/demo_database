@@ -33,6 +33,38 @@ body.employer-app a:hover {
   color: var(--ep-primary-hover);
 }
 
+body.employer-app,
+body.employer-app h1,
+body.employer-app h2,
+body.employer-app h3,
+body.employer-app h4,
+body.employer-app h5,
+body.employer-app h6,
+body.employer-app p,
+body.employer-app span,
+body.employer-app li,
+body.employer-app label,
+body.employer-app strong,
+body.employer-app small,
+body.employer-app td,
+body.employer-app th,
+body.employer-app div {
+  color: #111111;
+}
+
+body.employer-app .text-muted,
+body.employer-app .employer-portal-hero__subtitle,
+body.employer-app .employer-portal-kpi__desc,
+body.employer-app .employer-portal-hero__hint,
+body.employer-app .employer-stat__label,
+body.employer-app .employer-portal-section-title p,
+body.employer-app .employer-feature-card p,
+body.employer-app .single-footer-widget p,
+body.employer-app .single-footer-widget a,
+body.employer-app .single-footer-widget h3 {
+  color: #111111 !important;
+}
+
 /* ---------- Header ---------- */
 body.employer-app .jobguru-header-area.client-app-header {
   background: var(--ep-surface) !important;
@@ -41,7 +73,7 @@ body.employer-app .jobguru-header-area.client-app-header {
 }
 
 body.employer-app .jobguru-header-area #jobguru_navigation > li > a {
-  color: var(--ep-ink) !important;
+  color: #111111 !important;
   font-weight: 600 !important;
   font-size: 14px !important;
   padding: 10px 14px !important;
@@ -58,7 +90,50 @@ body.employer-app .jobguru-header-area .header-right-menu .post-jobs {
   background: linear-gradient(135deg, var(--ep-primary) 0%, #ff9a3d 100%) !important;
   border-radius: 999px !important;
   box-shadow: 0 10px 24px rgba(255, 120, 0, 0.25) !important;
-  color: #fff !important;
+  color: #111111 !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu ul > li > a:not(.post-jobs) {
+  color: #111111 !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu ul {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 0.55rem !important;
+  flex-wrap: nowrap !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu ul > li {
+  margin: 0 !important;
+  flex: 0 0 auto !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu .client-logout-btn {
+  width: auto !important;
+  min-width: max-content !important;
+  padding: 0.78rem 0.9rem !important;
+  border-radius: 999px !important;
+  white-space: nowrap !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu .client-logout-btn__avatar {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu .label-compact {
+  display: none;
+}
+
+body.employer-app .jobguru-header-area .header-right-menu .client-logout-btn__avatar {
+  width: 24px !important;
+  height: 24px !important;
+  flex: 0 0 24px !important;
 }
 
 /* ---------- Portal shell ---------- */
@@ -183,7 +258,7 @@ body.employer-app .table tbody td {
 /* ---------- Portal buttons ---------- */
 .employer-btn-primary {
   background: linear-gradient(135deg, var(--ep-primary) 0%, #ff9a3d 100%) !important;
-  color: #fff !important;
+  color: #111111 !important;
   border: none !important;
   border-radius: 14px !important;
   padding: 12px 16px !important;
@@ -394,5 +469,20 @@ body.employer-app .table tbody td {
     position: relative;
     top: 0;
     height: auto;
+  }
+
+  body.employer-app .jobguru-header-area .header-right-menu ul {
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 1199px) {
+  body.employer-app .jobguru-header-area .header-right-menu .label-full {
+    display: none;
+  }
+
+  body.employer-app .jobguru-header-area .header-right-menu .label-compact {
+    display: inline;
   }
 }

@@ -1,0 +1,174 @@
+.employer-app {
+    background: #0b1220;
+    color: #dbe5f3;
+    font-family: "Inter", sans-serif;
+}
+
+.employer-shell-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: linear-gradient(90deg, #0f172a, #111827);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 10px 35px rgba(2, 6, 23, 0.5);
+}
+
+.employer-shell-header__inner {
+    min-height: 74px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+}
+
+.employer-shell-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: 0.01em;
+}
+
+.employer-shell-brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+}
+
+.employer-shell-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+.employer-shell-nav a {
+    color: #93c5fd;
+    border-radius: 999px;
+    padding: 0.55rem 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.employer-shell-nav a:hover,
+.employer-shell-nav a.is-active {
+    color: #fff;
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.employer-shell-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.employer-shell-switcher {
+    display: inline-flex;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.employer-shell-switcher a {
+    padding: 0.35rem 0.8rem;
+    color: #cbd5e1;
+    background: transparent;
+    font-size: 0.85rem;
+}
+
+.employer-shell-switcher a.is-active {
+    background: #f37021;
+    color: #fff;
+}
+
+.employer-shell-profile {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.58rem 0.95rem;
+    border-radius: 999px;
+    border: 1px solid rgba(96, 165, 250, 0.45);
+    color: #bfdbfe;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.employer-shell-profile:hover {
+    color: #ffffff;
+    border-color: rgba(147, 197, 253, 0.8);
+    background: rgba(30, 58, 138, 0.45);
+}
+
+.employer-shell-actions .client-logout-btn {
+    width: auto;
+    min-width: max-content;
+    border-radius: 999px;
+    padding: 0.54rem 0.9rem;
+    box-shadow: 0 10px 20px rgba(2, 6, 23, 0.3);
+}
+
+.employer-shell-actions .client-logout-btn .client-logout-btn__avatar {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+}
+
+.employer-app .candidate-dashboard-area,
+.employer-app .section_70,
+.employer-app .section_100 {
+    background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+}
+
+.employer-app .single-footer-widget h3,
+.employer-app .single-footer-widget p,
+.employer-app .single-footer-widget a {
+    color: #cbd5e1;
+}
+
+@media (max-width: 1199px) {
+    .employer-shell-header__inner {
+        flex-wrap: wrap;
+    }
+
+    .employer-shell-nav {
+        order: 3;
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        border-radius: 18px;
+    }
+}
+
+@media (max-width: 767px) {
+    .employer-shell-brand span {
+        font-size: 0.95rem;
+    }
+
+    .employer-shell-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .employer-shell-switcher {
+        width: 100%;
+    }
+
+    .employer-shell-switcher a {
+        flex: 1 1 50%;
+        text-align: center;
+    }
+
+    .employer-shell-profile,
+    .employer-shell-actions .client-logout-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -1,69 +1,52 @@
 <?php
 
-use App\Livewire\Client\ApplyJob;
+use App\Http\Controllers\OfferResponseController;
+use App\Livewire\Client\About as PagesAbout;
 use App\Livewire\Client\ApplicationDetail;
+use App\Livewire\Client\ApplyJob;
+use App\Livewire\Client\Blog;
 use App\Livewire\Client\BrowseCategories;
 use App\Livewire\Client\BrowseCompanies;
 use App\Livewire\Client\BrowseJobs;
 use App\Livewire\Client\CandidateDashboard;
 use App\Livewire\Client\CandidateProfile as ClientCandidateProfile;
 use App\Livewire\Client\CandidatesDetails;
-use App\Livewire\Client\Employers\ChangePassword as EmployerChangePassword;
+use App\Livewire\Client\Contact;
 use App\Livewire\Client\Earnings;
 use App\Livewire\Client\Employers\BrowseCandidates;
 use App\Livewire\Client\Employers\CandidateEarnings;
 use App\Livewire\Client\Employers\CandidateProfile as EmpCandidateProfile;
+use App\Livewire\Client\Employers\ChangePassword as EmployerChangePassword;
 use App\Livewire\Client\Employers\CompanyProfile;
+use App\Livewire\Client\Employers\EmployerPortal;
 use App\Livewire\Client\Employers\EmployersDashboard;
 use App\Livewire\Client\Employers\ManageCandidate;
 use App\Livewire\Client\Employers\ManageJobs as EmployerManageJobs;
 use App\Livewire\Client\Employers\Message as EmployerMessage;
-use App\Livewire\Client\Employers\EmployerPortal;
 use App\Livewire\Client\Employers\PostJob;
 use App\Livewire\Client\Employers\SingleCompany;
 use App\Livewire\Client\Employers\Transaction;
 use App\Livewire\Client\Home;
 use App\Livewire\Client\Job\JobDetail;
 use App\Livewire\Client\JobListSideBars;
+use App\Livewire\Client\JobPage;
+use App\Livewire\Client\Login as PagesLogin;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\PostJobs as ClientPostJobs;
-use App\Livewire\Client\About as PagesAbout;
-use App\Livewire\Client\Blog;
-use App\Livewire\Client\Contact;
-use App\Livewire\Client\JobPage;
-use App\Livewire\Client\Login as PagesLogin;
 use App\Livewire\Client\Register as PagesRegister;
-use App\Livewire\Client\Single;
 use App\Livewire\Client\Sidebars;
+use App\Livewire\Client\Single;
 use App\Livewire\Client\SubmitResume;
-use App\Services\CandidateAccountService;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', Home::class)->name('home');
+Route::get('/dang-nhap', PagesLogin::class)->name('candidates.login');
+Route::get('/dang-ky', PagesRegister::class)->name('candidates.register');
 Route::get('/nha-tuyen-dung', EmployerPortal::class)->name('employers.portal');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/switch-role/{type}', function (string $type) {
-        $type = strtolower(trim($type));
-        abort_unless(in_array($type, ['candidate', 'employer'], true), 404);
-
-        $user = auth()->user();
-        abort_unless($user, 401);
-        abort_unless(in_array($user->role, ['hr', 'admin'], true), 403);
-
-        if ($type === 'candidate') {
-            app(CandidateAccountService::class)->activateFor($user);
-        }
-
-        session(['client_menu_type' => $type]);
-
-        return $type === 'candidate'
-            ? redirect()->route('candidates.browse_job')
-            : redirect()->route('auth.post_jobs');
-    })->name('role.switch');
-});
+Route::get('/nha-tuyen-dung/dang-nhap', PagesLogin::class)->name('employers.login');
+Route::get('/nha-tuyen-dung/dang-ky', PagesRegister::class)->name('employers.register');
 
 // Public job detail page — shareable link for candidates (no login required)
 Route::get('/jobs/{slug}', JobDetail::class)->name('jobs.public');
@@ -184,8 +167,8 @@ Route::prefix('pages')->name('pages.')->group(function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', PagesLogin::class)->name('login');
-    Route::get('/register', PagesRegister::class)->name('register');
+    Route::redirect('/login', '/dang-nhap')->name('login');
+    Route::redirect('/register', '/dang-ky')->name('register');
 });
 
 Route::middleware('auth')->group(function () {

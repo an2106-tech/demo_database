@@ -26,12 +26,28 @@
          </div>
       </div>
    </section>
-   <section class="jobguru-login-area section_70">
+  <section class="jobguru-login-area section_70 auth-page-wrap">
       <div class="container">
          <div class="row justify-content-center">
             <div class="col-12 auth-card">
                <div class="auth-shell auth-shell--candidate">
-                  <div class="auth-shell__main" style="width: 100%;">
+                  <aside class="auth-shell__aside">
+                     <span class="auth-shell__badge">
+                        <i class="fa fa-shield"></i> Bảo mật tài khoản
+                     </span>
+                     <h4 class="auth-shell__title">
+                        Đăng nhập tài khoản
+                     </h4>
+                     <p class="auth-shell__subtitle">
+                        Một tài khoản có thể dùng để truy cập vai trò phù hợp của bạn sau khi đăng nhập.
+                     </p>
+                     <ul class="auth-shell__list">
+                        <li><i class="fa fa-check-circle"></i><span>Đăng nhập nhanh bằng email và mật khẩu của bạn.</span></li>
+                        <li><i class="fa fa-check-circle"></i><span>Hệ thống tự điều hướng về đúng khu vực ứng viên hoặc nhà tuyển dụng.</span></li>
+                        <li><i class="fa fa-check-circle"></i><span>Bạn có thể kích hoạt thêm vai trò ứng viên ngay trong tài khoản HR.</span></li>
+                     </ul>
+                  </aside>
+                  <div class="auth-shell__main">
                      <div class="auth-shell__header">
                         <h3>Đăng nhập</h3>
                         <p>Vui lòng nhập thông tin tài khoản của bạn.</p>
@@ -60,7 +76,7 @@
                                  <label for="remember-login" style="font-size:14px; margin-bottom:0;">Ghi nhớ đăng nhập</label>
                               </div>
                            </div>
-                           <a href="#" class="small text-muted">Quên mật khẩu?</a>
+                           <a href="#" class="small auth-link-muted">Quên mật khẩu?</a>
                         </div>
                         
                         <div class="auth-actions single-login-field">
@@ -68,7 +84,7 @@
                         </div>
                      </form>
                      <div class="auth-links mt-4 text-center">
-                        <a href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">Bạn chưa có tài khoản? Đăng ký ngay</a>
+                        <a href="{{ route('auth.sign_up') }}">Bạn chưa có tài khoản? Đăng ký ngay</a>
                      </div>
                   </div>
                </div>

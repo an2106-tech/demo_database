@@ -13,7 +13,7 @@
         </div>
     </section>
 
-    <section class="jobguru-login-area section_70">
+    <section class="jobguru-login-area section_70 auth-page-wrap">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-12 auth-card">
@@ -38,8 +38,54 @@
                                 <a href="{{ route('home') }}">Quay lại trang chủ</a>
                             </div>
                         @else
-                            <div class="auth-shell {{ $role === 'employer' ? 'auth-shell--employer' : 'auth-shell--candidate' }}" wire:key="register-shell-{{ $role }}" style="max-width: 100%; display: block;">
-                                <div class="auth-shell__main" style="width: 100%;">
+                            <div class="auth-shell {{ $role === 'employer' ? 'auth-shell--employer' : 'auth-shell--candidate' }}" wire:key="register-shell-{{ $role }}">
+                                <aside class="auth-shell__aside">
+                                    <span class="auth-shell__badge">
+                                        <i class="fa fa-user-plus"></i> Tạo tài khoản mới
+                                    </span>
+                                    <h4 class="auth-shell__title">
+                                        {{ $role === 'employer' ? 'Đăng ký nhà tuyển dụng' : 'Đăng ký ứng viên' }}
+                                    </h4>
+                                    <p class="auth-shell__subtitle">
+                                        {{ $role === 'employer'
+                                            ? 'Thiết lập tài khoản tuyển dụng để đăng tin, quản lý hồ sơ và tuyển đúng người nhanh hơn.'
+                                            : 'Tạo hồ sơ ứng viên để nhận gợi ý việc làm phù hợp và ứng tuyển chỉ với vài thao tác.' }}
+                                    </p>
+                                    <ul class="auth-shell__list">
+                                        @if($role === 'employer')
+                                            <li><i class="fa fa-check-circle"></i><span>Đăng tin tuyển dụng nhanh theo từng chi nhánh.</span></li>
+                                            <li><i class="fa fa-check-circle"></i><span>Quản lý ứng viên tập trung, giảm thất thoát dữ liệu.</span></li>
+                                            <li><i class="fa fa-check-circle"></i><span>Theo dõi tiến độ tuyển dụng từ một bảng điều khiển.</span></li>
+                                        @else
+                                            <li><i class="fa fa-check-circle"></i><span>Cập nhật CV và thông tin cá nhân dễ dàng.</span></li>
+                                            <li><i class="fa fa-check-circle"></i><span>Lưu và theo dõi trạng thái công việc đã ứng tuyển.</span></li>
+                                            <li><i class="fa fa-check-circle"></i><span>Kết nối nhanh với nhà tuyển dụng phù hợp kỹ năng.</span></li>
+                                        @endif
+                                    </ul>
+                                </aside>
+                                <div class="auth-shell__main">
+                                    <div class="auth-tabs" role="tablist" aria-label="Đăng ký theo vai trò">
+                                        <a
+                                            href="{{ route('auth.sign_up', ['role' => 'candidate']) }}"
+                                            wire:navigate
+                                            class="auth-tab {{ $role === 'candidate' ? 'active' : '' }}"
+                                            wire:click.prevent="setRole('candidate')"
+                                            role="tab"
+                                            aria-selected="{{ $role === 'candidate' ? 'true' : 'false' }}"
+                                        >
+                                            Ứng viên
+                                        </a>
+                                        <a
+                                            href="{{ route('auth.sign_up', ['role' => 'employer']) }}"
+                                            wire:navigate
+                                            class="auth-tab {{ $role === 'employer' ? 'active' : '' }}"
+                                            wire:click.prevent="setRole('employer')"
+                                            role="tab"
+                                            aria-selected="{{ $role === 'employer' ? 'true' : 'false' }}"
+                                        >
+                                            Nhà tuyển dụng
+                                        </a>
+                                    </div>
 
                                     <div class="auth-shell__header">
                                         <h3>Đăng ký {{ $role === 'employer' ? 'nhà tuyển dụng' : 'ứng viên' }}</h3>
@@ -208,7 +254,7 @@
                                     </form>
 
                                     <div class="auth-links mt-4 text-center">
-                                        <a href="{{ route('auth.login', ['role' => $role]) }}">Bạn đã có tài khoản? Đăng nhập ngay</a>
+                                        <a href="{{ route('auth.login') }}">Bạn đã có tài khoản? Đăng nhập ngay</a>
                                     </div>
                                 </div>
                             </div>

@@ -111,7 +111,7 @@ body.client-app .jobguru-header-area #jobguru_navigation ul li a:hover {
   color: var(--cv-primary) !important;
 }
 
-body.client-app .jobguru-header-area .header-right-menu ul > li > a {
+body.client-app .jobguru-header-area .header-right-menu ul > li > a:not(.switch-role-btn) {
   border-radius: 999px !important;
   font-weight: 600 !important;
   font-size: 14px !important;
@@ -120,13 +120,46 @@ body.client-app .jobguru-header-area .header-right-menu ul > li > a {
   text-decoration: none !important;
 }
 
-body.client-app .jobguru-header-area.sticky .header-right-menu ul > li > a {
+body.client-app .jobguru-header-area.sticky .header-right-menu ul > li > a:not(.switch-role-btn) {
   color: #000000 !important;
 }
 
-body.client-app .jobguru-header-area .header-right-menu ul > li > a:hover {
+body.client-app .jobguru-header-area .header-right-menu ul > li > a:not(.switch-role-btn):hover {
   background: #f1f5f9 !important;
   color: var(--cv-primary) !important;
+}
+
+body.client-app .jobguru-header-area .header-right-menu ul > li > a.switch-role-btn,
+body.client-app .jobguru-header-area .header-right-menu ul > li > a.switch-role-btn:hover,
+body.client-app .jobguru-header-area .header-right-menu ul > li > a.switch-role-btn:focus,
+body.client-app .jobguru-header-area .header-right-menu ul > li > a.switch-role-btn:active,
+body.client-app .jobguru-header-area.sticky .header-right-menu ul > li > a.switch-role-btn,
+body.client-app .jobguru-header-area.sticky .header-right-menu ul > li > a.switch-role-btn:hover {
+  all: unset !important;
+  box-sizing: border-box !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 44px !important;
+  padding: 12px 24px !important;
+  border-radius: 999px !important;
+  background: #ff8a1d !important;
+  border: none !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  font-family: 'Inter', 'Open Sans', system-ui, sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: nowrap !important;
+  text-decoration: none !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  filter: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
 }
 
 body.client-app .jobguru-header-area .header-right-menu .post-jobs {
@@ -1997,6 +2030,29 @@ body.client-app .auth-card {
   margin: 0 auto;
 }
 
+body.client-app .auth-page-wrap {
+  position: relative;
+}
+
+body.client-app .auth-page-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 24px 14px auto;
+  height: 260px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 10% 24%, rgba(249, 115, 22, 0.2), transparent 48%),
+    radial-gradient(circle at 92% 84%, rgba(251, 146, 60, 0.14), transparent 50%),
+    linear-gradient(135deg, rgba(255, 247, 237, 0.86) 0%, rgba(255, 255, 255, 0.8) 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+body.client-app .auth-page-wrap .container {
+  position: relative;
+  z-index: 1;
+}
+
 body.client-app .auth-header h3 {
   margin: 0;
   font-weight: 900;
@@ -2030,10 +2086,13 @@ body.client-app .auth-tabs {
 }
 
 body.client-app .auth-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 12px 0;
   font-size: 15px;
   font-weight: 700;
-  color: #64748b;
+  color: #111;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
@@ -2044,8 +2103,13 @@ body.client-app .auth-tab:hover {
   color: #000;
 }
 
+body.client-app .auth-tab:focus {
+  outline: none;
+  color: #111827;
+}
+
 body.client-app .auth-tab.active {
-  color: var(--cv-primary);
+  color: #111;
 }
 
 body.client-app .auth-tab.active::after {
@@ -2055,7 +2119,7 @@ body.client-app .auth-tab.active::after {
   left: 0;
   right: 0;
   height: 3px;
-  background: var(--cv-primary);
+  background: #111;
   border-radius: 3px 3px 0 0;
 }
 
@@ -2165,7 +2229,7 @@ body.client-app .auth-shell__header h3 {
 
 body.client-app .auth-shell__header p {
   margin: 0.5rem 0 0;
-  color: var(--cv-muted);
+  color: #111;
   font-size: 14px;
 }
 
@@ -2259,6 +2323,23 @@ body.client-app .auth-actions {
   margin-top: 12px;
 }
 
+body.client-app .auth-form .remember-row {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+body.client-app .auth-link-muted {
+  color: #111;
+  font-weight: 700;
+}
+
+body.client-app .auth-link-muted:hover {
+  color: #111;
+  text-decoration: underline;
+}
+
 body.client-app .auth-actions .auth-submit-btn {
   width: 100%;
   min-height: 52px;
@@ -2291,7 +2372,7 @@ body.client-app .auth-links {
 }
 
 body.client-app .auth-links a {
-  color: #ea580c;
+  color: #111;
   font-weight: 800;
 }
 
@@ -2310,6 +2391,11 @@ body.client-app .auth-note {
 }
 
 @media (max-width: 991.98px) {
+  body.client-app .auth-page-wrap::before {
+    inset: 16px 8px auto;
+    height: 200px;
+  }
+
   body.client-app .auth-shell {
     grid-template-columns: 1fr;
   }
@@ -2320,6 +2406,10 @@ body.client-app .auth-note {
 
   body.client-app .auth-shell__main {
     padding: 24px 20px 20px;
+  }
+
+  body.client-app .auth-tabs {
+    gap: 22px;
   }
 }
 

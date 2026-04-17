@@ -40,8 +40,16 @@ class Register extends Component
 
     public function mount(): void
     {
-        $requestedRole = request()->query('role');
-        $this->role = $this->normalizeRole(is_string($requestedRole) ? $requestedRole : '');
+        $routeName = request()->route()?->getName();
+
+        if ($routeName === 'employers.register') {
+            $this->role = 'employer';
+        } elseif ($routeName === 'candidates.register') {
+            $this->role = 'candidate';
+        } else {
+            $requestedRole = request()->query('role');
+            $this->role = $this->normalizeRole(is_string($requestedRole) ? $requestedRole : '');
+        }
 
         $nextRoute = request()->query('next_route');
         $this->next_route = is_string($nextRoute) && $nextRoute !== '' ? $nextRoute : null;
@@ -82,8 +90,6 @@ class Register extends Component
         if ($authUser && $this->role === 'candidate') {
             app(CandidateAccountService::class)->activateFor($authUser);
 
-            session(['client_menu_type' => 'candidate']);
-
             return $this->redirectAfterActivation();
         }
 
@@ -93,7 +99,7 @@ class Register extends Component
 
         $existing = User::query()->where('email', $this->email)->first();
         if (! $authUser && $existing && $this->role === 'candidate' && $existing->role === 'hr') {
-            $this->addError('email', 'Email này đã có tài khoản HR. Vui lòng đăng nhập và kích hoạt tài khoản ứng viên.');
+            $this->addError('email', 'Email nay da co tai khoan HR. Vui long dang nhap cong nha tuyen dung roi kich hoat them ho so ung vien.');
 
             return null;
         }
@@ -148,20 +154,16 @@ class Register extends Component
             ]);
         }
 
-        if ($this->role === 'employer') {
-            Auth::login($user);
-            request()->session()->regenerate();
-            session(['client_menu_type' => 'employer']);
-
-            return redirect()
-                ->route('auth.post_jobs')
-                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo.');
-        }
-
         Auth::login($user);
         request()->session()->regenerate();
 
-        return redirect()->route('home');
+        if ($this->role === 'employer') {
+            return redirect()
+                ->route('employers.dashboard')
+                ->with('status', 'Tai khoan nha tuyen dung da duoc tao.');
+        }
+
+        return redirect()->route('candidates.candidate_dashboard');
     }
 
     private function redirectAfterActivation(): mixed
@@ -179,7 +181,7 @@ class Register extends Component
             return redirect()->route($this->next_route);
         }
 
-        return redirect()->route('home');
+        return redirect()->route('candidates.candidate_dashboard');
     }
 
     public function render()

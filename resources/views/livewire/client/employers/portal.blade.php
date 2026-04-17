@@ -1,4 +1,10 @@
 <div>
+    @php
+        $user = auth()->user();
+        $metadata = is_array($user?->metadata) ? $user->metadata : [];
+        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
+        $hasEmployerAccess = (bool) $user && (in_array($user->role, ['hr', 'admin'], true) || in_array('employer', $accountTypes, true));
+    @endphp
     <section class="employer-portal-hero">
         <div class="container">
             <div class="row align-items-center">
@@ -14,18 +20,18 @@
                     </p>
 
                     <div class="employer-portal-hero__actions">
-                        @guest
-                            <a class="btn employer-btn-primary" href="{{ route('auth.post_jobs') }}">
+                        @if(! $hasEmployerAccess)
+                            <a class="btn employer-btn-primary" href="{{ route('employers.login') }}">
                                 <i class="fa fa-plus-circle me-2"></i> Đăng tin ngay
                             </a>
-                            <a class="btn employer-btn-secondary" href="{{ route('auth.sign_up', ['role' => 'employer']) }}">
+                            <a class="btn employer-btn-secondary" href="{{ route('employers.register') }}">
                                 Tạo tài khoản
                             </a>
                         @else
-                            <a class="btn employer-btn-primary" href="{{ route('auth.post_jobs') }}">
+                            <a class="btn employer-btn-primary" href="{{ route('employers.post_job') }}">
                                 <i class="fa fa-plus-circle me-2"></i> Đăng bài tuyển dụng
                             </a>
-                        @endguest
+                        @endif
                     </div>
                 </div>
 
@@ -235,21 +241,21 @@
         </div>
     </div>
 </section>
-    @guest
+    @if(! $hasEmployerAccess)
     <section class="employer-portal-cta section_padding">
         <div class="container">
             <div class="cta-box text-center">
                 <h2>Sẵn sàng bứt phá hiệu quả tuyển dụng?</h2>
                 <p class="mt-3 mb-4 opacity-75">Tham gia cùng 5,000+ doanh nghiệp đang tìm kiếm nhân tài mỗi ngày.</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
-                    <a href="{{ route('auth.sign_up', ['role' => 'employer']) }}" class="btn employer-btn-primary btn-lg px-5">
+                    <a href="{{ route('employers.register') }}" class="btn employer-btn-primary btn-lg px-5">
                         Bắt đầu ngay miễn phí
                     </a>
                 </div>
             </div>
         </div>
     </section>
-    @endguest
+    @endif
 </div>
 
 <style>

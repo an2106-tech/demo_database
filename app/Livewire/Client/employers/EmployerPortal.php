@@ -6,27 +6,14 @@ use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Category;
 use App\Models\RecruitmentJob;
-use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 class EmployerPortal extends Component
 {
     #[Layout('layouts.employer')]
-
-    public function mount(): void
-    {
-        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
-        if (Auth::check() && Auth::user()->role === 'candidate') {
-            $this->redirectRoute('auth.login', ['role' => 'candidate']);
-            return;
-        }
-    }
-
-
     public function render()
     {
-        // Fetch data for the employer portal
         $recentJobs = RecruitmentJob::query()
             ->where('status', 'active')
             ->with(['branch', 'department'])

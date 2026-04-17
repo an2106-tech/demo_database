@@ -7,6 +7,26 @@ use App\Models\User;
 
 class CandidateAccountService
 {
+    public function getPreferredAccountType(User $user): ?string
+    {
+        $metadata = is_array($user->metadata) ? $user->metadata : [];
+        $preferred = $metadata['account_type'] ?? null;
+
+        return in_array($preferred, ['candidate', 'employer'], true) ? $preferred : null;
+    }
+
+    public function setPreferredAccountType(User $user, string $type): void
+    {
+        if (! in_array($type, ['candidate', 'employer'], true)) {
+            return;
+        }
+
+        $metadata = is_array($user->metadata) ? $user->metadata : [];
+        $metadata['account_type'] = $type;
+        $user->metadata = $metadata;
+        $user->save();
+    }
+
     public function hasCandidateAccount(User $user): bool
     {
         if ($user->role === 'candidate') {
@@ -30,7 +50,9 @@ class CandidateAccountService
         }
 
         $metadata['account_types'] = array_values(array_unique(array_filter($accountTypes, 'is_string')));
-        $metadata['account_type'] = in_array($user->role, ['hr', 'admin'], true) ? 'employer' : 'candidate';
+        $metadata['account_type'] = in_array($user->role, ['hr', 'admin'], true)
+            ? ($this->getPreferredAccountType($user) === 'candidate' ? 'candidate' : 'employer')
+            : 'candidate';
 
         if (! isset($metadata['phone']) && $user->candidate?->phone) {
             $metadata['phone'] = $user->candidate->phone;

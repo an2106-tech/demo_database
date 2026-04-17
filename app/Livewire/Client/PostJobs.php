@@ -12,8 +12,7 @@ class PostJobs extends Component
     public function mount(): mixed
     {
         return redirect()->route(
-            Auth::check() ? 'employers.post_job' : 'auth.login',
-            Auth::check() ? [] : ['role' => 'employer']
+            Auth::check() ? 'employers.post_job' : 'employers.login'
         );
     }
 

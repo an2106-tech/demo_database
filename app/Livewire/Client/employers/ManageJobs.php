@@ -10,15 +10,6 @@ use Livewire\Component;
 class ManageJobs extends Component
 {
     #[Layout('layouts.employer')]
-
-    public function mount(): void
-    {
-        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
-        if (Auth::check() && Auth::user()->role === 'candidate') {
-            redirect()->route('auth.login', ['role' => 'candidate'])->send();
-        }
-    }
-
     public function render()
     {
         $jobs = RecruitmentJob::query()
@@ -39,10 +30,10 @@ class ManageJobs extends Component
         if ($job) {
             $job->skills()->detach();
             $job->delete();
-            session()->flash('status', 'Xoá tin tuyển dụng thành công!');
+            session()->flash('status', 'Xoa tin tuyen dung thanh cong!');
             $this->redirect(route('employers.manage_jobs'), navigate: true);
         } else {
-            session()->flash('error', 'Không tìm thấy tin tuyển dụng hoặc không có quyền xoá.');
+            session()->flash('error', 'Khong tim thay tin tuyen dung hoac khong co quyen xoa.');
         }
     }
 }

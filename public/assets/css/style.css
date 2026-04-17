@@ -1,4 +1,4 @@
-﻿/*
+/*
 *******************************************
 *******************************************
 
@@ -874,11 +874,26 @@ header,
 
 .jobguru-header-area.page-header #jobguru_navigation>li>a,
 .jobguru-header-area.page-header .header-right-menu>ul>li>a {
-	color: #0b5fa5 !important
+	color: #111 !important
 }
 
 .jobguru-header-area.page-header .header-right-menu ul li a.post-jobs {
 	color: #fff !important
+}
+
+.jobguru-header-area.page-header #jobguru_navigation>li>a:hover,
+.jobguru-header-area.page-header #jobguru_navigation>li>a:focus,
+.jobguru-header-area.page-header #jobguru_navigation>li.active>a,
+.jobguru-header-area.page-header .header-right-menu>ul>li>a:hover,
+.jobguru-header-area.page-header .header-right-menu>ul>li>a:focus,
+.jobguru-header-area.page-header .header-right-menu>ul>li.active>a {
+	color: #111 !important;
+}
+
+.jobguru-header-area.page-header.stick-top.sticky .header-right-menu ul li a,
+.jobguru-header-area.page-header.stick-top.sticky .header-menu ul li a,
+.jobguru-header-area.page-header.stick-top.sticky .header-menu ul li a:after {
+	color: #111 !important;
 }
 
 /* Keep CTA text readable when header becomes sticky on page-header pages. */
@@ -5435,6 +5450,316 @@ ul.company-desc-list li i {
 .dont_have {
 	text-align: center;
 	margin-top: 20px;
+}
+
+body.client-app .auth-page-wrap,
+body.candidate-app .auth-page-wrap,
+body.employer-app .auth-page-wrap {
+	position: relative;
+}
+
+body.client-app .auth-page-wrap::before,
+body.candidate-app .auth-page-wrap::before,
+body.employer-app .auth-page-wrap::before {
+	content: "";
+	position: absolute;
+	inset: 24px 14px auto;
+	height: 260px;
+	border-radius: 28px;
+	background:
+		radial-gradient(circle at 10% 24%, rgba(249, 115, 22, 0.2), transparent 48%),
+		radial-gradient(circle at 92% 84%, rgba(251, 146, 60, 0.14), transparent 50%),
+		linear-gradient(135deg, rgba(255, 247, 237, 0.86) 0%, rgba(255, 255, 255, 0.8) 100%);
+	z-index: 0;
+	pointer-events: none;
+}
+
+body.client-app .auth-page-wrap .container,
+body.candidate-app .auth-page-wrap .container,
+body.employer-app .auth-page-wrap .container {
+	position: relative;
+	z-index: 1;
+}
+
+body.client-app .auth-card,
+body.candidate-app .auth-card,
+body.employer-app .auth-card {
+	max-width: 1250px;
+	margin: 0 auto;
+}
+
+body.client-app .auth-shell,
+body.candidate-app .auth-shell,
+body.employer-app .auth-shell {
+	display: grid;
+	grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr);
+	border-radius: 26px;
+	overflow: hidden;
+	background: #fff;
+	border: 1px solid rgba(226, 232, 240, 0.9);
+	box-shadow: 0 28px 70px rgba(0, 0, 0, 0.12);
+}
+
+body.client-app .auth-shell__aside,
+body.candidate-app .auth-shell__aside,
+body.employer-app .auth-shell__aside {
+	padding: 34px 28px;
+	color: #fff;
+	background:
+		radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
+		radial-gradient(circle at 92% 12%, rgba(255, 255, 255, 0.12), transparent 46%),
+		linear-gradient(135deg, #fb923c 0%, #f97316 46%, #ea580c 100%);
+	position: relative;
+}
+
+body.client-app .auth-shell__badge,
+body.candidate-app .auth-shell__badge,
+body.employer-app .auth-shell__badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border-radius: 999px;
+	background: rgba(255, 255, 255, 0.18);
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	font-weight: 900;
+	font-size: 12px;
+	letter-spacing: 0.03em;
+	text-transform: uppercase;
+	margin-bottom: 14px;
+	color: #fff;
+}
+
+body.client-app .auth-shell__title,
+body.candidate-app .auth-shell__title,
+body.employer-app .auth-shell__title {
+	margin: 0 0 10px;
+	font-size: clamp(1.3rem, 2vw, 1.72rem);
+	font-weight: 900;
+	line-height: 1.2;
+	color: #fff;
+}
+
+body.client-app .auth-shell__subtitle,
+body.candidate-app .auth-shell__subtitle,
+body.employer-app .auth-shell__subtitle {
+	margin: 0 0 16px;
+	font-size: 14px;
+	line-height: 1.6;
+	opacity: 0.92;
+	color: #fff;
+}
+
+body.client-app .auth-shell__list,
+body.candidate-app .auth-shell__list,
+body.employer-app .auth-shell__list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 10px;
+}
+
+body.client-app .auth-shell__list li,
+body.candidate-app .auth-shell__list li,
+body.employer-app .auth-shell__list li {
+	display: flex;
+	gap: 10px;
+	align-items: flex-start;
+	color: #fff;
+	font-weight: 600;
+	line-height: 1.55;
+}
+
+body.client-app .auth-shell__main,
+body.candidate-app .auth-shell__main,
+body.employer-app .auth-shell__main {
+	padding: 30px 30px 28px;
+	background: #fff;
+}
+
+body.client-app .auth-tabs,
+body.candidate-app .auth-tabs,
+body.employer-app .auth-tabs {
+	display: flex;
+	gap: 32px;
+	margin-bottom: 24px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+body.client-app .auth-tab,
+body.candidate-app .auth-tab,
+body.employer-app .auth-tab {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 12px 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #111;
+	position: relative;
+}
+
+body.client-app .auth-tab.active,
+body.candidate-app .auth-tab.active,
+body.employer-app .auth-tab.active {
+	color: #111;
+}
+
+body.client-app .auth-tab.active::after,
+body.candidate-app .auth-tab.active::after,
+body.employer-app .auth-tab.active::after {
+	content: "";
+	position: absolute;
+	bottom: -1px;
+	left: 0;
+	right: 0;
+	height: 3px;
+	background: #111;
+	border-radius: 3px 3px 0 0;
+}
+
+body.client-app .auth-shell__main,
+body.client-app .auth-shell__main p,
+body.client-app .auth-shell__main span,
+body.client-app .auth-shell__main a,
+body.candidate-app .auth-shell__main,
+body.candidate-app .auth-shell__main p,
+body.candidate-app .auth-shell__main span,
+body.candidate-app .auth-shell__main a,
+body.employer-app .auth-shell__main,
+body.employer-app .auth-shell__main p,
+body.employer-app .auth-shell__main span,
+body.employer-app .auth-shell__main a {
+	color: #111;
+}
+
+body.client-app .auth-form .single-login-field,
+body.candidate-app .auth-form .single-login-field,
+body.employer-app .auth-form .single-login-field {
+	margin-bottom: 14px;
+}
+
+body.client-app .auth-form .single-login-field label,
+body.candidate-app .auth-form .single-login-field label,
+body.employer-app .auth-form .single-login-field label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 700;
+	color: #111827;
+}
+
+body.client-app .auth-form input.form-control,
+body.client-app .auth-form select.form-select,
+body.candidate-app .auth-form input.form-control,
+body.candidate-app .auth-form select.form-select,
+body.employer-app .auth-form input.form-control,
+body.employer-app .auth-form select.form-select {
+	width: 100%;
+	height: 52px;
+	padding: 12px 18px;
+	border: 1px solid #cbd5e1;
+	border-radius: 14px;
+	background: #fff;
+	color: #0f172a;
+	font-weight: 500;
+	transition: all 0.2s ease;
+}
+
+body.client-app .auth-form input.form-control:focus,
+body.client-app .auth-form select.form-select:focus,
+body.candidate-app .auth-form input.form-control:focus,
+body.candidate-app .auth-form select.form-select:focus,
+body.employer-app .auth-form input.form-control:focus,
+body.employer-app .auth-form select.form-select:focus {
+	border-color: #f37021;
+	box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.15);
+	transform: translateY(-1px);
+	outline: none;
+}
+
+body.client-app .auth-form .remember-row,
+body.candidate-app .auth-form .remember-row,
+body.employer-app .auth-form .remember-row {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 14px;
+	padding: 10px 14px;
+}
+
+body.client-app .auth-actions .auth-submit-btn,
+body.candidate-app .auth-actions .auth-submit-btn,
+body.employer-app .auth-actions .auth-submit-btn {
+	width: 100%;
+	min-height: 52px;
+	border: 0;
+	border-radius: 14px;
+	font-weight: 900;
+	background: linear-gradient(135deg, #f37021 0%, #ff8a1d 100%);
+	color: #fff;
+	box-shadow: 0 14px 34px rgba(234, 88, 12, 0.18);
+	transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+body.client-app .auth-actions .auth-submit-btn:hover,
+body.candidate-app .auth-actions .auth-submit-btn:hover,
+body.employer-app .auth-actions .auth-submit-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 16px 40px rgba(234, 88, 12, 0.22);
+}
+
+body.client-app .auth-links a,
+body.candidate-app .auth-links a,
+body.employer-app .auth-links a {
+	color: #111;
+	font-weight: 800;
+}
+
+body.client-app .auth-link-muted,
+body.candidate-app .auth-link-muted,
+body.employer-app .auth-link-muted {
+	color: #111;
+	font-weight: 700;
+}
+
+body.client-app .auth-link-muted:hover,
+body.candidate-app .auth-link-muted:hover,
+body.employer-app .auth-link-muted:hover {
+	color: #111;
+	text-decoration: underline;
+}
+
+@media (max-width: 991.98px) {
+	body.client-app .auth-page-wrap::before,
+	body.candidate-app .auth-page-wrap::before,
+	body.employer-app .auth-page-wrap::before {
+		inset: 16px 8px auto;
+		height: 200px;
+	}
+
+	body.client-app .auth-shell,
+	body.candidate-app .auth-shell,
+	body.employer-app .auth-shell {
+		grid-template-columns: 1fr;
+	}
+
+	body.client-app .auth-shell__aside,
+	body.candidate-app .auth-shell__aside,
+	body.employer-app .auth-shell__aside {
+		padding: 26px 22px;
+	}
+
+	body.client-app .auth-shell__main,
+	body.candidate-app .auth-shell__main,
+	body.employer-app .auth-shell__main {
+		padding: 24px 20px 20px;
+	}
+
+	body.client-app .auth-tabs,
+	body.candidate-app .auth-tabs,
+	body.employer-app .auth-tabs {
+		gap: 20px;
+	}
 }
 
 

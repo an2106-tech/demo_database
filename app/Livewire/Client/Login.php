@@ -7,29 +7,11 @@ use Livewire\Component;
 
 class Login extends Component
 {
-    public string $role = 'candidate';
-
     public string $email = '';
 
     public string $password = '';
 
     public bool $remember = false;
-
-    protected array $queryString = [
-        'role' => ['except' => 'candidate'],
-    ];
-
-    public function mount(): void
-    {
-        $requestedRole = request()->query('role');
-        $this->role = $this->normalizeRole(is_string($requestedRole) ? $requestedRole : '');
-    }
-
-    public function setRole(string $role): void
-    {
-        $this->resetErrorBag();
-        $this->role = $this->normalizeRole($role);
-    }
 
     public function login(): mixed
     {
@@ -82,28 +64,11 @@ class Login extends Component
         return redirect()->intended(route('home'));
     }
 
-    private function normalizeRole(string $role): string
-    {
-        $role = strtolower(trim($role));
-
-        if ($role === 'hr') {
-            return 'employer';
-        }
-
-        return in_array($role, ['candidate', 'employer'], true) ? $role : 'candidate';
-    }
-
     public function render()
     {
-        $layout = match ($this->role) {
-            'employer' => 'layouts.employer',
-            'candidate' => 'layouts.candidate',
-            default => 'layouts.client',
-        };
-
         /** @var mixed $view */
         $view = view('livewire.client.pages.login');
 
-        return $view->layout($layout);
+        return $view->layout('layouts.client');
     }
 }

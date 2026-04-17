@@ -1,4 +1,10 @@
 <div>
+    @php
+        $user = auth()->user();
+        $metadata = is_array($user?->metadata) ? $user->metadata : [];
+        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
+        $hasCandidateAccess = (bool) $user && ($user->role === 'candidate' || in_array('candidate', $accountTypes, true));
+    @endphp
     <section class="candidate-portal-hero">
         <div class="container">
             <div class="row align-items-center">
@@ -14,18 +20,18 @@
                     </p>
 
                     <div class="candidate-portal-hero__actions">
-                        @guest
-                            <a class="btn candidate-btn-primary" href="{{ route('auth.sign_up', ['role' => 'candidate']) }}">
+                        @if(! $hasCandidateAccess)
+                            <a class="btn candidate-btn-primary" href="{{ route('candidates.register') }}">
                                 Tạo tài khoản ứng viên
                             </a>
-                            <a class="btn candidate-btn-secondary" href="{{ route('auth.login', ['role' => 'candidate']) }}">
+                            <a class="btn candidate-btn-secondary" href="{{ route('candidates.login') }}">
                                 Đăng nhập
                             </a>
                         @else
                             <a class="btn candidate-btn-primary" href="{{ route('candidates.candidate_dashboard') }}">
                                 Vào trang quản lý ứng tuyển
                             </a>
-                        @endguest
+                        @endif
                     </div>
 
                     <div class="candidate-portal-hero__stats">
