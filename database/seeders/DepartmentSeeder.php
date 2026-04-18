@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use App\Models\Branch;
 use App\Models\Department;
 use Illuminate\Database\Seeder;
@@ -30,16 +29,15 @@ class DepartmentSeeder extends Seeder
                 ]);
             });
 
-        // Make this seeder safe to re-run without unique collisions.
-        if (Department::query()->count() > 0) {
-            return;
+        foreach (Branch::query()->orderBy('id')->cursor() as $branch) {
+            Department::updateOrCreate(
+                ['code' => 'DEPT-' . $branch->code],
+                [
+                    'name' => 'Ban điều hành — ' . $branch->name,
+                    'branch_id' => $branch->id,
+                    'description' => 'Phòng ban mẫu gắn với chi nhánh.',
+                ],
+            );
         }
-
-        Department::factory()
-            ->count(10)
-            ->state(fn () => [
-                'branch_id' => $branchIds->random(),
-            ])
-            ->create();
     }
 }

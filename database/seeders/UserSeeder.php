@@ -17,51 +17,15 @@ class UserSeeder extends Seeder
         $admin = User::updateOrCreate(
             ['email' => 'admin@demo.local'],
             [
-                'name'      => 'Super Admin',
-                'password'  => Hash::make('password'),
-                'role'      => 'admin',
-                'branch_id' => $branch?->id,
-                'is_active' => true,
-            ],
-        );
-
-        $hr = User::updateOrCreate(
-            ['email' => 'hr@demo.local'],
-            [
-                'name'      => 'HR',
-                'password'  => Hash::make('password'),
-                'role'      => 'hr',
-                'branch_id' => $branch?->id,
-                'is_active' => true,
-            ],
-        );
-
-        $director = User::updateOrCreate(
-            ['email' => 'director@demo.local'],
-            [
-                'name'      => 'Giám đốc',
-                'password'  => Hash::make('password'),
-                'role'      => 'director',
-                'branch_id' => $branch?->id,
-                'is_active' => true,
-            ],
-        );
-
-        $pm = User::updateOrCreate(
-            ['email' => 'pm@demo.local'],
-            [
-                'name'      => 'PM',
-                'password'  => Hash::make('password'),
-                'role'      => 'pm',
+                'name' => 'Super Admin',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
                 'branch_id' => $branch?->id,
                 'is_active' => true,
             ],
         );
 
         $this->syncSeededUserRoles($admin);
-        $this->syncSeededUserRoles($hr);
-        $this->syncSeededUserRoles($director);
-        $this->syncSeededUserRoles($pm);
 
         User::query()
             ->whereNotNull('role')

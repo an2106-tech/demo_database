@@ -552,6 +552,7 @@
                                  <a
                                     href="{{ route('role.switch', ['type' => 'employer']) }}"
                                     class="role-switcher-cta"
+                                    style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
                                  >
                                     Khu Nhà Tuyển Dụng
                                  </a>

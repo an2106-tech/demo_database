@@ -1,4 +1,4 @@
-<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-employer" role="banner" x-data="{ openEmployerUserMenu: false }">
+﻿<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-employer" role="banner" x-data="{ openEmployerUserMenu: false }">
     <style>
         .employer-actions ul {
             display: flex;
@@ -121,11 +121,11 @@
                         <nav id="navigation" aria-label="Employer navigation">
                             <ul id="jobguru_navigation">
                                 <li><a href="{{ route('employers.portal') }}">Portal</a></li>
-                                <li><a href="{{ route('employers.dashboard') }}">Tổng quan</a></li>
-                                <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
-                                <li><a href="{{ route('employers.manage_jobs') }}">Quản lý tin</a></li>
-                                <li><a href="{{ route('employers.browse') }}">Ứng viên</a></li>
-                                <li><a href="{{ route('employers.transaction') }}">Thanh toán</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
+                                <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>
+                                <li><a href="{{ route('employers.manage_jobs') }}">Quản Lý Tin</a></li>
+                                <li><a href="{{ route('employers.browse') }}">Ứng Viên</a></li>
+                                <li><a href="{{ route('employers.transaction') }}">Thanh Toán</a></li>
                             </ul>
                         </nav>
                     </div>
@@ -136,10 +136,11 @@
                         <ul>
                             <li>
                                 <a
-                                    href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
+                                    href="{{ route('candidates.browse_job') }}"
                                     class="switch-role-btn"
+                                    style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
                                 >
-                                    {{ request()->routeIs('employers.portal') ? 'Chuyển Sang Ứng Viên' : 'Khu Nhà Tuyển Dụng' }}
+                                    Chuyển Sang Ứng Viên
                                 </a>
                             </li>
                             @if($canEmployerAccess ?? false)
@@ -155,13 +156,13 @@
                                     </button>
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('employers.company_profile') }}">Hồ sơ thông tin</a>
+                                        <a href="{{ route('employers.company_profile') }}">Hồ Sơ Thông Tin</a>
                                         <livewire:client.logout-button />
                                     </div>
                                 </li>
                             @else
-                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng ký</a></li>
-                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
+                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng Ký</a></li>
+                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng Nhập</a></li>
                             @endif
                         </ul>
                     </div>
@@ -170,3 +171,4 @@
         </div>
     </div>
 </header>
+

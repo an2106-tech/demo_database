@@ -2,12 +2,14 @@
 
 namespace Database\Seeders;
 
+use App\Models\Branch;
 use App\Models\Category;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Models\Workplace;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class RecruitmentJobSeeder extends Seeder
 {
@@ -250,6 +252,61 @@ class RecruitmentJobSeeder extends Seeder
             if ($categories->isNotEmpty()) {
                 $recruitmentJob->categories()->sync(
                     $categories->random(min($categories->count(), rand(1, 2)))->pluck('id')
+                );
+            }
+        }
+
+        $this->ensurePublishedJobForEveryBranch($creator, $categories);
+    }
+
+    protected function ensurePublishedJobForEveryBranch(?User $creator, $categories): void
+    {
+        if (! $creator) {
+            return;
+        }
+
+        foreach (Branch::query()->orderBy('id')->cursor() as $branch) {
+            $hasPublished = RecruitmentJob::query()
+                ->where('branch_id', $branch->id)
+                ->where('status', 'published')
+                ->exists();
+
+            if ($hasPublished) {
+                continue;
+            }
+
+            $department = Department::query()->where('branch_id', $branch->id)->first();
+            $workplace = Workplace::query()->where('branch_id', $branch->id)->first();
+
+            if (! $department || ! $workplace) {
+                continue;
+            }
+
+            $slugKey = Str::slug($branch->code . '-tin-tuyen-dung-mau');
+
+            $job = RecruitmentJob::query()->updateOrCreate(
+                ['slug' => $slugKey],
+                [
+                    'title' => 'Tuyển dụng mẫu — ' . $branch->name,
+                    'description' => 'Tin đăng mẫu để mỗi chi nhánh đều có ít nhất một tin tuyển dụng đang mở.',
+                    'status' => 'published',
+                    'salary_range' => ['min' => 900, 'max' => 1600, 'currency' => 'USD'],
+                    'deadline' => now()->addDays(30)->toDateString(),
+                    'positions_count' => 1,
+                    'public_url' => '/jobs/' . $slugKey,
+                    'thumbnail' => 'assets/img/company-logo-1.png',
+                    'department_id' => $department->id,
+                    'branch_id' => $branch->id,
+                    'workplace_id' => $workplace->id,
+                    'created_by' => $creator->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            );
+
+            if ($categories->isNotEmpty()) {
+                $job->categories()->sync(
+                    $categories->random(min($categories->count(), 1))->pluck('id')
                 );
             }
         }

@@ -138,6 +138,7 @@
                                 <a
                                     href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
                                     class="switch-role-btn"
+                                    style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
                                 >
                                     {{ request()->routeIs('employers.portal') ? 'Chuyển Sang Ứng Viên' : 'Khu Nhà Tuyển Dụng' }}
                                 </a>

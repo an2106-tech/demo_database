@@ -1,6 +1,6 @@
 <div>
     <div class="employer-page-head">
-        <h1>Bảng điều khiển</h1>
+        <h1>Bảng Điều Khiển</h1>
         <p>Tổng quan nhanh hiệu suất tuyển dụng và các thống kê quan trọng.</p>
     </div>
 
@@ -14,7 +14,7 @@
                 <div class="col-md-8 col-lg-9">
                     <div class="dashboard-right">
                         <div class="welcome-dashboard">
-                            <h3>Chào mừng trở lại, <span>{{ $user->name }}</span>!</h3>
+                            <h3>Chào Mừng Trở Lại, <span>{{ $user->name }}</span>!</h3>
                         </div>
 
                         <div class="row">
@@ -25,7 +25,7 @@
                                     </div>
                                     <div class="widget-page-text">
                                         <h4>{{ $totalJobs }}</h4>
-                                        <h2>Việc làm đã đăng</h2>
+                                        <h2>Việc Làm Đã Đăng</h2>
                                     </div>
                                 </div>
                             </div>
@@ -37,7 +37,7 @@
                                     </div>
                                     <div class="widget-page-text">
                                         <h4>{{ $totalApplications }}</h4>
-                                        <h2>Hồ sơ đã nhận</h2>
+                                        <h2>Hồ Sơ Đã Nhận</h2>
                                     </div>
                                 </div>
                             </div>
@@ -49,7 +49,7 @@
                                     </div>
                                     <div class="widget-page-text">
                                         <h4>{{ $totalCandidates }}</h4>
-                                        <h2>Ứng viên ứng tuyển</h2>
+                                        <h2>Ứng Viên Ứng Tuyển</h2>
                                     </div>
                                 </div>
                             </div>
