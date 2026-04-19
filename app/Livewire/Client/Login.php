@@ -47,21 +47,31 @@ class Login extends Component
             return null;
         }
 
+        if ($user->role === 'admin') {
+            return $this->redirect('/admin');
+        }
+
+        if ($user->role === 'director') {
+            session(['client_menu_type' => 'employer']);
+
+            return $this->redirect(route('employers.dashboard'));
+        }
+
         if ($user->role === 'hr') {
             session(['client_menu_type' => 'employer']);
 
-            return redirect()->intended(route('employers.dashboard'));
+            return $this->redirect(route('employers.dashboard'));
         }
 
         if ($user->role === 'candidate') {
             session(['client_menu_type' => 'candidate']);
 
-            return redirect()->intended(route('candidates.candidate_dashboard'));
+            return $this->redirect(route('candidates.candidate_dashboard'));
         }
 
         session()->forget('client_menu_type');
 
-        return redirect()->intended(route('home'));
+        return $this->redirect(route('home'));
     }
 
     public function render()

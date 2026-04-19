@@ -53,6 +53,19 @@
                                     </div>
                                 </div>
                             </div>
+                            @if($isDirector && $pendingJobs > 0)
+                            <div class="col-lg-4 col-md-6">
+                                <a href="{{ route('director.approve_jobs') }}" class="widget_card_page grid_flex widget_bg_orange" style="text-decoration:none;">
+                                    <div class="widget-icon">
+                                        <i class="fa fa-check-circle"></i>
+                                    </div>
+                                    <div class="widget-page-text">
+                                        <h4>{{ $pendingJobs }}</h4>
+                                        <h2>Tin Chờ Duyệt</h2>
+                                    </div>
+                                </a>
+                            </div>
+                            @endif
                         </div>
                     </div>
                 </div>

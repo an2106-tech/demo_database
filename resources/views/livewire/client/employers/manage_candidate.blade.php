@@ -189,13 +189,17 @@
                             <div class="single-candidate-list">
                                 <div class="main-comment d-flex align-items-start">
                                     <div class="candidate-image">
-                                        <img src="{{ $candidate->user?->avatar ? asset('storage/' . $candidate->user->avatar) : asset('assets/img/avatar_detail.jpg') }}" alt="{{ $candidate->name }}">
+                                        @if($candidate->user?->avatar && file_exists(public_path('storage/' . $candidate->user->avatar)))
+                                        <img src="{{ asset('storage/' . $candidate->user->avatar) }}" alt="{{ $candidate->name }}">
+                                        @else
+                                        <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="{{ $candidate->name }}">
+                                        @endif
                                     </div>
                                     <div class="candidate-text">
                                         <div class="candidate-info">
                                             <div class="candidate-title">
                                                 <h3><a href="{{ route('candidates.candidate_detail') }}?id={{ $candidate->id }}">{{ $candidate->name }}</a></h3>
-                                                <img src="{{ asset('assets/img/de.svg') }}" alt="Germany">
+                                                <img src="{{ asset('assets/img/vn.png') }}" alt="Vietnam">
                                             </div>
                                             <p class="job-applied">{{ $candidate->applications->first()?->job->title ?? 'Nỗ lực ứng tuyển' }}</p>
                                             

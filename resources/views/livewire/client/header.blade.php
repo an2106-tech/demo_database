@@ -517,10 +517,14 @@
                                  <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
                               @endif
 
-                              @if($showEmployerMenu ?? false)
-                                 <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
-                                 <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
-                              @endif
+@if($showEmployerMenu ?? false)
+                                  <li><a href="{{ route('employers.browse') }}">Tìm ứng viên</a></li>
+                                  <li><a href="{{ route('employers.post_job') }}">Đăng tuyển</a></li>
+                               @endif
+
+                               @if(Auth::user() && in_array(Auth::user()->role, ['director', 'admin']))
+                                  <li><a href="{{ route('director.approve_jobs') }}">Duyệt tin</a></li>
+                               @endif
                            @endguest
 
                            <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
@@ -581,15 +585,15 @@
                                     aria-label="Tài khoản"
                                     :aria-expanded="openUserMenu.toString()"
                                  >
-                                    @if(Auth::user()->avatar)
-                                       <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
-                                          style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                    @else
-                                       <span
-                                          style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff7e3e 0%, #ff5722 100%); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                                          {{ substr(Auth::user()->name, 0, 1) }}
-                                       </span>
-                                    @endif
+@if(Auth::user() && Auth::user()->avatar && file_exists(public_path('storage/' . Auth::user()->avatar)))
+                                        <img src="{{ asset('storage/' . Auth::user()->avatar) }}" alt="Avatar"
+                                           style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                     @else
+                                        <span
+                                           style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #ff7e3e 0%, #ff5722 100%); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                           {{ Auth::user() ? substr(Auth::user()->name, 0, 1) : '?' }}
+                                        </span>
+                                     @endif
                                  </button>
 
                                  <div class="userbox-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>

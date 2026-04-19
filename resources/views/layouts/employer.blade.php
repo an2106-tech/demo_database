@@ -46,7 +46,7 @@
     @livewireStyles
 </head>
 
-<body class="employer-app">
+<body class="employer-app" style="overflow-x: hidden;">
     <livewire:header type="employer" />
     {{ $slot }}
     <livewire:footer type="employer" />
@@ -100,6 +100,44 @@
                 });
             @endif
         });
+
+        // Toast notification system
+        (function() {
+            const toastStack = document.createElement('div');
+            toastStack.className = 'app-toast-stack';
+            toastStack.style.cssText = 'display:flex;flex-direction:column;gap:12px;pointer-events:none;position:fixed;right:20px;top:20px;width:min(360px,calc(100vw - 32px));z-index:9999;';
+            document.body.appendChild(toastStack);
+
+            const closeToast = (toast) => {
+                if (!toast || toast.dataset.closing === 'true') return;
+                toast.dataset.closing = 'true';
+                toast.classList.add('is-closing');
+                toast.style.cssText = 'opacity:0;transform:translateY(-8px);transition:all 0.2s ease;';
+                setTimeout(() => toast.remove(), 220);
+            };
+
+            const showToast = (message, type = 'success') => {
+                if (!message) return;
+                const toast = document.createElement('div');
+                const colors = type === 'success' ? 'background:linear-gradient(135deg,#d1fae5,#fff);border:1px solid #6ee7b7;color:#065f46;' : 
+                             type === 'error' ? 'background:linear-gradient(135deg,#fee2e2,#fff);border:1px solid #fca5a5;color:#991b1b;' :
+                             'background:linear-gradient(135deg,#fef3c7,#fff);border:1px solid #fcd34d;color:#92400e;';
+                toast.className = 'app-toast';
+                toast.style.cssText = colors + 'border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.15);display:flex;gap:12px;padding:14px 16px;position:relative;';
+                const icon = type === 'success' ? 'fa-check' : type === 'error' ? 'fa-times' : 'fa-exclamation-circle';
+                toast.innerHTML = '<div style="display:flex;align-items:center;"><i class="fa ' + icon + '"></i></div>' +
+                    '<div style="flex:1;font-weight:600;">' + message + '</div>' +
+                    '<button type="button" style="background:none;border:none;cursor:pointer;font-size:18px;color:inherit;" onclick="this.parentElement.remove()">&times;</button>';
+                toast.querySelector('button').addEventListener('click', () => closeToast(toast));
+                toastStack.appendChild(toast);
+                setTimeout(() => closeToast(toast), 4000);
+            };
+
+            window.addEventListener('app-notify', (event) => {
+                const detail = event.detail || {};
+                showToast(detail.message, detail.type || 'success');
+            });
+        })();
     </script>
 </body>
 

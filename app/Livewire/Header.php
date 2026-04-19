@@ -21,7 +21,7 @@ class Header extends Component
         $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
 
         $canEmployerAccess = (bool) $user && (
-            in_array($user->role, ['hr', 'admin'], true)
+            in_array($user->role, ['hr', 'admin', 'director'], true)
             || in_array('employer', $accountTypes, true)
         );
 

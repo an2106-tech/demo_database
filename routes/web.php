@@ -174,4 +174,5 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
     Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
+    Route::get('/director/approve-jobs', \App\Livewire\Client\Director\ApproveJobs::class)->name('director.approve_jobs');
 });

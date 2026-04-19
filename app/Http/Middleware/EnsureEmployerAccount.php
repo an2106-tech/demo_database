@@ -19,7 +19,7 @@ class EnsureEmployerAccount
             return redirect()->route('employers.login');
         }
 
-        if (in_array($user->role, ['hr', 'admin'], true)) {
+        if (in_array($user->role, ['hr', 'admin', 'director'], true)) {
             return $next($request);
         }
 

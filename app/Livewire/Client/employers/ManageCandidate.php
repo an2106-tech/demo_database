@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 
 class ManageCandidate extends Component
 {
-    #[Layout('layouts.client')]
+    #[Layout('layouts.employer')]
     public function analyzeWithAi($submissionId, \App\Services\AiMatchingService $aiService)
     {
         $submission = \App\Models\CandidateJobSubmission::find($submissionId);

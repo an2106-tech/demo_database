@@ -14,12 +14,16 @@
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('employers.message') ? 'active' : '' }}">
-            <a href="{{ route('employers.message') }}">
-                <i class="fa fa-envelope-open"></i>
-                Tin Nhắn
-            </a>
-        </li>
+        @auth
+            @if(in_array(Auth::user()->role, ['director', 'admin']))
+            <li class="{{ request()->routeIs('director.approve_jobs') ? 'active' : '' }}">
+                <a href="{{ route('director.approve_jobs') }}">
+                    <i class="fa fa-check-circle"></i>
+                    Duyệt Tin
+                </a>
+            </li>
+            @endif
+        @endauth
 
         <li class="{{ request()->routeIs('employers.post_job') ? 'active' : '' }}">
             <a href="{{ route('employers.post_job') }}">
@@ -39,13 +43,6 @@
             <a href="{{ route('employers.manage_candidates') }}">
                 <i class="fa fa-user-circle"></i>
                 Quản Lý Ứng Viên
-            </a>
-        </li>
-
-        <li class="{{ request()->routeIs('employers.transaction') ? 'active' : '' }}">
-            <a href="{{ route('employers.transaction') }}">
-                <i class="fa fa-rocket"></i>
-                Giao Dịch
             </a>
         </li>
 

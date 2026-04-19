@@ -1,4 +1,4 @@
-﻿<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-employer" role="banner" x-data="{ openEmployerUserMenu: false }">
+<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-employer" role="banner" x-data="{ openEmployerUserMenu: false }">
     <style>
         .employer-actions ul {
             display: flex;
@@ -121,11 +121,19 @@
                         <nav id="navigation" aria-label="Employer navigation">
                             <ul id="jobguru_navigation">
                                 <li><a href="{{ route('employers.portal') }}">Portal</a></li>
+                                @auth
+                                    <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>
+                                    <li><a href="{{ route('employers.manage_jobs') }}">Quản Lý Tin</a></li>
+                                    <li><a href="{{ route('employers.browse') }}">Ứng Viên</a></li>
+                                    <li><a href="{{ route('employers.transaction') }}">Thanh Toán</a></li>
+                                @else
                                 <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
                                 <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>
                                 <li><a href="{{ route('employers.manage_jobs') }}">Quản Lý Tin</a></li>
                                 <li><a href="{{ route('employers.browse') }}">Ứng Viên</a></li>
                                 <li><a href="{{ route('employers.transaction') }}">Thanh Toán</a></li>
+                                @endauth
                             </ul>
                         </nav>
                     </div>
@@ -143,7 +151,8 @@
                                     Chuyển Sang Ứng Viên
                                 </a>
                             </li>
-                            @if($canEmployerAccess ?? false)
+                            @auth
+                                @if(in_array(Auth::user()->role, ['hr', 'director', 'admin']) || (isset(Auth::user()->metadata['account_types']) && in_array('employer', Auth::user()->metadata['account_types'])))
                                 <li class="employer-user-menu" @click.outside="openEmployerUserMenu = false">
                                     <button
                                         type="button"
@@ -157,13 +166,18 @@
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
                                         <a href="{{ route('employers.company_profile') }}">Hồ Sơ Thông Tin</a>
+                                        <a href="{{ route('director.approve_jobs') }}">Duyệt Tin</a>
                                         <livewire:client.logout-button />
                                     </div>
                                 </li>
+                                @else
+                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng Ký</a></li>
+                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng Nhập</a></li>
+                                @endif
                             @else
                                 <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng Ký</a></li>
                                 <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng Nhập</a></li>
-                            @endif
+                            @endauth
                         </ul>
                     </div>
                 </div>

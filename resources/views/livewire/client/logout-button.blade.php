@@ -69,7 +69,8 @@
 
     @php
         $avatar = auth()->user()?->avatar;
-        $avatarUrl = $avatar ? asset('storage/' . ltrim($avatar, '/')) : asset('assets/img/avatar_detail.jpg');
+        $avatarPath = $avatar ? 'storage/' . ltrim($avatar, '/') : 'assets/img/avatar_detail.jpg';
+        $avatarUrl = (file_exists(public_path($avatarPath))) ? asset($avatarPath) : asset('assets/img/avatar_detail.jpg');
     @endphp
 
     <button
