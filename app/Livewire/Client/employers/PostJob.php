@@ -10,6 +10,8 @@ use App\Models\Skill;
 use App\Models\Workplace;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -32,7 +34,7 @@ class PostJob extends Component
 
     public int $positions_count = 1;
 
-    public string $status = StatusRecruitmentJobsEnum::PENDING->value;
+    public string $status = ''; // Will be set in mount
 
     public ?string $salary_min = null;
 
@@ -83,6 +85,13 @@ class PostJob extends Component
                 $this->branch_id = $user->branchScopeId();
             }
         }
+
+        // Default status for NEW jobs
+        if (!$id) {
+            $this->status = in_array($user->role, ['director', 'admin']) 
+                ? StatusRecruitmentJobsEnum::PUBLISHED->value 
+                : StatusRecruitmentJobsEnum::PENDING->value;
+        }
     }
 
     public function updatedBranchId($value): void
@@ -109,7 +118,7 @@ class PostJob extends Component
             'public_url' => ['nullable', 'url', 'max:2048', 'unique:recruitment_jobs,public_url'],
             'deadline' => ['nullable', 'date', 'after_or_equal:today'],
             'positions_count' => ['required', 'integer', 'min:1', 'max:99'],
-            'status' => ['required', 'in:draft,pending,published'],
+            'status' => ['nullable', 'string'],
             'salary_min' => ['nullable', 'numeric', 'min:0'],
             'salary_max' => ['nullable', 'numeric', 'min:0'],
             'skills' => ['required', 'array', 'min:1'],
@@ -162,10 +171,18 @@ class PostJob extends Component
             }
         }
 
+        $user = Auth::user();
+        $finalStatus = $validated['status'];
+
+        // Logic: if not Director/Admin, must be PENDING (even on edits as requested)
+        if (!in_array($user->role, ['director', 'admin'])) {
+            $finalStatus = StatusRecruitmentJobsEnum::PENDING->value;
+        }
+
         $data = [
             'title' => trim($validated['title']),
             'description' => trim($validated['description']),
-            'status' => $validated['status'],
+            'status' => $finalStatus,
             'salary_range' => $this->buildSalaryRange(),
             'deadline' => $validated['deadline'] ?: null,
             'positions_count' => (int) $validated['positions_count'],
@@ -206,6 +223,40 @@ class PostJob extends Component
             StatusRecruitmentJobsEnum::PENDING => 'Tin tuyển dụng đã được gửi và đang chờ phê duyệt.',
             default => 'Tin tuyển dụng đã được lưu nháp.',
         };
+
+        // Notify Directors of the branch if pending
+        if ($job->status === StatusRecruitmentJobsEnum::PENDING) {
+            $directors = \App\Models\User::where('role', 'director')
+                ->where('branch_id', $job->branch_id)
+                ->get();
+
+            foreach ($directors as $director) {
+                // Database Notification
+                DB::table('notifications')->insert([
+                    'user_id' => $director->id,
+                    'type' => 'job_pending_approval',
+                    'data' => json_encode([
+                        'job_id' => $job->id,
+                        'title' => $job->title,
+                        'creator' => Auth::user()->name,
+                        'message' => 'Có tin tuyển dụng mới đang chờ bạn duyệt.',
+                    ]),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+
+                // Email Notification
+                try {
+                    Mail::to($director->email)->send(new \App\Mail\JobApprovalNotificationMail(
+                        $job,
+                        $director->name,
+                        Auth::user()->name
+                    ));
+                } catch (\Exception $e) {
+                    \Log::error('Lỗi khi gửi email thông báo phê duyệt: ' . $e->getMessage());
+                }
+            }
+        }
 
         session()->flash('status', $statusMessage);
 

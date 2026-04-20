@@ -9,14 +9,14 @@
 
         <li class="{{ request()->routeIs('candidates.candidate_profile') ? 'active' : '' }}">
             <a href="{{ route('candidates.candidate_profile') }}">
-                <i class="fa fa-users"></i>
-                Hồ sơ của tôi
+                <i class="fa fa-user-circle"></i>
+                Hồ sơ cá nhân
             </a>
         </li>
 
         <li class="{{ request()->routeIs('candidates.messages') ? 'active' : '' }}">
             <a href="{{ route('candidates.messages') }}">
-                <i class="fa fa-envelope-open"></i>
+                <i class="fa fa-comments"></i>
                 Tin nhắn
             </a>
         </li>
@@ -24,29 +24,28 @@
         <li class="{{ request()->routeIs('candidates.manage_jobs') ? 'active' : '' }}">
             <a href="{{ route('candidates.manage_jobs') }}">
                 <i class="fa fa-briefcase"></i>
-                Quản lý công việc
+                Việc làm đã ứng tuyển
             </a>
         </li>
 
         <li class="{{ request()->routeIs('candidates.earnings') ? 'active' : '' }}">
             <a href="{{ route('candidates.earnings') }}">
-                <i class="fa fa-rocket"></i>
-                Thu nhập
+                <i class="fa fa-money"></i>
+                Thu nhập & Thưởng
             </a>
         </li>
 
         <li class="{{ request()->routeIs('candidates.change_password') ? 'active' : '' }}">
             <a href="{{ route('candidates.change_password') }}">
-                <i class="fa fa-lock"></i>
-                Đổi mật khẩu
+                <i class="fa fa-shield"></i>
+                Bảo mật & Mật khẩu
             </a>
         </li>
 
-        <li>
-            <div style="padding: 12px 15px;">
+        <li style="margin-top: 20px; padding: 0 15px;">
+            <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
                 <livewire:client.logout-button />
             </div>
         </li>
     </ul>
 </div>
-

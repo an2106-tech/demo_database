@@ -32,26 +32,34 @@ class Application extends Model
                 $oldStatus = StatusApplicationEnum::tryFrom($oldStatus);
             }
 
-            if ($newStatus === StatusApplicationEnum::REJECTED && $oldStatus !== StatusApplicationEnum::REJECTED) {
-                $candidate = $application->candidate;
-                $job = $application->job;
+            if ($newStatus !== $oldStatus) {
+                $application->recordStatusHistory(
+                    $oldStatus instanceof StatusApplicationEnum ? $oldStatus->value : $oldStatus,
+                    $newStatus instanceof StatusApplicationEnum ? $newStatus->value : $newStatus,
+                    'Tự động ghi nhận thay đổi trạng thái.'
+                );
 
-                if ($candidate?->email && $job) {
-                    try {
-                        Log::info('--- PREPARING TO SEND REJECTION EMAIL ---', [
-                            'app_id' => $application->id,
-                            'recipient_email' => $candidate->email,
-                            'from_config' => config('mail.from.address')
-                        ]);
+                if ($newStatus === StatusApplicationEnum::REJECTED && $oldStatus !== StatusApplicationEnum::REJECTED) {
+                    $candidate = $application->candidate;
+                    $job = $application->job;
 
-                        Mail::to($candidate->email)->send(new CandidateApplicationRejectedMail($candidate, $application, $job));
-                        
-                        Log::info('--- REJECTION EMAIL SENT SUCCESSFULLY ---', ['recipient' => $candidate->email]);
-                    } catch (\Throwable $exception) {
-                        Log::warning('Failed to send rejection email via Model observer.', [
-                            'application_id' => $application->id,
-                            'error' => $exception->getMessage(),
-                        ]);
+                    if ($candidate?->email && $job) {
+                        try {
+                            Log::info('--- PREPARING TO SEND REJECTION EMAIL ---', [
+                                'app_id' => $application->id,
+                                'recipient_email' => $candidate->email,
+                                'from_config' => config('mail.from.address')
+                            ]);
+
+                            Mail::to($candidate->email)->send(new CandidateApplicationRejectedMail($candidate, $application, $job));
+                            
+                            Log::info('--- REJECTION EMAIL SENT SUCCESSFULLY ---', ['recipient' => $candidate->email]);
+                        } catch (\Throwable $exception) {
+                            Log::warning('Failed to send rejection email via Model observer.', [
+                                'application_id' => $application->id,
+                                'error' => $exception->getMessage(),
+                            ]);
+                        }
                     }
                 }
             }
@@ -68,13 +76,20 @@ class Application extends Model
         'cv_text_snapshot',
         'source',
         'referral_user_id',
+        'assigned_hr_id',
+        'branch_id',
         'utm_source',
         'utm_medium',
         'utm_campaign',
         'status',
+        'rejected_stage',
         'salary_expected',
         'applied_at',
         'rejected_reason',
+        'is_viewed',
+        'viewed_at',
+        'applied_by',
+        'is_duplicate',
     ];
 
     protected $casts = [
@@ -82,6 +97,9 @@ class Application extends Model
         'applied_at' => 'datetime',
         'status' => StatusApplicationEnum::class,
         'profile_snapshot' => 'array',
+        'is_viewed' => 'boolean',
+        'viewed_at' => 'datetime',
+        'is_duplicate' => 'boolean',
     ];
 
     public function job(): BelongsTo
@@ -127,5 +145,35 @@ class Application extends Model
     public function latestScorecard(): HasOne
     {
         return $this->hasOne(Scorecard::class)->latestOfMany();
+    }
+
+    public function assignedHr(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_hr_id');
+    }
+
+    public function branch(): BelongsTo
+    {
+        return $this->belongsTo(Branch::class, 'branch_id');
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'applied_by');
+    }
+
+    public function statusHistories(): HasMany
+    {
+        return $this->hasMany(\App\Models\ApplicationStatusHistory::class);
+    }
+
+    public function recordStatusHistory(?string $fromStatus, string $toStatus, ?string $comment = null): void
+    {
+        $this->statusHistories()->create([
+            'from_status' => $fromStatus,
+            'to_status' => $toStatus,
+            'changed_by_id' => auth()->id(),
+            'comment' => $comment,
+        ]);
     }
 }

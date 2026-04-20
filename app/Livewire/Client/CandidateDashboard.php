@@ -11,13 +11,13 @@ use Livewire\Component;
 
 class CandidateDashboard extends Component
 {
-    public string $userName = '';
-
-    public int $publishedJobsCount = 0;
-
-    public int $appliedCount = 0;
-
     public bool $hasCv = false;
+    public string $greeting = '';
+    public int $profileCompletion = 0;
+    public $recentApplications = [];
+    public int $publishedJobsCount = 0;
+    public int $appliedCount = 0;
+    public string $userName = '';
 
     public function mount(): void
     {
@@ -38,6 +38,38 @@ class CandidateDashboard extends Component
 
         $this->hasCv = (bool) $candidate->cv_file
             || $candidate->attachments()->where('type', 'cv')->exists();
+
+        // New data for premium dashboard
+        $this->greeting = $this->getGreeting();
+        $this->profileCompletion = $this->calculateProfileCompletion($candidate);
+        $this->recentApplications = Application::query()
+            ->where('candidate_id', $candidate->id)
+            ->with('job')
+            ->latest()
+            ->take(5)
+            ->get();
+    }
+
+    private function getGreeting(): string
+    {
+        $hour = now()->hour;
+        if ($hour < 12) return 'Chào buổi sáng';
+        if ($hour < 18) return 'Chào buổi chiều';
+        return 'Chào buổi tối';
+    }
+
+    private function calculateProfileCompletion($candidate): int
+    {
+        $points = 0;
+        $total = 5;
+
+        if ($candidate->fullname) $points++;
+        if ($candidate->email) $points++;
+        if ($candidate->phone) $points++;
+        if ($this->hasCv) $points++;
+        if ($candidate->address) $points++;
+
+        return (int) (($points / $total) * 100);
     }
 
     #[Layout('layouts.client')]

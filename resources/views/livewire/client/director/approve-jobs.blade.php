@@ -1,68 +1,86 @@
 <div>
-    <div class="employer-page-head">
-        <h1>Duyệt Tin</h1>
-        <p>Xem và duyệt các tin tuyển dụng.</p>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+            <li class="active">Phê duyệt tin</li>
+        </ul>
     </div>
 
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
-                <div class="col-md-4 col-lg-3 dashboard-left-border" style="overflow: visible;">
+                <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
                 </div>
 
-                <div class="col-md-8 col-lg-9">
+                <div class="col-lg-9 col-md-8 mx-auto">
                     <div class="dashboard-right">
-                        <div class="manage-job-box">
-                            <div class="manage-job-heading">
-                                <h4>Tin chờ duyệt</h4>
+                        <div class="premium-panel">
+                            <div class="manage-jobs-heading">
+                                <h3>Tin chờ phê duyệt</h3>
+                                <p style="margin: 10px 0 0; color: #64748b;">
+                                    Danh sách các tin tuyển dụng đang chờ Director phê duyệt để hiển thị công khai.
+                                </p>
                             </div>
 
                             @if($pendingJobs->isEmpty())
-                                <div class="empty-state text-center py-5">
-                                    <i class="fa fa-check-circle" style="font-size: 48px; color: #10b981;"></i>
-                                    <p class="mt-3">Không có tin nào chờ duyệt!</p>
+                                <div class="text-center py-5">
+                                    <div class="mb-4">
+                                        <i class="fa fa-snowflake-o" style="font-size: 64px; color: #e2e8f0;"></i>
+                                    </div>
+                                    <h4 style="color: #94a3b8; font-weight: 600;">Tuyệt vời! Không có tin nào đang chờ duyệt.</h4>
+                                    <p class="text-muted">Tất cả các yêu cầu đã được xử lý xong.</p>
                                 </div>
                             @else
-                                <div class="manage-job-table">
+                                <div class="table-responsive mt-4">
                                     <table class="table">
                                         <thead>
                                             <tr>
-                                                <th>Vị trí</th>
-                                                <th>Chi nhánh</th>
-                                                <th>Địa điểm</th>
+                                                <th>Vị trí tuyển dụng</th>
                                                 <th>Người đăng</th>
-                                                <th>Ngày nộp</th>
-                                                <th>Thao tác</th>
+                                                <th>Chi nhánh</th>
+                                                <th>Ngày tạo</th>
+                                                <th>Trạng thái</th>
+                                                <th style="text-align: right;">Hành động</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @foreach($pendingJobs as $job)
                                                 <tr>
-                                                    <td>
-                                                        <div class="job-title">
-                                                            <h5>{{ $job->title }}</h5>
-                                                            <span class="job-status status-pending">
-                                                                <i class="fa fa-clock-o"></i> Chờ duyệt
-                                                            </span>
+                                                    <td class="manage-jobs-title">
+                                                        <a href="#">{{ $job->title }}</a>
+                                                        <div style="margin-top: 4px; color: #94a3b8; font-size: 13px;">
+                                                            {{ $job->department?->name ?? 'Không gán phòng ban' }} | {{ $job->workplace?->name ?? 'N/A' }}
                                                         </div>
                                                     </td>
-                                                    <td>{{ $job->branch?->name ?? 'N/A' }}</td>
-                                                    <td>{{ $job->workplace?->name ?? 'N/A' }}</td>
-                                                    <td>{{ $job->creator?->name ?? 'N/A' }}</td>
-                                                    <td>{{ $job->created_at->format('d/m/Y') }}</td>
                                                     <td>
-                                                        <div class="action-buttons">
-                                                            <button
-                                                                wire:click="approve({{ $job->id }})"
-                                                                class="btn btn-success btn-sm"
+                                                        <div class="d-flex align-items-center gap-2">
+                                                            <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--fpt-orange); font-size: 12px;">
+                                                                {{ substr($job->creator?->name, 0, 1) }}
+                                                            </div>
+                                                            <span style="font-weight: 600; font-size: 14px;">{{ $job->creator?->name }}</span>
+                                                        </div>
+                                                    </td>
+                                                    <td>{{ $job->branch?->name ?? '-' }}</td>
+                                                    <td class="table-date">{{ $job->created_at->format('d/m/Y') }}</td>
+                                                    <td>
+                                                        <span class="badge rounded-pill pending">Chờ duyệt</span>
+                                                    </td>
+                                                    <td style="text-align: right; white-space: nowrap;">
+                                                        <div class="d-flex justify-content-end gap-2">
+                                                            <button 
+                                                                wire:click="approve({{ $job->id }})" 
+                                                                class="btn btn-sm" 
+                                                                style="color: #10b981; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600; transition: all 0.3s;"
                                                                 onclick="return confirm('Bạn có chắc muốn duyệt tin này?')"
                                                             >
                                                                 <i class="fa fa-check"></i> Duyệt
                                                             </button>
-                                                            <button
-                                                                wire:click="reject({{ $job->id }})"
-                                                                class="btn btn-danger btn-sm"
+                                                            <button 
+                                                                wire:click="reject({{ $job->id }})" 
+                                                                class="btn btn-sm" 
+                                                                style="color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600; transition: all 0.3s;"
                                                                 onclick="return confirm('Bạn có chắc muốn từ chối tin này?')"
                                                             >
                                                                 <i class="fa fa-times"></i> Từ chối
@@ -75,7 +93,7 @@
                                     </table>
                                 </div>
 
-                                <div class="manage-job-pagination">
+                                <div class="mt-4">
                                     {{ $pendingJobs->links() }}
                                 </div>
                             @endif
@@ -86,81 +104,3 @@
         </div>
     </section>
 </div>
-
-<style>
-    .manage-job-box {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-    .manage-job-heading {
-        padding: 20px 25px;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .manage-job-heading h4 {
-        margin: 0;
-        color: #1e293b;
-        font-weight: 600;
-    }
-    .manage-job-table table {
-        width: 100%;
-    }
-    .manage-job-table th,
-    .manage-job-table td {
-        padding: 15px 20px;
-        text-align: left;
-        border-bottom: 1px solid #f1f5f9;
-    }
-    .manage-job-table th {
-        background: #f8fafc;
-        color: #64748b;
-        font-weight: 600;
-        font-size: 13px;
-        text-transform: uppercase;
-    }
-    .job-title h5 {
-        margin: 0 0 5px;
-        color: #1e293b;
-        font-weight: 600;
-    }
-    .job-status {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 500;
-    }
-    .status-pending {
-        background: #fef3c7;
-        color: #92400e;
-    }
-    .action-buttons {
-        display: flex;
-        gap: 8px;
-    }
-    .btn-success {
-        background: #10b981;
-        color: #fff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-    .btn-danger {
-        background: #ef4444;
-        color: #fff;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-    .empty-state {
-        padding: 40px;
-        color: #64748b;
-    }
-    .manage-job-pagination {
-        padding: 20px;
-        display: flex;
-        justify-content: center;
-    }
-</style>

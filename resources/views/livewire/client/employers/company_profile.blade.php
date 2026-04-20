@@ -1,34 +1,13 @@
 <div>
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Hồ sơ công ty</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+            <li class="active">Hồ sơ công ty</li>
+        </ul>
+    </div>
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
                 <div class="col-md-4 col-lg-3 dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
@@ -54,7 +33,7 @@
                             </div>
                             <div class="candidate-single-profile-info">
                                 <form>
-                                    <div class="resume-box">
+                                    <div class="premium-panel">
                                         <h3>Thông tin công ty</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
@@ -89,7 +68,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="resume-box">
+
+                                    <div class="premium-panel">
                                         <h3>Thông tin liên hệ</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
@@ -103,71 +83,22 @@
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="contry">Quốc gia:</label>
-                                                <select id="contry" {{ $canEdit ? '' : 'disabled' }}>
-                                                    <option>Việt Nam</option>
-                                                    <option>Ả Rập Thống nhất</option>
-                                                    <option>Mỹ</option>
-                                                    <option>Hà Lan</option>
-                                                    <option>Nga</option>
-                                                    <option>Bangladesh</option>
-                                                    <option>Ấn Độ</option>
-                                                    <option>Pakistan</option>
-                                                    <option>Brazil</option>
-                                                </select>
-                                            </div>
-                                            <div class="single-input">
-                                                <label for="City2">Thành phố:</label>
-                                                <input type="text" value="{{ $branch?->city ?? '' }}" id="City2" {{ $canEdit ? '' : 'readonly' }}>
-                                            </div>
-                                        </div>
-                                        <div class="single-resume-feild feild-flex-2">
-                                            <div class="single-input">
-                                                <label for="Zip">Mã bưu điện (Zip):</label>
-                                                <input type="text" placeholder="Ví dụ: 700000" id="Zip" {{ $canEdit ? '' : 'readonly' }}>
-                                            </div>
-                                            <div class="single-input">
-                                                <label for="Address22">Địa chỉ:</label>
+                                                <label for="Address22">Địa chỉ hiện tại:</label>
                                                 <input type="text" value="{{ $branch?->address ?? '' }}" id="Address22" {{ $canEdit ? '' : 'readonly' }}>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="resume-box">
+
+                                    <div class="premium-panel">
                                         <h3>Liên kết mạng xã hội</h3>
                                         <div class="single-resume-feild feild-flex-2">
                                             <div class="single-input">
-                                                <label for="twitter">
-                                                    <i class="fa fa-twitter twitter"></i>
-                                                    Twitter
-                                                </label>
-                                                <input type="text" value="https://www.twitter.com/" id="twitter"
-                                                    name="twitter">
+                                                <label for="twitter"><i class="fa fa-twitter twitter"></i> Twitter</label>
+                                                <input type="text" value="https://www.twitter.com/" id="twitter">
                                             </div>
                                             <div class="single-input">
-                                                <label for="twitter">
-                                                    <i class="fa fa-facebook facebook"></i>
-                                                    Facebook
-                                                </label>
-                                                <input type="text" value="https://www.facebook.com/" id="facebook"
-                                                    name="facebook">
-                                            </div>
-                                        </div>
-                                        <div class="single-resume-feild feild-flex-2">
-                                            <div class="single-input">
-                                                <label for="google">
-                                                    <i class="fa fa-google-plus google"></i>
-                                                    Google
-                                                </label>
-                                                <input type="text" value="https://www.google.com/" id="google"
-                                                    name="twitter">
-                                            </div>
-                                            <div class="single-input">
-                                                <label for="linkedin">
-                                                    <i class="fa fa-linkedin linkedin"></i>
-                                                    Linkedin
-                                                </label>
-                                                <input type="text" value="https://www.linkedin.com/" id="linkedin"
-                                                    name="twitter">
+                                                <label for="facebook"><i class="fa fa-facebook facebook"></i> Facebook</label>
+                                                <input type="text" value="https://www.facebook.com/" id="facebook">
                                             </div>
                                         </div>
                                     </div>

@@ -29,14 +29,12 @@
                                         <li><a href="{{ route('employers.login') }}"><i class="fa fa-angle-double-right"></i> Đăng nhập HR</a></li>
                                     @else
                                         <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-angle-double-right"></i> Đăng tin tuyển dụng</a></li>
-                                        <li><a href="{{ route('employers.browse') }}"><i class="fa fa-angle-double-right"></i> Tìm ứng viên</a></li>
                                         <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-angle-double-right"></i> Quản lý tin tuyển dụng</a></li>
-                                        <li><a href="{{ route('employers.transaction') }}"><i class="fa fa-angle-double-right"></i> Giao dịch</a></li>
                                     @endif
                                 @else
                                     <li><a href="{{ route('candidates.browse_job') }}"><i class="fa fa-angle-double-right"></i> Tìm việc làm</a></li>
                                     <li><a href="{{ route('candidates.browse_categories') }}"><i class="fa fa-angle-double-right"></i> Danh mục ngành nghề</a></li>
-                                    <li><a href="{{ route('candidates.browse_companies') }}"><i class="fa fa-angle-double-right"></i> Danh sách công ty</a></li>
+                                    <li><a href="{{ route('candidates.browse_companies') }}"><i class="fa fa-angle-double-right"></i> Danh sách chi nhánh</a></li>
                                     <li><a href="{{ route('candidates.submit_resume') }}"><i class="fa fa-angle-double-right"></i> Cập nhật CV</a></li>
                                 @endif
                             </ul>

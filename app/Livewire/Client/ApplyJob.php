@@ -124,7 +124,7 @@ class ApplyJob extends Component
             $application->fill([
                 'cv_path' => $cvPath,
                 'source' => 'website',
-                'status' => StatusApplicationEnum::NEW,
+                'status' => StatusApplicationEnum::CV_REVIEWING,
                 'applied_at' => now(),
             ]);
 
@@ -162,7 +162,7 @@ class ApplyJob extends Component
             return [
                 'candidate' => $candidate,
                 'application' => $application,
-                'should_send_received_mail' => $wasRecentlyCreated || $wasRestoredFromTrash,
+                'should_send_received_mail' => true,
             ];
         });
 

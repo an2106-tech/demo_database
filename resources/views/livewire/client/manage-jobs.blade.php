@@ -1,20 +1,14 @@
 <div>
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Quản lý đơn ứng tuyển</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+            <li class="active">Việc làm đã ứng tuyển</li>
+        </ul>
+    </div>
 
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
                 <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
                     @include('livewire.client.partials.candidate-sidebar')
@@ -22,9 +16,12 @@
 
                 <div class="col-lg-9 col-md-8 mx-auto">
                     <div class="dashboard-right">
-                        <div class="manage-jobs">
+                        <div class="premium-panel">
                             <div class="manage-jobs-heading">
                                 <h3>Danh sách hồ sơ đã ứng tuyển</h3>
+                                <p style="margin: 10px 0 0; color: #64748b;">
+                                    Danh sách các công việc bạn đã nộp hồ sơ và trạng thái xử lý từ nhà tuyển dụng.
+                                </p>
                             </div>
 
                             <div class="single-manage-jobs table-responsive">
@@ -51,12 +48,10 @@
                                                     $statusValue = $status instanceof \App\Enums\StatusApplicationEnum ? $status->value : (string) $status;
                                                     $statusLabel = $status instanceof \App\Enums\StatusApplicationEnum ? $status->getLabel() : ucfirst((string) $status);
                                                     $statusClass = match ($statusValue) {
-                                                        'new' => 'pending',
-                                                        'screening' => 'pending',
-                                                        'interview' => 'active',
-                                                        'offer' => 'active',
-                                                        'hired' => 'approved',
-                                                        'rejected' => 'expired',
+                                                        'cv_reviewing', 'screening' => 'pending',
+                                                        'interview_scheduled', 'interviewing', 'offered' => 'active',
+                                                        'hired' => 'hired',
+                                                        'rejected' => 'rejected',
                                                         default => 'pending',
                                                     };
                                                 @endphp

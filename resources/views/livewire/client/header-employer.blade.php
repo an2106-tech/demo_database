@@ -109,7 +109,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-2">
                     <div class="site-logo">
-                        <a href="{{ route('employers.portal') }}">
+                        <a href="{{ route('employers.dashboard') }}">
                             <img src="{{ asset('assets/img/fe-logo.png') }}" alt="FPT Polytechnic" />
                         </a>
                     </div>
@@ -120,7 +120,7 @@
                     <div class="header-menu">
                         <nav id="navigation" aria-label="Employer navigation">
                             <ul id="jobguru_navigation">
-                                <li><a href="{{ route('employers.portal') }}">Portal</a></li>
+                                <li><a href="{{ route('employers.portal') }}">Trang chủ</a></li>
                                 @auth
                                     <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
                                     <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>

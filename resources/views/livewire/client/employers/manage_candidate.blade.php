@@ -1,172 +1,14 @@
 <div>
-    <style>
-        .manage-candidates .single-candidate-list {
-            background: #fff;
-            border-radius: 20px;
-            border: 1px solid #f1dfd2;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
-            margin-bottom: 24px;
-            padding: 24px;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
 
-        .manage-candidates .single-candidate-list:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(243, 112, 33, 0.08);
-            border-color: #f37021;
-        }
-
-        .manage-candidates .candidate-image {
-            flex: 0 0 100px;
-            height: 100px;
-            width: 100px;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 3px solid #fff;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-
-        .manage-candidates .candidate-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .manage-candidates .candidate-text {
-            flex: 1;
-            padding-left: 24px;
-        }
-
-        .manage-candidates .candidate-title h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .manage-candidates .candidate-title h3 a {
-            color: #222;
-        }
-
-        .manage-candidates .candidate-title h3 a:hover {
-            color: #f37021;
-        }
-
-        .manage-candidates .candidate-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 6px;
-        }
-
-        .manage-candidates .candidate-title img {
-            width: 24px;
-            height: auto;
-            border-radius: 4px;
-        }
-
-        .manage-candidates .job-applied {
-            color: #f37021;
-            font-weight: 600;
-            font-size: 14px;
-            margin-bottom: 12px;
-        }
-
-        .manage-candidates .candidate-text-bottom {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid #f8f9fa;
-        }
-
-        .manage-candidates .candidate-text-box {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .manage-candidates .candidate-text-box p {
-            margin: 0;
-            font-size: 14px;
-            color: #666;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .manage-candidates .candidate-text-box p i {
-            color: #f37021;
-            font-size: 16px;
-        }
-
-        .manage-candidates .ai-score-box {
-            background: #fff8f3;
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #ffe8d7;
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .manage-candidates .badge-ai {
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 13px;
-            color: #fff;
-        }
-
-        .manage-candidates .remove-icon {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-        }
-
-        .manage-candidates .remove-icon a {
-            color: #ccc;
-            font-size: 18px;
-            transition: color 0.2s;
-        }
-
-        .manage-candidates .remove-icon a:hover {
-            color: #dc3545;
-        }
-    </style>
-
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Quản lý ứng viên</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.manage_candidates') }}">Quản lý ứng viên</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+            <li class="active">Quản lý ứng viên</li>
+        </ul>
+    </div>
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
                 <div class="col-md-4 col-lg-3 mx-auto dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
@@ -174,14 +16,17 @@
                 <div class="col-md-8 col-lg-9 mx-auto">
                     <div class="dashboard-right">
                         @if (session()->has('message'))
-                            <div class="alert alert-success" style="border-radius: 12px; border: none; background: #e7f9ed; color: #198754;">
+                            <div class="alert alert-success" style="border-radius: 12px; border: none; background: #e7f9ed; color: #198754; margin-bottom: 2rem;">
                                 {{ session('message') }}
                             </div>
                         @endif
 
-                        <div class="manage-jobs manage-candidates">
+                        <div class="premium-panel">
                             <div class="manage-jobs-heading">
                                 <h3>Quản lý ứng viên</h3>
+                                <p style="margin: 10px 0 0; color: #64748b;">
+                                    Danh sách ứng viên đã nộp hồ sơ vào các vị trí tuyển dụng của bạn.
+                                </p>
                             </div>
                         </div>
                         <div class="candidate-list-page manage-candidates">

@@ -10,20 +10,22 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
 {
-    case NEW = 'new';
+    case CV_REVIEWING = 'cv_reviewing';
     case SCREENING = 'screening';
-    case INTERVIEW = 'interview';
-    case OFFER = 'offer';
+    case INTERVIEW_SCHEDULED = 'interview_scheduled';
+    case INTERVIEWING = 'interviewing';
+    case OFFERED = 'offered';
     case HIRED = 'hired';
     case REJECTED = 'rejected';
 
     public function getIcon(): string|BackedEnum|Htmlable|null
     {
         return match ($this) {
-            self::NEW => 'heroicon-o-document-plus',
-            self::SCREENING => 'heroicon-o-eye',
-            self::INTERVIEW => 'heroicon-o-calendar',
-            self::OFFER => 'heroicon-o-hand-raised',
+            self::CV_REVIEWING => 'heroicon-o-eye',
+            self::SCREENING => 'heroicon-o-phone',
+            self::INTERVIEW_SCHEDULED => 'heroicon-o-calendar',
+            self::INTERVIEWING => 'heroicon-o-user-group',
+            self::OFFERED => 'heroicon-o-hand-raised',
             self::HIRED => 'heroicon-o-check-badge',
             self::REJECTED => 'heroicon-o-x-circle',
         };
@@ -32,10 +34,11 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
     public function getColor(): string|array|null
     {
         return match ($this) {
-            self::NEW => 'gray',
-            self::SCREENING => 'warning',
-            self::INTERVIEW => 'info',
-            self::OFFER => 'primary',
+            self::CV_REVIEWING => 'gray',
+            self::SCREENING => 'info',
+            self::INTERVIEW_SCHEDULED => 'warning',
+            self::INTERVIEWING => 'primary',
+            self::OFFERED => 'success',
             self::HIRED => 'success',
             self::REJECTED => 'danger',
         };
@@ -44,10 +47,11 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
     public function getLabel(): string|Htmlable|null
     {
         return match ($this) {
-            self::NEW => 'Mới',
-            self::SCREENING => 'Sàng lọc',
-            self::INTERVIEW => 'Phỏng vấn',
-            self::OFFER => 'Offer',
+            self::CV_REVIEWING => 'Sàng lọc CV',
+            self::SCREENING => 'Sơ tuyển',
+            self::INTERVIEW_SCHEDULED => 'Hẹn phỏng vấn',
+            self::INTERVIEWING => 'Đang phỏng vấn',
+            self::OFFERED => 'Đã gửi Offer',
             self::HIRED => 'Đã tuyển',
             self::REJECTED => 'Từ chối',
         };

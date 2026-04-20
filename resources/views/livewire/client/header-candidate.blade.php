@@ -85,7 +85,7 @@
             min-height: 44px !important;
             padding: 12px 24px !important;
             border-radius: 999px !important;
-            background: #ff8a1d !important;
+            background: var(--fpt-orange) !important;
             border: none !important;
             color: #fff !important;
             -webkit-text-fill-color: #fff !important;
@@ -99,9 +99,14 @@
             cursor: pointer !important;
             opacity: 1 !important;
             filter: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-            transition: none !important;
+            box-shadow: 0 4px 12px var(--fpt-orange-glow) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .app-header-candidate .header-right-menu ul li a.switch-role-btn:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 20px var(--fpt-orange-glow) !important;
+            background: var(--fpt-orange-light) !important;
         }
     </style>
     <div class="menu-animation">
@@ -123,7 +128,7 @@
                                 <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                 <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
                                 <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                                <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
+                                <li><a href="{{ route('candidates.browse_companies') }}">Chi nhánh</a></li>
                                 <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
                                 <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                             </ul>
@@ -138,7 +143,6 @@
                                 <a
                                     href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
                                     class="switch-role-btn"
-                                    style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
                                 >
                                     {{ request()->routeIs('employers.portal') ? 'Chuyển Sang Ứng Viên' : 'Khu Nhà Tuyển Dụng' }}
                                 </a>

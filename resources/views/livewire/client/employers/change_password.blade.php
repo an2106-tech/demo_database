@@ -1,60 +1,48 @@
 <div>
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Đổi mật khẩu</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="{{ route('candidates.browse_job') }}">Ứng viên</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.change_password') }}">Đổi mật khẩu</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+            <li class="active">Đổi mật khẩu</li>
+        </ul>
+    </div>
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
                 <div class="col-lg-3 col-md-4 dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
                 </div>
                 <div class="col-lg-9 col-md-8">
                     <div class="dashboard-right">
-                        <div class="change-pass manage-jobs">
+                        <div class="premium-panel">
                             <div class="manage-jobs-heading">
-                                <h3>Đổi mật khẩu</h3>
+                                <h3>Thiết lập mật khẩu</h3>
+                                <p style="margin: 10px 0 0; color: #64748b;">
+                                    Đảm bảo mật khẩu của bạn có độ dài tối thiểu 8 ký tự và bao gồm các ký tự đặc biệt để an toàn hơn.
+                                </p>
                             </div>
-                            <form>
-                                <p>
-                                    <label for="old_pass">Mật khẩu cũ</label>
-                                    <input type="password" placeholder="*******" id="old_pass">
-                                </p>
-                                <p>
-                                    <label for="new_pass">Mật khẩu mới</label>
-                                    <input type="password" placeholder="*******" id="new_pass">
-                                </p>
-                                <p>
-                                    <label for="confirm_pass">Xác nhận mật khẩu</label>
-                                    <input type="password" placeholder="*******" id="confirm_pass">
-                                </p>
-                                <p>
-                                    <button type="submit">Cập nhật</button>
-                                </p>
+                            <form style="margin-top: 2rem;">
+                                <div class="single-resume-feild">
+                                    <div class="single-input">
+                                        <label for="old_pass">Mật khẩu cũ</label>
+                                        <input type="password" placeholder="*******" id="old_pass">
+                                    </div>
+                                </div>
+                                <div class="single-resume-feild">
+                                    <div class="single-input">
+                                        <label for="new_pass">Mật khẩu mới</label>
+                                        <input type="password" placeholder="*******" id="new_pass">
+                                    </div>
+                                </div>
+                                <div class="single-resume-feild">
+                                    <div class="single-input">
+                                        <label for="confirm_pass">Xác nhận mật khẩu</label>
+                                        <input type="password" placeholder="*******" id="confirm_pass">
+                                    </div>
+                                </div>
+                                <div class="submit-resume" style="margin-top: 1.5rem;">
+                                    <button type="submit">Cập nhật mật khẩu</button>
+                                </div>
                             </form>
                         </div>
                     </div>

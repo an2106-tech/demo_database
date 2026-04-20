@@ -620,7 +620,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="breadcromb-box">
-                                <h3>Danh sách công ty tuyển dụng</h3>
+                                <h3>Danh sách chi nhánh tuyển dụng</h3>
                             </div>
                         </div>
                     </div>
@@ -634,7 +634,7 @@
                                 <ul>
                                     <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                     <li><a href="#">Ứng viên</a></li>
-                                    <li class="active-breadcromb"><a href="#">Danh sách công ty</a></li>
+                                    <li class="active-breadcromb"><a href="#">Danh sách chi nhánh</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -650,7 +650,7 @@
                         <div class="filter-sidebar">
                             <div class="filter-card">
                                 <h3>Ngày đăng tuyển</h3>
-                                <p class="filter-helper">Lọc công ty đang có tin mới nhất theo khoảng thời gian bạn quan
+                                <p class="filter-helper">Lọc chi nhánh đang có tin mới nhất theo khoảng thời gian bạn quan
                                     tâm.</p>
 
                                 <div class="filter-option">
@@ -687,7 +687,7 @@
 
                             <div class="filter-card" wire:ignore>
                                 <h3>Mức lương tối thiểu</h3>
-                                <p class="filter-helper">Chỉ hiển thị công ty có việc làm với mức lương tối đa phù hợp.
+                                <p class="filter-helper">Chỉ hiển thị chi nhánh có việc làm với mức lương tối đa phù hợp.
                                 </p>
                                 <input type="text" id="amount" class="salary-value" readonly>
                                 <div id="slider-single"></div>
@@ -695,92 +695,7 @@
                         </div>
                     </div>
 
-<<<<<<< HEAD
-                    <div class="bc2-list">
-                        @forelse ($branches as $branch)
-                            @continue(((int) ($branch->published_jobs_count ?? 0)) < 1)
-                            @php
-                                $branchName = trim((string) ($branch->name ?? ''));
-                                $logoSrc = $branch->image ? '/storage/' . ltrim($branch->image, '/') : asset('assets/img/company-logo-1.png');
-                                $cityLabel = \App\Enums\VietnamProvince::tryFrom((string) ($branch->city ?? ''))?->label() ?? ($branch->city ?? 'Chưa cập nhật');
-                                $address = trim((string) ($branch->address ?? ''));
-                            @endphp
 
-                            <article class="bc2-company">
-                                <div class="bc2-company__head">
-                                    <div class="bc2-company__logo">
-                                        <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}" loading="lazy" decoding="async">
-                                    </div>
-
-                                    <div class="bc2-company__meta">
-                                        <h3 class="bc2-company__name">{{ $branchName !== '' ? $branchName : 'Doanh nghiệp' }}</h3>
-                                        <div class="bc2-company__sub">
-                                            <span class="bc2-company__sub-item"><i class="fa fa-map-marker"></i> {{ $cityLabel }}</span>
-                                            @if ($address !== '')
-                                                <span class="bc2-company__sub-sep">•</span>
-                                                <span class="bc2-company__sub-item">{{ $address }}</span>
-                                            @endif
-                                        </div>
-                                        <div class="bc2-company__badges">
-                                            <span class="bc2-badge bc2-badge--accent">
-                                                <i class="fa fa-briefcase"></i> {{ (int) ($branch->published_jobs_count ?? 0) }} vị trí
-                                            </span>
-                                            <span class="bc2-badge">
-                                                <i class="fa fa-check"></i> {{ $branch->is_active ? 'Đang hoạt động' : 'Ngưng hoạt động' }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="bc2-company__actions">
-                                        <a class="bc2-primary-btn" href="{{ route('candidates.browse_job', ['city' => $branch->city]) }}">Xem việc</a>
-                                    </div>
-                                </div>
-
-                                <div class="bc2-company__body">
-                                    <div class="bc2-company__contact">
-                                        <i class="fa fa-envelope"></i>
-                                        <span>{{ $branch->email_contact ?? 'Không có thông tin email' }}</span>
-                                    </div>
-
-                                    @if ($branch->recruitmentJobs?->isNotEmpty())
-                                        @foreach ($branch->recruitmentJobs->take(1) as $job)
-                                            @php
-                                                $salaryText = 'Thỏa thuận';
-                                                if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
-                                                    $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
-                                                } elseif (is_array($job->salary_range) && count($job->salary_range) > 0) {
-                                                    $salaryText = implode(' - ', $job->salary_range);
-                                                } elseif (!empty($job->salary_range)) {
-                                                    $salaryText = (string) $job->salary_range;
-                                                }
-                                            @endphp
-
-                                            <div class="bc2-company__job">
-                                                <a class="bc2-company__job-title" href="{{ route('jobs.public', ['slug' => $job->slug]) }}">
-                                                    {{ $job->title }}
-                                                </a>
-                                                <div class="bc2-company__job-meta">
-                                                    <span><i class="fa fa-credit-card-alt"></i> {{ $salaryText }}</span>
-                                                    @if (! empty($job->deadline))
-                                                        <span><i class="fa fa-clock-o"></i> {{ $job->deadline?->format('d/m/Y') }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    @endif
-                                </div>
-                            </article>
-                        @empty
-                            <div class="bc2-empty">
-                                <img src="{{ asset('assets/img/no-results.png') }}" alt="No data" loading="lazy" decoding="async">
-                                <p>Không có công ty hoặc địa điểm tương ứng với bộ lọc của bạn.</p>
-                            </div>
-                        @endforelse
-                    </div>
-
-                    <div class="bc2-pagination">
-                        {{ $branches->links() }}
-=======
                     <div class="col-lg-9">
                         <div class="toolbar-card">
                             <div class="toolbar-top">
@@ -788,7 +703,7 @@
                                     <div class="search-box">
                                         <form wire:submit.prevent="">
                                             <input type="search" wire:model.live.debounce.500ms="search"
-                                                placeholder="Tìm công ty, vị trí tuyển dụng hoặc địa điểm...">
+                                                placeholder="Tìm chi nhánh, vị trí tuyển dụng hoặc địa điểm...">
                                             <button type="button" aria-label="Tìm kiếm">
                                                 <i class="fa fa-search"></i>
                                             </button>
@@ -839,7 +754,7 @@
 
                                 <div class="summary-badge">
                                     <i class="fa fa-building-o"></i>
-                                    {{ $branches->total() }} công ty phù hợp
+                                    {{ $branches->total() }} chi nhánh phù hợp
                                 </div>
                             </div>
 
@@ -868,14 +783,14 @@
                                 </div>
 
                                 <div class="company-footer-note">
-                                    Cập nhật danh sách công ty đang có tin tuyển dụng còn hiệu lực.
+                                    Cập nhật danh sách chi nhánh đang có tin tuyển dụng còn hiệu lực.
                                 </div>
                             </div>
                         </div>
 
                         <div class="summary-card">
                             <h4>Khám phá nhà tuyển dụng đang hoạt động</h4>
-                            <p>Thông tin được sắp theo công ty mới cập nhật gần đây, kèm vị trí tuyển dụng nổi bật và
+                            <p>Thông tin được sắp theo chi nhánh mới cập nhật gần đây, kèm vị trí tuyển dụng nổi bật và
                                 mức lương tham khảo.</p>
                         </div>
 
@@ -1002,7 +917,6 @@
                                 {{ $branches->links() }}
                             </div>
                         @endif
->>>>>>> 9b6dbe1 ([Client] Sửa giao diện Trang công ty browse-companies)
                     </div>
                 </div>
             </div>
@@ -1114,4 +1028,3 @@
     </div>
 
 </div>
->>>>>>> 9b6dbe1 ([Client] Sửa giao diện Trang công ty browse-companies)

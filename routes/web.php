@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\JobApprovalController;
 use App\Http\Controllers\OfferResponseController;
 use App\Livewire\Client\About as PagesAbout;
 use App\Livewire\Client\ApplicationDetail;
@@ -67,6 +68,15 @@ Route::prefix('offers')->name('offers.')->group(function () {
     Route::get('/{offer}/respond/decline', [OfferResponseController::class, 'decline'])
         ->middleware('signed')
         ->name('respond.decline');
+});
+
+Route::prefix('jobs')->name('jobs.')->group(function () {
+    Route::get('/{job}/direct-approve', [JobApprovalController::class, 'approve'])
+        ->middleware('signed')
+        ->name('direct_approve');
+    Route::get('/{job}/direct-reject', [JobApprovalController::class, 'reject'])
+        ->middleware('signed')
+        ->name('direct_reject');
 });
 
 Route::redirect('/candidate-profile.html', '/candidates/candidate-profile');

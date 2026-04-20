@@ -1,35 +1,14 @@
 <div>
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Quản lý tin tuyển dụng</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('employers.dashboard') }}">Trang chủ</a></li>
-                                <li><a href="{{ route('employers.post_job') }}">Đăng tin</a></li>
-                                <li class="active-breadcromb"><a href="{{ route('employers.manage_jobs') }}">Quản lý tin đăng</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
+            <li class="active">Quản lý tin đăng</li>
+        </ul>
+    </div>
 
     <section class="candidate-dashboard-area section_70">
-        <div class="container">
+        <div class="container-fluid px-lg-5">
             <div class="row">
                 <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
@@ -37,11 +16,11 @@
 
                 <div class="col-lg-9 col-md-8 mx-auto">
                     <div class="dashboard-right">
-                        <div class="manage-jobs">
+                        <div class="premium-panel">
                             <div class="manage-jobs-heading">
                                 <h3>Danh sách tin đã tạo</h3>
-                                <p style="margin: 10px 0 0; color: #6b7280;">
-                                    Xem nhanh trạng thái tin đăng, hạn nộp và chi nhánh đang sử dụng.
+                                <p style="margin: 10px 0 0; color: #64748b;">
+                                    Theo dõi trạng thái, hiệu chỉnh hoặc đóng các tin tuyển dụng của bạn.
                                 </p>
                             </div>
 
@@ -77,22 +56,25 @@
                                                 <td>
                                                     @php
                                                         $statusClass = match((string) $job->status?->value) {
-                                                            'published' => 'pending',
+                                                            'published' => 'published',
+                                                            'pending' => 'pending',
                                                             'expired', 'closed' => 'expired',
-                                                            default => 'pending',
+                                                            default => 'draft',
                                                         };
                                                         $statusLabel = $job->status?->getLabel()
                                                             ?? ucfirst($job->status instanceof \BackedEnum ? $job->status->value : (string) $job->status);
                                                     @endphp
-                                                    <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
+                                                    <span class="badge rounded-pill {{ $statusClass }}">{{ $statusLabel }}</span>
                                                 </td>
                                                 <td style="white-space: nowrap;">
-                                                    <a href="{{ route('employers.edit_job', ['id' => $job->id]) }}" class="btn btn-sm" style="color: #ff7800; background: rgba(255, 120, 0, 0.1); border: 1px solid #ff7800; border-radius: 6px; padding: 6px 12px; margin-right: 8px; font-size: 13px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(255,120,0,0.1);">
-                                                        <i class="fa fa-pencil" style="margin-right: 4px;"></i> Sửa
-                                                    </a>
-                                                    <button type="button" onclick="confirmDeleteJob({{ $job->id }});" class="btn btn-sm" style="color: #dc3545; background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; border-radius: 6px; padding: 6px 12px; border: none; font-size: 13px; font-weight: 500; transition: all 0.3s; box-shadow: 0 2px 4px rgba(220,53,69,0.1);">
-                                                        <i class="fa fa-trash-o" style="margin-right: 4px;"></i> Xoá
-                                                    </button>
+                                                    <div class="d-flex gap-2">
+                                                        <a href="{{ route('employers.edit_job', ['id' => $job->id]) }}" class="btn btn-sm" style="color: var(--fpt-orange); background: rgba(243, 112, 33, 0.08); border: 1px solid rgba(243, 112, 33, 0.2); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; transition: all 0.3s;">
+                                                            <i class="fa fa-pencil"></i> Sửa
+                                                        </a>
+                                                        <button type="button" onclick="confirmDeleteJob({{ $job->id }});" class="btn btn-sm" style="color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; transition: all 0.3s;">
+                                                            <i class="fa fa-trash-o"></i> Xoá
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @empty

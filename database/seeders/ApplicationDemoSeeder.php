@@ -44,7 +44,7 @@ class ApplicationDemoSeeder extends Seeder
                     'utm_source' => 'demo',
                     'utm_medium' => 'seed',
                     'utm_campaign' => 'application-demo-' . $branch->code,
-                    'status' => 'new',
+                    'status' => 'cv_reviewing',
                     'salary_expected' => ['min' => 15000000, 'max' => 25000000],
                     'applied_at' => now(),
                     'rejected_reason' => null,

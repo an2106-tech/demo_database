@@ -39,6 +39,14 @@ class EmployersDashboard extends Component
                 ->count();
         }
 
+        // New data for premium dashboard
+        $greeting = $this->getGreeting();
+        $recentApplications = Application::whereIn('job_id', $jobIds)
+            ->with(['job', 'candidate'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('livewire.client.employers.employers_dashboard', [
             'totalJobs' => $totalJobs,
             'totalApplications' => $totalApplications,
@@ -46,6 +54,16 @@ class EmployersDashboard extends Component
             'pendingJobs' => $pendingJobs,
             'user' => $user,
             'isDirector' => $isDirector,
+            'greeting' => $greeting,
+            'recentApplications' => $recentApplications,
         ]);
+    }
+
+    private function getGreeting(): string
+    {
+        $hour = now()->hour;
+        if ($hour < 12) return 'Chào buổi sáng';
+        if ($hour < 18) return 'Chào buổi chiều';
+        return 'Chào buổi tối';
     }
 }

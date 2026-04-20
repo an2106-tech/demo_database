@@ -104,7 +104,7 @@
 
       .user-link:hover {
          background-color: #f8fafc;
-         color: #F37021 !important;
+         color: var(--fpt-orange) !important;
          /* Đổi màu khi hover cho đẹp */
       }
 
@@ -241,7 +241,7 @@
          left: var(--switch-pad);
          width: calc(50% - ((var(--switch-gap) / 2) + var(--switch-pad)));
          border-radius: 999px;
-         background: linear-gradient(135deg, #f37021 0%, #ff8a1d 100%);
+         background: linear-gradient(135deg, var(--fpt-orange) 0%, #ff8a1d 100%);
          box-shadow: 0 10px 24px rgba(243, 112, 33, .24);
          transition: transform .34s cubic-bezier(.22, 1, .36, 1), box-shadow .24s ease;
          z-index: 0;
@@ -497,7 +497,7 @@
                                     <ul>
                                        <li><a href="{{ route('candidates.browse_job') }}">Tìm việc</a></li>
                                        <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                                       <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
+                                       <li><a href="{{ route('candidates.browse_companies') }}">Chi nhánh</a></li>
                                     </ul>
                                  </li>
                                  <li class="has-children">
@@ -514,7 +514,7 @@
                               @if($showCandidateMenu ?? false)
                                  <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
                                  <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                                 <li><a href="{{ route('candidates.browse_companies') }}">Công ty</a></li>
+                                 <li><a href="{{ route('candidates.browse_companies') }}">Chi nhánh</a></li>
                               @endif
 
 @if($showEmployerMenu ?? false)

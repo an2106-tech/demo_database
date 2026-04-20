@@ -25,7 +25,7 @@ class ApplicationSeeder extends Seeder
                     [
                         'cv_path' => 'cv/' . $candidateId . '-' . $jobId . '.pdf',
                         'source' => 'website',
-                        'status' => 'new',
+                        'status' => 'cv_reviewing',
                         'salary_expected' => ['min' => 1000, 'max' => 1500],
                         'applied_at' => now(),
                         'created_at' => now(),
