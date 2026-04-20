@@ -6,11 +6,11 @@
             justify-content: space-between;
             gap: 14px;
             flex-wrap: wrap;
-            padding: 18px;
-            border-radius: 16px;
-            background: #fff;
-            box-shadow: 0 18px 50px rgba(15, 23, 42, .08);
-            border: 1px solid rgba(226, 232, 240, .9);
+            padding: 18px 22px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 18px 60px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(226, 232, 240, 0.9);
         }
 
         .browse-category-page .job-browse-search {
@@ -19,143 +19,216 @@
         }
 
         .browse-category-page .job-browse-search form {
+            position: relative;
+            height: 50px;
+            width: 100%;
             display: flex;
-            align-items: stretch;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #fff;
         }
 
         .browse-category-page .job-browse-search input {
-            height: 46px;
-            border-radius: 12px 0 0 12px;
-            border: 1px solid rgba(148, 163, 184, .35);
-            border-right: 0;
-            padding: 0 14px;
-            background: rgba(248, 250, 252, .9);
+            flex: 1;
+            border: none;
+            padding: 0 18px;
+            font-size: 0.95rem;
+            color: #0f172a;
+            background: transparent;
+            min-width: 0;
+        }
+
+        .browse-category-page .job-browse-search input:focus {
+            outline: none;
+            box-shadow: none;
         }
 
         .browse-category-page .job-browse-search button {
-            width: 58px;
-            border-radius: 0 12px 12px 0;
-            background: #2f7ff7;
-            border: 1px solid #2f7ff7;
+            width: 70px;
+            border: none;
+            background: #f37021;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .browse-category-page .job-browse-search button:hover {
-            background: #1f6fe8;
-            border-color: #1f6fe8;
+            background: #d95a12;
         }
 
-        .browse-category-page .job-browse-action .btn-dropdown {
-            height: 46px;
-            border-radius: 12px;
-            border: 1px solid rgba(148, 163, 184, .35);
-            background: #fff;
-            padding: 0 14px;
-            font-weight: 800;
-            color: #0f172a;
+        .browse-category-page .job-browse-action {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
         .browse-category-page .email-alerts {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border: 1px solid rgba(148, 163, 184, .28);
-            border-radius: 12px;
-            background: rgba(248, 250, 252, .7);
-            height: 46px;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 14px;
+            background: rgba(248, 250, 252, 0.95);
+            height: 50px;
         }
 
         .browse-category-page .email-alerts label {
             margin: 0;
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .browse-category-page .job-browse-action .dropdown button {
+            height: 50px;
+            border-radius: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            background: #fff;
+            padding: 0 18px;
             font-weight: 700;
-            color: rgba(15, 23, 42, .75);
-            font-size: 13px;
-            line-height: 1.2;
+            color: #0f172a;
+            min-width: 180px;
+            text-align: left;
+        }
+
+        .browse-category-page .job-browse-action .dropdown-menu li {
+            padding: 10px 16px;
+            font-size: 0.95rem;
         }
 
         .browse-category-page .category-grid {
-            margin-top: 22px;
+            margin-top: 30px;
         }
 
         .browse-category-page .category-card {
             position: relative;
             overflow: hidden;
-            border-radius: 18px;
-            min-height: 170px;
-            padding: 22px 20px;
-            border: 1px solid rgba(226, 232, 240, .9);
-            background: linear-gradient(180deg, rgba(255, 255, 255, .96), rgba(248, 250, 252, .96));
-            box-shadow: 0 22px 60px rgba(15, 23, 42, .10);
-            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+            border-radius: 22px;
+            min-height: 240px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            text-decoration: none;
+            color: #fff;
+            box-shadow: 0 18px 60px rgba(15, 23, 42, 0.12);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
-        .browse-category-page .category-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(47, 127, 247, .18), rgba(16, 185, 129, .10));
-            opacity: .65;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .browse-category-page .category-card .category-holder-icon,
-        .browse-category-page .category-card .category-holder-text {
-            position: relative;
-            z-index: 1;
-        }
-
-        .browse-category-page .category-card .category-holder-icon i {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 56px;
-            height: 56px;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, .92);
-            color: #2f7ff7;
-            font-size: 26px;
-            box-shadow: 0 12px 28px rgba(15, 23, 42, .10);
-        }
-
-        .browse-category-page .category-card .category-holder-text h3 {
-            margin: 10px 0 0;
-            font-size: 18px;
-            line-height: 1.35;
-            font-weight: 900;
-            color: #0f172a;
-        }
-
-        .browse-category-page .category-card .category-sub {
-            margin: 8px 0 0;
-            color: rgba(15, 23, 42, .65);
-            font-weight: 700;
-            font-size: 13px;
-        }
-
-        .browse-category-page .category-card > img {
+        .browse-category-page .category-card__bg {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             z-index: 0;
-            opacity: .22;
+            transition: transform 0.5s ease;
         }
 
-        .browse-category-page .category-card:hover > img {
-            opacity: .35;
+        .browse-category-page .category-card__overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(14, 25, 49, 0.18), rgba(14, 25, 49, 0.72));
+            z-index: 1;
+        }
+
+        .browse-category-page .category-card__content {
+            position: relative;
+            z-index: 2;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .browse-category-page .category-card__icon {
+            width: 58px;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+        }
+
+        .browse-category-page .category-card__icon i {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .browse-category-page .category-card__title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            line-height: 1.25;
+            text-shadow: 0 16px 30px rgba(0, 0, 0, 0.22);
+            margin: 0;
+        }
+
+        .browse-category-page .category-card__meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .browse-category-page .category-card__count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .browse-category-page .category-card__count i {
+            font-size: 1rem;
+        }
+
+        .browse-category-page .category-card__arrow {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .browse-category-page .category-card__arrow i {
+            color: #fff;
+            font-size: 0.95rem;
         }
 
         .browse-category-page .category-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 26px 70px rgba(15, 23, 42, .14);
-            border-color: rgba(47, 127, 247, .35);
+            transform: translateY(-6px);
+            box-shadow: 0 24px 80px rgba(15, 23, 42, 0.18);
         }
 
-        @media (max-width: 575px) {
-            .browse-category-page .email-alerts label {
-                display: none;
+        .browse-category-page .category-card:hover .category-card__bg {
+            transform: scale(1.08);
+        }
+
+        @media (max-width: 767px) {
+            .browse-category-page .browse-job-head-option {
+                padding: 16px;
+            }
+
+            .browse-category-page .job-browse-action {
+                justify-content: flex-start;
+                width: 100%;
+            }
+
+            .browse-category-page .job-browse-action .dropdown button {
+                width: 100%;
+                text-align: left;
             }
         }
     </style>
@@ -219,19 +292,20 @@
                        @forelse ($categories as $category)
                            <div class="col-lg-3 col-md-6 col-sm-6">
                                <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder category-card">
-                                   <div class="category-holder-icon">
-                                       <i class="{{ $category->icon_class }}"></i>
+                                   <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="category-card__bg" loading="lazy" decoding="async" />
+                                   <div class="category-card__overlay"></div>
+                                   <div class="category-card__content">
+                                       <div class="category-card__icon">
+                                           <i class="{{ $category->icon_class ?: 'fa fa-briefcase' }}"></i>
+                                       </div>
+                                       <div>
+                                           <h3 class="category-card__title">{{ $category->name }}</h3>
+                                       </div>
+                                       <div class="category-card__meta">
+                                           <div class="category-card__count"><i class="fa fa-briefcase"></i> {{ $category->recruitment_jobs_count ?? 0 }} việc</div>
+                                           <div class="category-card__arrow"><i class="fa fa-arrow-right"></i></div>
+                                       </div>
                                    </div>
-                                   <div class="category-holder-text">
-                                       <h3>{{ $category->name }}</h3>
-                                   </div>
-                                   <img
-                                       src="{{ $category->image_url }}"
-                                       alt=""
-                                       role="presentation"
-                                       loading="lazy"
-                                       decoding="async"
-                                   />
                                </a>
                            </div>
                        @empty

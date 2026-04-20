@@ -4,18 +4,28 @@
         $isListView = ($display ?? 'grid') === 'list';
     @endphp
 
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
+    <section class="home-hero home-premium-hero browse-hero">
+        <div class="home-premium-hero-banner">
+            <img src="{{ asset('assets/img/BannerWeb_Tiensi-03.jpg') }}" alt="Tuyển dụng nội bộ FPT" class="browse-hero__bg-img">
+        </div>
+
+        <div class="browse-hero__overlay">
             <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Tìm việc làm</h3>
+                <div class="row align-items-center">
+                    <div class="col-lg-7">
+                        <div class="breadcromb-box browse-hero__content text-white">
+                            <p class="text-uppercase text-warning fw-semibold mb-3">Hệ thống quản lý tuyển dụng nội bộ FPT</p>
+                            <h1 class="mb-4">Tìm việc nội bộ nhanh chóng và đồng bộ</h1>
+                            <p class="mb-4 text-white-75">Tập trung các cơ hội tuyển dụng dành cho nhân viên FPT và ứng viên nội bộ. Lọc theo phòng ban, khu vực và yêu cầu để tìm đúng vị trí phù hợp, đồng bộ với hệ thống quản lý tuyển dụng.</p>
+                            <a href="{{ route('home') }}" class="btn btn-warning rounded-pill px-5 py-3 fw-bold">Trở về hệ thống</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </section>
+
+    <section class="jobguru-breadcromb-area">
         <div class="breadcromb-bottom">
             <div class="container">
                 <div class="row">
@@ -35,6 +45,36 @@
 
     <section class="bj2-section section_70">
         <div class="container">
+            <div class="row g-4 mb-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body">
+                            <p class="text-uppercase text-muted mb-2">Tổng số cơ hội</p>
+                            <h2 class="fw-bold">{{ $jobs->count() }}</h2>
+                            <p class="mb-0 text-muted">Việc làm đang tuyển dụng nội bộ</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body">
+                            <p class="text-uppercase text-muted mb-2">Phòng ban</p>
+                            <h2 class="fw-bold">{{ $departments->count() }}</h2>
+                            <p class="mb-0 text-muted">Lọc theo phòng ban hiện có</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                        <div class="card-body">
+                            <p class="text-uppercase text-muted mb-2">Xem nhanh</p>
+                            <h2 class="fw-bold">Ứng tuyển ngay</h2>
+                            <p class="mb-0 text-muted">Thao tác trực tiếp trên hệ thống</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="bj2-filters">
                 <div class="bj2-filters__grid">
                     <div class="bj2-field">
@@ -52,7 +92,7 @@
                         <input
                             type="text"
                             class="form-control"
-                            placeholder="Khu vực"
+                            placeholder="Khu vực (Hà Nội, TP.HCM...)"
                             wire:model.live.debounce.400ms="city"
                         >
                     </div>
@@ -78,7 +118,7 @@
 
                 <div class="bj2-filters__bar">
                     <div class="bj2-count">
-                        Có <span class="bj2-count__num">{{ $jobs->count() }}</span> việc làm
+                        Có <span class="bj2-count__num">{{ $jobs->count() }}</span> kết quả phù hợp
                     </div>
 
                     <div class="bj2-view">
@@ -128,29 +168,52 @@
                     @endphp
 
                     <div class="col-12 {{ $isListView ? '' : 'col-md-6 col-lg-4' }}">
+                        @php
+                            $excerpt = trim(strip_tags($job->description ?? ''));
+                            $excerpt = \Illuminate\Support\Str::limit($excerpt, 120, '...');
+                            $departmentName = $job->department?->name ?? 'Chưa có phòng ban';
+                            $workplaceName = $job->workplace?->name ?? 'Không rõ';
+                        @endphp
+
                         <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }}">
-                            <div class="bj2-card__content">
-                                <header class="bj2-card__header">
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                                <div class="d-flex align-items-start gap-3 flex-grow-1">
                                     <a class="bj2-card__logo" href="{{ $detailUrl }}">
                                         <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}">
                                     </a>
 
-                                    <p class="bj2-card__school">
-                                        {{ $branchName !== '' ? $branchName : 'Doanh nghiệp' }}
-                                    </p>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                                            <span class="badge bg-warning text-dark text-uppercase">Nội bộ FPT</span>
+                                            <span class="badge bg-light text-dark border">{{ $departmentName }}</span>
+                                            <span class="badge bg-light text-dark border">{{ $workplaceName }}</span>
+                                        </div>
 
-                                    <p class="bj2-card__place">
-                                        <i class="fa fa-map-marker"></i>
-                                        <span>{{ $cityText }}</span>
-                                    </p>
+                                        <h3 class="bj2-card__title mt-0 mb-2">
+                                            <a href="{{ $detailUrl }}">{{ $job->title }}</a>
+                                        </h3>
 
-                                    <h3 class="bj2-card__title">
-                                        <a href="{{ $detailUrl }}">{{ $job->title }}</a>
-                                    </h3>
-                                </header>
+                                        <div class="d-flex flex-wrap gap-3 align-items-center text-muted mb-3">
+                                            <div><i class="fa fa-building-o me-1"></i>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</div>
+                                            <div><i class="fa fa-map-marker me-1"></i>{{ $cityText }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <span class="badge rounded-pill bg-secondary fw-semibold">Hạn nộp: {{ $deadlineText }}</span>
                             </div>
 
-                            <div class="bj2-card__cta">
+                            <div class="bj2-card__content pt-0">
+                                <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
+                                        <div class="text-primary fw-bold">{{ $salaryText }}</div>
+
+                                @if ($excerpt !== '')
+                                    <p class="text-secondary mb-0">{{ $excerpt }}</p>
+                                @endif
+                            </div>
+
+                            <div class="bj2-card__cta d-flex flex-wrap gap-3">
+                                <a href="{{ $detailUrl }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">Xem chi tiết</a>
                                 <a href="{{ $applyUrl }}" class="bj2-apply">Ứng tuyển ngay</a>
                             </div>
                         </article>

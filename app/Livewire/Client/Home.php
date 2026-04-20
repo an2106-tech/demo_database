@@ -78,6 +78,14 @@ class Home extends Component
         $categories = Schema::hasTable('categories')
             ? Category::query()
                 ->orderBy('name')
+                ->withCount([
+                    'recruitmentJobs as recruitment_jobs_count' => fn ($query) => $query
+                        ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
+                        ->where(function ($q) use ($now) {
+                            $q->whereNull('deadline')
+                                ->orWhere('deadline', '>=', $now);
+                        }),
+                ])
                 ->get(['id', 'name', 'slug', 'icon', 'image'])
             : collect();
         $posts = Post::latest()->take(6)->get();

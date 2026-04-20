@@ -20,42 +20,66 @@
     <section class="jobguru-categories-area section_70">
         <div class="container">
             <div class="row">
-                <div class="col-md-12">
-                    <div class="site-heading">
-                        <h2>Danh mục <span>nổi bật</span></h2>
-                        <p>Chọn lĩnh vực phù hợp — khám phá việc làm và lộ trình phát triển rõ ràng.</p>
+                <div class="col-lg-8 mx-auto">
+                    <div class="site-heading text-center mb-5">
+                        <span class="badge badge-subtle mb-2">DANH MỤC NGÀNH NGHỀ</span>
+                        <h2 class="fw-bold mb-3">Khám phá các lĩnh vực <span class="text-primary">nổi bật</span></h2>
+                        <p class="text-muted lead">Chọn ngành nghề phù hợp với kinh nghiệm và tham vọng của bạn. Khám phá các cơ hội tuyển dụng đa dạng từ các công ty hàng đầu.</p>
                     </div>
                 </div>
             </div>
-            <div class="row">
+
+            <div class="row g-4">
                 @forelse($categories as $category)
-                    <div class="col-lg-3 col-md-6 col-sm-6 mb-4">
-                        <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="single-category-holder account_cat h-100 d-flex flex-column">
-                            <div class="category-holder-icon">
-                                @php
-                                    $icon = trim((string) ($category->icon ?? ''));
-                                @endphp
-                                <i
-                                    class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                    <div class="col-lg-3 col-md-6 col-sm-6">
+                        <a href="{{ route('candidates.browse_job', ['category_id' => $category->id]) }}" class="category-card h-100 d-flex flex-column position-relative overflow-hidden">
+                            <!-- Background Image -->
+                            <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="category-card__bg" loading="lazy" decoding="async" />
+                            
+                            <!-- Gradient Overlay -->
+                            <div class="category-card__overlay"></div>
+                            
+                            <!-- Content -->
+                            <div class="category-card__content position-relative z-2 d-flex flex-column h-100">
+                                <div class="category-card__icon mb-3">
+                                    @php
+                                        $icon = trim((string) ($category->icon ?? ''));
+                                    @endphp
+                                    <i class="{{ $icon !== '' ? (\Illuminate\Support\Str::startsWith($icon, 'bi') ? $icon : 'bi bi-' . $icon) : 'bi bi-grid' }}"></i>
+                                </div>
+                                
+                                <div class="flex-grow-1">
+                                    <h3 class="category-card__title fw-bold mb-2">{{ $category->name }}</h3>
+                                </div>
+                                
+                                <div class="category-card__meta d-flex align-items-center justify-content-between">
+                                    <span class="category-card__count">
+                                        <i class="bi bi-briefcase-fill me-1"></i>
+                                        {{ $category->recruitment_jobs_count ?? 0 }}
+                                    </span>
+                                    <span class="category-card__arrow">
+                                        <i class="bi bi-arrow-right"></i>
+                                    </span>
+                                </div>
                             </div>
-                            <div class="category-holder-text">
-                                <h3>{{ $category->name }}</h3>
-                            </div>
-                            <img src="{{ $category->image_url }}" alt="" role="presentation" loading="lazy" decoding="async" />
                         </a>
                     </div>
                 @empty
                     <div class="col-12">
-                        <p>Không có danh mục nào</p>
+                        <div class="alert alert-info text-center py-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Không có danh mục nào
+                        </div>
                     </div>
                 @endforelse
             </div>
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="load-more">
-                        <a href="{{ route('candidates.browse_categories') }}" class="jobguru-btn">Xem tất cả ngành
-                            nghề</a>
-                    </div>
+
+            <div class="row mt-5">
+                <div class="col-md-12 text-center">
+                    <a href="{{ route('candidates.browse_categories') }}" class="btn btn-primary btn-lg px-5 rounded-pill fw-semibold">
+                        <i class="bi bi-compass me-2"></i>
+                        Khám phá tất cả ngành nghề
+                    </a>
                 </div>
             </div>
         </div>
@@ -122,6 +146,154 @@
             </div>
         </div>
     </section>
+
+    <section class="home-ecosystem section_70" style="background: #fff;">
+        <div class="container">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-7">
+                    <h2 class="fw-bold display-5 mb-3">Hệ sinh thái <span class="text-orange">công nghệ nhân sự</span></h2>
+                    <p class="mb-0 text-muted">Kết nối ứng viên, nhà tuyển dụng và dữ liệu tuyển dụng trong một nền tảng thông minh — nhanh chóng, minh bạch và tối ưu mọi bước tuyển dụng.</p>
+                </div>
+                <div class="col-lg-5 text-lg-end">
+                    <a href="{{ route('pages.contact') }}" class="btn btn-orange btn-lg rounded-pill px-4 fw-semibold">Liên hệ tư vấn</a>
+                </div>
+            </div>
+
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6 col-lg-3">
+                    <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
+                        <div class="fw-bold display-6 text-orange">540.000+</div>
+                        <p class="mb-0 text-muted">Hồ sơ ứng viên đã đăng</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
+                        <div class="fw-bold display-6 text-orange">200.000+</div>
+                        <p class="mb-0 text-muted">Doanh nghiệp đang tìm kiếm nhân sự</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
+                        <div class="fw-bold display-6 text-orange">2.000.000+</div>
+                        <p class="mb-0 text-muted">Lượt kết nối công việc mỗi năm</p>
+                    </div>
+                </div>
+                <div class="col-sm-6 col-lg-3">
+                    <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
+                        <div class="fw-bold display-6 text-orange">1.200.000+</div>
+                        <p class="mb-0 text-muted">Ứng viên và nhà tuyển dụng đã tiếp cận</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="ecosystem-product-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm border border-1 border-orange-light">
+                        <div class="mb-3">
+                            <span class="badge badge-orange">1</span>
+                        </div>
+                        <h3 class="h5 fw-bold">Jobguru.vn</h3>
+                        <p class="text-muted small">Kênh tìm việc và tuyển dụng nhanh dành cho ứng viên và nhà tuyển dụng.</p>
+                        <a href="{{ route('candidates.browse_job') }}" class="stretched-link text-decoration-none text-orange">Khám phá ngay</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="ecosystem-product-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm border border-1 border-orange-light">
+                        <div class="mb-3">
+                            <span class="badge badge-orange">2</span>
+                        </div>
+                        <h3 class="h5 fw-bold">Hồ sơ ứng viên</h3>
+                        <p class="text-muted small">Tạo CV, cập nhật kỹ năng và đăng hồ sơ dễ dàng trong tài khoản cá nhân.</p>
+                        <a href="{{ route('candidates.submit_resume') }}" class="stretched-link text-decoration-none text-orange">Cập nhật CV</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="ecosystem-product-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm border border-1 border-orange-light">
+                        <div class="mb-3">
+                            <span class="badge badge-orange">3</span>
+                        </div>
+                        <h3 class="h5 fw-bold">Tin tức tuyển dụng</h3>
+                        <p class="text-muted small">Nội dung ngành nghề, tips phỏng vấn và cập nhật xu hướng việc làm.</p>
+                        <a href="{{ route('pages.blog') }}" class="stretched-link text-decoration-none text-orange">Xem bài viết</a>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="ecosystem-product-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm border border-1 border-orange-light">
+                        <div class="mb-3">
+                            <span class="badge badge-orange">4</span>
+                        </div>
+                        <h3 class="h5 fw-bold">Liên hệ doanh nghiệp</h3>
+                        <p class="text-muted small">Hỗ trợ kết nối tuyển dụng, hợp tác tuyển dụng và tư vấn doanh nghiệp.</p>
+                        <a href="{{ route('pages.contact') }}" class="stretched-link text-decoration-none text-orange">Liên hệ ngay</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <style>
+        .home-ecosystem {
+            background: #fff;
+            color: #212529;
+        }
+        .home-ecosystem h2 {
+            color: #111;
+        }
+        .home-ecosystem .text-orange {
+            color: #f37021 !important;
+        }
+        .home-ecosystem p.text-muted,
+        .home-ecosystem .ecosystem-product-card p,
+        .home-ecosystem .ecosystem-stat-card p {
+            color: #6c757d !important;
+        }
+        .home-ecosystem .btn-orange {
+            background-color: #f37021;
+            border-color: #f37021;
+            color: #fff;
+        }
+        .home-ecosystem .btn-orange:hover,
+        .home-ecosystem .btn-orange:focus {
+            background-color: #d95b10;
+            border-color: #d95b10;
+            color: #fff;
+        }
+        .home-ecosystem .border-orange-light {
+            border-color: rgba(243, 112, 33, .15) !important;
+        }
+        .home-ecosystem .badge-orange {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            background-color: #f37021;
+            color: #fff;
+            font-weight: 700;
+        }
+        .home-ecosystem .ecosystem-stat-card {
+            min-height: 160px;
+            border: 1px solid rgba(243, 112, 33, .15);
+        }
+        .home-ecosystem .ecosystem-stat-card .display-6 {
+            font-size: 2.4rem;
+            line-height: 1;
+        }
+        .home-ecosystem .ecosystem-product-card {
+            transition: transform .25s ease, box-shadow .25s ease;
+        }
+        .home-ecosystem .ecosystem-product-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 22px 45px rgba(243, 112, 33, .15);
+        }
+        .home-ecosystem .ecosystem-product-card h3 {
+            min-height: 3rem;
+        }
+        .home-ecosystem a.stretched-link::after {
+            z-index: 1;
+        }
+    </style>
 
     <section class="home-premium-spotlight section_70">
         <div class="container">

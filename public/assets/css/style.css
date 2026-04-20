@@ -1079,113 +1079,338 @@ header,
 
 
 /*================================================
-10 - CATEGORY AREA CSS
+10 - CATEGORY AREA CSS (MODERN REDESIGN)
 ==================================================*/
 
-.single-category-holder {
-	padding: 60px 20px;
-	text-align: center;
-	background: #f7f7f7 none repeat scroll 0 0;
-	display: block;
-	margin-top: 14px;
-	border-radius: 5px;
-	min-height: 200px;
+/* Main Categories Section */
+.jobguru-categories-area {
 	position: relative;
 	z-index: 1;
-	-webkit-transition: all 0.2s ease 0s;
-	transition: all 0.2s ease 0s
 }
 
-.single-category-holder:hover {
-	-webkit-transform: translateY(-3px);
-	transform: translateY(-3px);
-	box-shadow: 0 5px 25px rgba(0, 0, 0, .3);
+.jobguru-categories-area .site-heading {
+	margin-bottom: 3rem;
 }
 
-.single-category-holder:after {
-	position: absolute;
-	content: "";
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(0, 0, 0, 0.65) none repeat scroll 0 0;
-	z-index: -1;
-	opacity: 0;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-	-webkit-transition: all 0.3s ease 0s;
-	transition: all 0.3s ease 0s;
-	border-radius: 5px;
-}
-
-.single-category-holder:hover:after {
-	opacity: 1;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)"
-}
-
-.single-category-holder:hover .category-holder-icon i,
-.single-category-holder:hover .category-holder-text h3 {
-	color: #fff
-}
-
-.single-category-holder>img {
-	border-radius: 5px;
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	z-index: -1;
-	opacity: 0;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=0)";
-	-webkit-transition: all 0.4s ease 0s;
-	transition: all 0.4s ease 0s
-}
-
-.single-category-holder:hover img {
-	opacity: 1;
-	-ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=100)";
-	-webkit-transition: all 0.4s ease 0s;
-	transition: all 0.4s ease 0s;
-}
-
-.category-holder-icon {
-	margin-bottom: 10px;
-}
-
-.category-holder-icon i {
-	font-size: 30px;
+.jobguru-categories-area .site-heading .badge-subtle {
+	background: linear-gradient(135deg, rgba(243, 112, 33, 0.1), rgba(243, 112, 33, 0.05));
 	color: #F37021;
-	-webkit-transition: all 0.4s ease 0s;
-	transition: all 0.4s ease 0s
+	font-weight: 600;
+	font-size: 0.85rem;
+	letter-spacing: 0.5px;
+	text-transform: uppercase;
 }
 
-.category-holder-text h3 {
-	font-size: 17px;
-	text-transform: capitalize;
-	font-family: 'Montserrat', sans-serif;
-	font-weight: 500;
-	line-height: 30px;
-	color: #111;
+.jobguru-categories-area .site-heading h2 {
+	font-size: clamp(2rem, 5vw, 2.75rem);
+	line-height: 1.2;
+	letter-spacing: -0.5px;
 }
 
-.jobguru-categories-area .row .col-lg-3 {
-	padding-left: 7px;
-	padding-right: 7px
+.jobguru-categories-area .site-heading h2 span {
+	background: linear-gradient(135deg, #F37021 0%, #E85A0D 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
 }
 
-.category-count {
-	margin-top: 10px;
+.jobguru-categories-area .site-heading p {
+	font-size: 1.125rem;
+	line-height: 1.6;
+	color: #666;
+	margin-bottom: 0;
 }
 
-.load-more {
-	text-align: center;
+/* Category Card */
+.category-card {
+	position: relative;
+	overflow: hidden;
+	border-radius: 12px;
+	text-decoration: none;
+	color: white;
+	min-height: 280px;
+	transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+	display: flex;
+	flex-direction: column;
 }
 
-.load-more a {
-	margin-top: 30px;
+/* Background Image */
+.category-card__bg {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+	z-index: 1;
 }
 
+/* Gradient Overlay */
+.category-card__overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.65) 50%, rgba(0, 0, 0, 0.75) 100%);
+	z-index: 1;
+	transition: all 0.4s ease;
+}
+
+/* Content Container */
+.category-card__content {
+	position: relative;
+	z-index: 2;
+	padding: 2rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+}
+
+/* Icon */
+.category-card__icon {
+	width: 56px;
+	height: 56px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.15);
+	border-radius: 8px;
+	backdrop-filter: blur(10px);
+	border: 1px solid rgba(255, 255, 255, 0.2);
+	transition: all 0.3s ease;
+	margin-bottom: 1rem;
+}
+
+.category-card__icon i {
+	font-size: 28px;
+	color: #fff;
+	transition: transform 0.3s ease;
+}
+
+/* Title */
+.category-card__title,
+.category-card h3,
+.category-card .category-holder-text h3,
+.single-category-holder .category-holder-text h3 {
+	font-size: 1.375rem;
+	line-height: 1.4;
+	font-weight: 700;
+	color: #fff !important;
+	margin-bottom: 0.5rem;
+	transition: all 0.3s ease;
+	text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.3);
+	letter-spacing: 0.3px;
+}
+
+/* Meta Information */
+.category-card__meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding-top: 1rem;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.category-card__count {
+	display: flex;
+	align-items: center;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #fff;
+	transition: all 0.3s ease;
+	text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.category-card__count i {
+	font-size: 1rem;
+	margin-right: 0.4rem;
+}
+
+.category-card__arrow {
+	width: 32px;
+	height: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 6px;
+	transition: all 0.3s ease;
+	color: #fff;
+}
+
+.category-card__arrow i {
+	font-size: 1rem;
+	transition: transform 0.3s ease;
+}
+
+/* Hover State */
+.category-card:hover {
+	transform: translateY(-8px);
+	box-shadow: 0 12px 40px rgba(243, 112, 33, 0.25);
+}
+
+.category-card:hover .category-card__bg {
+	transform: scale(1.08);
+}
+
+.category-card:hover .category-card__overlay {
+	background: linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.55) 50%, rgba(0, 0, 0, 0.7) 100%);
+}
+
+.category-card:hover .category-card__icon {
+	background: rgba(255, 255, 255, 0.25);
+	border-color: rgba(255, 255, 255, 0.3);
+	transform: translateY(-2px);
+}
+
+.category-card:hover .category-card__icon i {
+	transform: scale(1.1);
+}
+
+.category-card:hover .category-card__title {
+	transform: translateY(-2px);
+}
+
+.category-card:hover .category-card__count {
+	color: #fff;
+	transform: translateX(2px);
+}
+
+.category-card:hover .category-card__arrow {
+	background: rgba(243, 112, 33, 0.8);
+	transform: translateX(3px);
+}
+
+.category-card:hover .category-card__arrow i {
+	transform: translateX(2px);
+}
+
+/* Responsive Design */
+@media (max-width: 991px) {
+	.category-card {
+		min-height: 240px;
+	}
+
+	.category-card__content {
+		padding: 1.75rem;
+	}
+
+	.category-card__icon {
+		width: 48px;
+		height: 48px;
+	}
+
+	.category-card__icon i {
+		font-size: 24px;
+	}
+
+	.category-card__title {
+		font-size: 1.25rem;
+	}
+
+	.jobguru-categories-area .site-heading h2 {
+		font-size: 2rem;
+	}
+}
+
+@media (max-width: 576px) {
+	.category-card {
+		min-height: 200px;
+	}
+
+	.category-card__content {
+		padding: 1.5rem;
+	}
+
+	.category-card__icon {
+		width: 40px;
+		height: 40px;
+		margin-bottom: 0.75rem;
+	}
+
+	.category-card__icon i {
+		font-size: 20px;
+	}
+
+	.category-card__title {
+		font-size: 1.1rem;
+	}
+
+	.category-card__count {
+		font-size: 0.85rem;
+	}
+
+	.jobguru-categories-area .site-heading h2 {
+		font-size: 1.75rem;
+	}
+
+	.jobguru-categories-area .site-heading p {
+		font-size: 1rem;
+	}
+}
+
+/* Accessibility */
+.category-card:focus-visible {
+	outline: 3px solid #F37021;
+	outline-offset: 2px;
+}
+
+/* Browser Support for Backdrop Filter */
+@supports not (backdrop-filter: blur(10px)) {
+	.category-card__icon {
+		background: rgba(255, 255, 255, 0.2);
+	}
+}
+
+/* Modern Button Styles */
+.btn-primary {
+	background: linear-gradient(135deg, #F37021 0%, #E85A0D 100%);
+	border: none;
+	color: #fff;
+	font-weight: 600;
+	letter-spacing: 0.3px;
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow: 0 4px 15px rgba(243, 112, 33, 0.3);
+}
+
+.btn-primary:hover {
+	background: linear-gradient(135deg, #E85A0D 0%, #D14E07 100%);
+	transform: translateY(-2px);
+	box-shadow: 0 8px 25px rgba(243, 112, 33, 0.4);
+	color: #fff;
+}
+
+.btn-primary:focus {
+	background: linear-gradient(135deg, #E85A0D 0%, #D14E07 100%);
+	box-shadow: 0 0 0 3px rgba(243, 112, 33, 0.3);
+}
+
+.btn-lg {
+	padding: 1rem 2.5rem;
+	font-size: 1.1rem;
+}
+
+/* Badge Styles */
+.badge-subtle {
+	background: rgba(243, 112, 33, 0.1);
+	color: #F37021;
+	font-weight: 600;
+	padding: 0.4rem 0.875rem;
+	border-radius: 20px;
+}
+
+.badge-primary {
+	background: linear-gradient(135deg, #F37021 0%, #E85A0D 100%);
+	color: white;
+}
+
+.badge-orange {
+	background: #F37021;
+	color: white;
+}
 
 /*================================================
 11 - INNER HIRE AREA CSS

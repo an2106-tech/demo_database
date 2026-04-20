@@ -35,7 +35,7 @@ body.client-app h3,
 body.client-app h4,
 body.client-app h5,
 body.client-app h6 {
-  color: #000000 !important;
+  color: #ffffff !important;
   font-family: 'Inter', 'Open Sans', system-ui, sans-serif !important;
   font-weight: 700;
 }
@@ -245,6 +245,63 @@ body.client-app .breadcromb-box-pagin ul li.active-breadcromb a {
 body.client-app .jobguru-breadcromb-area .breadcromb-box-pagin ul li a {
   color: var(--cv-muted) !important;
   font-weight: 500 !important;
+}
+
+body.client-app .browse-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 520px;
+}
+
+body.client-app .browse-hero .home-premium-hero-banner {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+body.client-app .browse-hero__bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+body.client-app .browse-hero__overlay {
+  position: relative;
+  z-index: 2;
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  padding: 120px 0 60px;
+}
+
+body.client-app .browse-hero__content {
+  max-width: 640px;
+}
+
+body.client-app .browse-hero__content h1,
+body.client-app .browse-hero__content p,
+body.client-app .browse-hero__content .btn {
+  position: relative;
+  z-index: 2;
+}
+
+body.client-app .browse-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.35), rgba(5, 15, 34, 0.7));
+  z-index: 1;
+}
+
+body.client-app .browse-hero .btn-warning {
+  background: #f97316 !important;
+  border-color: #f97316 !important;
+}
+
+body.client-app .browse-hero .text-warning {
+  color: #ffb547 !important;
 }
 
 /* ---------- Section headings (template) ---------- */
