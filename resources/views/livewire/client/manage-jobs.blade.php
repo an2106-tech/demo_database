@@ -48,8 +48,8 @@
                                                     $statusValue = $status instanceof \App\Enums\StatusApplicationEnum ? $status->value : (string) $status;
                                                     $statusLabel = $status instanceof \App\Enums\StatusApplicationEnum ? $status->getLabel() : ucfirst((string) $status);
                                                     $statusClass = match ($statusValue) {
-                                                        'cv_reviewing', 'screening' => 'pending',
-                                                        'interview_scheduled', 'interviewing', 'offered' => 'active',
+                                                        'new', 'screening' => 'pending',
+                                                        'interview_scheduled', 'interview', 'offer' => 'active',
                                                         'hired' => 'hired',
                                                         'rejected' => 'rejected',
                                                         default => 'pending',

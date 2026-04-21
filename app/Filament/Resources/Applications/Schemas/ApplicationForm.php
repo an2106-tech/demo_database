@@ -325,6 +325,7 @@ class ApplicationForm
         return match ($status) {
             StatusApplicationEnum::NEW => 10,
             StatusApplicationEnum::SCREENING => 20,
+            StatusApplicationEnum::INTERVIEW_SCHEDULED => 30,
             StatusApplicationEnum::INTERVIEW => 30,
             StatusApplicationEnum::OFFER => 40,
             StatusApplicationEnum::HIRED => 50,
