@@ -128,7 +128,9 @@ class ApplyJob extends Component
                 'source' => 'website',
                 'status' => StatusApplicationEnum::NEW,
                 'applied_at' => now(),
+                'branch_id' => $this->job->branch_id,
             ]);
+
 
             if ($application->trashed()) {
                 $application->deleted_at = null;

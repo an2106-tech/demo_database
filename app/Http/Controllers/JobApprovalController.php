@@ -51,4 +51,21 @@ class JobApprovalController extends Controller
             'job' => $job
         ]);
     }
+
+
+    /**
+     * Xem tin trực tiếp trong Filament với tính năng tự động đăng nhập.
+     */
+    public function viewInFilament(Request $request, RecruitmentJob $job)
+    {
+        $userId = $request->query('user_id');
+        
+        if ($userId) {
+            \Illuminate\Support\Facades\Auth::loginUsingId($userId);
+        }
+
+        return redirect()->route('filament.admin.resources.recruitment-jobs.index', ['activeTab' => 'pending']);
+    }
 }
+
+

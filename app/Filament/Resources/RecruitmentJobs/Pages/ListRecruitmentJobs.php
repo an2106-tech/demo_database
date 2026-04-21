@@ -25,6 +25,7 @@ class ListRecruitmentJobs extends ListRecords
     {
         return [
             'all' => Tab::make('Tất cả'),
+            'pending' => $this->makeStatusTab(StatusRecruitmentJobsEnum::PENDING),
             'published' => $this->makeStatusTab(StatusRecruitmentJobsEnum::PUBLISHED),
             'draft' => $this->makeStatusTab(StatusRecruitmentJobsEnum::DRAFT),
             'closed' => $this->makeStatusTab(StatusRecruitmentJobsEnum::CLOSED),
@@ -32,6 +33,7 @@ class ListRecruitmentJobs extends ListRecords
             'expired' => $this->makeStatusTab(StatusRecruitmentJobsEnum::EXPIRED),
         ];
     }
+
 
     protected function makeStatusTab(StatusRecruitmentJobsEnum $status): Tab
     {

@@ -231,6 +231,8 @@ class PostJob extends Component
                 ->get();
 
             foreach ($directors as $director) {
+                $filamentUrl = route('filament.admin.resources.recruitment-jobs.edit', ['record' => $job->id]);
+
                 // Database Notification
                 DB::table('notifications')->insert([
                     'user_id' => $director->id,
@@ -240,6 +242,7 @@ class PostJob extends Component
                         'title' => $job->title,
                         'creator' => Auth::user()->name,
                         'message' => 'Có tin tuyển dụng mới đang chờ bạn duyệt.',
+                        'filament_url' => $filamentUrl,
                     ]),
                     'created_at' => now(),
                     'updated_at' => now(),
@@ -250,12 +253,14 @@ class PostJob extends Component
                     Mail::to($director->email)->send(new \App\Mail\JobApprovalNotificationMail(
                         $job,
                         $director->name,
-                        Auth::user()->name
+                        Auth::user()->name,
+                        $director->id
                     ));
                 } catch (\Exception $e) {
-                    \Log::error('Lỗi khi gửi email thông báo phê duyệt: ' . $e->getMessage());
+                    \Log::error('Lỗi khi gửi email thông báo phê duyệt: '.$e->getMessage());
                 }
             }
+
         }
 
         session()->flash('status', $statusMessage);

@@ -77,7 +77,11 @@ Route::prefix('jobs')->name('jobs.')->group(function () {
     Route::get('/{job}/direct-reject', [JobApprovalController::class, 'reject'])
         ->middleware('signed')
         ->name('direct_reject');
+    Route::get('/{job}/view-in-filament', [JobApprovalController::class, 'viewInFilament'])
+        ->middleware('signed')
+        ->name('autologin_view');
 });
+
 
 Route::redirect('/candidate-profile.html', '/candidates/candidate-profile');
 Route::redirect('/candidate-dashboard.html', '/candidates/candidate-dashboard');
@@ -165,8 +169,10 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/candidate-profile', EmpCandidateProfile::class)->name('candidate_profile');
         Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');
         Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
+        Route::get('/application-pipeline', \App\Livewire\Client\Employers\ApplicationPipeline::class)->name('application_pipeline');
     });
 });
+
 
 Route::prefix('pages')->name('pages.')->group(function () {
     Route::get('/about', PagesAbout::class)->name('about');

@@ -46,6 +46,14 @@
             </a>
         </li>
 
+        <li class="{{ request()->routeIs('employers.application_pipeline') ? 'active' : '' }}">
+            <a href="{{ route('employers.application_pipeline') }}">
+                <i class="fa fa-columns"></i>
+                Pipeline Ứng Viên
+            </a>
+        </li>
+
+
         <li class="{{ request()->routeIs('employers.change_password') ? 'active' : '' }}">
             <a href="{{ route('employers.change_password') }}">
                 <i class="fa fa-lock"></i>

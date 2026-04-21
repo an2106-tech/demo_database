@@ -42,10 +42,13 @@
                                     </div>
                                     <div class="candidate-text">
                                         <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="{{ route('candidates.candidate_detail') }}?id={{ $candidate->id }}">{{ $candidate->name }}</a></h3>
-                                                <img src="{{ asset('assets/img/vn.png') }}" alt="Vietnam">
+                                            <div class="candidate-title d-flex align-items-center gap-2 flex-wrap">
+                                                <h3 class="mb-0"><a href="{{ route('candidates.candidate_detail') }}?id={{ $candidate->id }}">{{ $candidate->name }}</a></h3>
+                                                <span class="badge bg-light text-dark border-0 px-2 py-1" style="font-size: 11px; border-radius: 6px; background: #f1f5f9 !important; color: #64748b !important;">
+                                                    <i class="fa fa-map-marker me-1"></i> Việt Nam
+                                                </span>
                                             </div>
+
                                             <p class="job-applied">{{ $candidate->applications->first()?->job->title ?? 'Nỗ lực ứng tuyển' }}</p>
                                             
                                             @php

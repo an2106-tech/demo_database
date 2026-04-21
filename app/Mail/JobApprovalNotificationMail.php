@@ -17,11 +17,13 @@ class JobApprovalNotificationMail extends Mailable
 
     public string $approveUrl;
     public string $rejectUrl;
+    public string $filamentUrl;
 
     public function __construct(
         public RecruitmentJob $job,
         public string $directorName,
-        public string $hrName
+        public string $hrName,
+        public int $directorId
     ) {
         $this->approveUrl = URL::temporarySignedRoute(
             'jobs.direct_approve', 
@@ -33,7 +35,13 @@ class JobApprovalNotificationMail extends Mailable
             now()->addDays(7), 
             ['job' => $this->job->id]
         );
+        $this->filamentUrl = URL::temporarySignedRoute(
+            'jobs.autologin_view',
+            now()->addDays(7),
+            ['job' => $this->job->id, 'user_id' => $this->directorId]
+        );
     }
+
 
     public function envelope(): Envelope
     {

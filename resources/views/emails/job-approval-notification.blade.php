@@ -37,16 +37,14 @@
             
             <div style="text-align: center; margin-top: 30px;">
                 <div style="display: inline-block; margin: 10px;">
-                    <a href="{{ $approveUrl }}" class="cta-button" style="background: #F37021; box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);">Phê Duyệt Ngay</a>
-                </div>
-                <div style="display: inline-block; margin: 10px;">
-                    <a href="{{ $rejectUrl }}" style="display: inline-block; background: #fff; color: #ef4444 !important; padding: 12px 26px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 16px; border: 1px solid #ef4444; transition: all 0.3s;">Từ Chối Tin</a>
+                    <a href="{{ $filamentUrl }}" class="cta-button" style="background: #F37021; box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);">Xem & Phê Duyệt Ngay</a>
                 </div>
             </div>
 
             <p style="text-align: center; margin-top: 25px;">
-                <a href="{{ route('director.approve_jobs') }}" style="color: #64748b; text-decoration: underline; font-size: 13px;">Xem chi tiết trên Dashboad</a>
+                <a href="{{ $filamentUrl }}" style="color: #64748b; text-decoration: underline; font-size: 13px;">Xem chi tiết trên hệ thống quản trị</a>
             </p>
+
         </div>
         <div class="footer">
             &copy; {{ date('Y') }} {{ config('app.name') }}. Mọi quyền được bảo lưu.
