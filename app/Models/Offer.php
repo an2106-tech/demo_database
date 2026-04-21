@@ -24,6 +24,10 @@ class Offer extends Model
         'pdf_path',
         'sent_at',
         'accepted_at',
+        'approval_requested_at',
+        'approved_by_user_id',
+        'approved_at',
+        'approval_notes',
     ];
 
     protected $casts = [
@@ -34,6 +38,8 @@ class Offer extends Model
         'sent_at' => 'datetime',
         'accepted_at' => 'datetime',
         'probation_months' => 'integer',
+        'approval_requested_at' => 'datetime',
+        'approved_at' => 'datetime',
     ];
 
     public function application(): BelongsTo
@@ -44,5 +50,10 @@ class Offer extends Model
     public function letterTemplate(): BelongsTo
     {
         return $this->belongsTo(OfferLetterTemplate::class, 'offer_letter_template_id');
+    }
+
+    public function approvedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approved_by_user_id');
     }
 }

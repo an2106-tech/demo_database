@@ -21,7 +21,7 @@ class OfferResponseController extends Controller
 
     protected function handleResponse(Request $request, Offer $offer, string $decision): View
     {
-        abort_unless($request->hasValidSignature(), 403);
+        abort_unless($request->hasValidSignature(absolute: false), 403);
 
         $application = $offer->application()->with(['candidate', 'job'])->firstOrFail();
         $candidateName = $application->candidate?->name ?? 'Ung vien';

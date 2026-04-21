@@ -13,6 +13,7 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
@@ -141,18 +142,24 @@ class CandidateOfferMail extends Mailable
     protected function buildOfferResponseActionsHtml(): string
     {
         $expiresAt = $this->offer->expires_at ?? now()->addDays(3);
+        $baseUrl = $this->resolvePublicBaseUrl();
 
-        $acceptUrl = URL::temporarySignedRoute(
+        $acceptPath = URL::temporarySignedRoute(
             'offers.respond.accept',
             $expiresAt,
             ['offer' => $this->offer->getKey()],
+            absolute: false,
         );
 
-        $declineUrl = URL::temporarySignedRoute(
+        $declinePath = URL::temporarySignedRoute(
             'offers.respond.decline',
             $expiresAt,
             ['offer' => $this->offer->getKey()],
+            absolute: false,
         );
+
+        $acceptUrl = $baseUrl . $acceptPath;
+        $declineUrl = $baseUrl . $declinePath;
 
         return implode('', [
             '<div style="margin: 24px 0; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">',
@@ -162,5 +169,18 @@ class CandidateOfferMail extends Mailable
             '<p style="margin: 12px 0 0; color: #475569; font-size: 13px;">Liên kết có hiệu lực đến ' . e($expiresAt->format('d/m/Y H:i')) . '.</p>',
             '</div>',
         ]);
+    }
+
+    protected function resolvePublicBaseUrl(): string
+    {
+        $request = request();
+        $requestBaseUrl = $request?->getSchemeAndHttpHost();
+        $requestHost = $request?->getHost();
+
+        if (filled($requestBaseUrl) && ! in_array($requestHost, ['127.0.0.1', 'localhost'], true)) {
+            return rtrim($requestBaseUrl, '/');
+        }
+
+        return rtrim((string) config('app.public_url', config('app.url')), '/');
     }
 }

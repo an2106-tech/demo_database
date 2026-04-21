@@ -63,10 +63,10 @@ Route::get('/preview/public-file/{path}', function (string $path) {
 
 Route::prefix('offers')->name('offers.')->group(function () {
     Route::get('/{offer}/respond/accept', [OfferResponseController::class, 'accept'])
-        ->middleware('signed')
+        ->middleware('signed:relative')
         ->name('respond.accept');
     Route::get('/{offer}/respond/decline', [OfferResponseController::class, 'decline'])
-        ->middleware('signed')
+        ->middleware('signed:relative')
         ->name('respond.decline');
 });
 

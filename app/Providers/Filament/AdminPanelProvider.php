@@ -7,6 +7,7 @@ use App\Filament\Resources\Branches\BranchResource;
 use App\Filament\Resources\Candidates\CandidateResource;
 use App\Filament\Resources\Categories\CategoryResource;
 use App\Filament\Resources\Departments\DepartmentResource;
+use App\Filament\Resources\OfferResource;
 use App\Filament\Resources\Posts\PostResource;
 use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
 use App\Filament\Resources\Roles\RoleResource;
@@ -49,6 +50,7 @@ class AdminPanelProvider extends PanelProvider
                 BranchResource::class,
                 CandidateResource::class,
                 DepartmentResource::class,
+                OfferResource::class,
                 RecruitmentJobResource::class,
                 RoleResource::class,
                 UserResource::class,

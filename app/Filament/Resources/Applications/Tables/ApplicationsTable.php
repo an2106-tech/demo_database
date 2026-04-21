@@ -6,6 +6,8 @@ use App\Enums\StatusApplicationEnum;
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Mail\CandidateOfferMail;
 use App\Mail\InterviewScheduledMail;
+use App\Mail\OfferApprovalRequestMail;
+use App\Mail\OfferApprovedNotificationMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
@@ -18,6 +20,7 @@ use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
+use App\Services\OfferApprovalService;
 use App\Services\OfferPdfService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -432,12 +435,31 @@ class ApplicationsTable
                             ], true);
                         }),
                     Action::make('send_offer')
-                        ->label(fn (Application $record): string => $record->latestOffer?->sent_at ? 'Gửi lại offer' : 'Gửi offer')
+                        ->label(fn (Application $record): string => match($record->latestOffer?->status) {
+                            'awaiting_approval' => 'Gửi duyệt',
+                            'rejected' => 'Gửi duyệt lại',
+                            default => $record->latestOffer?->sent_at ? 'Gửi lại offer' : 'Gửi offer',
+                        })
                         ->icon('heroicon-o-envelope')
-                        ->color('primary')
+                        ->color(fn (Application $record): string => match($record->latestOffer?->status) {
+                            'awaiting_approval', 'rejected' => 'warning',
+                            default => 'primary',
+                        })
                         ->requiresConfirmation()
-                        ->modalHeading('Gửi offer cho ứng viên')
-                        ->modalDescription(fn (Application $record): string => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'))
+                        ->modalHeading(function (Application $record): string {
+                            return match($record->latestOffer?->status) {
+                                'awaiting_approval' => 'Gửi offer cho giám đốc duyệt',
+                                'rejected' => 'Gửi lại offer cho giám đốc duyệt',
+                                default => 'Gửi offer cho ứng viên',
+                            };
+                        })
+                        ->modalDescription(function (Application $record): string {
+                            return match($record->latestOffer?->status) {
+                                'awaiting_approval' => 'Offer sẽ được gửi để giám đốc chi nhánh duyệt trước khi gửi tới ứng viên',
+                                'rejected' => 'Offer sau khi chỉnh sửa sẽ được gửi cho giám đốc chi nhánh duyệt lại',
+                                default => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'),
+                            };
+                        })
                         ->action(function (Application $record): void {
                             $offer = $record->offers()->latest('id')->first();
                             $candidate = $record->candidate;
@@ -453,36 +475,12 @@ class ApplicationsTable
                                 return;
                             }
 
-                            try {
-                                if ($offer->offer_letter_template_id) {
-                                    app(OfferPdfService::class)->refreshForOffer($offer);
-                                    $offer->refresh();
-                                }
-
-                                Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
-
-                                $offer->forceFill([
-                                    'sent_at' => now(),
-                                ])->save();
-
-                                Notification::make()
-                                    ->success()
-                                    ->title('Đã gửi offer')
-                                    ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
-                                    ->send();
-                            } catch (\Throwable $exception) {
-                                Log::warning('Failed to send offer mail.', [
-                                    'application_id' => $record->id,
-                                    'offer_id' => $offer->id,
-                                    'recipient' => $candidate->email,
-                                    'error' => $exception->getMessage(),
-                                ]);
-
-                                Notification::make()
-                                    ->warning()
-                                    ->title('Gửi offer thất bại')
-                                    ->body('Offer đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
-                                    ->send();
+                            // Nếu offer chờ duyệt hoặc bị từ chối, gửi email yêu cầu duyệt cho giám đốc
+                            if (in_array($offer->status, ['awaiting_approval', 'rejected'], true)) {
+                                static::sendOfferForApproval($record, $offer);
+                            } else {
+                                // Nếu đã được duyệt (pending), gửi trực tiếp cho ứng viên
+                                static::sendOfferToCandidate($record, $offer, $candidate, $job);
                             }
                         })
                         ->visible(fn (Application $record): bool => static::canSendOffer($record)),
@@ -667,9 +665,55 @@ class ApplicationsTable
 
     protected static function canSendOffer(Application $record): bool
     {
-        return static::canManageOffer($record)
-            && filled($record->candidate?->email)
-            && $record->offers()->exists();
+        $offer = $record->offers()->latest('id')->first();
+
+        if (! static::canManageOffer($record) || ! filled($record->candidate?->email) || ! $offer) {
+            return false;
+        }
+
+        // HR có thể gửi offer trong các trạng thái: awaiting_approval, rejected, pending
+        if (Auth::user()?->hasRole('director') === true) {
+            // Director không gửi từ đây (xử lý trong OfferResource)
+            return false;
+        }
+
+        // HR có thể gửi khi offer chờ duyệt hoặc bị từ chối hoặc chờ phản hồi từ ứng viên
+        return in_array($offer->status, ['awaiting_approval', 'rejected'], true);
+    }
+
+    protected static function getBranchDirectorEmails(Application $record): array
+    {
+        $branchId = $record->job?->branch_id;
+
+        if (! $branchId) {
+            return [];
+        }
+
+        return User::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $query) => $query->where('name', 'director'))
+            ->pluck('email')
+            ->filter()
+            ->all();
+    }
+
+    protected static function getOfferNotificationRecipients(Application $record): array
+    {
+        $branchId = $record->job?->branch_id;
+
+        if (! $branchId) {
+            return [];
+        }
+
+        return User::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['director', 'hr', 'pm']))
+            ->get()
+            ->filter(fn (User $user) => filled($user->email))
+            ->mapWithKeys(fn (User $user) => [$user->email => $user->role])
+            ->all();
     }
 
     protected static function getWorkplaceOptions(Application $record): array
@@ -802,6 +846,7 @@ class ApplicationsTable
             'accepted' => 'Đã đồng ý',
             'declined' => 'Đã từ chối',
             'expired' => 'Đã hết hạn',
+            'awaiting_approval' => 'Chờ duyệt offer',
             'pending' => $record->latestOffer?->sent_at ? 'Chờ phản hồi' : 'Chưa gửi',
             default => null,
         };
@@ -813,6 +858,7 @@ class ApplicationsTable
             'accepted' => 'success',
             'declined' => 'danger',
             'expired' => 'gray',
+            'awaiting_approval' => 'warning',
             'pending' => 'warning',
             default => 'gray',
         };
@@ -1029,7 +1075,7 @@ class ApplicationsTable
                 $existingOffer = $record->offers()->latest('id')->first();
                 $offer = $existingOffer ?? new Offer([
                     'application_id' => $record->id,
-                    'status' => 'pending',
+                    'status' => 'awaiting_approval', // Offer tạo mới chờ duyệt từ giám đốc
                 ]);
 
                 $offer->fill([
@@ -1040,6 +1086,17 @@ class ApplicationsTable
                     'probation_months' => $data['probation_months'],
                     'expires_at' => $data['expires_at'] ?? now()->addDays(3),
                     'content' => $data['content'] ?? '',
+                ]);
+                $offer->forceFill([
+                    'status' => 'awaiting_approval',
+                    'approval_requested_at' => null,
+                    'approved_by_user_id' => null,
+                    'approved_at' => null,
+                    'approval_notes' => null,
+                    'sent_at' => null,
+                    'response_at' => null,
+                    'accepted_at' => null,
+                    'declined_reason' => null,
                 ]);
                 $offer->save();
 
@@ -1060,5 +1117,97 @@ class ApplicationsTable
             })
             ->visible(fn (Application $record): bool => static::getPipelineActionLabel($record) !== null)
             ->disabled(fn (Application $record): bool => static::getPipelineActionLabel($record) === null);
+    }
+
+    protected static function sendOfferForApproval(Application $record, Offer $offer): void
+    {
+        try {
+            $directors = static::getBranchDirectorEmails($record);
+
+            if (empty($directors)) {
+                Notification::make()
+                    ->warning()
+                    ->title('Không có giám đốc chi nhánh')
+                    ->body('Không tìm thấy giám đốc chi nhánh để gửi offer cho duyệt.')
+                    ->send();
+
+                return;
+            }
+
+            // Refresh PDF
+            if ($offer->offer_letter_template_id) {
+                app(OfferPdfService::class)->refreshForOffer($offer);
+                $offer->refresh();
+            }
+
+            // Gửi email cho tất cả giám đốc chi nhánh
+            foreach ($directors as $email) {
+                $director = User::where('email', $email)->where('is_active', true)->first();
+                if ($director) {
+                    Mail::to($email)->send(new OfferApprovalRequestMail($offer, $record, $record->job, $director));
+                }
+            }
+
+            // Update status
+            $offer->forceFill([
+                'status' => 'awaiting_approval',
+                'approval_requested_at' => now(),
+            ])->save();
+
+            $actionText = $offer->approval_requested_at ? 'gửi lại' : 'gửi';
+
+            Notification::make()
+                ->success()
+                ->title('Đã ' . $actionText . ' offer cho duyệt')
+                ->body('Offer đã được gửi cho giám đốc chi nhánh duyệt.')
+                ->send();
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to send offer for approval.', [
+                'application_id' => $record->id,
+                'offer_id' => $offer->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->danger()
+                ->title('Gửi offer thất bại')
+                ->body('Có lỗi khi gửi offer. Vui lòng kiểm tra lại.')
+                ->send();
+        }
+    }
+
+    protected static function sendOfferToCandidate(Application $record, Offer $offer, Candidate $candidate, RecruitmentJob $job): void
+    {
+        try {
+            if ($offer->offer_letter_template_id) {
+                app(OfferPdfService::class)->refreshForOffer($offer);
+                $offer->refresh();
+            }
+
+            Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+
+            $offer->forceFill([
+                'sent_at' => now(),
+            ])->save();
+
+            Notification::make()
+                ->success()
+                ->title('Đã gửi offer')
+                ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
+                ->send();
+        } catch (\Throwable $exception) {
+            Log::warning('Failed to send offer mail.', [
+                'application_id' => $record->id,
+                'offer_id' => $offer->id,
+                'recipient' => $candidate->email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            Notification::make()
+                ->warning()
+                ->title('Gửi offer thất bại')
+                ->body('Offer đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
+                ->send();
+        }
     }
 }

@@ -4,11 +4,13 @@ namespace App\Livewire\Client;
 
 use App\Enums\StatusApplicationEnum;
 use App\Mail\CandidateApplicationReceivedMail;
+use App\Mail\HrNewApplicationMail;
 use App\Models\Application;
 use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
 use App\Models\CandidateResume;
 use App\Models\RecruitmentJob;
+use App\Models\User;
 use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
@@ -171,6 +173,11 @@ class ApplyJob extends Component
                 $result['candidate'],
                 $result['application'],
             );
+
+            $this->sendHrNewApplicationMail(
+                $result['candidate'],
+                $result['application'],
+            );
         }
 
         $this->cv = null;
@@ -280,6 +287,47 @@ class ApplyJob extends Component
                 'email' => $email,
                 'message' => $exception->getMessage(),
             ]);
+        }
+    }
+
+    protected function sendHrNewApplicationMail(Candidate $candidate, Application $application): void
+    {
+        $branchId = $this->job->branch_id;
+
+        if (! $branchId) {
+            return;
+        }
+
+        $hrUsers = User::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query
+                    ->where('role', 'hr')
+                    ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->where('name', 'hr'));
+            })
+            ->get();
+
+        foreach ($hrUsers as $hrUser) {
+            $email = is_string($hrUser->email) ? trim($hrUser->email) : null;
+
+            if (blank($email)) {
+                continue;
+            }
+
+            try {
+                Mail::to($email)->send(
+                    new HrNewApplicationMail($candidate, $application, $this->job)
+                );
+            } catch (\Throwable $exception) {
+                Log::warning('Unable to send HR new application email.', [
+                    'hr_user_id' => $hrUser->id,
+                    'candidate_id' => $candidate->id,
+                    'application_id' => $application->id,
+                    'email' => $email,
+                    'message' => $exception->getMessage(),
+                ]);
+            }
         }
     }
 
