@@ -339,12 +339,12 @@
         .jd-apply-btn {
             background: linear-gradient(135deg, var(--jd-primary-dark), var(--jd-primary));
             box-shadow: 0 14px 30px rgba(143, 70, 24, 0.22);
-            color: #fff;
+            color: #fff !important;
         }
 
         .jd-apply-btn:hover,
         .jd-apply-btn:focus {
-            color: #fff;
+            color: #fff !important;
             text-decoration: none;
             transform: translateY(-2px);
         }
@@ -352,14 +352,14 @@
         .jd-secondary-btn {
             background: rgba(255, 255, 255, 0.76);
             border: 1px solid rgba(111, 77, 48, 0.14);
-            color: var(--jd-primary-dark);
+            color: var(--jd-primary-dark) !important;
             margin-top: 12px;
         }
 
         .jd-secondary-btn:hover,
         .jd-secondary-btn:focus {
             background: var(--jd-surface-soft);
-            color: var(--jd-primary-dark);
+            color: var(--jd-primary-dark) !important;
             text-decoration: none;
         }
 

@@ -867,12 +867,20 @@ body.client-app .bj2-card__place {
 
 body.client-app .bj2-card__title {
   margin: 6px 0 0 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.35;
 }
 
 body.client-app .bj2-card__title a {
+  color: var(--cv-ink) !important;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+body.client-app .bj2-card__title a:hover {
   color: var(--cv-primary) !important;
 }
 
@@ -882,6 +890,74 @@ body.client-app .bj2-sep {
 
 body.client-app .bj2-card__cta {
   margin-top: 4px;
+}
+
+body.client-app .bj2-card i.fa {
+  font-family: FontAwesome !important;
+}
+
+body.client-app .bj2-chip {
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--cv-line);
+  background: #f1f5f9;
+  color: #0f172a;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+body.client-app .bj2-chip--brand {
+  border-color: rgba(243, 112, 33, 0.28);
+  background: rgba(243, 112, 33, 0.12);
+  color: var(--cv-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+body.client-app .bj2-chip--muted {
+  background: #ffffff;
+  color: #334155;
+}
+
+body.client-app .bj2-card__meta {
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+body.client-app .bj2-card__meta i {
+  color: #94a3b8;
+}
+
+body.client-app .bj2-deadline {
+  align-self: flex-start;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  padding: 8px 12px;
+  border-radius: 999px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+  white-space: nowrap;
+}
+
+body.client-app .bj2-salary {
+  color: var(--cv-primary);
+  font-weight: 900;
+}
+
+body.client-app .bj2-excerpt {
+  color: #475569;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 body.client-app .bj2-apply {

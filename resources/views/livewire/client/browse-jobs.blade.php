@@ -176,39 +176,40 @@
                         @endphp
 
                         <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }}">
-                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                            <div class="bj2-card__top d-flex justify-content-between align-items-start flex-wrap gap-3">
                                 <div class="d-flex align-items-start gap-3 flex-grow-1">
                                     <a class="bj2-card__logo" href="{{ $detailUrl }}">
                                         <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}">
                                     </a>
 
                                     <div class="flex-grow-1">
-                                        <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-                                            <span class="badge bg-warning text-dark text-uppercase">Nội bộ FPT</span>
-                                            <span class="badge bg-light text-dark border">{{ $departmentName }}</span>
-                                            <span class="badge bg-light text-dark border">{{ $workplaceName }}</span>
+                                        <div class="bj2-chips d-flex flex-wrap align-items-center gap-2 mb-2">
+                                            <span class="bj2-chip bj2-chip--brand">Nội bộ FPT</span>
+                                            <span class="bj2-chip" title="{{ $departmentName }}">{{ $departmentName }}</span>
+                                            <span class="bj2-chip bj2-chip--muted" title="{{ $workplaceName }}">{{ $workplaceName }}</span>
                                         </div>
 
                                         <h3 class="bj2-card__title mt-0 mb-2">
                                             <a href="{{ $detailUrl }}">{{ $job->title }}</a>
                                         </h3>
 
-                                        <div class="d-flex flex-wrap gap-3 align-items-center text-muted mb-3">
+                                        <div class="bj2-card__meta d-flex flex-wrap gap-3 align-items-center mb-3">
                                             <div><i class="fa fa-building-o me-1"></i>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</div>
                                             <div><i class="fa fa-map-marker me-1"></i>{{ $cityText }}</div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <span class="badge rounded-pill bg-secondary fw-semibold">Hạn nộp: {{ $deadlineText }}</span>
+                                <span class="bj2-deadline">Hạn nộp: {{ $deadlineText }}</span>
                             </div>
 
                             <div class="bj2-card__content pt-0">
                                 <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
-                                        <div class="text-primary fw-bold">{{ $salaryText }}</div>
+                                    <div class="bj2-salary">{{ $salaryText }}</div>
+                                </div>
 
                                 @if ($excerpt !== '')
-                                    <p class="text-secondary mb-0">{{ $excerpt }}</p>
+                                    <p class="bj2-excerpt mb-0">{{ $excerpt }}</p>
                                 @endif
                             </div>
 
