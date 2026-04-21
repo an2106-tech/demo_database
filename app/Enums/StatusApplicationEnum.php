@@ -10,13 +10,18 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
 {
-    case CV_REVIEWING = 'cv_reviewing';
+    case CV_REVIEWING = 'new';
     case SCREENING = 'screening';
     case INTERVIEW_SCHEDULED = 'interview_scheduled';
-    case INTERVIEWING = 'interviewing';
-    case OFFERED = 'offered';
+    case INTERVIEWING = 'interview';
+    case OFFERED = 'offer';
     case HIRED = 'hired';
     case REJECTED = 'rejected';
+
+    // Backward-compatible aliases for older workflow code paths.
+    public const NEW = self::CV_REVIEWING;
+    public const INTERVIEW = self::INTERVIEWING;
+    public const OFFER = self::OFFERED;
 
     public function getIcon(): string|BackedEnum|Htmlable|null
     {
