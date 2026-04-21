@@ -695,7 +695,6 @@
                         </div>
                     </div>
 
-
                     <div class="col-lg-9">
                         <div class="toolbar-card">
                             <div class="toolbar-top">
@@ -922,59 +921,6 @@
             </div>
         </section>
 
-<<<<<<< HEAD
-    @push('scripts')
-        <script>
-            function closeCityDropdown() {
-                const dropdownBtn = document.getElementById('cityDropdownBtn');
-                if (!dropdownBtn || typeof bootstrap === 'undefined') return;
-
-                const bsDropdown = bootstrap.Dropdown.getInstance(dropdownBtn);
-                if (bsDropdown) bsDropdown.hide();
-            }
-
-            window.addEventListener('click', function (e) {
-                const dropdown = document.querySelector('.custom-location-dropdown');
-                if (!dropdown) return;
-                if (dropdown.contains(e.target)) return;
-
-                const btn = document.getElementById('cityDropdownBtn');
-                if (!btn || typeof bootstrap === 'undefined') return;
-
-                const instance = bootstrap.Dropdown.getInstance(btn);
-                if (instance) instance.hide();
-            });
-
-            function initSingleSlider() {
-                if (typeof $ === 'undefined' || typeof $.fn.slider === 'undefined') return;
-
-                const $slider = $("#slider-single");
-                if (!$slider.length) return;
-
-                $slider.slider({
-                    range: "min",
-                    min: 0,
-                    max: 10000,
-                    value: @json($salary_min ?? 0),
-                    step: 100,
-                    slide: function (event, ui) {
-                        $("#amount").val(ui.value.toLocaleString('vi-VN') + " VND");
-                    },
-                    stop: function (event, ui) {
-                        @this.set('salary_min', ui.value);
-                    }
-                });
-
-                $("#amount").val($slider.slider("value").toLocaleString('vi-VN') + " VND");
-            }
-
-            document.addEventListener('livewire:navigated', initSingleSlider);
-            document.addEventListener('DOMContentLoaded', initSingleSlider);
-        </script>
-    @endpush
-</div>
-
-=======
         @push('scripts')
             <script>
                 function closeCityDropdown() {

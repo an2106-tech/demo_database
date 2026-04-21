@@ -361,7 +361,7 @@
     </section>
 
 
-    <section class="how-works-area section_100" style="background: #f8fafc;">
+    <section class="how-works-area section_100 home-how-works">
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center mb-5">
@@ -371,45 +371,37 @@
                     </div>
                 </div>
             </div>
-            <div class="row g-4">
+            <div class="row g-4 g-lg-5">
                 <!-- Bước 1 -->
                 <div class="col-lg-4">
-                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">1</div>
-                            <div class="ms-3 h-px bg-light flex-grow-1 d-none d-lg-block"></div>
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 rounded-4 bg-white text-dark text-center text-lg-start position-relative overflow-hidden d-flex flex-column">
+                        <div class="how-works-step">1</div>
+                        <div class="how-works-icon">
+                            <i class="fa fa-user-plus" aria-hidden="true"></i>
                         </div>
-                        <div class="mb-3" style="color: #f37021;">
-                            <i class="fa fa-user-plus fa-2x"></i>
-                        </div>
-                        <h3 class="fw-bold h4 mb-3">Tạo tài khoản</h3>
+                        <h3 class="fw-bold h4 mb-3 text-dark">Tạo tài khoản</h3>
                         <p class="text-muted mb-0">Đăng ký nhanh chóng với vai trò Ứng viên hoặc Nhà tuyển dụng để bắt đầu tham gia hệ sinh thái.</p>
                     </div>
                 </div>
                 <!-- Bước 2 -->
                 <div class="col-lg-4">
-                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">2</div>
-                            <div class="ms-3 h-px bg-light flex-grow-1 d-none d-lg-block"></div>
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 rounded-4 bg-white text-dark text-center text-lg-start position-relative overflow-hidden d-flex flex-column">
+                        <div class="how-works-step">2</div>
+                        <div class="how-works-icon">
+                            <i class="fa fa-search" aria-hidden="true"></i>
                         </div>
-                        <div class="mb-3" style="color: #f37021;">
-                            <i class="fa fa-search fa-2x"></i>
-                        </div>
-                        <h3 class="fw-bold h4 mb-3">Tìm kiếm / Đăng tuyển</h3>
+                        <h3 class="fw-bold h4 mb-3 text-dark">Tìm kiếm / Đăng tuyển</h3>
                         <p class="text-muted mb-0">Ứng viên tìm kiếm công việc phù hợp, Nhà tuyển dụng đăng tin và quản lý hồ sơ ứng tuyển dễ dàng.</p>
                     </div>
                 </div>
                 <!-- Bước 3 -->
                 <div class="col-lg-4">
-                    <div class="how-works-item border-0 shadow-sm transition-all h-100 p-4 rounded-4 bg-white text-md-center text-lg-start">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="step-number text-white rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 40px; height: 40px; min-width: 40px; background-color: #f37021;">3</div>
+                    <div class="how-works-item border-0 shadow-sm transition-all h-100 rounded-4 bg-white text-dark text-center text-lg-start position-relative overflow-hidden d-flex flex-column">
+                        <div class="how-works-step">3</div>
+                        <div class="how-works-icon">
+                            <i class="fa fa-handshake-o" aria-hidden="true"></i>
                         </div>
-                        <div class="mb-3" style="color: #f37021;">
-                            <i class="fa fa-handshake-o fa-2x"></i>
-                        </div>
-                        <h3 class="fw-bold h4 mb-3">Phỏng vấn & Kết nối</h3>
+                        <h3 class="fw-bold h4 mb-3 text-dark">Phỏng vấn & Kết nối</h3>
                         <p class="text-muted mb-0">Tiến hành phỏng vấn trực tiếp và chốt thỏa thuận. Chúng tôi đồng hành cùng bạn trong mọi quy trình.</p>
                     </div>
                 </div>
@@ -418,14 +410,64 @@
     </section>
 
     <style>
+    .home-how-works {
+        background: linear-gradient(180deg, #f8fafc 0%, #ffffff 70%);
+    }
     .how-works-item {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        padding: 32px;
+        border: 1px solid rgba(15, 23, 42, 0.06);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+    .how-works-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #f37021 0%, #ff9a57 100%);
+        opacity: 0.95;
+    }
+    .how-works-step {
+        position: absolute;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #f37021;
+        border: 1px solid rgba(243, 112, 33, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+    .how-works-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        background: rgba(243, 112, 33, 0.12);
+        color: #f37021;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 24px auto 14px;
+    }
+    .how-works-icon i { font-size: 26px; }
+    .how-works-item p {
+        font-size: 0.95rem;
+        line-height: 1.65;
     }
     .how-works-item:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+        transform: translateY(-10px);
+        border-color: rgba(243, 112, 33, 0.22);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.12) !important;
     }
-    .h-px { height: 1px; }
+    @media (min-width: 992px) {
+        .how-works-icon { margin: 32px 0 14px; }
+    }
     </style>
 
     <section class="jobguru-job-tab-area section_70">
