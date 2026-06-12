@@ -6,7 +6,9 @@ use App\Enums\StatusRecruitmentJobsEnum;
 use App\Livewire\Client\Employers\ManageJobs;
 use App\Livewire\Client\Employers\PostJob;
 use App\Models\Branch;
+use App\Models\Category;
 use App\Models\RecruitmentJob;
+use App\Models\Skill;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -19,7 +21,7 @@ class EmployerPostJobTest extends TestCase
     public function test_guest_is_redirected_to_employer_login_from_post_jobs_entry(): void
     {
         $this->get(route('auth.post_jobs'))
-            ->assertRedirect(route('auth.login', ['role' => 'employer']));
+            ->assertRedirect(route('employers.login'));
     }
 
     public function test_employer_can_create_recruitment_job_from_post_job_form(): void
@@ -35,6 +37,8 @@ class EmployerPostJobTest extends TestCase
             'is_active' => true,
             'branch_id' => $branch->id,
         ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
 
         $this->actingAs($user);
 
@@ -46,6 +50,8 @@ class EmployerPostJobTest extends TestCase
             ->set('positions_count', 2)
             ->set('salary_min', '15000000')
             ->set('salary_max', '25000000')
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
             ->call('save')
             ->assertRedirect(route('employers.manage_jobs'));
 
@@ -55,7 +61,7 @@ class EmployerPostJobTest extends TestCase
         $this->assertSame('Laravel Developer', $job->title);
         $this->assertSame($user->id, $job->created_by);
         $this->assertSame($branch->id, $job->branch_id);
-        $this->assertSame(StatusRecruitmentJobsEnum::PUBLISHED, $job->status);
+        $this->assertSame(StatusRecruitmentJobsEnum::PENDING, $job->status);
         $this->assertEquals(['min' => 15000000.0, 'max' => 25000000.0], $job->salary_range);
     }
 

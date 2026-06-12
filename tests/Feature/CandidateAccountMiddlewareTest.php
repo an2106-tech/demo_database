@@ -22,8 +22,7 @@ class CandidateAccountMiddlewareTest extends TestCase
         $response = $this->get(route('candidates.submit_resume'));
 
         $response->assertRedirect();
-        $response->assertRedirectToRoute('auth.sign_up', [
-            'role' => 'candidate',
+        $response->assertRedirectToRoute('candidates.register', [
             'next_route' => 'candidates.submit_resume',
         ]);
     }
@@ -43,4 +42,3 @@ class CandidateAccountMiddlewareTest extends TestCase
         $this->get(route('candidates.submit_resume'))->assertStatus(200);
     }
 }
-

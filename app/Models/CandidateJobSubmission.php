@@ -19,10 +19,13 @@ class CandidateJobSubmission extends Model
         'cv_path',
         'cv_attachment_id',
         'cv_text_snapshot',
+        'ai_matching_score',
+        'ai_analysis',
     ];
 
     protected $casts = [
         'profile_snapshot' => 'array',
+        'ai_analysis' => 'array',
     ];
 
     public function job(): BelongsTo
@@ -40,4 +43,3 @@ class CandidateJobSubmission extends Model
         return $this->morphMany(Attachment::class, 'attachable');
     }
 }
-

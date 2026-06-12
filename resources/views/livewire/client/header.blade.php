@@ -8,7 +8,7 @@
          /* Bám lề trái của icon Avatar */
          right: auto;
          width: 250px;
-         /* TÄƒng nháº¹ Ä‘á»™ rá»™ng Ä‘á»ƒ chá»¯ khÃ´ng bá»‹ xuá»‘ng dòng */
+         /* UI alignment fix */
          background: #ffffff !important;
          border-radius: 12px;
          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
@@ -36,20 +36,20 @@
          top: -8px;
          left: 15px;
          right: auto;
-         /* Äiá»u chá»‰nh sá»‘ nÃ y Ä‘á»ƒ mũi tên nằm ngay giữa icon Avatar của bạn */
+         /* UI alignment fix */
          border-left: 8px solid transparent;
          border-right: 8px solid transparent;
          border-bottom: 8px solid #ffffff;
       }
 
-      /* Fix lá»—i chá»¯ bá»‹ dính vào nhau trong hình của bạn */
+      /* UI alignment fix */
       .user-link {
          display: flex !important;
          align-items: center;
          text-align: left !important;
          gap: 12px;
          padding: 12px 20px !important;
-         /* TÄƒng padding Ä‘á»ƒ menu thoáng hơn */
+         /* UI alignment fix */
          color: #475569 !important;
          white-space: nowrap;
          /* Giữ chữ trên 1 dòng */
@@ -64,7 +64,7 @@
          flex-direction: column;
          text-align: left !important;
          align-items: flex-start;
-         /* CÄƒn các phần tử con về bên trái */
+         /* UI alignment fix */
       }
 
       .dropdown-list-wrapper li {
@@ -75,7 +75,7 @@
          /* Đảm bảo mỗi mục chiếm toàn bộ chiều rộng để dễ click */
       }
 
-      /* CÄƒn trái cho phần Tên và Email */
+      /* UI alignment fix */
       .userbox-account-info {
          padding: 12px 20px !important;
          display: flex;
@@ -83,8 +83,8 @@
          flex-direction: column;
          text-align: left !important;
          align-items: flex-start;
-         /* CÄƒn các phần tử con về bên trái */
-         /* Äáº£m báº£o cÄƒn trái */
+         /* UI alignment fix */
+         /* UI alignment fix */
       }
 
       /* Các hàng trong menu */
@@ -111,10 +111,10 @@
       .user-link i,
       .user-link .icon {
          width: 20px;
-         /* Cá»‘ Ä‘á»‹nh Ä‘á»™ rá»™ng icon Ä‘á»ƒ chữ luôn thẳng hàng dọc */
+         /* UI alignment fix */
          text-align: left !important;
          align-items: flex-start;
-         /* CÄƒn icon về bên trái */
+         /* UI alignment fix */
          font-size: 16px;
       }
 
@@ -155,25 +155,25 @@
          transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
       }
 
-      /* Äáº£m báº£o cÃ¡c dÃ²ng menu luÃ´n cÄƒn trái */
+      /* UI alignment fix */
       .user-link {
          display: flex !important;
          align-items: center;
          justify-content: flex-start !important;
-         /* Ã‰p ná»™i dung bám lề trái */
+         /* UI alignment fix */
          gap: 12px;
          padding: 10px 20px !important;
          text-align: left !important;
       }
 
-      /* Äáº£m báº£o icon cÃ³ Ä‘á»™ rá»™ng cá»‘ Ä‘á»‹nh Ä‘á»ƒ chữ thẳng hàng dọc */
+      /* UI alignment fix */
       .user-link i,
       .user-link .icon {
          width: 20px;
          display: flex;
          justify-content: center;
          flex-shrink: 0;
-         /* KhÃ´ng cho icon bá»‹ bóp méo */
+         /* UI alignment fix */
       }
 
       .jobguru-header-area .header-right-menu ul {
@@ -449,7 +449,7 @@
          }
       }
 
-      /* NgÄƒn cháº·n menu chÃ­nh bá»‹ xuá»‘ng dòng */
+      /* UI alignment fix */
       #jobguru_navigation li a {
          white-space: nowrap !important;
          padding-left: 8px !important;

@@ -4,14 +4,12 @@ namespace Tests\Feature;
 
 use App\Livewire\Header;
 use App\Models\User;
-use App\Services\CandidateAccountService;
-use App\Models\Candidate;
 use Livewire\Livewire;
 use Tests\TestCase;
 
 class HeaderMenuTest extends TestCase
 {
-    public function test_hr_sees_employer_menu_even_if_candidate_type_is_passed(): void
+    public function test_hr_can_render_employer_header(): void
     {
         $user = new User([
             'name' => 'HR',
@@ -22,11 +20,12 @@ class HeaderMenuTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(Header::class, ['type' => 'candidate'])
-            ->assertViewHas('isEmployerHeader', true);
+        Livewire::test(Header::class, ['type' => 'employer'])
+            ->assertSet('type', 'employer')
+            ->assertViewHas('canEmployerAccess', true);
     }
 
-    public function test_candidate_sees_candidate_menu_even_if_employer_type_is_passed(): void
+    public function test_candidate_can_render_candidate_header(): void
     {
         $user = new User([
             'name' => 'Candidate',
@@ -37,74 +36,57 @@ class HeaderMenuTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(Header::class, ['type' => 'employer'])
-            ->assertViewHas('isEmployerHeader', false);
+        Livewire::test(Header::class, ['type' => 'candidate'])
+            ->assertSet('type', 'candidate')
+            ->assertViewHas('canCandidateAccess', true);
     }
 
-    public function test_pm_sees_candidate_menu(): void
+    public function test_candidate_does_not_get_employer_access_by_switching_type(): void
     {
         $user = new User([
-            'name' => 'PM',
-            'email' => 'pm@example.com',
-            'role' => 'pm',
+            'name' => 'Candidate',
+            'email' => 'candidate-employer@example.com',
+            'role' => 'candidate',
         ]);
         $user->id = 3;
 
         $this->actingAs($user);
 
         Livewire::test(Header::class, ['type' => 'employer'])
-            ->assertViewHas('isEmployerHeader', false);
+            ->assertSet('type', 'employer')
+            ->assertViewHas('canEmployerAccess', false);
     }
 
-    public function test_hr_can_switch_to_candidate_menu_via_session_preference(): void
+    public function test_multi_account_user_can_render_candidate_header(): void
     {
         $user = new User([
-            'name' => 'HR',
-            'email' => 'hr2@example.com',
+            'name' => 'HR Candidate',
+            'email' => 'hr-candidate@example.com',
             'role' => 'hr',
-            'metadata' => ['account_types' => ['candidate']],
+            'metadata' => ['account_types' => ['candidate', 'employer']],
         ]);
         $user->id = 4;
 
         $this->actingAs($user);
-        $this->withSession(['client_menu_type' => 'candidate']);
 
-        Livewire::test(Header::class, ['type' => 'employer'])
-            ->assertViewHas('isEmployerHeader', false)
-            ->assertViewHas('showRoleSwitcher', true);
+        Livewire::test(Header::class, ['type' => 'candidate'])
+            ->assertSet('type', 'candidate')
+            ->assertViewHas('canCandidateAccess', true);
     }
 
-    public function test_hr_switching_role_redirects_to_expected_page(): void
+    public function test_invalid_header_type_falls_back_to_candidate(): void
     {
-        $this->app->instance(CandidateAccountService::class, new class
-        {
-            public function hasCandidateAccount(User $user): bool
-            {
-                return true;
-            }
-
-            public function activateFor(User $user): Candidate
-            {
-                return new Candidate();
-            }
-        });
-
         $user = new User([
-            'name' => 'HR',
-            'email' => 'hr3@example.com',
-            'role' => 'hr',
-            'metadata' => ['account_types' => ['candidate']],
+            'name' => 'Candidate',
+            'email' => 'candidate-fallback@example.com',
+            'role' => 'candidate',
         ]);
         $user->id = 5;
 
         $this->actingAs($user);
 
-        Livewire::test(Header::class, ['type' => 'employer'])
-            ->call('switchTo', 'candidate')
-            ->assertRedirect(route('candidates.browse_job'));
-
-        Livewire::test(Header::class, ['type' => 'candidate'])
-            ->call('switchTo', 'employer')
-            ->assertRedirect(route('auth.post_jobs'));
+        Livewire::test(Header::class, ['type' => 'unknown'])
+            ->assertSet('type', 'candidate')
+            ->assertViewHas('canCandidateAccess', true);
     }
 }

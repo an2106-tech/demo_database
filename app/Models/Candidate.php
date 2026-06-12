@@ -56,6 +56,11 @@ class Candidate extends Model
         return $this->hasMany(Application::class);
     }
 
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(CandidateJobSubmission::class);
+    }
+
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');

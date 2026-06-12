@@ -110,7 +110,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/joblist-sidebar', JobListSideBars::class)->name('joblist_sidebar');
     Route::get('/browse-categories', BrowseCategories::class)->name('browse_categories');
     Route::get('/browse-companies', BrowseCompanies::class)->name('browse_companies');
-    Route::get('/candidate-detail', CandidatesDetails::class)->name('candidate_detail');
+    Route::get('/candidate-detail', CandidatesDetails::class)->middleware('auth')->name('candidate_detail');
     Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
     Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
 

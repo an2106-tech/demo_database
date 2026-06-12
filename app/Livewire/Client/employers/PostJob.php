@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -50,7 +51,7 @@ class PostJob extends Component
 
     public function mount($id = null): void
     {
-        // Nếu candidate đang đăng nhập, chuyển hướng đến login của ứng viên
+        // Prepare defaults for the employer job form.
         $user = Auth::user();
 
         if ($id) {
@@ -115,7 +116,12 @@ class PostJob extends Component
             'branch_id' => ['required', 'exists:branches,id'],
             'department_id' => ['nullable', 'exists:departments,id'],
             'workplace_id' => ['nullable', 'exists:workplaces,id'],
-            'public_url' => ['nullable', 'url', 'max:2048', 'unique:recruitment_jobs,public_url'],
+            'public_url' => [
+                'nullable',
+                'url',
+                'max:2048',
+                Rule::unique('recruitment_jobs', 'public_url')->ignore($this->jobId),
+            ],
             'deadline' => ['nullable', 'date', 'after_or_equal:today'],
             'positions_count' => ['required', 'integer', 'min:1', 'max:99'],
             'status' => ['nullable', 'string'],

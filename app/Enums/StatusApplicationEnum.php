@@ -10,7 +10,7 @@ use Illuminate\Contracts\Support\Htmlable;
 
 enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
 {
-    case CV_REVIEWING = 'new';
+    case CV_REVIEWING = 'cv_reviewing';
     case SCREENING = 'screening';
     case INTERVIEW_SCHEDULED = 'interview_scheduled';
     case INTERVIEWING = 'interview';
