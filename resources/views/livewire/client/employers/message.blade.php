@@ -190,15 +190,7 @@
                                                         </div>
                                                         <div class="chat-content">
                                                             <div class="chat-text">
-                                                                Đây là một cơ hội làm việc tuyệt vời.
-                                                            </div>
-                                                            <div class="chat-time">10:57 sáng</div>
-                                                        </div>
-                                                    </li>
-                                                    <li class="chat-list-right">
-                                                        <div class="chat-content">
-                                                            <div class="chat-text">
-                                                                đây chỉ là văn bản giả của ngành in ấn và dàn trang. Lorem Ipsum đã là văn bản chuẩn của ngành này.
+                                                                C?m ?n b?n ?? ph?n h?i. B? ph?n tuy?n d?ng s? c?p nh?t l?ch trao ??i chi ti?t trong th?i gian s?m nh?t.
                                                             </div>
                                                             <div class="chat-action">đã xem</div>
                                                         </div>

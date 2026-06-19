@@ -101,17 +101,17 @@
                                  <div class="single-resume-feild feild-flex-2">
                                     <div class="single-input">
                                        <label for="Location">Quốc gia:</label>
-                                       <input type="text" value="London" id="Location">
+                                       <input type="text" value="Vi?t Nam" id="Location">
                                     </div>
                                     <div class="single-input">
                                        <label for="City">Thành phố:</label>
-                                       <input type="text" value="Westminster" id="City">
+                                       <input type="text" value="H? N?i" id="City">
                                     </div>
                                  </div>
                                  <div class="single-resume-feild ">
                                     <div class="single-input">
                                        <label for="Bio">Mô tả chi tiết:</label>
-                                       <textarea id="Bio">Maecenas is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</textarea>
+                                       <textarea id="Bio">M? t? ng?n g?n v? doanh nghi?p, l?nh v?c ho?t ??ng, v?n h?a l?m vi?c v? nhu c?u tuy?n d?ng hi?n t?i.</textarea>
                                     </div>
                                  </div>
                               </div>
@@ -124,7 +124,7 @@
                                     </div>
                                     <div class="single-input">
                                        <label for="Email">Email:</label>
-                                       <input type="text" value="demo@mail.com" id="Email">
+                                       <input type="text" value="hr@example.com" id="Email">
                                     </div>
                                  </div>
                                  <div class="single-resume-feild feild-flex-2">

@@ -99,7 +99,7 @@ class Register extends Component
 
         $existing = User::query()->where('email', $this->email)->first();
         if (! $authUser && $existing && $this->role === 'candidate' && $existing->role === 'hr') {
-            $this->addError('email', 'Email nay da co tai khoan HR. Vui long dang nhap cong nha tuyen dung roi kich hoat them ho so ung vien.');
+            $this->addError('email', 'Email này đã có tài khoản HR. Vui lòng đăng nhập cổng nhà tuyển dụng rồi kích hoạt thêm hồ sơ ứng viên.');
 
             return null;
         }
@@ -160,7 +160,7 @@ class Register extends Component
         if ($this->role === 'employer') {
             return redirect()
                 ->route('employers.dashboard')
-                ->with('status', 'Tai khoan nha tuyen dung da duoc tao.');
+                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo.');
         }
 
         return redirect()->route('candidates.candidate_dashboard');

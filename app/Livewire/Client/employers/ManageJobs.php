@@ -30,10 +30,10 @@ class ManageJobs extends Component
         if ($job) {
             $job->skills()->detach();
             $job->delete();
-            session()->flash('status', 'Xoa tin tuyen dung thanh cong!');
+            session()->flash('status', 'Xóa tin tuyển dụng thành công.');
             $this->redirect(route('employers.manage_jobs'), navigate: true);
         } else {
-            session()->flash('error', 'Khong tim thay tin tuyen dung hoac khong co quyen xoa.');
+            session()->flash('error', 'Không tìm thấy tin tuyển dụng hoặc bạn không có quyền xóa.');
         }
     }
 }

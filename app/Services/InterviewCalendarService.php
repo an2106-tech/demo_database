@@ -48,18 +48,18 @@ class InterviewCalendarService
         $organizerName = (string) config('mail.from.name', config('app.name', 'Laravel'));
 
         $summary = $this->escapeText(sprintf(
-            'Phong van - %s - %s',
-            $candidate?->name ?? 'Ung vien',
-            $job?->title ?? 'Vi tri ung tuyen'
+            'Phỏng vấn - %s - %s',
+            $candidate?->name ?? 'Ứng viên',
+            $job?->title ?? 'Vị trí ứng tuyển'
         ));
 
         $descriptionLines = array_filter([
-            'Lich phong van duoc tao tu he thong tuyen dung.',
-            $job?->title ? "Vi tri: {$job->title}" : null,
-            $candidate?->name ? "Ung vien: {$candidate->name}" : null,
-            $interview->interviewer?->name ? "Nguoi phong van: {$interview->interviewer->name}" : null,
-            $interview->type === 'online' && $interview->meeting_link ? "Link phong van: {$interview->meeting_link}" : null,
-            $interview->notes ? "Ghi chu: {$interview->notes}" : null,
+            'Lịch phỏng vấn được tạo từ hệ thống tuyển dụng.',
+            $job?->title ? "Vị trí: {$job->title}" : null,
+            $candidate?->name ? "Ứng viên: {$candidate->name}" : null,
+            $interview->interviewer?->name ? "Người phỏng vấn: {$interview->interviewer->name}" : null,
+            $interview->type === 'online' && $interview->meeting_link ? "Link phỏng vấn: {$interview->meeting_link}" : null,
+            $interview->notes ? "Ghi chú: {$interview->notes}" : null,
         ]);
 
         $description = $this->escapeText(implode("\n", $descriptionLines));
@@ -106,11 +106,11 @@ class InterviewCalendarService
 
         $parts = array_filter([
             $interview->workplace?->name,
-            $interview->workplace?->room ? 'Phong ' . $interview->workplace->room : null,
-            $interview->workplace?->floor ? 'Tang ' . $interview->workplace->floor : null,
+            $interview->workplace?->room ? 'Phòng ' . $interview->workplace->room : null,
+            $interview->workplace?->floor ? 'Tầng ' . $interview->workplace->floor : null,
         ]);
 
-        return implode(' - ', $parts) ?: 'Tai van phong';
+        return implode(' - ', $parts) ?: 'Tại văn phòng';
     }
 
     protected function formatScheduledDate(CarbonInterface $date): string

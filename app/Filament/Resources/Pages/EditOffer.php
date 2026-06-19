@@ -6,8 +6,8 @@ use App\Filament\Resources\OfferResource;
 use App\Services\OfferApprovalService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 use Filament\Schemas\Components\Grid;
@@ -20,74 +20,74 @@ class EditOffer extends EditRecord
 {
     protected static string $resource = OfferResource::class;
 
-    protected static ?string $title = 'Duyet Offer';
+    protected static ?string $title = 'Duyệt Offer';
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->schema([
-                Section::make('Thong tin ung vien')
+                Section::make('Thông tin ứng viên')
                     ->columns(2)
                     ->schema([
                         TextInput::make('candidate_name')
-                            ->label('Ung vien')
+                            ->label('Ứng viên')
                             ->disabled(),
                         TextInput::make('candidate_email')
                             ->label('Email')
                             ->disabled(),
                         TextInput::make('job_title')
-                            ->label('Vi tri')
+                            ->label('Vị trí')
                             ->columnSpan(2)
                             ->disabled(),
                     ]),
 
-                Section::make('Chi tiet offer')
+                Section::make('Chi tiết offer')
                     ->columns(2)
                     ->schema([
                         TextInput::make('salary_offered')
-                            ->label('Muc luong de nghi')
+                            ->label('Mức lương đề nghị')
                             ->disabled()
-                            ->formatStateUsing(fn ($state) => number_format((float) $state, 0, ',', '.') . ' VND'),
+                            ->formatStateUsing(fn ($state) => number_format((float) $state, 0, ',', '.').' VND'),
                         DatePicker::make('start_date')
-                            ->label('Ngay bat dau')
+                            ->label('Ngày bắt đầu')
                             ->disabled(),
                         TextInput::make('probation_months')
-                            ->label('Thoi gian thu viec')
+                            ->label('Thời gian thử việc')
                             ->disabled()
-                            ->suffix(' thang'),
+                            ->suffix(' tháng'),
                         TextInput::make('id')
                             ->label('ID Offer')
                             ->disabled(),
                     ]),
 
-                Section::make('Noi dung offer')
+                Section::make('Nội dung offer')
                     ->schema([
                         Textarea::make('content')
-                            ->label('Noi dung bo sung')
+                            ->label('Nội dung bổ sung')
                             ->disabled()
                             ->rows(6),
                     ]),
 
-                Section::make('Trang thai')
+                Section::make('Trạng thái')
                     ->schema([
                         Grid::make(2)
                             ->schema([
                                 TextInput::make('status')
-                                    ->label('Trang thai hien tai')
+                                    ->label('Trạng thái hiện tại')
                                     ->disabled()
                                     ->formatStateUsing(fn ($state) => match ($state) {
-                                        'awaiting_approval' => 'Cho duyet',
-                                        'pending' => 'Cho phan hoi tu ung vien',
-                                        'accepted' => 'Da chap nhan',
-                                        'rejected' => 'Da tu choi',
+                                        'awaiting_approval' => 'Chờ duyệt',
+                                        'pending' => 'Chờ phản hồi từ ứng viên',
+                                        'accepted' => 'Đã chấp nhận',
+                                        'rejected' => 'Đã từ chối',
                                         default => (string) $state,
                                     }),
                                 TextInput::make('approval_requested_at')
-                                    ->label('Lan gui duyet gan nhat')
+                                    ->label('Lần gửi duyệt gần nhất')
                                     ->disabled()
                                     ->formatStateUsing(function ($state) {
                                         if (blank($state)) {
-                                            return 'Chua';
+                                            return 'Chưa';
                                         }
 
                                         if ($state instanceof \DateTimeInterface) {
@@ -127,21 +127,21 @@ class EditOffer extends EditRecord
 
         return [
             Action::make('approve')
-                ->label('Duyet offer')
+                ->label('Duyệt offer')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Xac nhan duyet offer')
-                ->modalDescription('Offer se duoc gui toi ung vien sau khi duyet.')
+                ->modalHeading('Xác nhận duyệt offer')
+                ->modalDescription('Offer sẽ được gửi tới ứng viên sau khi duyệt.')
                 ->action(function () use ($offer) {
                     $user = Auth::user();
 
                     if (! $user) {
                         Notification::make()
                             ->danger()
-                            ->title('Loi')
-                            ->body('Khong tim thay thong tin nguoi dung.')
+                            ->title('Lỗi')
+                            ->body('Không tìm thấy thông tin người dùng.')
                             ->send();
 
                         return;
@@ -152,36 +152,36 @@ class EditOffer extends EditRecord
                     if ($service->approve($offer, $user)) {
                         Notification::make()
                             ->success()
-                            ->title('Da duyet offer')
-                            ->body('Offer da duoc gui toi ung vien.')
+                            ->title('Đã duyệt offer')
+                            ->body('Offer đã được gửi tới ứng viên.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));
                     } else {
                         Notification::make()
                             ->danger()
-                            ->title('Loi')
-                            ->body('Co loi xay ra khi duyet offer.')
+                            ->title('Lỗi')
+                            ->body('Có lỗi xảy ra khi duyệt offer.')
                             ->send();
                     }
                 }),
 
             Action::make('reject')
-                ->label('Tu choi')
+                ->label('Từ chối')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Tu choi offer')
-                ->modalDescription('HR can dieu chinh offer truoc khi gui lai.')
+                ->modalHeading('Từ chối offer')
+                ->modalDescription('HR cần điều chỉnh offer trước khi gửi lại.')
                 ->action(function () use ($offer) {
                     $user = Auth::user();
 
                     if (! $user) {
                         Notification::make()
                             ->danger()
-                            ->title('Loi')
-                            ->body('Khong tim thay thong tin nguoi dung.')
+                            ->title('Lỗi')
+                            ->body('Không tìm thấy thông tin người dùng.')
                             ->send();
 
                         return;
@@ -189,25 +189,25 @@ class EditOffer extends EditRecord
 
                     $service = app(OfferApprovalService::class);
 
-                    if ($service->reject($offer, $user, 'Tu choi tu giam doc chi nhanh')) {
+                    if ($service->reject($offer, $user, 'Từ chối từ giám đốc chi nhánh')) {
                         Notification::make()
                             ->warning()
-                            ->title('Da tu choi offer')
-                            ->body('Offer da bi tu choi.')
+                            ->title('Đã từ chối offer')
+                            ->body('Offer đã bị từ chối.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));
                     } else {
                         Notification::make()
                             ->danger()
-                            ->title('Loi')
-                            ->body('Co loi xay ra.')
+                            ->title('Lỗi')
+                            ->body('Có lỗi xảy ra.')
                             ->send();
                     }
                 }),
 
             Action::make('back')
-                ->label('Quay lai')
+                ->label('Quay lại')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
                 ->url(OfferResource::getUrl('index')),

@@ -4,10 +4,13 @@ namespace App\Livewire\Client;
 
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\Application;
+use App\Models\Candidate;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Post;
+use App\Models\User;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -93,6 +96,9 @@ class Home extends Component
         $publishedJobsCount = (clone $publishedJobsQuery)->count();
         $activeBranchesCount = Branch::query()->where('is_active', true)->count();
         $departmentsCount = Department::query()->count();
+        $candidatesCount = Candidate::query()->count();
+        $applicationsCount = Application::query()->count();
+        $usersCount = User::query()->count();
 
         return view('livewire.client.home', [
             'branches' => $branches,
@@ -105,6 +111,9 @@ class Home extends Component
                 'published_jobs' => $publishedJobsCount,
                 'active_branches' => $activeBranchesCount,
                 'departments' => $departmentsCount,
+                'candidates' => $candidatesCount,
+                'applications' => $applicationsCount,
+                'users' => $usersCount,
             ],
         ]);
     }

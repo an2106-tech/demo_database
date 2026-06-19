@@ -371,27 +371,27 @@ class ApplyJob extends Component
     protected function messages(): array
     {
         return [
-            'name.required' => 'Vui long nhap ho va ten.',
-            'email.required' => 'Vui long nhap email.',
-            'email.email' => 'Email khong dung dinh dang.',
-            'experience_years.integer' => 'So nam kinh nghiem phai la so nguyen.',
-            'experience_years.min' => 'So nam kinh nghiem khong duoc am.',
-            'cv.required' => 'Vui long tai len CV.',
-            'cv.file' => 'CV tai len khong hop le.',
-            'cv.mimes' => 'CV chi ho tro dinh dang PDF, DOC hoac DOCX.',
-            'cv.max' => 'CV khong duoc vuot qua 10MB.',
+            'name.required' => 'Vui lòng nhập họ và tên.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'experience_years.integer' => 'Số năm kinh nghiệm phải là số nguyên.',
+            'experience_years.min' => 'Số năm kinh nghiệm không được âm.',
+            'cv.required' => 'Vui lòng tải lên CV.',
+            'cv.file' => 'CV tải lên không hợp lệ.',
+            'cv.mimes' => 'CV chỉ hỗ trợ định dạng PDF, DOC hoặc DOCX.',
+            'cv.max' => 'CV không được vượt quá 10MB.',
         ];
     }
 
     protected function validationAttributes(): array
     {
         return [
-            'name' => 'ho va ten',
+            'name' => 'họ và tên',
             'email' => 'email',
-            'phone' => 'so dien thoai',
-            'experience_years' => 'so nam kinh nghiem',
-            'profile_title' => 'tieu de ho so',
-            'career_objective' => 'muc tieu nghe nghiep',
+            'phone' => 'số điện thoại',
+            'experience_years' => 'số năm kinh nghiệm',
+            'profile_title' => 'tiêu đề hồ sơ',
+            'career_objective' => 'mục tiêu nghề nghiệp',
             'cv' => 'CV',
         ];
     }

@@ -151,7 +151,7 @@
 <section class="employer-benefits section_padding">
     <div class="container">
         <div class="employer-portal-section-title">
-            <h2>Tại sao 5,000+ HR tin dùng?</h2>
+            <h2>V? sao ??i ng? tuy?n d?ng ch?n n?n t?ng n?y?</h2>
             <p>Chúng tôi thấu hiểu những khó khăn trong quy trình tuyển dụng của bạn</p>
         </div>
         <div class="row g-4">
@@ -246,7 +246,7 @@
         <div class="container">
             <div class="cta-box text-center">
                 <h2>Sẵn sàng bứt phá hiệu quả tuyển dụng?</h2>
-                <p class="mt-3 mb-4 opacity-75">Tham gia cùng 5,000+ doanh nghiệp đang tìm kiếm nhân tài mỗi ngày.</p>
+                <p class="mt-3 mb-4 opacity-75">B?t ??u x?y d?ng quy tr?nh tuy?n d?ng r? r?ng v? d? qu?n l? h?n ngay h?m nay.</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
                     <a href="{{ route('employers.register') }}" class="btn employer-btn-primary btn-lg px-5">
                         Bắt đầu ngay miễn phí

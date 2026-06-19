@@ -162,25 +162,25 @@
             <div class="row g-4 mb-4">
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
-                        <div class="fw-bold display-6 text-orange">540.000+</div>
+                        <div class="fw-bold display-6 text-orange">{{ number_format($stats['candidates'] ?? 0) }}</div>
                         <p class="mb-0 text-muted">Hồ sơ ứng viên đã đăng</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
-                        <div class="fw-bold display-6 text-orange">200.000+</div>
+                        <div class="fw-bold display-6 text-orange">{{ number_format($stats['active_branches'] ?? 0) }}</div>
                         <p class="mb-0 text-muted">Doanh nghiệp đang tìm kiếm nhân sự</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
-                        <div class="fw-bold display-6 text-orange">2.000.000+</div>
+                        <div class="fw-bold display-6 text-orange">{{ number_format($stats['applications'] ?? 0) }}</div>
                         <p class="mb-0 text-muted">Lượt kết nối công việc mỗi năm</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
-                        <div class="fw-bold display-6 text-orange">1.200.000+</div>
+                        <div class="fw-bold display-6 text-orange">{{ number_format($stats['users'] ?? 0) }}</div>
                         <p class="mb-0 text-muted">Ứng viên và nhà tuyển dụng đã tiếp cận</p>
                     </div>
                 </div>
@@ -638,7 +638,7 @@
                                                                                     </div>
                                                                                     <div class="branch-action">
                                                                                         <span
-                                                                                            class="branch-rating">{{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                                                            class="branch-rating">{{ (int) ($branch->published_jobs_count ?? 0) }}</span>
                                                                                         <a href="#" class="jobguru-btn">Xem hồ sơ</a>
                                                                                     </div>
                                                                                 </div>
@@ -716,7 +716,7 @@
                                                                 Thỏa thuận
                                                             @endif
                                                         </p>
-                                                        <span class="rating-company"><i class="fa fa-star"></i> {{ number_format(rand(37, 50) / 10, 1) }}</span>
+                                                        <span class="rating-company"><i class="fa fa-briefcase"></i> {{ (int) ($job->positions_count ?? 1) }}</span>
                                                     </div>
                                                 </div>
                                                 <div class="company-list-btn">

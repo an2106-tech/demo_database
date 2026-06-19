@@ -93,7 +93,7 @@
                                         <div class="single-resume-feild ">
                                             <div class="single-input">
                                                 <label for="Bio">Giới thiệu bản thân:</label>
-                                                <textarea id="Bio">Maecenas chỉ đơn giản là văn bản giả của ngành in ấn và sắp chữ. Lorem Ipsum đã là văn bản giả tiêu chuẩn của ngành kể từ những năm 1500, khi một người thợ in không xác định lấy một bộ chữ và xáo trộn nó để tạo thành một cuốn sách mẫu chữ.</textarea>
+                                                <textarea id="Bio">?ng vi?n c? kinh nghi?m l?m vi?c th?c t?, tinh th?n h?c h?i t?t v? mong mu?n ph?t tri?n l?u d?i trong m?i tr??ng chuy?n nghi?p.</textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -106,7 +106,7 @@
                                             </div>
                                             <div class="single-input">
                                                 <label for="Email">Email:</label>
-                                                <input type="text" value="demo@mail.com" id="Email">
+                                                <input type="text" value="candidate@example.com" id="Email">
                                             </div>
                                         </div>
                                         <div class="single-resume-feild feild-flex-2">

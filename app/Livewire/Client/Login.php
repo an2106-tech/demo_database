@@ -30,13 +30,17 @@ class Login extends Component
             return null;
         }
 
-        request()->session()->regenerate();
+        if (request()->hasSession()) {
+            request()->session()->regenerate();
+        }
 
         $user = Auth::user();
         if (! $user?->is_active) {
             Auth::logout();
-            request()->session()->invalidate();
-            request()->session()->regenerateToken();
+            if (request()->hasSession()) {
+                request()->session()->invalidate();
+                request()->session()->regenerateToken();
+            }
             $this->addError(
                 'email',
                 $user?->role === 'hr'
