@@ -60,6 +60,16 @@ class ApplyJob extends Component
             return;
         }
 
+        if (! $this->canUseCandidateAccount($user)) {
+            $metadata = is_array($user->metadata) ? $user->metadata : [];
+
+            $this->name = (string) $user->name;
+            $this->email = (string) $user->email;
+            $this->phone = is_string($metadata['phone'] ?? null) ? $metadata['phone'] : null;
+
+            return;
+        }
+
         $candidate = app(CandidateAccountService::class)->resolveFor($user);
 
         $this->candidateId = $candidate->id;
@@ -73,8 +83,14 @@ class ApplyJob extends Component
         $this->career_objective = $resume->career_objective;
     }
 
-    public function submit(): void
+    public function submit(): mixed
     {
+        if ($this->requiresCandidateActivation()) {
+            $this->addError('account', 'Vui lòng kích hoạt hồ sơ ứng viên trước khi ứng tuyển bằng tài khoản hiện tại.');
+
+            return null;
+        }
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
@@ -184,6 +200,8 @@ class ApplyJob extends Component
 
         $this->cv = null;
         $this->showSuccessModal = true;
+
+        return null;
     }
 
     public function closeSuccessModal(): void
@@ -195,7 +213,9 @@ class ApplyJob extends Component
     {
         $user = Auth::user();
         if ($user) {
-            return app(CandidateAccountService::class)->resolveFor($user);
+            return $this->canUseCandidateAccount($user)
+                ? app(CandidateAccountService::class)->resolveFor($user)
+                : null;
         }
 
         $email = trim($this->email);
@@ -335,7 +355,7 @@ class ApplyJob extends Component
 
     public function getExistingCvNameProperty(): ?string
     {
-        if (! Auth::check()) {
+        if (! Auth::check() || $this->requiresCandidateActivation) {
             return null;
         }
 
@@ -354,7 +374,7 @@ class ApplyJob extends Component
 
     public function getExistingCvUrlProperty(): ?string
     {
-        if (! Auth::check()) {
+        if (! Auth::check() || $this->requiresCandidateActivation) {
             return null;
         }
 
@@ -366,6 +386,30 @@ class ApplyJob extends Component
         return Route::has('public-file.preview')
             ? route('public-file.preview', ['path' => $candidate->cv_file])
             : asset('storage/' . ltrim($candidate->cv_file, '/'));
+    }
+
+    public function getRequiresCandidateActivationProperty(): bool
+    {
+        return $this->requiresCandidateActivation();
+    }
+
+    private function requiresCandidateActivation(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user && ! $this->canUseCandidateAccount($user);
+    }
+
+    public function getCandidateActivationUrlProperty(): string
+    {
+        return route('candidates.register', [
+            'next_route' => 'candidates.candidate_dashboard',
+        ]);
+    }
+
+    private function canUseCandidateAccount(User $user): bool
+    {
+        return app(CandidateAccountService::class)->hasCandidateAccount($user);
     }
 
     protected function messages(): array

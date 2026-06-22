@@ -428,6 +428,19 @@
                 <p>Gửi hồ sơ ngay để bắt đầu hành trình sự nghiệp đầy khát vọng cùng chúng tôi.</p>
             </div>
 
+            @if($this->requiresCandidateActivation)
+                <div class="alert alert-warning border-0 mb-4" style="border-radius: 18px; background: #fff7ed; color: #9a3412; padding: 20px 24px;">
+                    <div style="font-weight: 800; margin-bottom: 6px;">
+                        Tài khoản hiện tại chưa có hồ sơ ứng viên
+                    </div>
+                    <div style="line-height: 1.6;">
+                        Vui lòng kích hoạt hồ sơ ứng viên trước khi ứng tuyển. Việc này giúp hệ thống tách rõ vai trò nhà tuyển dụng và ứng viên trên cùng một tài khoản.
+                    </div>
+                    <a href="{{ $this->candidateActivationUrl }}" class="submit-trigger" style="margin-top: 18px; text-decoration: none;">
+                        Kích hoạt hồ sơ ứng viên
+                    </a>
+                </div>
+            @else
             <form wire:submit.prevent="submit">
                 <div class="section-separator">Thông tin của bạn</div>
 
@@ -509,6 +522,7 @@
                     <span wire:loading><i class="fa fa-spinner fa-spin"></i> Đang xử lý hồ sơ...</span>
                 </button>
             </form>
+            @endif
         </main>
     </div>
 </div>

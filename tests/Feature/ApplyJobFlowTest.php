@@ -6,6 +6,7 @@ use App\Enums\StatusApplicationEnum;
 use App\Livewire\Client\ApplyJob;
 use App\Models\Application;
 use App\Models\Branch;
+use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
 use App\Models\RecruitmentJob;
 use App\Models\User;
@@ -81,5 +82,48 @@ class ApplyJobFlowTest extends TestCase
         $this->assertNotNull($application?->candidate_id);
         $this->assertSame($application->candidate_id, $submission?->candidate_id);
         $this->assertNotEmpty($submission?->cv_path);
+    }
+
+    public function test_hr_without_candidate_account_cannot_apply_as_candidate(): void
+    {
+        Storage::fake('public');
+
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Ha Noi',
+            'code' => 'HN',
+            'city' => 'Ha Noi',
+        ]);
+        $hr = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+            'metadata' => ['account_types' => ['employer']],
+        ]);
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Laravel Developer',
+            'slug' => 'laravel-developer-hr-guard',
+            'description' => 'Build and maintain Laravel applications.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $hr->id,
+        ]);
+
+        $this->actingAs($hr);
+
+        Livewire::test(ApplyJob::class, ['job' => $job])
+            ->set('name', 'HR User')
+            ->set('email', $hr->email)
+            ->set('cv', UploadedFile::fake()->create('cv.pdf', 120, 'application/pdf'))
+            ->call('submit')
+            ->assertHasErrors('account');
+
+        $this->assertDatabaseMissing('applications', [
+            'job_id' => $job->id,
+        ]);
+        $this->assertDatabaseMissing('candidate_job_submissions', [
+            'job_id' => $job->id,
+        ]);
+        $this->assertFalse(Candidate::query()->where('user_id', $hr->id)->exists());
     }
 }
