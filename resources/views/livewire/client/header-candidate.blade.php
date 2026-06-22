@@ -1,5 +1,54 @@
 <header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-candidate" role="banner" x-data="{ openUserMenu: false }">
     <style>
+        @media (min-width: 992px) {
+            .app-header-candidate .row {
+                flex-wrap: nowrap;
+            }
+
+            .app-header-candidate .col-lg-2 {
+                flex: 0 0 170px;
+                max-width: 170px;
+            }
+
+            .app-header-candidate .col-lg-6 {
+                flex: 1 1 auto;
+                max-width: none;
+                width: auto;
+                min-width: 0;
+            }
+
+            .app-header-candidate .col-lg-4 {
+                flex: 0 0 auto;
+                max-width: none;
+                width: auto;
+            }
+
+            .app-header-candidate .header-menu {
+                overflow: visible;
+            }
+
+            .app-header-candidate #jobguru_navigation {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                flex-wrap: nowrap;
+            }
+
+            .app-header-candidate #jobguru_navigation > li {
+                flex: 0 0 auto;
+            }
+
+            .app-header-candidate #jobguru_navigation > li > a {
+                display: inline-flex !important;
+                align-items: center;
+                white-space: nowrap !important;
+                line-height: 1.2 !important;
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+        }
+
         .candidate-actions ul {
             display: flex;
             align-items: center;
@@ -128,7 +177,7 @@
                                 <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                 <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
                                 <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                                <li><a href="{{ route('candidates.browse_companies') }}">Nhà tuyển dụng</a></li>
+                                <li><a href="{{ route('candidates.browse_companies') }}">Chi nhánh</a></li>
                                 <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
                                 <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                             </ul>
