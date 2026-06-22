@@ -90,8 +90,7 @@
             <div class="row mb-4">
                 <div class="col-lg-8 mx-auto text-center">
                     <h2 class="fw-bold mb-2">Vì sao chọn <span class="text-primary">nền tảng của chúng tôi</span></h2>
-                    <p class="text-muted mb-0">Trải nghiệm tìm việc &amp; tuyển dụng được tối ưu cho người dùng Việt Nam
-                        — nhanh, minh bạch, có quy trình.</p>
+                    <p class="text-muted mb-0">Trải nghiệm tìm việc được tối ưu cho ứng viên Việt Nam: dễ tìm vị trí phù hợp, nộp hồ sơ nhanh và theo dõi tiến độ rõ ràng.</p>
                 </div>
             </div>
             <div class="row g-4">
@@ -116,31 +115,30 @@
                         <div class="home-premium-feature__icon home-premium-feature__icon--green"><i
                                 class="fa fa-shield"></i></div>
                         <h3 class="h5 fw-bold">Dữ liệu an toàn</h3>
-                        <p class="text-muted small mb-0">Tài khoản phân quyền, bảo mật thông tin ứng viên &amp; doanh
-                            nghiệp.</p>
+                        <p class="text-muted small mb-0">Tài khoản cá nhân được bảo vệ, thông tin hồ sơ và CV chỉ dùng cho đúng quy trình ứng tuyển.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="home-premium-feature h-100">
                         <div class="home-premium-feature__icon"><i class="fa fa-building"></i></div>
-                        <h3 class="h5 fw-bold">Đa chi nhánh</h3>
-                        <p class="text-muted small mb-0">Tập đoàn quản lý nhiều điểm tuyển, thống nhất quy trình.</p>
+                        <h3 class="h5 fw-bold">Cơ hội đa khu vực</h3>
+                        <p class="text-muted small mb-0">Khám phá vị trí theo chi nhánh, địa điểm làm việc và phòng ban phù hợp.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="home-premium-feature h-100">
                         <div class="home-premium-feature__icon home-premium-feature__icon--blue"><i
                                 class="fa fa-comments"></i></div>
-                        <h3 class="h5 fw-bold">Trao đổi tập trung</h3>
-                        <p class="text-muted small mb-0">Kết nối nhà tuyển dụng — ứng viên trong một luồng xử lý.</p>
+                        <h3 class="h5 fw-bold">Theo dõi phản hồi</h3>
+                        <p class="text-muted small mb-0">Nhận cập nhật từ nhà tuyển dụng và nắm rõ tiến độ sau khi ứng tuyển.</p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-4">
                     <div class="home-premium-feature h-100">
                         <div class="home-premium-feature__icon home-premium-feature__icon--green"><i
                                 class="fa fa-line-chart"></i></div>
-                        <h3 class="h5 fw-bold">Tối ưu tuyển dụng</h3>
-                        <p class="text-muted small mb-0">Theo dõi pipeline, hạn nộp hồ sơ và hiệu quả từng tin đăng.</p>
+                        <h3 class="h5 fw-bold">Chủ động sự nghiệp</h3>
+                        <p class="text-muted small mb-0">Lưu việc phù hợp, cập nhật CV và chuẩn bị tốt hơn cho từng vòng xét tuyển.</p>
                     </div>
                 </div>
             </div>
@@ -151,11 +149,11 @@
         <div class="container">
             <div class="row align-items-center mb-5">
                 <div class="col-lg-7">
-                    <h2 class="fw-bold display-5 mb-3">Hệ sinh thái <span class="text-orange">công nghệ nhân sự</span></h2>
-                    <p class="mb-0 text-muted">Kết nối ứng viên, nhà tuyển dụng và dữ liệu tuyển dụng trong một nền tảng thông minh — nhanh chóng, minh bạch và tối ưu mọi bước tuyển dụng.</p>
+                    <h2 class="fw-bold display-5 mb-3">Không gian <span class="text-orange">tìm việc có định hướng</span></h2>
+                    <p class="mb-0 text-muted">Tập trung việc làm, hồ sơ cá nhân và trạng thái ứng tuyển trong một trải nghiệm rõ ràng để ứng viên dễ ra quyết định hơn.</p>
                 </div>
                 <div class="col-lg-5 text-lg-end">
-                    <a href="{{ route('pages.contact') }}" class="btn btn-orange btn-lg rounded-pill px-4 fw-semibold">Liên hệ tư vấn</a>
+                    <a href="{{ route('candidates.browse_job') }}" class="btn btn-orange btn-lg rounded-pill px-4 fw-semibold">Tìm việc phù hợp</a>
                 </div>
             </div>
 
@@ -169,19 +167,19 @@
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
                         <div class="fw-bold display-6 text-orange">{{ number_format($stats['active_branches'] ?? 0) }}</div>
-                        <p class="mb-0 text-muted">Doanh nghiệp đang tìm kiếm nhân sự</p>
+                        <p class="mb-0 text-muted">Chi nhánh đang có tin tuyển</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
                         <div class="fw-bold display-6 text-orange">{{ number_format($stats['applications'] ?? 0) }}</div>
-                        <p class="mb-0 text-muted">Lượt kết nối công việc mỗi năm</p>
+                        <p class="mb-0 text-muted">Lượt ứng tuyển đã ghi nhận</p>
                     </div>
                 </div>
                 <div class="col-sm-6 col-lg-3">
                     <div class="ecosystem-stat-card p-4 rounded-4 bg-white text-dark h-100 shadow-sm">
                         <div class="fw-bold display-6 text-orange">{{ number_format($stats['users'] ?? 0) }}</div>
-                        <p class="mb-0 text-muted">Ứng viên và nhà tuyển dụng đã tiếp cận</p>
+                        <p class="mb-0 text-muted">Tài khoản đang sử dụng hệ thống</p>
                     </div>
                 </div>
             </div>
@@ -193,7 +191,7 @@
                             <span class="badge badge-orange">1</span>
                         </div>
                         <h3 class="h5 fw-bold">Jobguru.vn</h3>
-                        <p class="text-muted small">Kênh tìm việc và tuyển dụng nhanh dành cho ứng viên và nhà tuyển dụng.</p>
+                        <p class="text-muted small">Kênh tìm việc giúp ứng viên lọc vị trí, xem chi nhánh và nộp hồ sơ nhanh.</p>
                         <a href="{{ route('candidates.browse_job') }}" class="stretched-link text-decoration-none text-orange">Khám phá ngay</a>
                     </div>
                 </div>
@@ -222,9 +220,9 @@
                         <div class="mb-3">
                             <span class="badge badge-orange">4</span>
                         </div>
-                        <h3 class="h5 fw-bold">Liên hệ doanh nghiệp</h3>
-                        <p class="text-muted small">Hỗ trợ kết nối tuyển dụng, hợp tác tuyển dụng và tư vấn doanh nghiệp.</p>
-                        <a href="{{ route('pages.contact') }}" class="stretched-link text-decoration-none text-orange">Liên hệ ngay</a>
+                        <h3 class="h5 fw-bold">Hỗ trợ ứng viên</h3>
+                        <p class="text-muted small">Gửi câu hỏi khi cần hỗ trợ tài khoản, hồ sơ hoặc quá trình ứng tuyển.</p>
+                        <a href="{{ route('pages.contact') }}" class="stretched-link text-decoration-none text-orange">Nhận hỗ trợ</a>
                     </div>
                 </div>
             </div>
@@ -367,7 +365,7 @@
                 <div class="col-lg-8 text-center mb-5">
                     <div class="site-heading">
                         <h2 class="fw-bold display-6 mb-3">Quy Trình <span style="color: #f37021;">3 Bước</span></h2>
-                        <p class="text-muted fs-5">Khám phá lộ trình đơn giản để kết nối nhân tài và cơ hội việc làm mơ ước.</p>
+                    <p class="text-muted fs-5">Khám phá lộ trình đơn giản để tìm việc, nộp hồ sơ và theo dõi phản hồi từ nhà tuyển dụng.</p>
                     </div>
                 </div>
             </div>
@@ -380,7 +378,7 @@
                             <i class="fa fa-user-plus" aria-hidden="true"></i>
                         </div>
                         <h3 class="fw-bold h4 mb-3 text-dark">Tạo tài khoản</h3>
-                        <p class="text-muted mb-0">Đăng ký nhanh chóng với vai trò Ứng viên hoặc Nhà tuyển dụng để bắt đầu tham gia hệ sinh thái.</p>
+                        <p class="text-muted mb-0">Tạo tài khoản ứng viên để lưu hồ sơ, ứng tuyển nhanh và theo dõi từng đơn đã nộp.</p>
                     </div>
                 </div>
                 <!-- Bước 2 -->
@@ -390,8 +388,8 @@
                         <div class="how-works-icon">
                             <i class="fa fa-search" aria-hidden="true"></i>
                         </div>
-                        <h3 class="fw-bold h4 mb-3 text-dark">Tìm kiếm / Đăng tuyển</h3>
-                        <p class="text-muted mb-0">Ứng viên tìm kiếm công việc phù hợp, Nhà tuyển dụng đăng tin và quản lý hồ sơ ứng tuyển dễ dàng.</p>
+                        <h3 class="fw-bold h4 mb-3 text-dark">Tìm kiếm việc làm</h3>
+                        <p class="text-muted mb-0">Tìm vị trí phù hợp theo ngành, địa điểm, mức lương và thông tin chi nhánh tuyển dụng.</p>
                     </div>
                 </div>
                 <!-- Bước 3 -->
@@ -476,7 +474,7 @@
                 <div class="col-md-12">
                     <div class="site-heading">
                         <h2>Chi nhánh &amp; <span>việc làm mới</span></h2>
-                        <p>Xem doanh nghiệp đang tuyển mạnh và danh sách tin mới được duyệt.</p>
+                        <p>Xem các chi nhánh đang tuyển mạnh và danh sách việc làm mới được duyệt.</p>
                     </div>
                 </div>
             </div>
@@ -639,7 +637,7 @@
                                                                                     <div class="branch-action">
                                                                                         <span
                                                                                             class="branch-rating">{{ (int) ($branch->published_jobs_count ?? 0) }}</span>
-                                                                                        <a href="#" class="jobguru-btn">Xem hồ sơ</a>
+                                                                                        <a href="#" class="jobguru-btn">Xem tin tuyển</a>
                                                                                     </div>
                                                                                 </div>
                                                                                 @if(($branch->recruitmentJobs ?? collect())->isNotEmpty())

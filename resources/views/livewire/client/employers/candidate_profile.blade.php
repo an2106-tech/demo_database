@@ -93,7 +93,7 @@
                                         <div class="single-resume-feild ">
                                             <div class="single-input">
                                                 <label for="Bio">Giới thiệu bản thân:</label>
-                                                <textarea id="Bio">?ng vi?n c? kinh nghi?m l?m vi?c th?c t?, tinh th?n h?c h?i t?t v? mong mu?n ph?t tri?n l?u d?i trong m?i tr??ng chuy?n nghi?p.</textarea>
+                                                <textarea id="Bio">Ứng viên có kinh nghiệm làm việc thực tế, tinh thần học hỏi tốt và mong muốn phát triển lâu dài trong môi trường chuyên nghiệp.</textarea>
                                             </div>
                                         </div>
                                     </div>

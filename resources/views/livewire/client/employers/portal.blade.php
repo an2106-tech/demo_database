@@ -51,8 +51,8 @@
                         <div class="employer-portal-kpi">
                             <div class="employer-portal-kpi__icon icon-blue"><i class="fa fa-users"></i></div>
                             <div>
-                                <div class="employer-portal-kpi__title">AI Screening</div>
-                                <div class="employer-portal-kpi__desc">Gợi ý ứng viên phù hợp nhất dựa trên kỹ năng</div>
+                                <div class="employer-portal-kpi__title">Pipeline ứng viên</div>
+                                <div class="employer-portal-kpi__desc">Theo dõi hồ sơ theo từng vòng: sàng lọc, phỏng vấn, offer và kết quả</div>
                             </div>
                         </div>
                         <div class="employer-portal-kpi">
@@ -151,7 +151,7 @@
 <section class="employer-benefits section_padding">
     <div class="container">
         <div class="employer-portal-section-title">
-            <h2>V? sao ??i ng? tuy?n d?ng ch?n n?n t?ng n?y?</h2>
+            <h2>Vì sao đội ngũ tuyển dụng chọn nền tảng này?</h2>
             <p>Chúng tôi thấu hiểu những khó khăn trong quy trình tuyển dụng của bạn</p>
         </div>
         <div class="row g-4">
@@ -246,7 +246,7 @@
         <div class="container">
             <div class="cta-box text-center">
                 <h2>Sẵn sàng bứt phá hiệu quả tuyển dụng?</h2>
-                <p class="mt-3 mb-4 opacity-75">B?t ??u x?y d?ng quy tr?nh tuy?n d?ng r? r?ng v? d? qu?n l? h?n ngay h?m nay.</p>
+                <p class="mt-3 mb-4 opacity-75">Bắt đầu xây dựng quy trình tuyển dụng rõ ràng và dễ quản lý hơn ngay hôm nay.</p>
                 <div class="d-flex gap-3 justify-content-center flex-wrap">
                     <a href="{{ route('employers.register') }}" class="btn employer-btn-primary btn-lg px-5">
                         Bắt đầu ngay miễn phí

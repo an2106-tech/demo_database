@@ -31,7 +31,13 @@ class Header extends Component
         );
 
         return $this->type === 'employer'
-            ? view('livewire.client.header-employer', ['canEmployerAccess' => $canEmployerAccess])
-            : view('livewire.client.header-candidate', ['canCandidateAccess' => $canCandidateAccess]);
+            ? view('livewire.client.header-employer', [
+                'canEmployerAccess' => $canEmployerAccess,
+                'canCandidateAccess' => $canCandidateAccess,
+            ])
+            : view('livewire.client.header-candidate', [
+                'canCandidateAccess' => $canCandidateAccess,
+                'canEmployerAccess' => $canEmployerAccess,
+            ]);
     }
 }

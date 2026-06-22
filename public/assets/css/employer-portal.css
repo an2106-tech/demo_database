@@ -11,9 +11,9 @@ body.employer-app {
   --ep-text: #111827;
   --ep-muted: #6b7280;
   --ep-line: rgba(15, 23, 42, 0.08);
-  --ep-primary: #ff7800;
-  --ep-primary-hover: #e86d00;
-  --ep-primary-soft: rgba(255, 120, 0, 0.12);
+  --ep-primary: #f37021;
+  --ep-primary-hover: #d85f16;
+  --ep-primary-soft: rgba(243, 112, 33, 0.11);
   --ep-radius: 16px;
   --ep-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   --ep-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.08);
@@ -58,11 +58,8 @@ body.employer-app .employer-portal-kpi__desc,
 body.employer-app .employer-portal-hero__hint,
 body.employer-app .employer-stat__label,
 body.employer-app .employer-portal-section-title p,
-body.employer-app .employer-feature-card p,
-body.employer-app .single-footer-widget p,
-body.employer-app .single-footer-widget a,
-body.employer-app .single-footer-widget h3 {
-  color: #111111 !important;
+body.employer-app .employer-feature-card p {
+  color: var(--ep-muted) !important;
 }
 
 /* ---------- Header ---------- */
@@ -70,6 +67,7 @@ body.employer-app .jobguru-header-area.client-app-header {
   background: var(--ep-surface) !important;
   border-bottom: 1px solid var(--ep-line) !important;
   box-shadow: var(--ep-shadow-sm) !important;
+  min-height: 76px;
 }
 
 body.employer-app .jobguru-header-area #jobguru_navigation > li > a {
@@ -90,7 +88,7 @@ body.employer-app .jobguru-header-area .header-right-menu .post-jobs {
   background: linear-gradient(135deg, var(--ep-primary) 0%, #ff9a3d 100%) !important;
   border-radius: 999px !important;
   box-shadow: 0 10px 24px rgba(255, 120, 0, 0.25) !important;
-  color: #111111 !important;
+  color: #ffffff !important;
   padding-left: 1rem !important;
   padding-right: 1rem !important;
 }
@@ -309,7 +307,7 @@ body.employer-app .table tbody td {
 /* ---------- Portal buttons ---------- */
 .employer-btn-primary {
   background: linear-gradient(135deg, var(--ep-primary) 0%, #ff9a3d 100%) !important;
-  color: #111111 !important;
+  color: #ffffff !important;
   border: none !important;
   border-radius: 14px !important;
   padding: 12px 16px !important;
@@ -318,6 +316,7 @@ body.employer-app .table tbody td {
 
 .employer-btn-primary:hover {
   filter: brightness(1.03);
+  color: #ffffff !important;
 }
 
 .employer-btn-secondary {

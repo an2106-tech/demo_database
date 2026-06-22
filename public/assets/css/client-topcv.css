@@ -1,5 +1,5 @@
-/*
- * Client UI theme — clean job-board style (TopCV-like).
+﻿/*
+ * Client UI theme â€” clean job-board style (TopCV-like).
  * Loaded after style.css / compat.css. Scoped via body.client-app.
  * Font: Inter (linked from layouts/client + layouts/employer).
  */
@@ -177,41 +177,272 @@ body.client-app .jobguru-header-area .header-right-menu .post-jobs:hover {
 /* ---------- Footer ---------- */
 body.client-app .client-app-footer.jobguru-footer-area,
 body.client-app .jobguru-footer-area.client-app-footer {
-  background: #0f172a !important;
-  color: #94a3b8 !important;
-  margin-top: 48px;
+  background:
+    linear-gradient(180deg, rgba(255, 247, 241, 0.66) 0%, rgba(255, 255, 255, 0.96) 100%) !important;
+  color: #475569 !important;
+  margin-top: 56px;
 }
 
 body.client-app .jobguru-footer-area .footer-top {
-  padding-top: 56px !important;
-  padding-bottom: 48px !important;
+  padding-top: 36px !important;
+  padding-bottom: 18px !important;
 }
 
-body.client-app .jobguru-footer-area .single-footer-widget h3 {
-  color: #f8fafc !important;
-  font-size: 15px !important;
-  font-weight: 700 !important;
-  margin-bottom: 18px !important;
-  letter-spacing: 0.02em;
+body.client-app .client-footer-grid {
+  align-items: start;
 }
 
-body.client-app .jobguru-footer-area .single-footer-widget p,
-body.client-app .jobguru-footer-area .single-footer-widget a {
+@media (min-width: 992px) {
+  body.client-app .client-footer-grid {
+    display: grid !important;
+    gap: 36px;
+    grid-template-columns: minmax(240px, 1.15fr) minmax(190px, 0.95fr) minmax(160px, 0.8fr) minmax(220px, 1fr);
+  }
+
+  body.client-app .client-footer-grid > .client-footer-column {
+    margin-top: 0 !important;
+    max-width: none;
+    padding-left: 0;
+    padding-right: 0;
+    width: auto;
+  }
+
+  body.client-app .client-app-footer .single-footer-widget h3 {
+    white-space: nowrap;
+  }
+}
+
+body.client-app .client-app-footer .single-footer-widget {
+  filter: none !important;
+  height: 100%;
+  padding-right: 10px;
+  transform: none !important;
+}
+
+body.client-app .client-app-footer .single-footer-widget:hover {
+  filter: none !important;
+  transform: none !important;
+}
+
+body.client-app .client-app-footer .single-footer-widget h3 {
+  color: #0f172a !important;
+  display: block !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  margin-bottom: 14px !important;
+  text-transform: none !important;
+}
+
+body.client-app .client-app-footer .single-footer-widget p,
+body.client-app .client-app-footer .single-footer-widget a,
+body.client-app .client-app-footer .single-footer-widget span,
+body.client-app .client-app-footer .single-footer-widget small {
+  color: #475569 !important;
+}
+
+body.client-app .client-app-footer .client-footer-brand {
+  padding-right: 16px;
+}
+
+body.client-app .client-app-footer .footer-logo {
+  margin-bottom: 14px;
+}
+
+body.client-app .client-app-footer .footer-logo a {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(243, 112, 33, 0.18);
+  border-radius: 14px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+  display: inline-flex;
+  padding: 8px 10px;
+}
+
+body.client-app .client-app-footer .footer-logo img {
+  filter: none;
+  height: 52px;
+  margin-bottom: 0;
+  width: auto;
+}
+
+body.client-app .client-app-footer .client-footer-brand h3 {
+  font-size: 17px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 0 !important;
+  max-width: 340px;
+}
+
+body.client-app .client-app-footer ul.footer-social {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+body.client-app .client-app-footer ul.footer-social li {
+  margin-bottom: 0;
+}
+
+body.client-app .client-app-footer ul.footer-social li a {
+  align-items: center;
+  background: #fff7f1 !important;
+  border: 1px solid rgba(243, 112, 33, 0.18);
+  border-radius: 12px !important;
+  color: #d95f16 !important;
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  width: 42px;
+}
+
+body.client-app .client-app-footer ul.footer-social li a:hover {
+  background: #f37021 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+body.client-app .client-app-footer .client-footer-links ul {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+body.client-app .client-app-footer .client-footer-links li {
+  margin-bottom: 0;
+}
+
+body.client-app .client-app-footer .client-footer-links a {
+  align-items: flex-start;
+  color: #334155 !important;
+  display: inline-flex;
+  gap: 8px;
+  line-height: 1.45;
+  text-transform: none !important;
+}
+
+body.client-app .client-app-footer .client-footer-links a i {
+  color: #f37021 !important;
+  font-size: 13px;
+  margin-right: 0 !important;
+  margin-top: 5px;
+}
+
+body.client-app .client-app-footer .client-footer-links a:hover {
+  color: #f37021 !important;
+  transform: none !important;
+  text-shadow: none !important;
+}
+
+body.client-app .client-app-footer .client-footer-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 0;
+}
+
+body.client-app .client-app-footer .client-footer-contact-item {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+}
+
+body.client-app .client-app-footer .client-footer-contact-icon {
+  align-items: center;
+  background: #fff7f1;
+  border: 1px solid rgba(243, 112, 33, 0.16);
+  border-radius: 10px;
+  color: #f37021 !important;
+  display: inline-flex;
+  flex: 0 0 34px;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+body.client-app .client-app-footer .client-footer-contact-copy {
+  min-width: 0;
+}
+
+body.client-app .client-app-footer .client-footer-contact-copy small {
   color: #94a3b8 !important;
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+  text-transform: uppercase;
 }
 
-body.client-app .jobguru-footer-area .single-footer-widget a:hover {
-  color: #fff !important;
+body.client-app .client-app-footer .client-footer-contact-copy a,
+body.client-app .client-app-footer .client-footer-contact-copy span {
+  color: #1e293b !important;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-transform: none !important;
 }
 
-body.client-app .jobguru-footer-area .footer-social a {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-radius: 10px !important;
+body.client-app .client-app-footer .footer-copyright {
+  background: transparent !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.92) !important;
+  padding: 12px 0 14px !important;
 }
 
-body.client-app .jobguru-footer-area .footer-social a:hover {
-  background: var(--cv-primary) !important;
-  color: #fff !important;
+body.client-app .client-app-footer .client-footer-bottom {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+}
+
+body.client-app .client-app-footer .client-footer-bottom p {
+  color: #64748b !important;
+  font-size: 12px;
+  font-weight: 500;
+  margin: 0;
+  text-align: left !important;
+}
+
+@media (max-width: 991px) {
+  body.client-app .client-app-footer .single-footer-widget {
+    margin-bottom: 28px;
+    padding-right: 0;
+  }
+
+  body.client-app .client-app-footer .client-footer-brand {
+    padding-right: 0;
+  }
+
+  body.client-app .client-app-footer .client-footer-brand h3 {
+    font-size: 18px !important;
+    max-width: none;
+  }
+
+  body.client-app .client-app-footer .client-footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 575px) {
+  body.client-app .client-app-footer.jobguru-footer-area,
+  body.client-app .jobguru-footer-area.client-app-footer {
+    margin-top: 44px;
+  }
+
+  body.client-app .client-app-footer .client-footer-brand h3 {
+    font-size: 21px !important;
+  }
+
+  body.client-app .client-app-footer .client-footer-links ul {
+    gap: 10px;
+  }
+
+  body.client-app .client-app-footer ul.footer-social {
+    flex-wrap: wrap;
+  }
 }
 
 /* ---------- Breadcrumb ---------- */
@@ -2177,404 +2408,458 @@ body.client-app .auth-card {
   margin: 0 auto;
 }
 
-body.client-app .auth-page-wrap {
+body.client-app .auth-redesign-page {
   position: relative;
+  padding: 134px 0 72px;
+  overflow: hidden;
 }
 
-body.client-app .auth-page-wrap::before {
+body.client-app .auth-redesign-page::before {
   content: "";
   position: absolute;
-  inset: 24px 14px auto;
-  height: 260px;
-  border-radius: 28px;
+  inset: 54px 0 auto;
+  height: 340px;
   background:
-    radial-gradient(circle at 10% 24%, rgba(249, 115, 22, 0.2), transparent 48%),
-    radial-gradient(circle at 92% 84%, rgba(251, 146, 60, 0.14), transparent 50%),
-    linear-gradient(135deg, rgba(255, 247, 237, 0.86) 0%, rgba(255, 255, 255, 0.8) 100%);
-  z-index: 0;
+    radial-gradient(circle at 10% 20%, rgba(243, 112, 33, 0.12), transparent 34%),
+    radial-gradient(circle at 90% 12%, rgba(15, 23, 42, 0.08), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(248, 250, 252, 0.72) 100%);
   pointer-events: none;
 }
 
-body.client-app .auth-page-wrap .container {
+body.client-app .auth-redesign-container {
   position: relative;
   z-index: 1;
+  max-width: 1240px;
 }
 
-body.client-app .auth-header h3 {
-  margin: 0;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-}
-
-body.client-app .auth-header p {
-  margin: 0.55rem 0 0;
-  color: var(--cv-muted);
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-body.client-app .auth-shell {
+body.client-app .auth-redesign-frame {
   display: grid;
-  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr);
-  gap: 0;
-  border-radius: 26px;
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.12);
+  grid-template-columns: minmax(0, 1.06fr) minmax(320px, 0.94fr);
+  align-items: stretch;
+  gap: 28px;
 }
 
-/* ---------- Auth Tabs ---------- */
-body.client-app .auth-tabs {
-  display: flex;
-  gap: 32px;
-  margin-bottom: 28px;
-  border-bottom: 1px solid #e2e8f0;
+body.client-app .auth-redesign-main {
+  min-width: 0;
 }
 
-body.client-app .auth-tab {
+body.client-app .auth-redesign-topline {
+  margin-bottom: 24px;
+}
+
+body.client-app .auth-redesign-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: rgba(243, 112, 33, 0.08);
+  color: var(--cv-primary);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+body.client-app .auth-redesign-topline h1 {
+  margin: 18px 0 0;
+  max-width: 12ch;
+  color: #0f172a !important;
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+}
+
+body.client-app .auth-redesign-topline p {
+  max-width: 58ch;
+  margin: 14px 0 0;
+  color: #475569;
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+body.client-app .auth-redesign-tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(100%, 420px);
+  gap: 8px;
+  padding: 6px;
+  margin-bottom: 20px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #f8fafc;
+}
+
+body.client-app .auth-redesign-tab {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 0;
+  min-height: 46px;
+  padding: 10px 16px;
+  border-radius: 12px;
+  color: #475569;
   font-size: 15px;
   font-weight: 700;
-  color: #111;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-  user-select: none;
+  text-decoration: none !important;
+  transition: all 0.18s ease;
 }
 
-body.client-app .auth-tab:hover {
-  color: #000;
+body.client-app .auth-redesign-tab:hover {
+  color: #0f172a;
 }
 
-body.client-app .auth-tab:focus {
-  outline: none;
-  color: #111827;
+body.client-app .auth-redesign-tab.is-active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.08);
 }
 
-body.client-app .auth-tab.active {
-  color: #111;
+body.client-app .auth-redesign-card {
+  padding: 30px;
+  border: 1px solid #e2e8f0;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
 }
 
-body.client-app .auth-tab.active::after {
-  content: "";
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: #111;
-  border-radius: 3px 3px 0 0;
+body.client-app .auth-redesign-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
 }
 
-body.client-app .auth-shell__main {
-  animation: auth-fade-in 0.4s ease-out;
+body.client-app .auth-redesign-card__header--compact {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 14px;
 }
 
-@keyframes auth-fade-in {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
+body.client-app .auth-redesign-card__header > div {
+  min-width: 0;
 }
 
-body.client-app .auth-shell__aside {
-  padding: 34px 28px;
-  color: #fff;
-  background:
-    radial-gradient(circle at 12% 20%, rgba(255, 255, 255, 0.22), transparent 48%),
-    radial-gradient(circle at 92% 12%, rgba(255, 255, 255, 0.12), transparent 46%),
-    linear-gradient(135deg, #fb923c 0%, #f97316 46%, #ea580c 100%);
-  position: relative;
-}
-
-body.client-app .auth-shell__aside::after {
-  content: "";
-  position: absolute;
-  right: -140px;
-  top: -120px;
-  width: 260px;
-  height: 260px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  filter: blur(0);
-  pointer-events: none;
-}
-
-body.client-app .auth-shell__badge {
+body.client-app .auth-redesign-brand {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
-  margin-bottom: 14px;
+  justify-content: center;
+  min-height: 64px;
+  padding: 10px 12px;
+  border: 1px solid rgba(243, 112, 33, 0.16);
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+  text-decoration: none !important;
 }
 
-body.client-app .auth-shell__aside,
-body.client-app .auth-shell__aside h3,
-body.client-app .auth-shell__aside .auth-shell__title,
-body.client-app .auth-shell__aside .auth-shell__subtitle,
-body.client-app .auth-shell__aside li {
-  color: #ffffff !important;
-}
-
-body.client-app .auth-shell__aside .auth-shell__title {
-  margin: 0 0 10px;
-  font-size: clamp(1.35rem, 2.1vw, 1.75rem);
-  font-weight: 900;
-  line-height: 1.18;
-}
-
-body.client-app .auth-shell__aside .auth-shell__subtitle {
-  margin: 0 0 16px;
-  font-size: 14px;
-  line-height: 1.6;
-  opacity: 0.9;
-}
-
-body.client-app .auth-shell__list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 10px;
-}
-
-body.client-app .auth-shell__list li {
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  color: rgba(255, 255, 255, 0.92);
-  font-weight: 600;
-  line-height: 1.55;
-}
-
-body.client-app .auth-shell__list i {
-  margin-top: 2px;
-  color: #fff;
-  opacity: 0.95;
-}
-
-body.client-app .auth-shell__main {
-  padding: 30px 30px 28px;
-  background: #fff;
-}
-
-body.client-app .auth-shell__header h3 {
-  margin: 0;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  color: var(--cv-ink);
-}
-
-body.client-app .auth-shell__header p {
-  margin: 0.5rem 0 0;
-  color: #111;
-  font-size: 14px;
-}
-
-body.client-app .auth-form {
-  margin-top: 18px;
-}
-
-body.client-app .auth-form .single-login-field {
-  margin-bottom: 14px;
-}
-
-body.client-app .auth-form .single-login-field label {
+body.client-app .auth-redesign-brand img {
   display: block;
-  margin-bottom: 6px;
+  width: auto;
+  height: 42px;
+}
+
+body.client-app .auth-redesign-card__header span {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--cv-primary);
+  font-size: 12px;
   font-weight: 800;
-  color: var(--cv-ink);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-body.client-app .auth-form .candidate-grid > [class*="col-"] {
-  display: flex;
+body.client-app .auth-redesign-card__header h2 {
+  margin: 0;
+  color: #0f172a !important;
+  font-size: clamp(1.7rem, 2.4vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.08;
 }
 
-body.client-app .auth-form .candidate-grid .single-login-field {
+body.client-app .auth-redesign-card__header small {
+  max-width: 180px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.6;
+  text-align: right;
+}
+
+body.client-app .auth-redesign-note {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid rgba(243, 112, 33, 0.18);
+  border-radius: 18px;
+  background: #fff7ed;
+}
+
+body.client-app .auth-redesign-note strong {
+  color: #9a3412;
+  font-size: 14px;
+}
+
+body.client-app .auth-redesign-note span,
+body.client-app .auth-redesign-note--soft {
+  color: #9a3412;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+body.client-app .auth-redesign-form {
+  display: grid;
+  gap: 18px;
+}
+
+body.client-app .auth-redesign-grid {
+  display: grid;
+  gap: 18px;
+}
+
+body.client-app .auth-redesign-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body.client-app .auth-redesign-field {
+  min-width: 0;
+}
+
+body.client-app .auth-redesign-field--full {
+  grid-column: 1 / -1;
+}
+
+body.client-app .auth-redesign-field label {
+  display: block;
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+body.client-app .auth-redesign-field .form-control,
+body.client-app .auth-redesign-field .form-select {
   width: 100%;
-}
-
-body.client-app .auth-form input.form-control,
-body.client-app .auth-form select.form-select {
-  width: 100%;
-  height: 52px;
-  padding: 12px 18px;
+  height: 56px;
+  padding: 13px 18px;
   border: 1px solid #cbd5e1;
-  border-radius: 14px;
-  background: #fff;
-  color: #000;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 15px;
   font-weight: 500;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
 }
 
-body.client-app .auth-form input.form-control:focus,
-body.client-app .auth-form select.form-select:focus {
+body.client-app .auth-redesign-field .form-control::placeholder {
+  color: #94a3b8;
+}
+
+body.client-app .auth-redesign-field .form-control:focus,
+body.client-app .auth-redesign-field .form-select:focus {
   border-color: var(--cv-primary);
-  box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.15);
+  box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.14);
   transform: translateY(-1px);
   outline: none;
 }
 
-body.client-app .auth-shell {
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.12);
-}
-
-body.client-app .auth-shell__aside {
-  background: linear-gradient(135deg, var(--cv-primary) 0%, #e05f12 100%);
-}
-
-body.client-app .auth-form .invalid-text {
-  margin: 6px 0 0;
-  font-size: 13px;
-}
-
-body.client-app .auth-form .terms-field {
+body.client-app .auth-redesign-inline {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin: 6px 0 18px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
 }
 
-body.client-app .auth-form .terms-field input[type="checkbox"] {
+body.client-app .auth-redesign-check {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+body.client-app .auth-redesign-check--box {
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+body.client-app .auth-redesign-check input {
   width: 18px;
   height: 18px;
-  margin-top: 3px;
+  margin-top: 2px;
   accent-color: var(--cv-primary);
   flex: 0 0 auto;
 }
 
-body.client-app .auth-form .terms-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-body.client-app .auth-form .terms-copy label {
-  margin: 0;
+body.client-app .auth-redesign-link,
+body.client-app .auth-redesign-footer a {
+  color: #0f172a;
+  font-size: 14px;
   font-weight: 800;
-  line-height: 1.5;
-  cursor: pointer;
-  color: var(--cv-ink);
+  text-decoration: none !important;
 }
 
-body.client-app .auth-actions {
-  margin-top: 12px;
+body.client-app .auth-redesign-link:hover,
+body.client-app .auth-redesign-footer a:hover {
+  color: var(--cv-primary);
 }
 
-body.client-app .auth-form .remember-row {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 10px 14px;
-}
-
-body.client-app .auth-link-muted {
-  color: #111;
-  font-weight: 700;
-}
-
-body.client-app .auth-link-muted:hover {
-  color: #111;
-  text-decoration: underline;
-}
-
-body.client-app .auth-actions .auth-submit-btn {
+body.client-app .auth-redesign-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
-  min-height: 52px;
+  min-height: 56px;
   border: 0;
-  border-radius: 14px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
+  border-radius: 16px;
   background: linear-gradient(135deg, var(--cv-primary) 0%, #ff8a1d 100%);
-  color: #fff;
-  box-shadow: 0 14px 34px rgba(234, 88, 12, 0.18);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  box-shadow: 0 16px 36px rgba(243, 112, 33, 0.18);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
 
-body.client-app .auth-actions .auth-submit-btn:hover {
+body.client-app .auth-redesign-submit:hover,
+body.client-app .auth-redesign-submit:focus {
+  color: #ffffff;
   transform: translateY(-1px);
-  box-shadow: 0 16px 40px rgba(234, 88, 12, 0.22);
+  box-shadow: 0 20px 40px rgba(243, 112, 33, 0.24);
   filter: brightness(1.02);
 }
 
-body.client-app .auth-actions .auth-submit-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.16), 0 14px 34px rgba(234, 88, 12, 0.18);
-}
-
-body.client-app .auth-links {
-  margin-top: 14px;
-  display: grid;
-  gap: 8px;
+body.client-app .auth-redesign-footer {
+  margin-top: 18px;
   text-align: center;
 }
 
-body.client-app .auth-links a {
-  color: #111;
-  font-weight: 800;
+body.client-app .auth-redesign-visual {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  min-height: 100%;
+  border-radius: 28px;
+  background: #e2e8f0;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
 }
 
-body.client-app .auth-links a:hover {
-  text-decoration: underline;
+body.client-app .auth-redesign-visual__media {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 100%;
 }
 
-body.client-app .auth-note {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background: #fff7ed;
-  border: 1px solid rgba(243, 112, 33, 0.22);
-  border-radius: 14px;
-  color: #9a3412;
+body.client-app .auth-redesign-visual__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0.38));
+  pointer-events: none;
+}
+
+body.client-app .auth-redesign-visual__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+body.client-app .auth-redesign-form .invalid-text {
+  margin: 6px 0 0;
   font-size: 13px;
+  font-weight: 700;
 }
 
-@media (max-width: 991.98px) {
-  body.client-app .auth-page-wrap::before {
-    inset: 16px 8px auto;
-    height: 200px;
-  }
-
-  body.client-app .auth-shell {
+@media (max-width: 1199.98px) {
+  body.client-app .auth-redesign-frame {
     grid-template-columns: 1fr;
   }
 
-  body.client-app .auth-shell__aside {
-    padding: 26px 22px;
+  body.client-app .auth-redesign-visual {
+    min-height: 280px;
   }
 
-  body.client-app .auth-shell__main {
-    padding: 24px 20px 20px;
+  body.client-app .auth-redesign-visual__media {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 991.98px) {
+  body.client-app .auth-redesign-page {
+    padding: 112px 0 56px;
   }
 
-  body.client-app .auth-tabs {
-    gap: 22px;
+  body.client-app .auth-redesign-page::before {
+    inset: 36px 0 auto;
+    height: 260px;
+  }
+
+  body.client-app .auth-redesign-topline h1 {
+    max-width: none;
+    font-size: clamp(2rem, 7vw, 2.8rem);
+  }
+
+  body.client-app .auth-redesign-card {
+    padding: 22px;
+  }
+
+  body.client-app .auth-redesign-card__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.client-app .auth-redesign-card__header--compact {
+    gap: 12px;
+  }
+
+  body.client-app .auth-redesign-card__header small {
+    max-width: none;
+    text-align: left;
+  }
+
+  body.client-app .auth-redesign-grid--two,
+  body.client-app .auth-redesign-visual {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 767px) {
-  body.client-app #selectRoleModal .modal-header {
-    padding: 18px 18px 0;
+  body.client-app .auth-redesign-page {
+    padding: 102px 0 48px;
   }
 
-  body.client-app #selectRoleModal .modal-body {
-    padding: 14px 18px 18px;
+  body.client-app .auth-redesign-topline p {
+    font-size: 14px;
   }
 
-  body.client-app #selectRoleModal .role-panel {
-    grid-template-columns: 1fr;
+  body.client-app .auth-redesign-card {
+    padding: 18px;
+    border-radius: 22px;
   }
 
-  body.client-app #selectRoleModal .role-card-img {
-    height: 190px;
+  body.client-app .auth-redesign-inline {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body.client-app .auth-redesign-visual {
+    border-radius: 22px;
   }
 }
 

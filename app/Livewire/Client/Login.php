@@ -2,16 +2,26 @@
 
 namespace App\Livewire\Client;
 
+use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Login extends Component
 {
+    public string $contextRole = 'candidate';
+
     public string $email = '';
 
     public string $password = '';
 
     public bool $remember = false;
+
+    public function mount(): void
+    {
+        $routeName = request()->route()?->getName();
+
+        $this->contextRole = $routeName === 'employers.login' ? 'employer' : 'candidate';
+    }
 
     public function login(): mixed
     {
@@ -55,22 +65,34 @@ class Login extends Component
             return $this->redirect('/admin');
         }
 
+        $candidateAccounts = app(CandidateAccountService::class);
+
+        if ($user->role === 'candidate') {
+            $candidateAccounts->setPreferredAccountType($user, 'candidate');
+            session(['client_menu_type' => 'candidate']);
+
+            return $this->redirect(route('candidates.candidate_dashboard'));
+        }
+
+        if ($candidateAccounts->hasCandidateAccount($user) && $this->contextRole === 'candidate') {
+            $candidateAccounts->setPreferredAccountType($user, 'candidate');
+            session(['client_menu_type' => 'candidate']);
+
+            return $this->redirect(route('candidates.candidate_dashboard'));
+        }
+
         if ($user->role === 'director') {
+            $candidateAccounts->setPreferredAccountType($user, 'employer');
             session(['client_menu_type' => 'employer']);
 
             return $this->redirect(route('employers.dashboard'));
         }
 
         if ($user->role === 'hr') {
+            $candidateAccounts->setPreferredAccountType($user, 'employer');
             session(['client_menu_type' => 'employer']);
 
             return $this->redirect(route('employers.dashboard'));
-        }
-
-        if ($user->role === 'candidate') {
-            session(['client_menu_type' => 'candidate']);
-
-            return $this->redirect(route('candidates.candidate_dashboard'));
         }
 
         session()->forget('client_menu_type');
@@ -81,8 +103,13 @@ class Login extends Component
     public function render()
     {
         /** @var mixed $view */
-        $view = view('livewire.client.pages.login');
+        $view = view('livewire.client.pages.login', [
+            'contextRole' => $this->contextRole,
+        ]);
 
-        return $view->layout('layouts.client');
+        return $view->layout('layouts.auth', [
+            'authTitle' => 'Đăng nhập',
+            'authContextRole' => $this->contextRole,
+        ]);
     }
 }

@@ -5,23 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     @php
-        $routeName = \Illuminate\Support\Facades\Route::currentRouteName();
         $baseTitle = config('app.name', 'FPT Careers');
-        $fallbackTitle = $routeName
-            ? (string) \Illuminate\Support\Str::of($routeName)
-                ->replace(['candidates.', 'employers.', 'pages.', 'auth.'], '')
-                ->replace(['_', '.'], ' ')
-                ->headline()
-            : $baseTitle;
-        $pageTitle = filled($title ?? null) ? $title : $fallbackTitle;
+        $pageTitle = filled($authTitle ?? null) ? $authTitle : $baseTitle;
         $documentTitle = \Illuminate\Support\Str::contains($pageTitle, $baseTitle) ? $pageTitle : "{$pageTitle} | {$baseTitle}";
+        $authContextRole = ($authContextRole ?? 'candidate') === 'employer' ? 'employer' : 'candidate';
     @endphp
 
     <title>{{ $documentTitle }}</title>
-
-
-
-  
 
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('assets/img/fe-logo.png') }}">
     <link rel="shortcut icon" href="{{ asset('assets/img/fe-logo.png') }}">
@@ -46,103 +36,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('assets/css/client-topcv.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/ui-enterprise.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/auth-unified.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/employer-portal.css') }}">
 
     @livewireStyles
-
-    <style>
-        .app-toast-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-            position: fixed;
-            right: 20px;
-            top: 20px;
-            width: min(360px, calc(100vw - 32px));
-            z-index: 1080;
-        }
-
-        .app-toast {
-            align-items: flex-start;
-            animation: appToastEnter .25s ease;
-            background: linear-gradient(135deg, #effaf3 0%, #ffffff 100%);
-            border: 1px solid #bfe1ca;
-            border-radius: 18px;
-            box-shadow: 0 16px 40px rgba(28, 57, 39, 0.12);
-            color: #205437;
-            display: flex;
-            gap: 12px;
-            opacity: 1;
-            overflow: hidden;
-            padding: 16px 18px;
-            pointer-events: auto;
-            position: relative;
-            transform: translateY(0);
-            transition: opacity .2s ease, transform .2s ease;
-        }
-
-        .app-toast.is-closing {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
-        .app-toast__icon {
-            align-items: center;
-            background: #dff3e7;
-            border-radius: 999px;
-            display: inline-flex;
-            flex: 0 0 36px;
-            font-size: 16px;
-            height: 36px;
-            justify-content: center;
-            width: 36px;
-        }
-
-        .app-toast__body {
-            flex: 1 1 auto;
-            font-size: 14px;
-            font-weight: 600;
-            line-height: 1.6;
-            min-width: 0;
-        }
-
-        .app-toast__close {
-            background: transparent;
-            border: none;
-            color: #4a755b;
-            cursor: pointer;
-            flex: 0 0 auto;
-            font-size: 18px;
-            line-height: 1;
-            margin: -2px -2px 0 0;
-            padding: 0;
-        }
-
-        @keyframes appToastEnter {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 767px) {
-            .app-toast-stack {
-                left: 16px;
-                right: 16px;
-                top: 16px;
-                width: auto;
-            }
-        }
-    </style>
 </head>
 
-<body class="client-app">
+<body class="client-app candidate-app">
     <div
         class="app-toast-stack"
         data-toast-stack
@@ -151,11 +50,9 @@
         @endif
     ></div>
 
-    {{-- @include('partials.header') --}}
     <livewire:header type="candidate" />
     {{ $slot }}
     <livewire:footer type="candidate" />
-    {{-- @include('partials.footer') --}}
 
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
     <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>

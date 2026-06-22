@@ -1,5 +1,22 @@
 <header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-employer" role="banner" x-data="{ openEmployerUserMenu: false }">
     <style>
+        .app-header-employer .menu-animation {
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+        }
+
+        .app-header-employer #jobguru_navigation {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-wrap: nowrap;
+        }
+
+        .app-header-employer #jobguru_navigation > li > a {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+
         .employer-actions ul {
             display: flex;
             align-items: center;
@@ -31,14 +48,14 @@
             align-items: center !important;
             justify-content: center !important;
             min-height: 44px !important;
-            padding: 12px 24px !important;
+            padding: 11px 18px !important;
             border-radius: 999px !important;
             background: #ff8a1d !important;
             border: none !important;
             color: #fff !important;
             -webkit-text-fill-color: #fff !important;
             font-family: 'Inter', sans-serif !important;
-            font-size: 15px !important;
+            font-size: 14px !important;
             font-weight: 700 !important;
             line-height: 1 !important;
             letter-spacing: 0 !important;
@@ -116,30 +133,30 @@
                     <div class="jobguru-responsive-menu"></div>
                 </div>
 
-                <div class="col-lg-5">
+                <div class="col-lg-6">
                     <div class="header-menu">
                         <nav id="navigation" aria-label="Employer navigation">
                             <ul id="jobguru_navigation">
                                 <li><a href="{{ route('employers.portal') }}">Trang chủ</a></li>
                                 @auth
-                                    <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
-                                    <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>
-                                    <li><a href="{{ route('employers.manage_jobs') }}">Quản Lý Tin</a></li>
-                                    <li><a href="{{ route('employers.browse') }}">Ứng Viên</a></li>
-                                    <li><a href="{{ route('employers.transaction') }}">Thanh Toán</a></li>
+                                    <li><a href="{{ route('employers.dashboard') }}">Tổng quan</a></li>
+                                    <li><a href="{{ route('employers.post_job') }}">Đăng tin</a></li>
+                                    <li><a href="{{ route('employers.manage_jobs') }}">Tin tuyển</a></li>
+                                    <li><a href="{{ route('employers.browse') }}">Ứng viên</a></li>
+                                    <li><a href="{{ route('employers.transaction') }}">Thanh toán</a></li>
                                 @else
-                                <li><a href="{{ route('employers.dashboard') }}">Tổng Quan</a></li>
-                                <li><a href="{{ route('employers.post_job') }}">Đăng Tuyển</a></li>
-                                <li><a href="{{ route('employers.manage_jobs') }}">Quản Lý Tin</a></li>
-                                <li><a href="{{ route('employers.browse') }}">Ứng Viên</a></li>
-                                <li><a href="{{ route('employers.transaction') }}">Thanh Toán</a></li>
+                                <li><a href="{{ route('employers.dashboard') }}">Tổng quan</a></li>
+                                <li><a href="{{ route('employers.post_job') }}">Đăng tin</a></li>
+                                <li><a href="{{ route('employers.manage_jobs') }}">Tin tuyển</a></li>
+                                <li><a href="{{ route('employers.browse') }}">Ứng viên</a></li>
+                                <li><a href="{{ route('employers.transaction') }}">Thanh toán</a></li>
                                 @endauth
                             </ul>
                         </nav>
                     </div>
                 </div>
 
-                <div class="col-lg-5">
+                <div class="col-lg-4">
                     <div class="header-right-menu employer-actions">
                         <ul>
                             <li>
@@ -148,7 +165,7 @@
                                     class="switch-role-btn"
                                     style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
                                 >
-                                    Chuyển Sang Ứng Viên
+                                    Dành cho ứng viên
                                 </a>
                             </li>
                             @auth
@@ -165,18 +182,23 @@
                                     </button>
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('employers.company_profile') }}">Hồ Sơ Thông Tin</a>
-                                        <a href="{{ route('director.approve_jobs') }}">Duyệt Tin</a>
+                                        <a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a>
+                                        @if(!($canCandidateAccess ?? false))
+                                            <a href="{{ route('candidates.register') }}">Kích hoạt hồ sơ ứng viên</a>
+                                        @else
+                                            <a href="{{ route('candidates.candidate_dashboard') }}">Khu ứng viên</a>
+                                        @endif
+                                        <a href="{{ route('director.approve_jobs') }}">Duyệt tin</a>
                                         <livewire:client.logout-button />
                                     </div>
                                 </li>
                                 @else
-                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng Ký</a></li>
-                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng Nhập</a></li>
+                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng ký</a></li>
+                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
                                 @endif
                             @else
-                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng Ký</a></li>
-                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng Nhập</a></li>
+                                <li><a href="{{ route('employers.register') }}"><i class="fa fa-user"></i> Đăng ký</a></li>
+                                <li><a href="{{ route('employers.login') }}"><i class="fa fa-lock"></i> Đăng nhập</a></li>
                             @endauth
                         </ul>
                     </div>
@@ -185,4 +207,3 @@
         </div>
     </div>
 </header>
-

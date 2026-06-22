@@ -128,7 +128,7 @@
                                 <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                 <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
                                 <li><a href="{{ route('candidates.browse_categories') }}">Ngành nghề</a></li>
-                                <li><a href="{{ route('candidates.browse_companies') }}">Chi nhánh</a></li>
+                                <li><a href="{{ route('candidates.browse_companies') }}">Nhà tuyển dụng</a></li>
                                 <li><a href="{{ route('pages.about') }}">Về chúng tôi</a></li>
                                 <li><a href="{{ route('pages.contact') }}">Liên hệ</a></li>
                             </ul>
@@ -144,7 +144,7 @@
                                     href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
                                     class="switch-role-btn"
                                 >
-                                    {{ request()->routeIs('employers.portal') ? 'Chuyển Sang Ứng Viên' : 'Khu Nhà Tuyển Dụng' }}
+                                    {{ request()->routeIs('employers.portal') ? 'Khu Ứng Viên' : 'Dành cho Nhà Tuyển Dụng' }}
                                 </a>
                             </li>
                             @if($canCandidateAccess ?? false)
@@ -160,7 +160,14 @@
                                     </button>
 
                                     <div class="candidate-user-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('candidates.candidate_dashboard') }}">Hồ sơ thông tin</a>
+                                        <a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a>
+                                        <a href="{{ route('candidates.candidate_profile') }}">Cập nhật hồ sơ</a>
+                                        <a href="{{ route('candidates.manage_jobs') }}">Đơn đã ứng tuyển</a>
+                                        @if(!($canEmployerAccess ?? false))
+                                            <a href="{{ route('employers.register') }}">Đăng ký nhà tuyển dụng</a>
+                                        @else
+                                            <a href="{{ route('employers.dashboard') }}">Khu nhà tuyển dụng</a>
+                                        @endif
                                         <livewire:client.logout-button />
                                     </div>
                                 </li>

@@ -190,7 +190,7 @@
                                                         </div>
                                                         <div class="chat-content">
                                                             <div class="chat-text">
-                                                                C?m ?n b?n ?? ph?n h?i. B? ph?n tuy?n d?ng s? c?p nh?t l?ch trao ??i chi ti?t trong th?i gian s?m nh?t.
+                                                                Cảm ơn bạn đã phản hồi. Bộ phận tuyển dụng sẽ cập nhật lịch trao đổi chi tiết trong thời gian sớm nhất.
                                                             </div>
                                                             <div class="chat-action">đã xem</div>
                                                         </div>

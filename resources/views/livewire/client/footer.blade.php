@@ -1,79 +1,140 @@
-<div>
-    <footer class="jobguru-footer-area client-app-footer {{ ($isEmployerFooter ?? false) ? 'footer--employer' : 'footer--candidate' }}">
-        <div class="footer-top section_50">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-4 col-md-6">
-                        <div class="single-footer-widget">
-                            <div class="footer-logo">
-                                <a href="{{ ($isEmployerFooter ?? false) ? route('employers.portal') : route('home') }}">
-                                    <img src="{{ asset('assets/img/fe-logo.png') }}" alt="jobguru logo" />
+@php
+    $isEmployer = $isEmployerFooter ?? false;
+    $homeUrl = $isEmployer ? route('employers.portal') : route('home');
+    $brandTitle = 'Tổ chức Giáo dục FPT';
+
+    $primaryHeading = $isEmployer ? 'Nhà tuyển dụng' : 'Ứng viên';
+
+    $primaryLinks = $isEmployer
+        ? [
+            ['label' => 'Trang tuyển dụng', 'url' => route('employers.portal')],
+            ['label' => 'Đăng tin', 'url' => route('employers.post_job')],
+            ['label' => 'Quản lý tin', 'url' => route('employers.manage_jobs')],
+            ['label' => 'Giao diện ứng viên', 'url' => route('candidates.browse_job')],
+        ]
+        : [
+            ['label' => 'Tìm việc làm', 'url' => route('candidates.browse_job')],
+            ['label' => 'Ngành nghề', 'url' => route('candidates.browse_categories')],
+            ['label' => 'Chi nhánh', 'url' => route('candidates.browse_companies')],
+            ['label' => 'Hồ sơ ứng viên', 'url' => route('candidates.submit_resume')],
+        ];
+
+    $systemLinks = [
+        ['label' => 'Về chúng tôi', 'url' => route('pages.about')],
+        ['label' => 'Tin tức', 'url' => route('pages.blog')],
+        ['label' => 'Liên hệ', 'url' => route('pages.contact')],
+    ];
+
+    $accountLinks = [];
+    if (($isEmployer && !($canEmployerAccess ?? false)) || (!$isEmployer && !($canCandidateAccess ?? false))) {
+        $accountLinks[] = [
+            'label' => 'Đăng nhập',
+            'url' => $isEmployer ? route('employers.login') : route('candidates.login'),
+        ];
+        $accountLinks[] = [
+            'label' => 'Đăng ký',
+            'url' => $isEmployer ? route('employers.register') : route('candidates.register'),
+        ];
+    }
+
+    $contactItems = [
+        ['icon' => 'fa-map-marker', 'label' => 'Hỗ trợ', 'value' => 'Hỗ trợ Hệ thống tuyển dụng trực tuyến'],
+        ['icon' => 'fa-envelope-o', 'label' => 'Email', 'value' => 'support@jobguru.com', 'href' => 'mailto:support@jobguru.com'],
+        ['icon' => 'fa-phone', 'label' => 'Điện thoại', 'value' => '+(09) 2134-7689', 'href' => 'tel:+0921347689'],
+    ];
+@endphp
+
+<footer class="jobguru-footer-area client-app-footer {{ $isEmployer ? 'footer--employer' : 'footer--candidate' }}">
+    <div class="footer-top section_50">
+        <div class="container">
+            <div class="client-footer-grid">
+                <div class="single-footer-widget client-footer-brand client-footer-column">
+                    <div class="footer-logo">
+                        <a href="{{ $homeUrl }}">
+                            <img src="{{ asset('assets/img/fe-logo.png') }}" alt="FPT Careers" />
+                        </a>
+                    </div>
+                    <h3>{{ $brandTitle }}</h3>
+
+                    <ul class="footer-social">
+                        <li>
+                            <a href="{{ route('pages.contact') }}" aria-label="Liên hệ hỗ trợ">
+                                <i class="fa fa-envelope-o"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('pages.blog') }}" aria-label="Tin tức tuyển dụng">
+                                <i class="fa fa-newspaper-o"></i>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('pages.about') }}" aria-label="Về chúng tôi">
+                                <i class="fa fa-building-o"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="single-footer-widget client-footer-links client-footer-column">
+                    <h3>{{ $primaryHeading }}</h3>
+                    <ul>
+                        @foreach ($primaryLinks as $link)
+                            <li>
+                                <a href="{{ $link['url'] }}">
+                                    <i class="fa fa-angle-right"></i>
+                                    <span>{{ $link['label'] }}</span>
                                 </a>
-                            </div>
-                            <p style="margin-top: 12px;">
-                                {{ ($isEmployerFooter ?? false)
-                                    ? 'Nền tảng tuyển dụng dành riêng cho HR để đăng tin, lọc ứng viên và theo dõi quy trình.'
-                                    : 'Nền tảng dành riêng cho ứng viên để tìm việc, tạo CV và theo dõi trạng thái ứng tuyển.' }}
-                            </p>
-                        </div>
-                    </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
 
-                    <div class="col-lg-3 col-md-6">
-                        <div class="single-footer-widget">
-                            <h3>{{ ($isEmployerFooter ?? false) ? 'Nhà tuyển dụng' : 'Ứng viên' }}</h3>
-                            <ul>
-                                @if ($isEmployerFooter ?? false)
-                                    @if(!($canEmployerAccess ?? false))
-                                        <li><a href="{{ route('employers.portal') }}"><i class="fa fa-angle-double-right"></i> Trang nhà tuyển dụng</a></li>
-                                        <li><a href="{{ route('employers.register') }}"><i class="fa fa-angle-double-right"></i> Tạo tài khoản HR</a></li>
-                                        <li><a href="{{ route('employers.login') }}"><i class="fa fa-angle-double-right"></i> Đăng nhập HR</a></li>
+                <div class="single-footer-widget client-footer-links client-footer-column">
+                    <h3>Liên kết</h3>
+                    <ul>
+                        @foreach ($systemLinks as $link)
+                            <li>
+                                <a href="{{ $link['url'] }}">
+                                    <i class="fa fa-angle-right"></i>
+                                    <span>{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+
+                        @foreach ($accountLinks as $link)
+                            <li>
+                                <a href="{{ $link['url'] }}">
+                                    <i class="fa fa-angle-right"></i>
+                                    <span>{{ $link['label'] }}</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+
+                <div class="single-footer-widget client-footer-contact client-footer-column">
+                    <h3>Liên hệ</h3>
+
+                    <div class="client-footer-contact-list">
+                        @foreach ($contactItems as $item)
+                            <div class="client-footer-contact-item">
+                                <span class="client-footer-contact-icon">
+                                    <i class="fa {{ $item['icon'] }}"></i>
+                                </span>
+                                <div class="client-footer-contact-copy">
+                                    <small>{{ $item['label'] }}</small>
+                                    @if (!empty($item['href']))
+                                        <a href="{{ $item['href'] }}">{{ $item['value'] }}</a>
                                     @else
-                                        <li><a href="{{ route('employers.post_job') }}"><i class="fa fa-angle-double-right"></i> Đăng tin tuyển dụng</a></li>
-                                        <li><a href="{{ route('employers.manage_jobs') }}"><i class="fa fa-angle-double-right"></i> Quản lý tin tuyển dụng</a></li>
+                                        <span>{{ $item['value'] }}</span>
                                     @endif
-                                @else
-                                    <li><a href="{{ route('candidates.browse_job') }}"><i class="fa fa-angle-double-right"></i> Tìm việc làm</a></li>
-                                    <li><a href="{{ route('candidates.browse_categories') }}"><i class="fa fa-angle-double-right"></i> Danh mục ngành nghề</a></li>
-                                    <li><a href="{{ route('candidates.browse_companies') }}"><i class="fa fa-angle-double-right"></i> Danh sách chi nhánh</a></li>
-                                    <li><a href="{{ route('candidates.submit_resume') }}"><i class="fa fa-angle-double-right"></i> Cập nhật CV</a></li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-2 col-md-6">
-                        <div class="single-footer-widget">
-                            <h3>Liên kết</h3>
-                            <ul>
-                                <li><a href="{{ route('pages.about') }}"><i class="fa fa-angle-double-right"></i> Về chúng tôi</a></li>
-                                <li><a href="{{ route('pages.blog') }}"><i class="fa fa-angle-double-right"></i> Tin tức</a></li>
-                                <li><a href="{{ route('pages.contact') }}"><i class="fa fa-angle-double-right"></i> Liên hệ</a></li>
-                                @if(($isEmployerFooter ?? false) ? !($canEmployerAccess ?? false) : !($canCandidateAccess ?? false))
-                                    <li>
-                                        <a href="{{ ($isEmployerFooter ?? false) ? route('employers.login') : route('candidates.login') }}">
-                                            <i class="fa fa-angle-double-right"></i> Đăng nhập
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a href="{{ ($isEmployerFooter ?? false) ? route('employers.register') : route('candidates.register') }}">
-                                            <i class="fa fa-angle-double-right"></i> Đăng ký
-                                        </a>
-                                    </li>
-                                @endif
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-3 col-md-6">
-                        <div class="single-footer-widget footer-contact">
-                            <h3>Liên hệ</h3>
-                            <p><i class="fa fa-map-marker"></i> Số 4257, đường SunnyVale, Hoa Kỳ</p>
-                            <p><i class="fa fa-phone"></i> 012-3456-789</p>
-                            <p><i class="fa fa-envelope-o"></i> info@jobguru.com</p>
-                        </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
         </div>
-    </footer>
-</div>
+    </div>
+
+</footer>

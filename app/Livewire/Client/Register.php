@@ -33,6 +33,8 @@ class Register extends Component
 
     public string $address = '';
 
+    public bool $showRoleTabs = true;
+
     protected array $queryString = [
         'role' => ['except' => 'candidate'],
         'next_route' => ['except' => null],
@@ -53,6 +55,23 @@ class Register extends Component
 
         $nextRoute = request()->query('next_route');
         $this->next_route = is_string($nextRoute) && $nextRoute !== '' ? $nextRoute : null;
+
+        $authUser = Auth::user();
+        if (! $authUser) {
+            $this->showRoleTabs = true;
+
+            return;
+        }
+
+        $this->showRoleTabs = false;
+
+        if ($this->role === 'employer') {
+            $this->name = trim((string) $authUser->name);
+            $this->email = trim((string) $authUser->email);
+            $this->phone = trim((string) ((is_array($authUser->metadata) ? ($authUser->metadata['phone'] ?? '') : '') ?: ''));
+            $this->province = trim((string) ((is_array($authUser->metadata) ? ($authUser->metadata['province'] ?? '') : '') ?: ''));
+            $this->address = trim((string) ((is_array($authUser->metadata) ? ($authUser->metadata['address'] ?? '') : '') ?: ''));
+        }
     }
 
     public function setRole(string $role): void
@@ -91,6 +110,45 @@ class Register extends Component
             app(CandidateAccountService::class)->activateFor($authUser);
 
             return $this->redirectAfterActivation();
+        }
+
+        if ($authUser && $this->role === 'employer') {
+            $data = $this->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => ['required', 'string', 'max:20'],
+                'branch_id' => ['required', 'integer', 'exists:branches,id'],
+                'province' => ['required', 'string', 'max:255'],
+                'address' => ['required', 'string', 'max:255'],
+                'terms_accepted' => ['accepted'],
+            ]);
+
+            $metadata = is_array($authUser->metadata) ? $authUser->metadata : [];
+            $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
+            $accountTypes[] = 'employer';
+            if (app(CandidateAccountService::class)->hasCandidateAccount($authUser)) {
+                $accountTypes[] = 'candidate';
+            }
+
+            $metadata['account_types'] = array_values(array_unique(array_filter($accountTypes, 'is_string')));
+            $metadata['account_type'] = 'employer';
+            $metadata['phone'] = trim($data['phone']);
+            $metadata['province'] = trim($data['province']);
+            $metadata['address'] = trim($data['address']);
+
+            $authUser->fill([
+                'name' => trim($data['name']),
+                'role' => in_array($authUser->role, ['admin', 'director'], true) ? $authUser->role : 'hr',
+                'branch_id' => $data['branch_id'],
+                'is_active' => true,
+                'metadata' => $metadata,
+            ]);
+            $authUser->save();
+
+            session(['client_menu_type' => 'employer']);
+
+            return redirect()
+                ->route('employers.dashboard')
+                ->with('status', 'Tài khoản nhà tuyển dụng đã được kích hoạt trên tài khoản hiện tại.');
         }
 
         if (! in_array($this->role, ['candidate', 'employer'], true)) {
@@ -200,15 +258,14 @@ class Register extends Component
 
         $branches = $branchesQuery->get(['id', 'name', 'city']);
 
-        $layout = match ($this->role) {
-            'employer' => 'layouts.employer',
-            'candidate' => 'layouts.candidate',
-            default => 'layouts.client',
-        };
-
         return view('livewire.client.pages.register', [
             'branches' => $branches,
             'provinceOptions' => $provinceOptions,
-        ])->layout($layout);
+            'showRoleTabs' => $this->showRoleTabs,
+            'isAuthenticated' => Auth::check(),
+        ])->layout('layouts.auth', [
+            'authTitle' => 'Đăng ký',
+            'authContextRole' => $this->role,
+        ]);
     }
 }

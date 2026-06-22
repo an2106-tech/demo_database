@@ -40,13 +40,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/css/client-topcv.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/ui-enterprise.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/employer-portal.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/auth-unified.css') }}">
 
     @livewireStyles
 </head>
 
-<body class="employer-app" style="overflow-x: hidden;">
+<body class="employer-app client-app" style="overflow-x: hidden;">
     <livewire:header type="employer" />
     {{ $slot }}
     <livewire:footer type="employer" />
