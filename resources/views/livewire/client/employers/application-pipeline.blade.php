@@ -233,10 +233,7 @@
                                                 </div>
 
                                                 @php
-                                                    $latestSubmission = \App\Models\CandidateJobSubmission::where('candidate_id', $app->candidate_id)
-                                                        ->where('job_id', $app->job_id)
-                                                        ->latest()
-                                                        ->first();
+                                                    $latestSubmission = $latestSubmissionsByApplicationKey[$app->candidate_id . ':' . $app->job_id] ?? null;
                                                 @endphp
 
                                                 <div class="d-flex justify-content-between align-items-center">

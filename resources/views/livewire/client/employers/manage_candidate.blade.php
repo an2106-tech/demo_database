@@ -52,7 +52,7 @@
                                             <p class="job-applied">{{ $candidate->applications->first()?->job->title ?? 'Nỗ lực ứng tuyển' }}</p>
                                             
                                             @php
-                                                $latestSubmission = \App\Models\CandidateJobSubmission::where('candidate_id', $candidate->id)->latest()->first();
+                                                $latestSubmission = $candidate->submissions->first();
                                             @endphp
 
                                             <div class="ai-score-box">
