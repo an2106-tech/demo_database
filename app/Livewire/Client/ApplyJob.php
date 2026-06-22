@@ -123,6 +123,9 @@ class ApplyJob extends Component
             ]);
             $resume->save();
 
+            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath);
+            $cvTextSnapshot = is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null;
+
             $candidateMetadata = is_array($candidate->metadata) ? $candidate->metadata : [];
             if (is_string($cvText) && $cvText !== '') {
                 $candidateMetadata['cv_text_excerpt'] = mb_substr($cvText, 0, 4000);
@@ -141,6 +144,9 @@ class ApplyJob extends Component
 
             $application->fill([
                 'cv_path' => $cvPath,
+                'apply_method' => 'cv',
+                'profile_snapshot' => $profileSnapshot,
+                'cv_text_snapshot' => $cvTextSnapshot,
                 'source' => 'website',
                 'status' => StatusApplicationEnum::NEW,
                 'applied_at' => now(),
@@ -162,18 +168,9 @@ class ApplyJob extends Component
                 ],
                 [
                     'apply_method' => 'cv',
-                    'profile_snapshot' => [
-                        'candidate' => [
-                            'id' => $candidate->id,
-                            'user_id' => $candidate->user_id,
-                            'name' => $candidate->name,
-                            'email' => $candidate->email,
-                            'phone' => $candidate->phone,
-                            'experience_years' => $candidate->experience_years,
-                        ],
-                    ],
+                    'profile_snapshot' => $profileSnapshot,
                     'cv_path' => $cvPath,
-                    'cv_text_snapshot' => is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null,
+                    'cv_text_snapshot' => $cvTextSnapshot,
                 ],
             );
 
@@ -288,6 +285,51 @@ class ApplyJob extends Component
         }
 
         return (string) $candidate->cv_file;
+    }
+
+    protected function buildApplicationSnapshot(Candidate $candidate, CandidateResume $resume, ?string $cvPath): array
+    {
+        $candidateSnapshot = [
+            'id' => $candidate->id,
+            'user_id' => $candidate->user_id,
+            'name' => $candidate->name,
+            'email' => $candidate->email,
+            'phone' => $candidate->phone,
+            'experience_years' => $candidate->experience_years,
+        ];
+
+        $resumeSnapshot = [
+            'profile_title' => $resume->profile_title,
+            'career_objective' => $resume->career_objective,
+            'personal_info' => $resume->personal_info ?? [],
+            'desired_job' => $resume->desired_job ?? [],
+            'experiences' => $resume->experiences ?? [],
+            'educations' => $resume->educations ?? [],
+            'certifications' => $resume->certifications ?? [],
+            'languages' => $resume->languages ?? [],
+            'skills' => $resume->skills ?? [],
+            'achievements' => $resume->achievements ?? [],
+            'activities' => $resume->activities ?? [],
+            'references' => $resume->references ?? [],
+            'extra' => $resume->extra ?? [],
+        ];
+
+        return array_filter([
+            // Top-level fields keep older client views working while the nested
+            // structure becomes the canonical snapshot for application details.
+            'name' => $candidateSnapshot['name'],
+            'email' => $candidateSnapshot['email'],
+            'phone' => $candidateSnapshot['phone'],
+            'experience_years' => $candidateSnapshot['experience_years'],
+            'profile_title' => $resumeSnapshot['profile_title'],
+            'career_objective' => $resumeSnapshot['career_objective'],
+            'candidate' => $candidateSnapshot,
+            'resume' => $resumeSnapshot,
+            'cv' => [
+                'path' => $cvPath,
+                'submitted_at' => now()->toDateTimeString(),
+            ],
+        ], fn ($value) => ! is_null($value));
     }
 
     protected function sendApplicationReceivedMail(Candidate $candidate, Application $application): void

@@ -70,6 +70,7 @@ class ApplyJobFlowTest extends TestCase
             'job_id' => $job->id,
             'branch_id' => $branch->id,
             'status' => StatusApplicationEnum::NEW->value,
+            'apply_method' => 'cv',
         ]);
         $this->assertDatabaseHas('candidate_job_submissions', [
             'job_id' => $job->id,
@@ -82,6 +83,12 @@ class ApplyJobFlowTest extends TestCase
         $this->assertNotNull($application?->candidate_id);
         $this->assertSame($application->candidate_id, $submission?->candidate_id);
         $this->assertNotEmpty($submission?->cv_path);
+        $this->assertSame('Nguyen Van A', data_get($application->profile_snapshot, 'candidate.name'));
+        $this->assertSame('candidate-apply@example.com', data_get($application->profile_snapshot, 'candidate.email'));
+        $this->assertSame('PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
+        $this->assertSame('Muon phat trien san pham tuyen dung on dinh.', data_get($application->profile_snapshot, 'resume.career_objective'));
+        $this->assertNotEmpty(data_get($application->profile_snapshot, 'cv.path'));
+        $this->assertSame($application->profile_snapshot, $submission?->profile_snapshot);
     }
 
     public function test_hr_without_candidate_account_cannot_apply_as_candidate(): void
