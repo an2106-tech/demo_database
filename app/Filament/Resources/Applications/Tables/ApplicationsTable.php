@@ -99,10 +99,11 @@ class ApplicationsTable
                         'cv' => 'CV',
                         default => $state ?? '-',
                     })
-                    ->colors([
-                        'info' => 'profile',
-                        'primary' => 'cv',
-                    ]),
+                    ->color(fn (?string $state): string => match ($state) {
+                        'profile' => 'info',
+                        'cv' => 'primary',
+                        default => 'gray',
+                    }),
                 TextColumn::make('source')
                     ->label('Nguồn')
                     ->badge()
@@ -115,13 +116,13 @@ class ApplicationsTable
                         'other' => 'Khác',
                         default => $state ?? '-',
                     })
-                    ->colors([
-                        'primary' => 'website',
-                        'info' => 'linkedin',
-                        'success' => 'referral',
-                        'warning' => 'facebook',
-                        'gray' => 'other',
-                    ]),
+                    ->color(fn (?string $state): string => match ($state) {
+                        'website' => 'primary',
+                        'linkedin' => 'info',
+                        'referral' => 'success',
+                        'facebook' => 'warning',
+                        default => 'gray',
+                    }),
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge()
