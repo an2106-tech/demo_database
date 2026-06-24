@@ -1,37 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kết quả phê duyệt</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #334155; margin: 0; padding: 0; background-color: #f1f5f9; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
-        .card { max-width: 500px; width: 90%; background: #ffffff; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .icon { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 32px; }
-        .icon.success { background-color: #dcfce7; color: #166534; }
-        .icon.error { background-color: #fee2e2; color: #991b1b; }
-        h1 { font-size: 24px; font-weight: 800; color: #0f172a; margin-bottom: 16px; }
-        p { color: #64748b; font-size: 16px; margin-bottom: 32px; }
-        .btn { display: inline-block; background-color: #F37021; color: #ffffff !important; text-decoration: none; padding: 12px 32px; border-radius: 12px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 12px rgba(243, 112, 33, 0.2); }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(243, 112, 33, 0.3); }
-        .job-title { font-weight: 700; color: #1e293b; }
+        body {
+            min-height: 100vh;
+            margin: 0;
+            display: grid;
+            place-items: center;
+            background: #f7f3ec;
+            color: #283044;
+            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+        }
+
+        .shell {
+            width: min(92vw, 540px);
+            padding: 8px;
+            border-radius: 30px;
+            background: #efe7dc;
+        }
+
+        .card {
+            padding: 42px;
+            border: 1px solid #f4eadf;
+            border-radius: 24px;
+            background: #ffffff;
+            box-shadow: 0 22px 70px rgba(81, 52, 28, .12);
+            text-align: center;
+        }
+
+        .icon {
+            width: 74px;
+            height: 74px;
+            margin: 0 auto 24px;
+            border-radius: 999px;
+            font-size: 30px;
+            font-weight: 900;
+            line-height: 74px;
+        }
+
+        .icon.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .icon.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        h1 {
+            margin: 0 0 14px;
+            color: #111827;
+            font-size: 26px;
+            font-weight: 850;
+            letter-spacing: -.02em;
+        }
+
+        p {
+            margin: 0 0 28px;
+            color: #64748b;
+            font-size: 16px;
+            line-height: 1.7;
+        }
+
+        .job-title {
+            display: inline-block;
+            margin-bottom: 30px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 6px 7px 6px 22px;
+            border-radius: 999px;
+            background: #111827;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 900;
+            text-decoration: none;
+        }
+
+        .btn span {
+            display: inline-block;
+            padding-right: 14px;
+            line-height: 34px;
+            vertical-align: middle;
+        }
+
+        .btn i {
+            display: inline-block;
+            width: 34px;
+            height: 34px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .16);
+            font-style: normal;
+            line-height: 34px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="icon {{ $success ? 'success' : 'error' }}">
-            {!! $success ? '&#10004;' : '&#10006;' !!}
-        </div>
-        <h1>{{ $success ? 'Thành công!' : 'Thông báo' }}</h1>
-        <p>{{ $message }}</p>
-        
-        @if($job)
-            <div style="margin-bottom: 30px; font-size: 14px; color: #94a3b8;">
-                Tin đăng: <span class="job-title">{{ $job->title }}</span>
+    <div class="shell">
+        <div class="card">
+            <div class="icon {{ $success ? 'success' : 'error' }}">
+                {!! $success ? '&#10004;' : '&#10006;' !!}
             </div>
-        @endif
 
-        <a href="{{ route('home') }}" class="btn">Quay lại Trang chủ</a>
+            <h1>{{ $success ? 'Thành công' : 'Thông báo' }}</h1>
+            <p>{{ $message }}</p>
+
+            @if($job)
+                <div class="job-title">{{ $job->title }}</div>
+            @endif
+
+            <div>
+                <a href="{{ route('home') }}" class="btn"><span>Quay lại trang chủ</span><i>→</i></a>
+            </div>
+        </div>
     </div>
 </body>
 </html>

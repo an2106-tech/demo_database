@@ -27,6 +27,7 @@ class CandidateDashboard extends Component
         $this->userName = (string) ($user->name ?? '');
 
         $candidate = app(CandidateAccountService::class)->resolveFor($user);
+        $candidateService = app(CandidateAccountService::class);
 
         $this->publishedJobsCount = RecruitmentJob::query()
             ->where('status', 'published')
@@ -36,12 +37,11 @@ class CandidateDashboard extends Component
             ->where('candidate_id', $candidate->id)
             ->count();
 
-        $this->hasCv = (bool) $candidate->cv_file
-            || $candidate->attachments()->where('type', 'cv')->exists();
+        $this->hasCv = $candidateService->candidateHasCv($candidate);
 
         // New data for premium dashboard
         $this->greeting = $this->getGreeting();
-        $this->profileCompletion = $this->calculateProfileCompletion($candidate);
+        $this->profileCompletion = $candidateService->profileCompletion($candidate);
         $this->recentApplications = Application::query()
             ->where('candidate_id', $candidate->id)
             ->with('job')
@@ -56,20 +56,6 @@ class CandidateDashboard extends Component
         if ($hour < 12) return 'Chào buổi sáng';
         if ($hour < 18) return 'Chào buổi chiều';
         return 'Chào buổi tối';
-    }
-
-    private function calculateProfileCompletion($candidate): int
-    {
-        $points = 0;
-        $total = 5;
-
-        if ($candidate->fullname) $points++;
-        if ($candidate->email) $points++;
-        if ($candidate->phone) $points++;
-        if ($this->hasCv) $points++;
-        if ($candidate->address) $points++;
-
-        return (int) (($points / $total) * 100);
     }
 
     #[Layout('layouts.client')]

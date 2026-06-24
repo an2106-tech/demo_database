@@ -16,11 +16,22 @@
                             <h2>Đăng nhập</h2>
                         </div>
 
-                        <form wire:submit.prevent="login" class="auth-redesign-form">
+                        <form wire:submit.prevent="login" class="auth-redesign-form" novalidate>
+                            @if (session('status'))
+                                <div class="auth-redesign-alert auth-redesign-alert--success">
+                                    {{ session('status') }}
+                                </div>
+                            @endif
+
+                            @if ($errors->has('email'))
+                                <div class="auth-redesign-alert auth-redesign-alert--error">
+                                    {{ $errors->first('email') }}
+                                </div>
+                            @endif
+
                             <div class="auth-redesign-field">
                                 <label for="login-email">Email</label>
                                 <input id="login-email" type="email" class="form-control" placeholder="you@example.com" wire:model="email" autocomplete="email" inputmode="email">
-                                @error('email') <p class="text-danger invalid-text">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="auth-redesign-field">
@@ -34,7 +45,7 @@
                                     <input type="checkbox" wire:model="remember">
                                     <span>Ghi nhớ đăng nhập</span>
                                 </label>
-                                <a href="#" class="auth-redesign-link">Quên mật khẩu?</a>
+                                <a href="{{ route('password.request', ['role' => $contextRole]) }}" class="auth-redesign-link">Quên mật khẩu?</a>
                             </div>
 
                             <button type="submit" class="auth-redesign-submit">Đăng nhập</button>

@@ -43,6 +43,13 @@ class ApplyJobFlowTest extends TestCase
             'is_active' => true,
             'metadata' => ['account_types' => ['candidate']],
         ]);
+        Candidate::query()->create([
+            'user_id' => $candidate->id,
+            'name' => 'Nguyen Van A',
+            'email' => 'candidate-apply@example.com',
+            'phone' => '0901234567',
+            'cv_file' => 'candidates/existing/cv.pdf',
+        ]);
         $job = RecruitmentJob::query()->create([
             'title' => 'Laravel Developer',
             'slug' => 'laravel-developer',

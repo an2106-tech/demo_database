@@ -54,7 +54,7 @@
             border: none !important;
             color: #fff !important;
             -webkit-text-fill-color: #fff !important;
-            font-family: 'Inter', sans-serif !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
             font-size: 14px !important;
             font-weight: 700 !important;
             line-height: 1 !important;
@@ -119,6 +119,39 @@
             width: 100% !important;
             margin-top: 8px;
             justify-content: center;
+        }
+
+        @media (max-width: 991.98px) {
+            .app-header-employer .header-menu {
+                display: none !important;
+            }
+
+            .app-header-employer .row {
+                gap: 12px;
+            }
+
+            .employer-actions ul {
+                justify-content: flex-start;
+                flex-wrap: wrap !important;
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .app-header-employer .menu-animation {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .app-header-employer .header-right-menu ul li a.switch-role-btn,
+            .app-header-employer .header-right-menu ul li a.switch-role-btn:hover,
+            .app-header-employer .header-right-menu ul li a.switch-role-btn:focus,
+            .app-header-employer .header-right-menu ul li a.switch-role-btn:visited,
+            .app-header-employer .header-right-menu ul li a.switch-role-btn:active {
+                min-height: 40px !important;
+                padding: 10px 14px !important;
+                font-size: 13px !important;
+            }
         }
     </style>
     <div class="menu-animation">

@@ -1,10 +1,7 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ $subjectLine }}</title>
-</head>
-<body style="font-family: Arial, sans-serif; color: #111827; line-height: 1.6;">
+@component('emails.layouts.base', [
+    'title' => $subjectLine,
+    'eyebrow' => 'Cập nhật hồ sơ',
+    'preview' => 'Có cập nhật trạng thái hồ sơ ứng tuyển.',
+])
     {!! $htmlBody !!}
-</body>
-</html>
+@endcomponent

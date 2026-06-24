@@ -27,7 +27,7 @@ class BranchPersonnelSeeder extends Seeder
                 ['email' => "hr-{$key}@demo.local"],
                 [
                     'name' => 'HR — ' . $branch->name,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make('123456'),
                     'role' => 'hr',
                     'branch_id' => $branch->id,
                     'is_active' => true,
@@ -38,7 +38,7 @@ class BranchPersonnelSeeder extends Seeder
                 ['email' => "director-{$key}@demo.local"],
                 [
                     'name' => 'Giám đốc chi nhánh — ' . $branch->name,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make('123456'),
                     'role' => 'director',
                     'branch_id' => $branch->id,
                     'is_active' => true,
@@ -49,7 +49,7 @@ class BranchPersonnelSeeder extends Seeder
                 ['email' => "pm-{$key}@demo.local"],
                 [
                     'name' => 'PM / Trưởng nhóm — ' . $branch->name,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make('123456'),
                     'role' => 'pm',
                     'branch_id' => $branch->id,
                     'is_active' => true,
@@ -60,7 +60,7 @@ class BranchPersonnelSeeder extends Seeder
                 ['email' => "candidate-{$key}@demo.local"],
                 [
                     'name' => 'Ứng viên mẫu — ' . $branch->name,
-                    'password' => Hash::make('password'),
+                    'password' => Hash::make('123456'),
                     'role' => 'candidate',
                     'branch_id' => $branch->id,
                     'is_active' => true,

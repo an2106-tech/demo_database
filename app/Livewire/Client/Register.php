@@ -5,6 +5,7 @@ namespace App\Livewire\Client;
 use App\Enums\VietnamProvince;
 use App\Models\Branch;
 use App\Models\User;
+use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -65,6 +66,12 @@ class Register extends Component
 
         $this->showRoleTabs = false;
 
+        if ($routeName && $this->shouldLeaveRegister($authUser)) {
+            $this->redirectAuthenticatedUser($authUser);
+
+            return;
+        }
+
         if ($this->role === 'employer') {
             $this->name = trim((string) $authUser->name);
             $this->email = trim((string) $authUser->email);
@@ -106,6 +113,10 @@ class Register extends Component
     public function register(): mixed
     {
         $authUser = Auth::user();
+        if ($authUser && $this->shouldLeaveRegister($authUser)) {
+            return $this->redirectAuthenticatedUser($authUser);
+        }
+
         if ($authUser && $this->role === 'candidate') {
             app(CandidateAccountService::class)->activateFor($authUser);
 
@@ -115,12 +126,22 @@ class Register extends Component
         if ($authUser && $this->role === 'employer') {
             $data = $this->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'phone' => ['required', 'string', 'max:20'],
+                'phone' => ['required', 'string', 'max:20', new VietnamPhone()],
                 'branch_id' => ['required', 'integer', 'exists:branches,id'],
-                'province' => ['required', 'string', 'max:255'],
+                'province' => ['required', 'string', 'max:255', 'in:' . implode(',', array_keys(VietnamProvince::options()))],
                 'address' => ['required', 'string', 'max:255'],
                 'terms_accepted' => ['accepted'],
             ]);
+
+            if (! Branch::query()
+                ->whereKey($data['branch_id'])
+                ->where('city', $data['province'])
+                ->where('is_active', true)
+                ->exists()) {
+                $this->addError('branch_id', 'Chi nhánh không thuộc tỉnh/thành đã chọn.');
+
+                return null;
+            }
 
             $metadata = is_array($authUser->metadata) ? $authUser->metadata : [];
             $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
@@ -134,15 +155,34 @@ class Register extends Component
             $metadata['phone'] = trim($data['phone']);
             $metadata['province'] = trim($data['province']);
             $metadata['address'] = trim($data['address']);
+            $preservePrivilegedRole = in_array($authUser->role, ['admin', 'director'], true);
+
+            if (! $preservePrivilegedRole) {
+                $metadata['approval_status'] = 'pending';
+                $metadata['requested_at'] = now()->toISOString();
+            }
 
             $authUser->fill([
                 'name' => trim($data['name']),
-                'role' => in_array($authUser->role, ['admin', 'director'], true) ? $authUser->role : 'hr',
+                'role' => $preservePrivilegedRole ? $authUser->role : 'hr',
                 'branch_id' => $data['branch_id'],
-                'is_active' => true,
+                'is_active' => $preservePrivilegedRole,
                 'metadata' => $metadata,
             ]);
             $authUser->save();
+
+            if (! $preservePrivilegedRole) {
+                Auth::logout();
+
+                if (request()->hasSession()) {
+                    request()->session()->invalidate();
+                    request()->session()->regenerateToken();
+                }
+
+                return redirect()
+                    ->route('employers.login')
+                    ->with('status', 'Yêu cầu nhà tuyển dụng đã được gửi duyệt. Vui lòng chờ quản trị viên kích hoạt.');
+            }
 
             session(['client_menu_type' => 'employer']);
 
@@ -165,18 +205,28 @@ class Register extends Component
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
-            'phone' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20', new VietnamPhone()],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'terms_accepted' => ['accepted'],
         ];
 
         if ($this->role === 'employer') {
             $rules['branch_id'] = ['required', 'integer', 'exists:branches,id'];
-            $rules['province'] = ['required', 'string', 'max:255'];
+            $rules['province'] = ['required', 'string', 'max:255', 'in:' . implode(',', array_keys(VietnamProvince::options()))];
             $rules['address'] = ['required', 'string', 'max:255'];
         }
 
         $data = $this->validate($rules);
+
+        if ($this->role === 'employer' && ! Branch::query()
+            ->whereKey($data['branch_id'])
+            ->where('city', $data['province'])
+            ->where('is_active', true)
+            ->exists()) {
+            $this->addError('branch_id', 'Chi nhánh không thuộc tỉnh/thành đã chọn.');
+
+            return null;
+        }
 
         if ($this->role === 'candidate') {
             $user = User::create([
@@ -201,27 +251,31 @@ class Register extends Component
                 'role' => 'hr',
                 'branch_id' => $data['branch_id'],
                 'avatar' => null,
-                'is_active' => true,
+                'is_active' => false,
                 'metadata' => [
                     'account_type' => 'employer',
                     'account_types' => ['employer'],
                     'phone' => trim($data['phone']),
                     'province' => trim($data['province']),
                     'address' => trim($data['address']),
+                    'approval_status' => 'pending',
+                    'requested_at' => now()->toISOString(),
                 ],
             ]);
+        }
+
+        if ($this->role === 'employer') {
+            return redirect()
+                ->route('employers.login')
+                ->with('status', 'Tài khoản nhà tuyển dụng đã được gửi duyệt. Vui lòng chờ quản trị viên kích hoạt.');
         }
 
         Auth::login($user);
         request()->session()->regenerate();
 
-        if ($this->role === 'employer') {
-            return redirect()
-                ->route('employers.dashboard')
-                ->with('status', 'Tài khoản nhà tuyển dụng đã được tạo.');
-        }
-
-        return redirect()->route('candidates.candidate_dashboard');
+        return redirect()
+            ->route('candidates.candidate_profile')
+            ->with('status', 'Hoàn thiện hồ sơ ứng viên trước khi ứng tuyển.');
     }
 
     private function redirectAfterActivation(): mixed
@@ -239,7 +293,70 @@ class Register extends Component
             return redirect()->route($this->next_route);
         }
 
-        return redirect()->route('candidates.candidate_dashboard');
+        return redirect()
+            ->route('candidates.candidate_profile')
+            ->with('status', 'Hoàn thiện hồ sơ ứng viên trước khi ứng tuyển.');
+    }
+
+    private function shouldLeaveRegister(User $user): bool
+    {
+        if ($user->role === 'admin') {
+            return true;
+        }
+
+        if ($this->role === 'candidate') {
+            return ! in_array($user->role, ['hr'], true);
+        }
+
+        if ($this->role === 'employer') {
+            return ! in_array($user->role, ['candidate'], true);
+        }
+
+        return true;
+    }
+
+    private function redirectAuthenticatedUser(User $user): mixed
+    {
+        if ($user->role === 'admin') {
+            session()->forget('client_menu_type');
+
+            return $this->redirect('/admin');
+        }
+
+        if (in_array($user->role, ['director', 'hr', 'pm'], true)) {
+            app(CandidateAccountService::class)->setPreferredAccountType($user, 'employer');
+            session(['client_menu_type' => 'employer']);
+
+            return $this->redirect(route('employers.dashboard'));
+        }
+
+        app(CandidateAccountService::class)->setPreferredAccountType($user, 'candidate');
+        session(['client_menu_type' => 'candidate']);
+
+        return $this->redirect(route('candidates.candidate_dashboard'));
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'name.required' => 'Vui lòng nhập họ và tên.',
+            'name.max' => 'Họ và tên không được vượt quá :max ký tự.',
+            'email.required' => 'Vui lòng nhập email.',
+            'email.email' => 'Email không đúng định dạng.',
+            'email.unique' => 'Email này đã được sử dụng.',
+            'phone.required' => 'Vui lòng nhập số điện thoại.',
+            'phone.max' => 'Số điện thoại không được vượt quá :max ký tự.',
+            'password.required' => 'Vui lòng nhập mật khẩu.',
+            'password.min' => 'Mật khẩu phải có ít nhất :min ký tự.',
+            'password.confirmed' => 'Xác nhận mật khẩu không khớp.',
+            'branch_id.required' => 'Vui lòng chọn chi nhánh.',
+            'branch_id.exists' => 'Chi nhánh không hợp lệ.',
+            'province.required' => 'Vui lòng chọn tỉnh/thành.',
+            'province.in' => 'Tỉnh/thành không hợp lệ.',
+            'address.required' => 'Vui lòng nhập địa chỉ.',
+            'address.max' => 'Địa chỉ không được vượt quá :max ký tự.',
+            'terms_accepted.accepted' => 'Vui lòng chấp nhận điều khoản.',
+        ];
     }
 
     public function render()

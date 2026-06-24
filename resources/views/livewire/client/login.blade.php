@@ -34,7 +34,7 @@
                      <div class="login-title">
                         <h3>Đăng nhập</h3>
                      </div>
-                     <form wire:submit.prevent="login">
+                     <form wire:submit.prevent="login" novalidate>
                         <div class="single-login-field">
                            <input type="email" placeholder="Địa chỉ Email" wire:model="email">
                            @error('email')
@@ -53,7 +53,7 @@
                               <label for="Freelance"><span></span>Duy trì đăng nhập</label>
                            </p>
                            <p class="lost-pass">
-                              <a href="#">Quên mật khẩu?</a>
+                              <a href="{{ route('password.request') }}">Quên mật khẩu?</a>
                            </p>
                         </div>
                         <div class="single-login-field">

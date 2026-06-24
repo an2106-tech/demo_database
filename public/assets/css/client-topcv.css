@@ -2610,6 +2610,31 @@ body.client-app .auth-redesign-note--soft {
   line-height: 1.6;
 }
 
+body.client-app .auth-redesign-alert {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+body.client-app .auth-redesign-alert--full {
+  grid-column: 1 / -1;
+}
+
+body.client-app .auth-redesign-alert--success {
+  border: 1px solid rgba(22, 163, 74, 0.22);
+  background: #f0fdf4;
+  color: #166534;
+}
+
+body.client-app .auth-redesign-alert--error {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
 body.client-app .auth-redesign-form {
   display: grid;
   gap: 18px;

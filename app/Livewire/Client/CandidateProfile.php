@@ -116,6 +116,8 @@ class CandidateProfile extends Component
     {
         // Validation logic remains same as original save()
         $this->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:50'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
             'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
@@ -195,6 +197,8 @@ class CandidateProfile extends Component
         $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
 
         DB::transaction(function () use ($candidate, $resume, $user) {
+            $candidate->name = trim($this->name);
+            $candidate->email = trim($this->email);
             $candidate->phone = $this->phone;
             $candidate->experience_years = $this->experience_years;
 

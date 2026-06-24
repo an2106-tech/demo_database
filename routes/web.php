@@ -35,7 +35,9 @@ use App\Livewire\Client\Login as PagesLogin;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
 use App\Livewire\Client\PostJobs as ClientPostJobs;
+use App\Livewire\Client\ForgotPassword;
 use App\Livewire\Client\Register as PagesRegister;
+use App\Livewire\Client\ResetPassword;
 use App\Livewire\Client\Sidebars;
 use App\Livewire\Client\Single;
 use App\Livewire\Client\SubmitResume;
@@ -48,6 +50,8 @@ Route::get('/dang-ky', PagesRegister::class)->name('candidates.register');
 Route::get('/nha-tuyen-dung', EmployerPortal::class)->name('employers.portal');
 Route::get('/nha-tuyen-dung/dang-nhap', PagesLogin::class)->name('employers.login');
 Route::get('/nha-tuyen-dung/dang-ky', PagesRegister::class)->name('employers.register');
+Route::get('/quen-mat-khau', ForgotPassword::class)->middleware('guest')->name('password.request');
+Route::get('/dat-lai-mat-khau/{token}', ResetPassword::class)->middleware('guest')->name('password.reset');
 
 // Public job detail page — shareable link for candidates (no login required)
 Route::get('/jobs/{slug}', JobDetail::class)->name('jobs.public');
@@ -112,7 +116,9 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/browse-companies', BrowseCompanies::class)->name('browse_companies');
     Route::get('/candidate-detail', CandidatesDetails::class)->middleware('auth')->name('candidate_detail');
     Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
-    Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
+    Route::get('jobs/{job}/apply', ApplyJob::class)
+        ->middleware(['auth', 'candidate.account', 'candidate.profile.complete'])
+        ->name('apply_job');
 
     Route::middleware(['auth', 'candidate.account'])->group(function () {
         Route::get('submit-resume', SubmitResume::class)->name('submit_resume');
@@ -187,6 +193,11 @@ Route::middleware('guest')->group(function () {
     Route::redirect('/register', '/dang-ky')->name('register');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'candidate.account'])->group(function () {
+    Route::get('/candidates/candidate_dashboard', CandidateDashboard::class)->name('candidates.candidate_dashboard');
+});
+
+Route::middleware(['auth', 'employer.account'])->group(function () {
+    Route::get('/employers/dashboard', EmployersDashboard::class)->name('employers.dashboard');
     Route::get('/director/approve-jobs', \App\Livewire\Client\Director\ApproveJobs::class)->name('director.approve_jobs');
 });

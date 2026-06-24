@@ -255,6 +255,15 @@
                 </div>
 
                 <div class="col-lg-9 col-md-8">
+                    @if (session('status'))
+                        <div style="background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; border-radius: 16px; padding: 14px 18px; margin-bottom: 20px; font-weight: 700;">
+                            {{ session('status') }}
+                            @if (session('profile_incomplete'))
+                                <span style="font-weight: 600;">Còn thiếu: {{ implode(', ', session('profile_incomplete')) }}.</span>
+                            @endif
+                        </div>
+                    @endif
+
                     <!-- Hero Info -->
                     <div class="profile-hero">
                         <div class="d-flex align-items-center gap-4 flex-wrap flex-md-nowrap">

@@ -19,13 +19,13 @@ class EnsureEmployerAccount
             return redirect()->route('employers.login');
         }
 
-        if (in_array($user->role, ['hr', 'admin', 'director'], true)) {
-            return $next($request);
+        if (! $user->is_active) {
+            return redirect()
+                ->route('employers.login')
+                ->with('status', 'Tài khoản nhà tuyển dụng chưa được kích hoạt.');
         }
 
-        $metadata = is_array($user->metadata) ? $user->metadata : [];
-        $accountTypes = is_array($metadata['account_types'] ?? null) ? $metadata['account_types'] : [];
-        if (in_array('employer', $accountTypes, true)) {
+        if (in_array($user->role, ['hr', 'admin', 'director', 'pm'], true)) {
             return $next($request);
         }
 

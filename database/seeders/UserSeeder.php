@@ -18,7 +18,7 @@ class UserSeeder extends Seeder
             ['email' => 'admin@demo.local'],
             [
                 'name' => 'Super Admin',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('123456'),
                 'role' => 'admin',
                 'branch_id' => $branch?->id,
                 'is_active' => true,

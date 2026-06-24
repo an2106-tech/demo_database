@@ -12,7 +12,13 @@
                                 <h2>Kích hoạt tài khoản ứng viên</h2>
                             </div>
 
-                            <form wire:submit.prevent="register" class="auth-redesign-form">
+                            <form wire:submit.prevent="register" class="auth-redesign-form" novalidate>
+                                @if (session('status'))
+                                    <div class="auth-redesign-alert auth-redesign-alert--success auth-redesign-alert--full">
+                                        {{ session('status') }}
+                                    </div>
+                                @endif
+
                                 <button type="submit" class="auth-redesign-submit">Kích hoạt tài khoản ứng viên</button>
                             </form>
 
@@ -29,7 +35,13 @@
                                 <h2>Kích hoạt tài khoản nhà tuyển dụng</h2>
                             </div>
 
-                            <form wire:submit.prevent="register" class="auth-redesign-form">
+                            <form wire:submit.prevent="register" class="auth-redesign-form" novalidate>
+                                @if (session('status'))
+                                    <div class="auth-redesign-alert auth-redesign-alert--success auth-redesign-alert--full">
+                                        {{ session('status') }}
+                                    </div>
+                                @endif
+
                                 <div class="auth-redesign-grid auth-redesign-grid--two">
                                     <div class="auth-redesign-field">
                                         <label for="hr-name">Họ và tên phụ trách <span class="text-danger">*</span></label>
@@ -107,7 +119,13 @@
                                 <h2>{{ $role === 'employer' ? 'Đăng ký nhà tuyển dụng' : 'Đăng ký ứng viên' }}</h2>
                             </div>
 
-                            <form wire:submit.prevent="register" class="auth-redesign-form">
+                            <form wire:submit.prevent="register" class="auth-redesign-form" novalidate>
+                                @if (session('status'))
+                                    <div class="auth-redesign-alert auth-redesign-alert--success auth-redesign-alert--full">
+                                        {{ session('status') }}
+                                    </div>
+                                @endif
+
                                 @if($role === 'employer')
                                     <div class="auth-redesign-grid auth-redesign-grid--two">
                                         <div class="auth-redesign-field">

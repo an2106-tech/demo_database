@@ -17,7 +17,7 @@ body.employer-app {
   --ep-radius: 16px;
   --ep-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
   --ep-shadow-sm: 0 2px 10px rgba(15, 23, 42, 0.08);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
   color: var(--ep-text) !important;
   background: var(--ep-bg) !important;
   -webkit-font-smoothing: antialiased;
@@ -116,7 +116,7 @@ body.employer-app .jobguru-header-area.stick-top.sticky .header-right-menu ul > 
   border: none !important;
   color: #fff !important;
   -webkit-text-fill-color: #fff !important;
-  font-family: 'Inter', 'Open Sans', system-ui, sans-serif !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif !important;
   font-size: 15px !important;
   font-weight: 700 !important;
   line-height: 1 !important;

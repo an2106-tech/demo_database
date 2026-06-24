@@ -25,6 +25,22 @@ class HeaderMenuTest extends TestCase
             ->assertViewHas('canEmployerAccess', true);
     }
 
+    public function test_pm_can_render_employer_header(): void
+    {
+        $user = new User([
+            'name' => 'PM',
+            'email' => 'pm@example.com',
+            'role' => 'pm',
+        ]);
+        $user->id = 6;
+
+        $this->actingAs($user);
+
+        Livewire::test(Header::class, ['type' => 'employer'])
+            ->assertSet('type', 'employer')
+            ->assertViewHas('canEmployerAccess', true);
+    }
+
     public function test_candidate_can_render_candidate_header(): void
     {
         $user = new User([

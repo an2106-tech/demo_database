@@ -70,7 +70,14 @@ class ApplyJob extends Component
             return;
         }
 
-        $candidate = app(CandidateAccountService::class)->resolveFor($user);
+        $candidateService = app(CandidateAccountService::class);
+        $candidate = $candidateService->resolveFor($user);
+
+        if (! $candidateService->isProfileReadyForApplication($candidate)) {
+            $this->redirectRoute('candidates.candidate_profile');
+
+            return;
+        }
 
         $this->candidateId = $candidate->id;
         $this->name = (string) $candidate->name;

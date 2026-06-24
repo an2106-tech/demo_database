@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'candidate.account' => \App\Http\Middleware\EnsureCandidateAccount::class,
+            'candidate.profile.complete' => \App\Http\Middleware\EnsureCandidateProfileComplete::class,
             'employer.account' => \App\Http\Middleware\EnsureEmployerAccount::class,
         ]);
     })

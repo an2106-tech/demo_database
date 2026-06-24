@@ -12,43 +12,41 @@ class ListUsers extends ListRecords
 {
     protected static string $resource = UserResource::class;
 
+    public function getDefaultActiveTab(): string|int|null
+    {
+        return 'hr_pending';
+    }
+
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('Tất cả'),
-
             'hr_pending' => Tab::make('HR chờ duyệt')
-                ->modifyQueryUsing(static function (Builder $query): Builder {
-                    return $query
-                        ->where('role', 'hr')
-                        ->where('is_active', false)
-                        ->where(static function (Builder $q): Builder {
-                            return $q
-                                ->where('metadata->approval_status', 'pending')
-                                ->orWhereNull('metadata');
-                        });
-                })
-                ->badge(fn () => static::getResource()::getEloquentQuery()
-                    ->where('role', 'hr')
-                    ->where('is_active', false)
-                    ->where(static function (Builder $q): Builder {
-                        return $q
-                            ->where('metadata->approval_status', 'pending')
-                            ->orWhereNull('metadata');
-                    })
-                    ->count()),
+                ->modifyQueryUsing(static fn (Builder $query): Builder => self::pendingHrQuery($query))
+                ->badge(fn (): int => self::pendingHrQuery(static::getResource()::getEloquentQuery())->count()),
 
             'hr_approved' => Tab::make('HR đã duyệt')
-                ->modifyQueryUsing(static fn (Builder $query): Builder => $query->where('role', 'hr')->where('is_active', true))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('role', 'hr')->where('is_active', true)->count()),
+                ->modifyQueryUsing(static fn (Builder $query): Builder => $query
+                    ->where('role', 'hr')
+                    ->where('is_active', true))
+                ->badge(fn (): int => static::getResource()::getEloquentQuery()
+                    ->where('role', 'hr')
+                    ->where('is_active', true)
+                    ->count()),
 
             'hr_rejected' => Tab::make('HR từ chối')
-                ->modifyQueryUsing(static fn (Builder $query): Builder => $query->where('role', 'hr')->where('metadata->approval_status', 'rejected'))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('role', 'hr')->where('metadata->approval_status', 'rejected')->count()),
+                ->modifyQueryUsing(static fn (Builder $query): Builder => $query
+                    ->where('role', 'hr')
+                    ->where('metadata->approval_status', 'rejected'))
+                ->badge(fn (): int => static::getResource()::getEloquentQuery()
+                    ->where('role', 'hr')
+                    ->where('metadata->approval_status', 'rejected')
+                    ->count()),
 
             'others' => Tab::make('Người dùng khác')
                 ->modifyQueryUsing(static fn (Builder $query): Builder => $query->where('role', '!=', 'hr'))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('role', '!=', 'hr')->count()),
+                ->badge(fn (): int => static::getResource()::getEloquentQuery()->where('role', '!=', 'hr')->count()),
+
+            'all' => Tab::make('Tất cả'),
         ];
     }
 
@@ -61,5 +59,17 @@ class ListUsers extends ListRecords
                 ->modalHeading('Thêm người dùng')
                 ->modalSubmitActionLabel('Tạo mới'),
         ];
+    }
+
+    private static function pendingHrQuery(Builder $query): Builder
+    {
+        return $query
+            ->where('role', 'hr')
+            ->where('is_active', false)
+            ->where(static function (Builder $q): Builder {
+                return $q
+                    ->where('metadata->approval_status', 'pending')
+                    ->orWhereNull('metadata');
+            });
     }
 }
