@@ -19,6 +19,22 @@ use Illuminate\Support\Facades\Schema;
 
 class Home extends Component
 {
+    public string $searchKeyword = '';
+
+    public string $searchCity = '';
+
+    public string $searchDepartmentId = '';
+
+    public function searchJobs(): mixed
+    {
+        $params = array_filter([
+            'q' => trim($this->searchKeyword),
+            'city' => trim($this->searchCity),
+            'department_id' => $this->searchDepartmentId !== '' ? (int) $this->searchDepartmentId : null,
+        ], fn ($value) => filled($value));
+
+        return redirect()->route('candidates.browse_job', $params);
+    }
     #[Layout('layouts.client')] // Khai báo layout ở đây
     public function render()
     {
@@ -75,6 +91,12 @@ class Home extends Component
             ->get();
 
         $departments = Department::query()
+            ->whereHas('recruitmentJobs', fn ($query) => $query
+                ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
+                ->where(function ($q) use ($now) {
+                    $q->whereNull('deadline')
+                        ->orWhere('deadline', '>=', $now);
+                }))
             ->orderBy('name')
             ->get(['id', 'name']);
 

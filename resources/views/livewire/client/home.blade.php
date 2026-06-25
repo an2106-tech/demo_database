@@ -17,6 +17,205 @@
             </div>
         </div>
     </section>
+    <section class="home-search-strip">
+        <div class="container">
+            <form class="home-search-panel" wire:submit.prevent="searchJobs">
+                <div class="home-search-field home-search-field--keyword">
+                    <i class="fa fa-briefcase"></i>
+                    <input
+                        type="search"
+                        class="form-control"
+                        placeholder="Từ khóa việc làm"
+                        wire:model="searchKeyword"
+                    >
+                </div>
+
+                <div class="home-search-field">
+                    <i class="fa fa-map-marker"></i>
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Khu vực hoặc chi nhánh"
+                        wire:model="searchCity"
+                    >
+                </div>
+
+                <div class="home-search-field">
+                    <i class="fa fa-sitemap"></i>
+                    <select class="form-select" wire:model="searchDepartmentId">
+                        <option value="">Tất cả phòng ban</option>
+                        @foreach($departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit" class="home-search-submit">
+                    <i class="fa fa-search"></i>
+                    <span>Tìm kiếm</span>
+                </button>
+            </form>
+
+            <div class="home-search-suggestions">
+                <span>Gợi ý nhanh:</span>
+                <a href="{{ route('candidates.browse_job', ['q' => 'Giảng viên']) }}">Giảng viên</a>
+                <a href="{{ route('candidates.browse_job', ['q' => 'Tuyển sinh']) }}">Tuyển sinh</a>
+                <a href="{{ route('candidates.browse_job', ['q' => 'Marketing']) }}">Marketing</a>
+                <a href="{{ route('candidates.browse_job', ['city' => 'Hà Nội']) }}">Hà Nội</a>
+                <a href="{{ route('candidates.browse_job', ['city' => 'Hồ Chí Minh']) }}">Hồ Chí Minh</a>
+            </div>
+        </div>
+    </section>
+    <style>
+        .home-search-strip {
+            background: #ffffff;
+            margin-top: 0;
+            padding-top: 24px;
+            padding-bottom: 24px;
+            position: relative;
+            z-index: 20;
+        }
+
+        .home-search-panel {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.25fr) minmax(200px, 1fr) minmax(190px, .9fr) auto;
+            gap: 14px;
+            align-items: center;
+            padding: 22px 20px;
+            border: 1px solid rgba(15, 23, 42, .08);
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 20px 50px rgba(15, 23, 42, .12);
+        }
+
+        .home-search-field {
+            position: relative;
+            min-width: 0;
+        }
+
+        .home-search-field i {
+            position: absolute;
+            left: 22px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #f37021 !important;
+            font-size: 17px;
+            line-height: 1;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        body.client-app .home-search-field .form-control,
+        body.client-app .home-search-field .form-select {
+            width: 100%;
+            height: 52px !important;
+            padding-left: 74px !important;
+            padding-right: 18px !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            background-color: #f8fafc !important;
+            color: #0f172a !important;
+            font-size: 14px;
+            font-weight: 600 !important;
+            line-height: 1.2;
+            box-shadow: none !important;
+        }
+
+        body.client-app .home-search-field .form-select {
+            padding-right: 42px !important;
+        }
+
+        body.client-app .home-search-field .form-control:focus,
+        body.client-app .home-search-field .form-select:focus {
+            border-color: #f37021 !important;
+            background-color: #fff !important;
+            box-shadow: 0 0 0 4px rgba(243, 112, 33, .12) !important;
+        }
+
+        .home-search-submit {
+            height: 52px;
+            min-width: 148px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+            border-radius: 999px;
+            background: #f37021;
+            color: #fff;
+            font-weight: 800;
+            padding: 0 24px;
+            box-shadow: 0 12px 24px rgba(243, 112, 33, .25);
+            transition: transform .2s ease, box-shadow .2s ease, background-color .2s ease;
+        }
+
+        .home-search-submit:hover,
+        .home-search-submit:focus {
+            background: #e05f12;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 16px 28px rgba(224, 95, 18, .28);
+        }
+
+        .home-search-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-top: 12px;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .home-search-suggestions a {
+            display: inline-flex;
+            align-items: center;
+            min-height: 32px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #fff7ed;
+            color: #c2410c;
+            text-decoration: none;
+            border: 1px solid rgba(243, 112, 33, .18);
+        }
+
+        .home-search-suggestions a:hover,
+        .home-search-suggestions a:focus {
+            background: #f37021;
+            color: #fff !important;
+            border-color: #f37021;
+        }
+
+        @media (max-width: 1199px) {
+            .home-search-panel {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .home-search-submit {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .home-search-strip {
+                margin-top: 0;
+                padding-top: 16px;
+                padding-bottom: 16px;
+            }
+
+            .home-search-panel {
+                grid-template-columns: 1fr;
+                padding: 14px;
+                border-radius: 14px;
+            }
+        }
+    </style>
     <section class="jobguru-categories-area section_70">
         <div class="container">
             <div class="row">

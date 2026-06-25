@@ -50,7 +50,7 @@
                     <div class="card h-100 border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-uppercase text-muted mb-2">Tổng số cơ hội</p>
-                            <h2 class="fw-bold">{{ $jobs->count() }}</h2>
+                            <h2 class="fw-bold">{{ $jobs->total() }}</h2>
                             <p class="mb-0 text-muted">Việc làm đang tuyển dụng nội bộ</p>
                         </div>
                     </div>
@@ -110,7 +110,7 @@
                     <button
                         type="button"
                         class="bj2-reset"
-                        wire:click="$set('q', ''); $set('city', ''); $set('department_id', null)"
+                        wire:click="clearFilters"
                     >
                         <i class="fa fa-refresh"></i> Xóa lọc
                     </button>
@@ -118,7 +118,7 @@
 
                 <div class="bj2-filters__bar">
                     <div class="bj2-count">
-                        Có <span class="bj2-count__num">{{ $jobs->count() }}</span> kết quả phù hợp
+                        Có <span class="bj2-count__num">{{ $jobs->total() }}</span> kết quả phù hợp
                     </div>
 
                     <div class="bj2-view">
@@ -225,6 +225,12 @@
                     </div>
                 @endforelse
             </div>
+
+            @if ($jobs->hasPages())
+                <div class="mt-5 d-flex justify-content-center">
+                    {{ $jobs->links() }}
+                </div>
+            @endif
         </div>
     </section>
 </div>
