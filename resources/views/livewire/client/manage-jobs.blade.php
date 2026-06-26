@@ -16,21 +16,27 @@
 
                 <div class="col-lg-9 col-md-8 mx-auto">
                     <div class="dashboard-right">
-                        <div class="premium-panel">
-                            <div class="manage-jobs-heading">
-                                <h3>Danh sách hồ sơ đã ứng tuyển</h3>
-                                <p style="margin: 10px 0 0; color: #64748b;">
-                                    Danh sách các công việc bạn đã nộp hồ sơ và trạng thái xử lý từ nhà tuyển dụng.
-                                </p>
+                        <div class="premium-panel" style="padding: 28px;">
+                            <div class="manage-jobs-heading" style="margin-bottom: 22px;">
+                                <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
+                                    <div>
+                                        <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:999px;background:rgba(243,112,33,.08);color:#9a3412;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;">Hồ sơ ứng tuyển</span>
+                                        <h3 style="margin: 10px 0 0; color: #0f172a;">Danh sách hồ sơ đã ứng tuyển</h3>
+                                        <p style="margin: 8px 0 0; color: #64748b; max-width: 760px;">
+                                            Theo dõi trạng thái từng hồ sơ, mở chi tiết snapshot tại thời điểm nộp và rút hồ sơ khi cần.
+                                        </p>
+                                    </div>
+                                    <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn-2" style="white-space: nowrap;">Tìm việc mới</a>
+                                </div>
                             </div>
 
                             <div class="single-manage-jobs table-responsive">
                                 @if ($applications->isEmpty())
-                                    <div class="alert alert-info mb-0">
-                                        Bạn chưa có hồ sơ ứng tuyển nào.
+                                    <div class="alert alert-info mb-0" style="border-radius: 18px; background: #f8fafc; color: #334155; border: 1px solid #e2e8f0;">
+                                        Bạn chưa có hồ sơ ứng tuyển nào. Hãy bắt đầu bằng một vị trí phù hợp ở trang tìm việc.
                                     </div>
                                 @else
-                                    <table class="table">
+                                    <table class="table align-middle">
                                         <thead>
                                             <tr>
                                                 <th>Vị trí</th>
@@ -48,7 +54,7 @@
                                                     $statusValue = $status instanceof \App\Enums\StatusApplicationEnum ? $status->value : (string) $status;
                                                     $statusLabel = $status instanceof \App\Enums\StatusApplicationEnum ? $status->getLabel() : ucfirst((string) $status);
                                                     $statusClass = match ($statusValue) {
-                                                        'new', 'screening' => 'pending',
+                                                        'new', 'cv_reviewing', 'screening' => 'pending',
                                                         'interview_scheduled', 'interview', 'offer' => 'active',
                                                         'hired' => 'hired',
                                                         'rejected' => 'rejected',
@@ -57,7 +63,7 @@
                                                 @endphp
                                                 <tr>
                                                     <td class="manage-jobs-title">
-                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}">
+                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}" style="color:#0f172a; font-weight:700;">
                                                             {{ $job?->title ?? 'Vị trí không còn khả dụng' }}
                                                         </a>
                                                     </td>
@@ -68,10 +74,10 @@
                                                         {{ optional($application->applied_at ?? $application->created_at)->format('d/m/Y H:i') }}
                                                     </td>
                                                     <td>
-                                                        <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
+                                                        <span class="{{ $statusClass }}" style="font-weight:700; letter-spacing:0;">{{ $statusLabel }}</span>
                                                     </td>
                                                     <td class="action">
-                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}" class="action-edit" title="Xem chi tiết">
+                                                        <a href="{{ route('candidates.application_detail', ['application' => $application->id]) }}" class="action-edit" title="Xem chi tiết" style="background:rgba(15,23,42,.04); color:#0f172a;">
                                                             <i class="fa fa-eye"></i>
                                                         </a>
                                                     </td>

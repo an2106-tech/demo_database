@@ -5,7 +5,9 @@
     $candidateSnap = is_array($snapshot['candidate'] ?? null) ? $snapshot['candidate'] : [];
     $resumeSnap = is_array($snapshot['resume'] ?? null) ? $snapshot['resume'] : [];
 
-    $cvUrl = $record->cv_path ? asset('storage/' . ltrim($record->cv_path, '/')) : null;
+    $cvUrl = $record->submittedCvUrl();
+    $cvName = $record->submittedCvName();
+    $experienceYears = $record->snapshotCandidateExperienceYears();
 
     $experiences = is_array($resumeSnap['experiences'] ?? null) ? $resumeSnap['experiences'] : [];
     $educations = is_array($resumeSnap['educations'] ?? null) ? $resumeSnap['educations'] : [];
@@ -28,19 +30,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Họ tên</div>
-                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->candidate?->name ?? '-' }}</div>
+                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->snapshotCandidateName() }}</div>
                 </div>
                 <div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Email</div>
-                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->candidate?->email ?? '-' }}</div>
+                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->snapshotCandidateEmail() ?? '-' }}</div>
                 </div>
                 <div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Số điện thoại</div>
-                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->candidate?->phone ?? '-' }}</div>
+                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->snapshotCandidatePhone() ?? '-' }}</div>
                 </div>
                 <div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">Kinh nghiệm</div>
-                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ $record->candidate?->experience_years ? $record->candidate->experience_years.' năm' : '-' }}</div>
+                    <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">{{ is_numeric($experienceYears) ? $experienceYears.' năm' : '-' }}</div>
                 </div>
             </div>
         </div>
@@ -65,7 +67,7 @@
                     <div class="text-sm text-gray-500 dark:text-gray-400">CV</div>
                     <div class="mt-1 text-base font-medium text-gray-900 dark:text-gray-100">
                         @if ($cvUrl)
-                            <a class="text-primary-600 hover:underline" href="{{ $cvUrl }}" target="_blank" rel="noopener">Mở CV</a>
+                            <a class="text-primary-600 hover:underline" href="{{ $cvUrl }}" target="_blank" rel="noopener">{{ $cvName ?: 'Mở CV' }}</a>
                         @else
                             Không có
                         @endif

@@ -1,4 +1,9 @@
 <div>
+    @php
+        $candidateCount = $candidates->count();
+        $submissionCount = $candidates->sum(fn ($candidate) => $candidate->submissions->count());
+        $applicationCount = $candidates->sum(fn ($candidate) => $candidate->applications->count());
+    @endphp
 
     <div class="dashboard-breadcrumb">
         <ul>
@@ -7,99 +12,160 @@
             <li class="active">Quản lý ứng viên</li>
         </ul>
     </div>
+
     <section class="candidate-dashboard-area section_70">
         <div class="container-fluid px-lg-5">
-            <div class="row">
-                <div class="col-md-4 col-lg-3 mx-auto dashboard-left-border">
+            <div class="row g-4">
+                <div class="col-lg-3 col-xl-3 dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
                 </div>
-                <div class="col-md-8 col-lg-9 mx-auto">
-                    <div class="dashboard-right">
+
+                <div class="col-lg-9 col-xl-9">
+                    <div class="portal-grid">
                         @if (session()->has('message'))
-                            <div class="alert alert-success" style="border-radius: 12px; border: none; background: #e7f9ed; color: #198754; margin-bottom: 2rem;">
-                                {{ session('message') }}
-                            </div>
+                            <div class="alert alert-success mb-0">{{ session('message') }}</div>
                         @endif
 
-                        <div class="premium-panel">
-                            <div class="manage-jobs-heading">
-                                <h3>Quản lý ứng viên</h3>
-                                <p style="margin: 10px 0 0; color: #64748b;">
-                                    Danh sách ứng viên đã nộp hồ sơ vào các vị trí tuyển dụng của bạn.
-                                </p>
+                        @if (session()->has('error'))
+                            <div class="alert alert-danger mb-0">{{ session('error') }}</div>
+                        @endif
+
+                        <div class="portal-shell portal-shell--subtle p-4 p-lg-5">
+                            <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3">
+                                <div>
+                                    <span class="portal-eyebrow">Quản lý ứng viên</span>
+                                    <h1 class="portal-title">Danh sách hồ sơ đang được theo dõi</h1>
+                                    <p class="portal-subtitle">
+                                        Xem nhanh trạng thái hồ sơ, lượt ứng tuyển và phân tích AI gần nhất trong một bố cục gọn, rõ và dễ quét.
+                                    </p>
+                                </div>
+                                <div class="portal-stats flex-grow-1" style="max-width: 520px;">
+                                    <div class="portal-stat">
+                                        <span class="portal-stat__value">{{ $candidateCount }}</span>
+                                        <span class="portal-stat__label">Ứng viên</span>
+                                    </div>
+                                    <div class="portal-stat">
+                                        <span class="portal-stat__value">{{ $applicationCount }}</span>
+                                        <span class="portal-stat__label">Lượt ứng tuyển</span>
+                                    </div>
+                                    <div class="portal-stat">
+                                        <span class="portal-stat__value">{{ $submissionCount }}</span>
+                                        <span class="portal-stat__label">Submission</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="candidate-list-page manage-candidates">
+
+                        <div class="candidate-grid">
                             @forelse ($candidates as $candidate)
-                            <div class="single-candidate-list">
-                                <div class="main-comment d-flex align-items-start">
-                                    <div class="candidate-image">
-                                        @if($candidate->user?->avatar && file_exists(public_path('storage/' . $candidate->user->avatar)))
-                                        <img src="{{ asset('storage/' . $candidate->user->avatar) }}" alt="{{ $candidate->name }}">
-                                        @else
-                                        <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="{{ $candidate->name }}">
-                                        @endif
-                                    </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title d-flex align-items-center gap-2 flex-wrap">
-                                                <h3 class="mb-0"><a href="{{ route('candidates.candidate_detail') }}?id={{ $candidate->id }}">{{ $candidate->name }}</a></h3>
-                                                <span class="badge bg-light text-dark border-0 px-2 py-1" style="font-size: 11px; border-radius: 6px; background: #f1f5f9 !important; color: #64748b !important;">
-                                                    <i class="fa fa-map-marker me-1"></i> Việt Nam
-                                                </span>
-                                            </div>
+                                @php
+                                    $latestApplication = $candidate->applications->sortByDesc('created_at')->first();
+                                    $latestSubmission = $candidate->submissions->sortByDesc('created_at')->first();
+                                    $jobTitle = $latestApplication?->job?->title
+                                        ?? $latestSubmission?->job?->title
+                                        ?? 'Chưa có vị trí';
+                                    $appliedAt = $latestApplication?->created_at ?? $latestSubmission?->created_at;
+                                    $aiScore = $latestSubmission?->ai_matching_score;
+                                    $aiChip = match (true) {
+                                        $aiScore !== null && $aiScore >= 80 => 'chip chip--success',
+                                        $aiScore !== null && $aiScore >= 50 => 'chip chip--warning',
+                                        $aiScore !== null => 'chip chip--danger',
+                                        default => 'chip',
+                                    };
+                                @endphp
 
-                                            <p class="job-applied">{{ $candidate->applications->first()?->job->title ?? 'Nỗ lực ứng tuyển' }}</p>
-                                            
-                                            @php
-                                                $latestSubmission = $candidate->submissions->first();
-                                            @endphp
-
-                                            <div class="ai-score-box">
-                                                @if($latestSubmission && $latestSubmission->ai_matching_score)
-                                                    <span class="badge-ai {{ $latestSubmission->ai_matching_score >= 80 ? 'bg-success' : ($latestSubmission->ai_matching_score >= 50 ? 'bg-warning' : 'bg-danger') }}">
-                                                        AI Match: {{ $latestSubmission->ai_matching_score }}%
-                                                    </span>
-                                                    <button wire:click="analyzeWithAi({{ $latestSubmission->id }})" wire:loading.attr="disabled" class="btn btn-sm btn-link" style="color: #f37021; text-decoration: none;">
-                                                        <i class="fa fa-refresh"></i> Cập nhật AI
-                                                    </button>
-                                                @elseif($latestSubmission)
-                                                    <button wire:click="analyzeWithAi({{ $latestSubmission->id }})" wire:loading.attr="disabled" class="jobguru-btn-2" style="padding: 8px 18px; font-size: 13px; border-radius: 10px;">
-                                                        <span wire:loading.remove wire:target="analyzeWithAi({{ $latestSubmission->id }})">Phân tích AI</span>
-                                                        <span wire:loading wire:target="analyzeWithAi({{ $latestSubmission->id }})">Đang xử lý...</span>
-                                                    </button>
+                                <article class="candidate-card">
+                                    <div class="candidate-card__head">
+                                        <div class="d-flex gap-3 align-items-start flex-grow-1">
+                                            <div class="candidate-card__avatar">
+                                                @if ($candidate->user?->avatar && file_exists(public_path('storage/' . $candidate->user->avatar)))
+                                                    <img src="{{ asset('storage/' . $candidate->user->avatar) }}" alt="{{ $candidate->name }}">
                                                 @else
-                                                    <span style="font-size: 13px; color: #999;">Chưa có dữ liệu phân tích</span>
+                                                    <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="{{ $candidate->name }}">
                                                 @endif
                                             </div>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p><i class="fa fa-envelope-o"></i> {{ $candidate->email }}</p>
-                                                <p><i class="fa fa-briefcase"></i> {{ $candidate->experience_years ?? 0 }} năm kinh nghiệm</p>
+
+                                            <div class="candidate-card__identity">
+                                                <h3>
+                                                    <a href="{{ route('candidates.candidate_detail', ['id' => $candidate->id]) }}">
+                                                        {{ $candidate->name }}
+                                                    </a>
+                                                </h3>
+                                                <p>{{ $jobTitle }}</p>
                                             </div>
-                                            <div class="candidate-action">
-                                                <a href="{{ route('candidates.candidate_detail', ['id' => $candidate->id]) }}" class="jobguru-btn-2" style="border-radius: 10px; padding: 10px 24px;">Chi tiết hồ sơ</a>
-                                            </div>
                                         </div>
-                                        <div class="remove-icon">
-                                            <a href="#" wire:click.prevent="deleteCandidate({{ $candidate->id }})" onclick="return confirm('Bạn có chắc chắn muốn xóa?')"><i class="fa fa-times"></i></a>
+
+                                        <div class="candidate-card__meta">
+                                            <span class="chip chip--accent">Việt Nam</span>
+                                            @if ($appliedAt)
+                                                <span class="chip">Nộp {{ $appliedAt->format('d/m/Y') }}</span>
+                                            @endif
+                                            @if ($aiScore !== null)
+                                                <span class="{{ $aiChip }}">AI Match {{ $aiScore }}%</span>
+                                            @endif
                                         </div>
                                     </div>
-                                </div>
-                            </div>
+
+                                    <div class="candidate-card__body">
+                                        <div class="candidate-card__item">
+                                            <span>Email</span>
+                                            <strong>{{ $candidate->email ?? 'Chưa có' }}</strong>
+                                        </div>
+                                        <div class="candidate-card__item">
+                                            <span>Kinh nghiệm</span>
+                                            <strong>{{ ($candidate->experience_years ?? 0) }} năm</strong>
+                                        </div>
+                                        <div class="candidate-card__item">
+                                            <span>Trạng thái</span>
+                                            <strong>{{ $latestSubmission ? 'Có dữ liệu phân tích' : 'Chưa có submission' }}</strong>
+                                        </div>
+                                        <div class="candidate-card__item">
+                                            <span>Hồ sơ</span>
+                                            <strong>{{ $latestApplication ? 'Ứng tuyển gần nhất' : 'Chưa ứng tuyển' }}</strong>
+                                        </div>
+                                    </div>
+
+                                    <div class="candidate-card__footer">
+                                        <div class="candidate-card__actions">
+                                            <a href="{{ route('candidates.candidate_detail', ['id' => $candidate->id]) }}" class="jobguru-btn-2">
+                                                Chi tiết hồ sơ
+                                            </a>
+
+                                            @if ($latestSubmission)
+                                                <button
+                                                    type="button"
+                                                    wire:click="analyzeWithAi({{ $latestSubmission->id }})"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="analyzeWithAi({{ $latestSubmission->id }})"
+                                                    class="jobguru-btn-2"
+                                                >
+                                                    <span wire:loading.remove wire:target="analyzeWithAi({{ $latestSubmission->id }})">
+                                                        {{ $aiScore !== null ? 'Cập nhật AI' : 'Phân tích AI' }}
+                                                    </span>
+                                                    <span wire:loading wire:target="analyzeWithAi({{ $latestSubmission->id }})">Đang xử lý...</span>
+                                                </button>
+                                            @endif
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            wire:click="deleteCandidate({{ $candidate->id }})"
+                                            wire:loading.attr="disabled"
+                                            onclick="return confirm('Bạn có chắc chắn muốn xóa ứng viên này?')"
+                                            class="candidate-card__danger"
+                                        >
+                                            <i class="fa fa-trash-o"></i>
+                                            Xóa hồ sơ
+                                        </button>
+                                    </div>
+                                </article>
                             @empty
-                                <div class="text-center py-5">
-                                    <img src="{{ asset('assets/img/empty.svg') }}" alt="Empty" style="max-width: 150px; opacity: 0.5; margin-bottom: 20px;">
-                                    <p>Không có ứng viên nào.</p>
+                                <div class="portal-shell portal-shell--subtle p-5 text-center">
+                                    <img src="{{ asset('assets/img/empty.svg') }}" alt="Empty" style="max-width: 180px; opacity: 0.55; margin-bottom: 18px;">
+                                    <h3 class="mb-2">Chưa có ứng viên nào</h3>
+                                    <p class="mb-0 text-muted">Khi có hồ sơ ứng tuyển hoặc submission mới, danh sách sẽ xuất hiện ở đây.</p>
                                 </div>
                             @endforelse
-                            
-                            @if($candidates->count() > 0)
-                            <div class="pagination-box-row">
-                                <p>Hiển thị {{ $candidates->count() }} ứng viên</p>
-                            </div>
-                            @endif
                         </div>
                     </div>
                 </div>

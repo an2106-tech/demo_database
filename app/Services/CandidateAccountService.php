@@ -14,6 +14,8 @@ class CandidateAccountService
         'cv' => 'CV',
     ];
 
+    private const PROFILE_COMPLETION_TOTAL = 10;
+
     public function getPreferredAccountType(User $user): ?string
     {
         $metadata = is_array($user->metadata) ? $user->metadata : [];
@@ -74,6 +76,28 @@ class CandidateAccountService
     public function profileCompletion(Candidate $candidate): int
     {
         $filled = 0;
+        $resume = $candidate->resume()->first();
+
+        $filled += filled($candidate->name) ? 1 : 0;
+        $filled += filled($candidate->email) ? 1 : 0;
+        $filled += filled($candidate->phone) ? 1 : 0;
+        $filled += $this->candidateHasCv($candidate) ? 1 : 0;
+        $filled += filled($candidate->experience_years) ? 1 : 0;
+
+        if ($resume) {
+            $filled += filled($resume->profile_title) ? 1 : 0;
+            $filled += filled($resume->career_objective) ? 1 : 0;
+            $filled += filled(data_get($resume->desired_job ?? [], 'position')) ? 1 : 0;
+            $filled += $this->hasFilledList($resume->educations ?? []) ? 1 : 0;
+            $filled += $this->hasFilledList($resume->skills ?? []) ? 1 : 0;
+        }
+
+        return (int) round(($filled / self::PROFILE_COMPLETION_TOTAL) * 100);
+    }
+
+    public function applicationProfileCompletion(Candidate $candidate): int
+    {
+        $filled = 0;
 
         foreach (array_keys(self::APPLICATION_PROFILE_FIELDS) as $field) {
             if ($field === 'cv') {
@@ -129,15 +153,31 @@ class CandidateAccountService
                 ->first();
         }
 
+        $phone = $this->extractPhone($user);
+
         $attributes = array_filter([
             'user_id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'phone' => $this->extractPhone($user),
+            'phone' => $phone,
         ], fn ($value) => ! is_null($value) && $value !== '');
 
         if ($candidate) {
-            $candidate->fill($attributes);
+            if (! $candidate->user_id) {
+                $candidate->user_id = $user->id;
+            }
+
+            if (blank($candidate->name) && filled($user->name)) {
+                $candidate->name = $user->name;
+            }
+
+            if (blank($candidate->email) && filled($user->email)) {
+                $candidate->email = $user->email;
+            }
+
+            if (blank($candidate->phone) && filled($phone)) {
+                $candidate->phone = $phone;
+            }
 
             if ($candidate->isDirty()) {
                 $candidate->save();
@@ -161,5 +201,22 @@ class CandidateAccountService
         $phone = $metadata['phone'] ?? null;
 
         return is_string($phone) && trim($phone) !== '' ? trim($phone) : null;
+    }
+
+    private function hasFilledList(array $items): bool
+    {
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            foreach ($item as $value) {
+                if (filled($value)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

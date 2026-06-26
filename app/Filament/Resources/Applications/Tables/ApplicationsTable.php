@@ -84,11 +84,12 @@ class ApplicationsTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('candidate.name')
                     ->label('Ứng viên')
+                    ->formatStateUsing(fn (Application $record): string => $record->snapshotCandidateName())
                     ->sortable(),
                 TextColumn::make('cv_path')
                     ->label('CV')
-                    ->formatStateUsing(fn (?string $state): string => $state ? 'Mã CV' : '-')
-                    ->url(fn ($record) => $record->cv_path ? asset('storage/'.ltrim($record->cv_path, '/')) : null)
+                    ->formatStateUsing(fn (Application $record): string => $record->submittedCvName() ?: '-')
+                    ->url(fn (Application $record): ?string => $record->submittedCvUrl())
                     ->openUrlInNewTab(),
                 TextColumn::make('apply_method')
                     ->label('Cách nộp hồ sơ')
@@ -221,9 +222,14 @@ class ApplicationsTable
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
-                            'has_cv' => $query->whereNotNull('cv_path')->where('cv_path', '!=', ''),
+                            'has_cv' => $query->where(function (Builder $q): void {
+                                $q->whereNotNull('cv_path')->where('cv_path', '!=', '')
+                                    ->orWhereNotNull('cv_attachment_id');
+                            }),
                             'missing_cv' => $query->where(function (Builder $q): void {
-                                $q->whereNull('cv_path')->orWhere('cv_path', '');
+                                $q->where(function (Builder $inner): void {
+                                    $inner->whereNull('cv_path')->orWhere('cv_path', '');
+                                })->whereNull('cv_attachment_id');
                             }),
                             default => $query,
                         };
@@ -251,7 +257,7 @@ class ApplicationsTable
                         ->color('info')
                         ->modalWidth('4xl')
                         ->modalHeading('Đánh giá phỏng vấn')
-                        ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? 'Ứng viên'))
+                        ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.$record->snapshotCandidateName())
                         ->fillForm(function (Application $record): array {
                             $interview = $record->interviews()->latest('id')->first();
                             $scorecard = $record->scorecards()->latest('id')->first();
@@ -458,7 +464,7 @@ class ApplicationsTable
                             return match($record->latestOffer?->status) {
                                 'awaiting_approval' => 'Offer sẽ được gửi để giám đốc chi nhánh duyệt trước khi gửi tới ứng viên',
                                 'rejected' => 'Offer sau khi chỉnh sửa sẽ được gửi cho giám đốc chi nhánh duyệt lại',
-                                default => 'Thư mời nhận việc được gửi tới '.($record->candidate?->email ?: 'email ứng viên'),
+                                default => 'Thư mời nhận việc được gửi tới '.($record->snapshotCandidateEmail() ?: 'email ứng viên'),
                             };
                         })
                         ->action(function (Application $record): void {
@@ -466,7 +472,7 @@ class ApplicationsTable
                             $candidate = $record->candidate;
                             $job = $record->job;
 
-                            if (! $offer || ! $candidate?->email || ! $job) {
+                            if (! $offer || ! $record->snapshotCandidateEmail() || ! $candidate || ! $job) {
                                 Notification::make()
                                     ->warning()
                                     ->title('Chưa thể gửi offer')
@@ -668,7 +674,7 @@ class ApplicationsTable
     {
         $offer = $record->offers()->latest('id')->first();
 
-        if (! static::canManageOffer($record) || ! filled($record->candidate?->email) || ! $offer) {
+        if (! static::canManageOffer($record) || ! filled($record->snapshotCandidateEmail()) || ! $offer) {
             return false;
         }
 
@@ -779,8 +785,8 @@ class ApplicationsTable
     {
         $recipients = [];
 
-        if (filled($record->candidate?->email)) {
-            $recipients[$record->candidate->email] = 'candidate';
+        if (filled($record->snapshotCandidateEmail())) {
+            $recipients[$record->snapshotCandidateEmail()] = 'candidate';
         }
 
         $branchId = $record->job?->branch_id;
@@ -890,7 +896,7 @@ class ApplicationsTable
 
                 return 'Xử lý hồ sơ';
             })
-            ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.($record->candidate?->name ?? 'Ứng viên'))
+            ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.$record->snapshotCandidateName())
             ->fillForm(function (Application $record): array {
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
@@ -1185,7 +1191,7 @@ class ApplicationsTable
                 $offer->refresh();
             }
 
-            Mail::to($candidate->email)->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+            Mail::to($record->snapshotCandidateEmail())->send(new CandidateOfferMail($candidate, $record, $job, $offer));
 
             $offer->forceFill([
                 'sent_at' => now(),
@@ -1200,7 +1206,7 @@ class ApplicationsTable
             Log::warning('Failed to send offer mail.', [
                 'application_id' => $record->id,
                 'offer_id' => $offer->id,
-                'recipient' => $candidate->email,
+                'recipient' => $record->snapshotCandidateEmail(),
                 'error' => $exception->getMessage(),
             ]);
 

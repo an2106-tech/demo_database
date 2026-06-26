@@ -3,13 +3,17 @@
 namespace App\Livewire\Client\Employers;
 
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 
 class ChangePassword extends Component
 {
-    #[Layout('layouts.client')] 
     public function render()
     {
-        return view('livewire.client.employers.change_password');
+        if (request()->routeIs('candidates.*')) {
+            return view('livewire.client.change-password')
+                ->layout('layouts.client');
+        }
+
+        return view('livewire.client.employers.change_password')
+            ->layout('layouts.employer');
     }
 }

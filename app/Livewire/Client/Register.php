@@ -271,7 +271,11 @@ class Register extends Component
         }
 
         Auth::login($user);
-        request()->session()->regenerate();
+        if (request()->hasSession()) {
+            request()->session()->regenerate();
+        }
+
+        app(CandidateAccountService::class)->resolveFor($user);
 
         return redirect()
             ->route('candidates.candidate_profile')

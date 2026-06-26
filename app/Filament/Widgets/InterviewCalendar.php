@@ -69,7 +69,7 @@ class InterviewCalendar extends CalendarWidget
         $end = $start->copy()->addMinutes(max(15, (int) ($interview->duration_minutes ?: 60)));
         [$backgroundColor, $textColor] = $this->resolveEventColors($interview);
 
-        $candidateName = $interview->application?->candidate?->name ?? 'Ứng viên';
+        $candidateName = $interview->application?->snapshotCandidateName() ?? 'Ứng viên';
         $jobTitle      = $interview->application?->job?->title ?? 'Chưa có vị trí';
 
         // Shorter title = less truncation in the fixed-height TimeGrid block.

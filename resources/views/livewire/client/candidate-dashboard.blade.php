@@ -72,10 +72,10 @@
                                         </div>
                                         <div class="activity-content">
                                             <div class="activity-text">
-                                                Bạn đã ứng tuyển vào vị trí <strong>{{ $application->job->title }}</strong>
+                                                Bạn đã ứng tuyển vào vị trí <strong>{{ $application->job?->title ?? 'Vị trí không còn khả dụng' }}</strong>
                                             </div>
                                             <div class="activity-time">
-                                                {{ $application->created_at->diffForHumans() }} 
+                                                {{ optional($application->applied_at ?? $application->created_at)->diffForHumans() }} 
                                                 <span class="mx-2">•</span> 
                                                 <span class="badge rounded-pill published" style="font-size: 10px; padding: 2px 8px !important;">
                                                     {{ $application->status->getLabel() }}
@@ -107,12 +107,21 @@
                                         </div>
                                     </a>
 
+                                    @if ($hasCv)
                                     <div class="p-3 mt-2" style="background: rgba(16, 185, 129, 0.05); border: 1px dashed #10b981; border-radius: 12px; text-align: center;">
                                         <div style="color: #10b981; font-weight: 700; margin-bottom: 8px;">
                                             <i class="fa fa-check-circle"></i> CV đã sẵn sàng!
                                         </div>
                                         <p style="font-size: 12px; color: #34d399; margin: 0;">Hồ sơ của bạn đã được tối ưu hóa cho các nhà tuyển dụng.</p>
                                     </div>
+                                    @else
+                                    <a href="{{ route('candidates.candidate_profile') }}" class="p-3 mt-2 d-block" style="background: rgba(249, 115, 22, 0.06); border: 1px dashed var(--fpt-orange); border-radius: 12px; text-align: center; text-decoration: none;">
+                                        <div style="color: var(--fpt-orange); font-weight: 700; margin-bottom: 8px;">
+                                            <i class="fa fa-upload"></i> Cần bổ sung CV
+                                        </div>
+                                        <p style="font-size: 12px; color: #c2410c; margin: 0;">Tải CV lên để hồ sơ đủ điều kiện ứng tuyển.</p>
+                                    </a>
+                                    @endif
                                 </div>
                             </div>
                         </div>

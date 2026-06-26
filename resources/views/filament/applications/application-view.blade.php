@@ -5,7 +5,8 @@
     $candidateSnap = is_array($snapshot['candidate'] ?? null) ? $snapshot['candidate'] : [];
     $resumeSnap = is_array($snapshot['resume'] ?? null) ? $snapshot['resume'] : [];
 
-    $cvUrl = $record->cv_path ? asset('storage/' . ltrim($record->cv_path, '/')) : null;
+    $cvUrl = $record->submittedCvUrl();
+    $cvName = $record->submittedCvName();
 
     $experiences = is_array($resumeSnap['experiences'] ?? null) ? $resumeSnap['experiences'] : [];
     $educations = is_array($resumeSnap['educations'] ?? null) ? $resumeSnap['educations'] : [];
@@ -36,7 +37,7 @@
             <div class="text-sm text-gray-500 dark:text-gray-400">CV trong đơn</div>
             <div class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
                 @if ($cvUrl)
-                    <a class="text-primary-600 hover:underline" href="{{ $cvUrl }}" target="_blank" rel="noopener">Mở CV</a>
+                    <a class="text-primary-600 hover:underline" href="{{ $cvUrl }}" target="_blank" rel="noopener">{{ $cvName ?: 'Mở CV' }}</a>
                 @else
                     Không có
                 @endif
@@ -262,4 +263,3 @@
         </div>
     @endif
 </div>
-

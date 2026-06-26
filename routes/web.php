@@ -89,6 +89,10 @@ Route::prefix('jobs')->name('jobs.')->group(function () {
 
 Route::redirect('/candidate-profile.html', '/candidates/candidate-profile');
 Route::redirect('/candidate-dashboard.html', '/candidates/candidate-dashboard');
+Route::redirect('/message.html', '/candidates/messages');
+Route::redirect('/manage-jobs.html', '/candidates/manage-jobs');
+Route::redirect('/candidate-earnings.html', '/candidates/earnings');
+Route::redirect('/change-password.html', '/candidates/change-password');
 Route::redirect('/submit-resume.html', '/candidates/submit-resume');
 Route::redirect('/candidates/browse_job', '/candidates/browse-job');
 Route::redirect('/candidates/joblist_sidebar', '/candidates/joblist-sidebar');
@@ -100,6 +104,12 @@ Route::redirect('/candidates/candidate_dashboard', '/candidates/candidate-dashbo
 Route::redirect('/candidates/candidate_profile', '/candidates/candidate-profile');
 Route::redirect('/candidates/manage_jobs', '/candidates/manage-jobs');
 Route::redirect('/candidates/change_password', '/candidates/change-password');
+Route::redirect('/candidates/candidate-dashboard.html', '/candidates/candidate-dashboard');
+Route::redirect('/candidates/candidate-profile.html', '/candidates/candidate-profile');
+Route::redirect('/candidates/message.html', '/candidates/messages');
+Route::redirect('/candidates/manage-jobs.html', '/candidates/manage-jobs');
+Route::redirect('/candidates/candidate-earnings.html', '/candidates/earnings');
+Route::redirect('/candidates/change-password.html', '/candidates/change-password');
 
 Route::redirect('/auth/sign_up', '/auth/sign-up');
 Route::redirect('/auth/post_jobs', '/auth/post-jobs');
@@ -116,9 +126,21 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::get('/browse-companies', BrowseCompanies::class)->name('browse_companies');
     Route::get('/candidate-detail', CandidatesDetails::class)->middleware('auth')->name('candidate_detail');
     Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
-    Route::get('jobs/{job}/apply', ApplyJob::class)
-        ->middleware(['auth', 'candidate.account', 'candidate.profile.complete'])
-        ->name('apply_job');
+    Route::get('jobs/{job}/apply', ApplyJob::class)->name('apply_job');
+    Route::get('applications/{application}/verify-email', function (\App\Models\Application $application) {
+        $candidate = $application->candidate;
+        abort_unless($candidate && filled($candidate->email), 404);
+
+        $metadata = is_array($candidate->metadata) ? $candidate->metadata : [];
+        $metadata['guest_email_verified_at'] = now()->toDateTimeString();
+        $metadata['guest_email_verified_application_id'] = $application->id;
+        $metadata['guest_email_verified_email'] = $candidate->email;
+        $candidate->forceFill(['metadata' => $metadata])->save();
+
+        return redirect()
+            ->route('candidates.login', ['email' => $candidate->email])
+            ->with('status', 'Email ứng tuyển đã được xác thực. Bạn có thể đăng nhập hoặc đăng ký để theo dõi hồ sơ.');
+    })->middleware('signed')->name('applications.verify_email');
 
     Route::middleware(['auth', 'candidate.account'])->group(function () {
         Route::get('submit-resume', SubmitResume::class)->name('submit_resume');

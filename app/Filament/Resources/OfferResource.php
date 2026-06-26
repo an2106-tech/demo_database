@@ -56,6 +56,7 @@ class OfferResource extends Resource
                 
                 TextColumn::make('application.candidate.name')
                     ->label('Ứng viên')
+                    ->formatStateUsing(fn ($record): string => $record->application?->snapshotCandidateName() ?? 'Ứng viên')
                     ->sortable()
                     ->searchable(),
                 
@@ -127,7 +128,7 @@ class OfferResource extends Resource
                     ->visible(fn ($record) => $record->status === 'awaiting_approval')
                     ->requiresConfirmation()
                     ->modalHeading('Duyệt Offer')
-                    ->modalDescription(fn ($record) => 'Offer cho ' . $record->application->candidate?->name . ' sẽ được gửi tới ứng viên.')
+                    ->modalDescription(fn ($record) => 'Offer cho ' . ($record->application?->snapshotCandidateName() ?? 'ứng viên') . ' sẽ được gửi tới ứng viên.')
                     ->action(function ($record) {
                         $user = Auth::user();
                         if (!$user) {

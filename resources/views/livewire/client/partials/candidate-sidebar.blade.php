@@ -1,51 +1,59 @@
-<div class="dashboard-left">
-    <ul class="dashboard-menu">
-        <li class="{{ request()->routeIs('candidates.candidate_dashboard') ? 'active' : '' }}">
-            <a href="{{ route('candidates.candidate_dashboard') }}">
+<div class="sidebar-shell">
+    <div class="sidebar-shell__brand">
+        <div class="sidebar-shell__mark">
+            <i class="fa fa-user"></i>
+        </div>
+        <div>
+            <h3>Hồ sơ ứng viên</h3>
+            <p>Quản lý hồ sơ, ứng tuyển và bảo mật</p>
+        </div>
+    </div>
+
+    <ul class="sidebar-nav">
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.candidate_dashboard') ? 'is-active' : '' }}" href="{{ route('candidates.candidate_dashboard') }}">
                 <i class="fa fa-tachometer"></i>
-                Bảng điều khiển
+                <span>Bảng điều khiển</span>
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('candidates.candidate_profile') ? 'active' : '' }}">
-            <a href="{{ route('candidates.candidate_profile') }}">
-                <i class="fa fa-user-circle"></i>
-                Hồ sơ cá nhân
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.candidate_profile') ? 'is-active' : '' }}" href="{{ route('candidates.candidate_profile') }}">
+                <i class="fa fa-id-card"></i>
+                <span>Hồ sơ của tôi</span>
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('candidates.messages') ? 'active' : '' }}">
-            <a href="{{ route('candidates.messages') }}">
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.messages') ? 'is-active' : '' }}" href="{{ route('candidates.messages') }}">
                 <i class="fa fa-comments"></i>
-                Tin nhắn
+                <span>Tin nhắn</span>
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('candidates.manage_jobs') ? 'active' : '' }}">
-            <a href="{{ route('candidates.manage_jobs') }}">
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.manage_jobs') ? 'is-active' : '' }}" href="{{ route('candidates.manage_jobs') }}">
                 <i class="fa fa-briefcase"></i>
-                Việc làm đã ứng tuyển
+                <span>Việc đã ứng tuyển</span>
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('candidates.earnings') ? 'active' : '' }}">
-            <a href="{{ route('candidates.earnings') }}">
-                <i class="fa fa-money"></i>
-                Thu nhập & Thưởng
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.earnings') ? 'is-active' : '' }}" href="{{ route('candidates.earnings') }}">
+                <i class="fa fa-line-chart"></i>
+                <span>Thu nhập & Thưởng</span>
             </a>
         </li>
 
-        <li class="{{ request()->routeIs('candidates.change_password') ? 'active' : '' }}">
-            <a href="{{ route('candidates.change_password') }}">
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.change_password') ? 'is-active' : '' }}" href="{{ route('candidates.change_password') }}">
                 <i class="fa fa-shield"></i>
-                Bảo mật & Mật khẩu
+                <span>Bảo mật & Mật khẩu</span>
             </a>
-        </li>
-
-        <li style="margin-top: 20px; padding: 0 15px;">
-            <div style="border-top: 1px solid #f1f5f9; padding-top: 20px;">
-                <livewire:client.logout-button />
-            </div>
         </li>
     </ul>
+
+    <div class="sidebar-shell__footer">
+        <livewire:client.logout-button class="sidebar-logout" />
+    </div>
 </div>

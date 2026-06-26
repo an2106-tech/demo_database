@@ -45,6 +45,7 @@ class CandidateDashboard extends Component
         $this->recentApplications = Application::query()
             ->where('candidate_id', $candidate->id)
             ->with('job')
+            ->latest('applied_at')
             ->latest()
             ->take(5)
             ->get();

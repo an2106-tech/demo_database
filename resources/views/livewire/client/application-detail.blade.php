@@ -3,93 +3,185 @@
     $status = $application->status;
     $statusValue = $status instanceof \App\Enums\StatusApplicationEnum ? $status->value : (string) $status;
     $statusLabel = $status instanceof \App\Enums\StatusApplicationEnum ? $status->getLabel() : ucfirst((string) $status);
-    $statusClass = match ($statusValue) {
-        'new' => 'pending',
-        'screening' => 'pending',
-        'interview_scheduled' => 'active',
-        'interview' => 'active',
-        'offer' => 'active',
-        'hired' => 'approved',
-        'rejected' => 'expired',
-        default => 'pending',
+    $statusChipClass = match ($statusValue) {
+        'new', 'cv_reviewing', 'screening' => 'chip chip--warning',
+        'interview_scheduled', 'interview', 'offer' => 'chip chip--accent',
+        'hired' => 'chip chip--success',
+        'rejected' => 'chip chip--danger',
+        default => 'chip',
     };
+    $snapshot = $application->profile_snapshot ?? [];
+    $snapshotName = data_get($snapshot, 'name') ?: data_get($snapshot, 'candidate.name', '-');
+    $snapshotEmail = data_get($snapshot, 'email') ?: data_get($snapshot, 'candidate.email', '-');
+    $snapshotPhone = data_get($snapshot, 'phone') ?: data_get($snapshot, 'candidate.phone', '-');
+    $snapshotExperience = data_get($snapshot, 'experience_years') ?: data_get($snapshot, 'candidate.experience_years', '-');
+    $snapshotTitle = data_get($snapshot, 'profile_title') ?: data_get($snapshot, 'resume.profile_title', '-');
+    $submittedCvName = data_get($snapshot, 'cv.original_filename') ?: ($application->cv_path ? basename($application->cv_path) : 'Chưa có');
+    $jobStatusLabel = is_object($job?->status) && method_exists($job->status, 'getLabel')
+        ? $job->status->getLabel()
+        : ($job?->status ?: '-');
 @endphp
 
 <div>
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Chi tiết ứng tuyển</h3>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    <div class="dashboard-breadcrumb">
+        <ul>
+            <li><a href="{{ route('home') }}">Trang chủ</a></li>
+            <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+            <li class="active">Chi tiết ứng tuyển</li>
+        </ul>
+    </div>
 
     <section class="candidate-dashboard-area section_70">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-3 col-md-4 mx-auto dashboard-left-border">
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-4 dashboard-left-border">
                     @include('livewire.client.partials.candidate-sidebar')
                 </div>
 
-                <div class="col-lg-9 col-md-8 mx-auto">
-                    <div class="dashboard-right">
-                        <div class="manage-jobs">
-                            <div class="manage-jobs-heading d-flex justify-content-between align-items-center">
-                                <h3>{{ $job?->title ?? 'Đơn ứng tuyển' }}</h3>
-                                <a href="{{ route('candidates.manage_jobs') }}" class="jobguru-btn-2">Quay lại</a>
-                            </div>
+                <div class="col-lg-9 col-md-8">
+                    <div class="application-shell">
+                        <div class="portal-shell portal-shell--subtle p-4 p-lg-5">
+                            <div class="application-hero">
+                                <div>
+                                    <span class="portal-eyebrow">Chi tiết hồ sơ đã ứng tuyển</span>
+                                    <h1 class="application-hero__title">{{ $job?->title ?? 'Đơn ứng tuyển' }}</h1>
+                                    <p class="portal-subtitle">
+                                        Toàn bộ thông tin được chốt theo thời điểm nộp để đảm bảo nhà tuyển dụng đọc đúng snapshot, không phụ thuộc hồ sơ hiện tại.
+                                    </p>
+                                </div>
 
-                            <div class="single-resume-feild">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>Mã hồ sơ:</strong> #{{ $application->id }}</p>
-                                        <p><strong>Trạng thái:</strong> <span class="{{ $statusClass }}">{{ $statusLabel }}</span></p>
-                                        <p><strong>Ngày ứng tuyển:</strong> {{ optional($application->applied_at ?? $application->created_at)->format('d/m/Y H:i') }}</p>
-                                        <p><strong>CV đã nộp:</strong> {{ $application->cv_path ? basename($application->cv_path) : 'Chưa có' }}</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Chi nhánh:</strong> {{ $job?->branch?->name ?? '-' }}</p>
-                                        <p><strong>Phòng ban:</strong> {{ $job?->department?->name ?? '-' }}</p>
-                                        <p><strong>Nơi làm việc:</strong> {{ $job?->workplace?->name ?? '-' }}</p>
-                                        <p><strong>Hạn nộp:</strong> {{ optional($job?->deadline)->format('d/m/Y') ?? '-' }}</p>
-                                    </div>
+                                <div class="application-actions">
+                                    @if (! $application->trashed())
+                                        <button
+                                            type="button"
+                                            wire:click="withdraw"
+                                            wire:loading.attr="disabled"
+                                            wire:target="withdraw"
+                                            class="jobguru-btn-2"
+                                            style="background: rgba(239, 68, 68, 0.08); color: #b91c1c; border-color: rgba(239, 68, 68, 0.16);"
+                                        >
+                                            Rút hồ sơ
+                                        </button>
+                                    @endif
+
+                                    <a href="{{ route('candidates.manage_jobs') }}" class="jobguru-btn-2">Quay lại</a>
                                 </div>
                             </div>
-
-                            <div class="single-resume-feild">
-                                <h4>Mô tả vị trí</h4>
-                                <p style="white-space: pre-line;">{{ $job?->description ?: 'Chưa có mô tả chi tiết.' }}</p>
-                            </div>
-
-                            @if (! empty($application->profile_snapshot))
-                                <div class="single-resume-feild">
-                                    <h4>Thông tin hồ sơ tại thời điểm ứng tuyển</h4>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <p><strong>Họ tên:</strong> {{ data_get($application->profile_snapshot, 'name', '-') }}</p>
-                                            <p><strong>Email:</strong> {{ data_get($application->profile_snapshot, 'email', '-') }}</p>
-                                            <p><strong>Số điện thoại:</strong> {{ data_get($application->profile_snapshot, 'phone', '-') }}</p>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <p><strong>Kinh nghiệm:</strong> {{ data_get($application->profile_snapshot, 'experience_years', '-') }}</p>
-                                            <p><strong>Tiêu đề hồ sơ:</strong> {{ data_get($application->profile_snapshot, 'profile_title', '-') }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endif
-
-                            @if ($statusValue === 'rejected' && filled($application->rejected_reason))
-                                <div class="alert alert-danger mt-3 mb-0">
-                                    <strong>Lý do từ chối:</strong> {{ $application->rejected_reason }}
-                                </div>
-                            @endif
                         </div>
+
+                        <div class="application-grid">
+                            <div class="application-card">
+                                <h4>Thông tin ứng tuyển</h4>
+                                <div class="application-list">
+                                    <div class="application-list__item">
+                                        <span>Mã hồ sơ</span>
+                                        <strong>#{{ $application->id }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Trạng thái</span>
+                                        <strong><span class="{{ $statusChipClass }}">{{ $statusLabel }}</span></strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Ngày ứng tuyển</span>
+                                        <strong>{{ optional($application->applied_at ?? $application->created_at)->format('d/m/Y H:i') }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>CV đã nộp</span>
+                                        <strong>{{ $submittedCvName }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Chi nhánh</span>
+                                        <strong>{{ $job?->branch?->name ?? '-' }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Hạn nộp</span>
+                                        <strong>{{ optional($job?->deadline)->format('d/m/Y') ?? '-' }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="application-card">
+                                <h4>Vị trí & bộ phận</h4>
+                                <div class="application-list">
+                                    <div class="application-list__item">
+                                        <span>Phòng ban</span>
+                                        <strong>{{ $job?->department?->name ?? '-' }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Nơi làm việc</span>
+                                        <strong>{{ $job?->workplace?->name ?? '-' }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Địa điểm</span>
+                                        <strong>{{ $job?->branch?->name ?? '-' }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Trạng thái tin</span>
+                                        <strong>{{ $jobStatusLabel }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (session('status'))
+                            <div class="alert alert-success mb-0">{{ session('status') }}</div>
+                        @endif
+
+                        @if (session('error'))
+                            <div class="alert alert-danger mb-0">{{ session('error') }}</div>
+                        @endif
+
+                        <div class="application-card">
+                            <h4>Mô tả vị trí</h4>
+                            <p style="white-space: pre-line; margin-bottom: 0; color: #334155; line-height: 1.8;">
+                                {{ $job?->description ?: 'Chưa có mô tả chi tiết.' }}
+                            </p>
+                        </div>
+
+                        <div class="application-card">
+                            <h4>Snapshot hồ sơ tại thời điểm nộp</h4>
+                            <p class="portal-subtitle mb-4" style="font-size: 14px;">
+                                Đây là dữ liệu nhà tuyển dụng sẽ nhìn thấy trong quá trình đánh giá.
+                            </p>
+
+                            <div class="application-grid">
+                                <div class="application-list">
+                                    <div class="application-list__item">
+                                        <span>Họ tên</span>
+                                        <strong>{{ $snapshotName }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Email</span>
+                                        <strong>{{ $snapshotEmail }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Số điện thoại</span>
+                                        <strong>{{ $snapshotPhone }}</strong>
+                                    </div>
+                                </div>
+
+                                <div class="application-list">
+                                    <div class="application-list__item">
+                                        <span>Kinh nghiệm</span>
+                                        <strong>{{ $snapshotExperience }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>Tiêu đề hồ sơ</span>
+                                        <strong>{{ $snapshotTitle }}</strong>
+                                    </div>
+                                    <div class="application-list__item">
+                                        <span>File CV</span>
+                                        <strong>{{ $submittedCvName }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if ($statusValue === 'rejected' && filled($application->rejected_reason))
+                            <div class="application-note application-note--danger">
+                                <strong>Lý do từ chối:</strong> {{ $application->rejected_reason }}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

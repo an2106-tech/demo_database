@@ -442,6 +442,12 @@
                 </div>
             @else
             <form wire:submit.prevent="submit">
+                @error('application')
+                    <div class="alert alert-info border-0 mb-4" style="border-radius: 18px; background: #eff6ff; color: #1d4ed8; padding: 18px 22px; font-weight: 700;">
+                        {{ $message }}
+                    </div>
+                @enderror
+
                 <div class="section-separator">Thông tin của bạn</div>
 
                 <div class="grid-row">

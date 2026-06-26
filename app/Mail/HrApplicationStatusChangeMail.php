@@ -62,6 +62,12 @@ class HrApplicationStatusChangeMail extends Mailable
             : $this->job->branch()->value('name');
 
         $adminUrl = ApplicationResource::getUrl('edit', ['record' => $this->application]);
+        $candidateName = method_exists($this->application, 'snapshotCandidateName')
+            ? $this->application->snapshotCandidateName()
+            : $this->candidate->name;
+        $candidateEmail = method_exists($this->application, 'snapshotCandidateEmail')
+            ? ($this->application->snapshotCandidateEmail() ?: (string) $this->candidate->email)
+            : (string) $this->candidate->email;
 
         $statusChangeText = sprintf(
             'Trạng thái hồ sơ đã thay đổi từ <strong>%s</strong> sang <strong>%s</strong>',
@@ -75,8 +81,8 @@ class HrApplicationStatusChangeMail extends Mailable
             '<ul>',
             '<li><strong>Vị trí:</strong> '.e($this->job->title).'</li>',
             '<li><strong>Chi nhánh:</strong> '.e($branchName ?: '—').'</li>',
-            '<li><strong>Ứng viên:</strong> '.e($this->candidate->name).'</li>',
-            '<li><strong>Email ứng viên:</strong> '.e((string) $this->candidate->email).'</li>',
+            '<li><strong>Ứng viên:</strong> '.e($candidateName).'</li>',
+            '<li><strong>Email ứng viên:</strong> '.e($candidateEmail).'</li>',
             '<li><strong>Mã hồ sơ:</strong> #'.$this->application->id.'</li>',
             '<li><strong>Cập nhật trạng thái:</strong> '.$statusChangeText.'</li>',
             '</ul>',

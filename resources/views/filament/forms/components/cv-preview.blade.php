@@ -10,7 +10,7 @@
 
     $cvPath = is_string($cvState) && $cvState !== ''
         ? $cvState
-        : ($record?->cv_path ?? null);
+        : ($record?->submittedCvPath() ?? $record?->cv_path ?? null);
 
     $cvUrl = null;
 

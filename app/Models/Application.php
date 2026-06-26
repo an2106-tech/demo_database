@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\CandidateApplicationStatusChangeMail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,9 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Mail\CandidateApplicationRejectedMail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use App\Models\User;
 
 class Application extends Model
 {
@@ -61,6 +65,68 @@ class Application extends Model
                             ]);
                         }
                     }
+                }
+
+                $candidate = $application->candidate;
+
+                if ($job = $application->job) {
+                    $candidateEmail = $application->snapshotCandidateEmail() ?: $candidate?->email;
+
+                    if ($candidateEmail && $newStatus !== StatusApplicationEnum::REJECTED) {
+                        try {
+                            Mail::to($candidateEmail)->send(
+                                new CandidateApplicationStatusChangeMail($application, $job, $oldStatus, $newStatus)
+                            );
+                        } catch (\Throwable $exception) {
+                            Log::warning('Failed to send candidate application status change mail.', [
+                                'application_id' => $application->id,
+                                'recipient' => $candidateEmail,
+                                'error' => $exception->getMessage(),
+                            ]);
+                        }
+                    }
+
+                    $recipients = collect();
+
+                    if (filled($application->assigned_hr_id)) {
+                        $recipients->push($application->assignedHr);
+                    }
+
+                    if (filled($job->branch_id)) {
+                        $recipients = $recipients->merge(
+                            User::query()
+                                ->where('branch_id', $job->branch_id)
+                                ->where('is_active', true)
+                                ->where(function ($query) {
+                                    $query->where('role', 'hr')
+                                        ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->whereIn('name', ['hr', 'director', 'pm']));
+                                })
+                                ->get()
+                        );
+                    }
+
+                    $recipients
+                        ->filter()
+                        ->unique('id')
+                        ->each(function (User $user) use ($application, $candidate, $job, $newStatus, $oldStatus): void {
+                            $email = is_string($user->email) ? trim($user->email) : null;
+
+                            if (blank($email)) {
+                                return;
+                            }
+
+                            try {
+                                Mail::to($email)->send(
+                                    new \App\Mail\HrApplicationStatusChangeMail($candidate, $application, $job, $oldStatus, $newStatus)
+                                );
+                            } catch (\Throwable $exception) {
+                                Log::warning('Failed to send HR application status change mail.', [
+                                    'application_id' => $application->id,
+                                    'recipient' => $email,
+                                    'error' => $exception->getMessage(),
+                                ]);
+                            }
+                        });
                 }
             }
         });
@@ -115,6 +181,11 @@ class Application extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function cvAttachment(): BelongsTo
+    {
+        return $this->belongsTo(Attachment::class, 'cv_attachment_id');
     }
 
     public function interviews(): HasMany
@@ -175,5 +246,72 @@ class Application extends Model
             'changed_by_id' => auth()->id(),
             'comment' => $comment,
         ]);
+    }
+
+    public function snapshotValue(string $legacyKey, string $nestedKey, mixed $default = null): mixed
+    {
+        $snapshot = is_array($this->profile_snapshot) ? $this->profile_snapshot : [];
+
+        return data_get($snapshot, $legacyKey)
+            ?? data_get($snapshot, $nestedKey)
+            ?? $default;
+    }
+
+    public function snapshotCandidateName(): string
+    {
+        return (string) ($this->snapshotValue('name', 'candidate.name')
+            ?: $this->candidate?->name
+            ?: 'Ứng viên');
+    }
+
+    public function snapshotCandidateEmail(): ?string
+    {
+        return $this->snapshotValue('email', 'candidate.email') ?: $this->candidate?->email;
+    }
+
+    public function snapshotCandidatePhone(): ?string
+    {
+        return $this->snapshotValue('phone', 'candidate.phone') ?: $this->candidate?->phone;
+    }
+
+    public function snapshotCandidateExperienceYears(): mixed
+    {
+        return $this->snapshotValue('experience_years', 'candidate.experience_years', $this->candidate?->experience_years);
+    }
+
+    public function snapshotProfileTitle(): ?string
+    {
+        return $this->snapshotValue('profile_title', 'resume.profile_title');
+    }
+
+    public function submittedCvName(): ?string
+    {
+        $path = $this->submittedCvPath();
+
+        return data_get($this->profile_snapshot ?? [], 'cv.original_filename')
+            ?: $this->cvAttachment?->original_filename
+            ?: ($path ? basename($path) : null);
+    }
+
+    public function submittedCvPath(): ?string
+    {
+        return data_get($this->profile_snapshot ?? [], 'cv.path')
+            ?: $this->cvAttachment?->path
+            ?: $this->cv_path;
+    }
+
+    public function submittedCvUrl(): ?string
+    {
+        $path = $this->submittedCvPath();
+
+        if (! $path) {
+            return null;
+        }
+
+        if (Route::has('public-file.preview') && Storage::disk('public')->exists($path)) {
+            return route('public-file.preview', ['path' => $path]);
+        }
+
+        return asset('storage/'.ltrim($path, '/'));
     }
 }

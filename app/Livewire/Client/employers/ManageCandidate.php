@@ -48,10 +48,10 @@ class ManageCandidate extends Component
         $candidates = Candidate::query()
             ->with([
                 'user',
-                'applications.job',
-                'submissions' => fn (Builder $query) => $query
+                'applications' => fn ($query) => $query->with('job')->latest(),
+                'submissions' => fn ($query) => $query
                     ->with('job')
-                    ->when($user?->branchScopeId(), function (Builder $query, int $branchId) {
+                    ->when($user?->branchScopeId(), function ($query, int $branchId) {
                         $query->whereHas('job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId));
                     })
                     ->latest(),

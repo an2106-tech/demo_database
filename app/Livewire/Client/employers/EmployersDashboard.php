@@ -43,6 +43,7 @@ class EmployersDashboard extends Component
         $greeting = $this->getGreeting();
         $recentApplications = Application::whereIn('job_id', $jobIds)
             ->with(['job', 'candidate'])
+            ->latest('applied_at')
             ->latest()
             ->take(5)
             ->get();

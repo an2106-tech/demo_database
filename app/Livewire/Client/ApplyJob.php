@@ -4,13 +4,16 @@ namespace App\Livewire\Client;
 
 use App\Enums\StatusApplicationEnum;
 use App\Mail\CandidateApplicationReceivedMail;
+use App\Mail\GuestApplicationVerificationMail;
 use App\Mail\HrNewApplicationMail;
 use App\Models\Application;
+use App\Models\Attachment;
 use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
 use App\Models\CandidateResume;
 use App\Models\RecruitmentJob;
 use App\Models\User;
+use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
 use Illuminate\Support\Facades\Auth;
@@ -74,6 +77,11 @@ class ApplyJob extends Component
         $candidate = $candidateService->resolveFor($user);
 
         if (! $candidateService->isProfileReadyForApplication($candidate)) {
+            session()
+                ->flash('profile_incomplete', $candidateService->missingApplicationProfileFields($candidate));
+            session()
+                ->flash('status', 'Vui lòng hoàn thiện hồ sơ ứng viên trước khi ứng tuyển.');
+
             $this->redirectRoute('candidates.candidate_profile');
 
             return;
@@ -101,7 +109,7 @@ class ApplyJob extends Component
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50', new VietnamPhone()],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
             'profile_title' => ['nullable', 'string', 'max:255'],
             'career_objective' => ['nullable', 'string', 'max:4000'],
@@ -113,7 +121,23 @@ class ApplyJob extends Component
 
         $result = DB::transaction(function (): array {
             $candidate = $this->upsertCandidate();
-            $cvPath = $this->storeCandidateCv($candidate);
+            $application = Application::withTrashed()
+                ->where('job_id', $this->job->id)
+                ->where('candidate_id', $candidate->id)
+                ->first();
+
+            if ($application && ! $application->trashed()) {
+                return [
+                    'candidate' => $candidate,
+                    'application' => $application,
+                    'already_applied' => true,
+                    'should_send_received_mail' => false,
+                ];
+            }
+
+            $cv = $this->storeCandidateCv($candidate);
+            $cvPath = $cv['path'];
+            $cvAttachment = $cv['attachment'];
             $cvText = $cvPath ? app(CvTextExtractor::class)->extractFromPublicPath($cvPath) : null;
 
             $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
@@ -130,7 +154,7 @@ class ApplyJob extends Component
             ]);
             $resume->save();
 
-            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath);
+            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath, $cvAttachment);
             $cvTextSnapshot = is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null;
 
             $candidateMetadata = is_array($candidate->metadata) ? $candidate->metadata : [];
@@ -140,7 +164,7 @@ class ApplyJob extends Component
             $candidate->metadata = $candidateMetadata;
             $candidate->save();
 
-            $application = Application::withTrashed()
+            $application ??= Application::withTrashed()
                 ->firstOrNew([
                     'job_id' => $this->job->id,
                     'candidate_id' => $candidate->id,
@@ -168,6 +192,15 @@ class ApplyJob extends Component
 
             $application->save();
 
+            $applicationCvAttachment = $this->syncApplicationCvAttachment($application, $cvPath, $cvAttachment);
+            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath, $applicationCvAttachment);
+
+            $application->fill([
+                'profile_snapshot' => $profileSnapshot,
+                'cv_attachment_id' => $applicationCvAttachment?->id,
+            ]);
+            $application->save();
+
             CandidateJobSubmission::query()->updateOrCreate(
                 [
                     'job_id' => $this->job->id,
@@ -177,6 +210,7 @@ class ApplyJob extends Component
                     'apply_method' => 'cv',
                     'profile_snapshot' => $profileSnapshot,
                     'cv_path' => $cvPath,
+                    'cv_attachment_id' => $applicationCvAttachment?->id,
                     'cv_text_snapshot' => $cvTextSnapshot,
                 ],
             );
@@ -190,8 +224,19 @@ class ApplyJob extends Component
             ];
         });
 
+        if (($result['already_applied'] ?? false) === true) {
+            $this->addError('application', 'Bạn đã ứng tuyển vị trí này. Vui lòng theo dõi trạng thái trong mục Việc làm đã ứng tuyển.');
+
+            return null;
+        }
+
         if (($result['should_send_received_mail'] ?? false) === true) {
             $this->sendApplicationReceivedMail(
+                $result['candidate'],
+                $result['application'],
+            );
+
+            $this->sendGuestApplicationVerificationMail(
                 $result['candidate'],
                 $result['application'],
             );
@@ -262,7 +307,10 @@ class ApplyJob extends Component
         return $candidate;
     }
 
-    protected function storeCandidateCv(Candidate $candidate): string
+    /**
+     * @return array{path: string, attachment: Attachment|null}
+     */
+    protected function storeCandidateCv(Candidate $candidate): array
     {
         if ($this->cv) {
             $path = $this->cv->storePublicly("candidates/{$candidate->id}/cv", 'public');
@@ -274,7 +322,7 @@ class ApplyJob extends Component
                 ->where('type', 'cv')
                 ->delete();
 
-            $candidate->attachments()->create([
+            $attachment = $candidate->attachments()->create([
                 'path' => $path,
                 'type' => 'cv',
                 'original_filename' => method_exists($this->cv, 'getClientOriginalName')
@@ -288,13 +336,49 @@ class ApplyJob extends Component
                     : null,
             ]);
 
-            return $path;
+            return [
+                'path' => $path,
+                'attachment' => $attachment,
+            ];
         }
 
-        return (string) $candidate->cv_file;
+        return [
+            'path' => (string) $candidate->cv_file,
+            'attachment' => $candidate->attachments()
+                ->where('type', 'cv')
+                ->latest('id')
+                ->first(),
+        ];
     }
 
-    protected function buildApplicationSnapshot(Candidate $candidate, CandidateResume $resume, ?string $cvPath): array
+    protected function syncApplicationCvAttachment(
+        Application $application,
+        string $cvPath,
+        ?Attachment $sourceAttachment,
+    ): ?Attachment {
+        if (blank($cvPath)) {
+            return null;
+        }
+
+        $application->attachments()
+            ->where('type', 'cv')
+            ->delete();
+
+        return $application->attachments()->create([
+            'path' => $cvPath,
+            'type' => 'cv',
+            'original_filename' => $sourceAttachment?->original_filename ?: basename($cvPath),
+            'mime_type' => $sourceAttachment?->mime_type,
+            'size_bytes' => $sourceAttachment?->size_bytes,
+        ]);
+    }
+
+    protected function buildApplicationSnapshot(
+        Candidate $candidate,
+        CandidateResume $resume,
+        ?string $cvPath,
+        ?Attachment $cvAttachment = null,
+    ): array
     {
         $candidateSnapshot = [
             'id' => $candidate->id,
@@ -334,6 +418,10 @@ class ApplyJob extends Component
             'resume' => $resumeSnapshot,
             'cv' => [
                 'path' => $cvPath,
+                'attachment_id' => $cvAttachment?->id,
+                'original_filename' => $cvAttachment?->original_filename,
+                'mime_type' => $cvAttachment?->mime_type,
+                'size_bytes' => $cvAttachment?->size_bytes,
                 'submitted_at' => now()->toDateTimeString(),
             ],
         ], fn ($value) => ! is_null($value));
@@ -353,6 +441,32 @@ class ApplyJob extends Component
             );
         } catch (\Throwable $exception) {
             Log::warning('Unable to send candidate application confirmation email.', [
+                'candidate_id' => $candidate->id,
+                'application_id' => $application->id,
+                'email' => $email,
+                'message' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    protected function sendGuestApplicationVerificationMail(Candidate $candidate, Application $application): void
+    {
+        if (Auth::check()) {
+            return;
+        }
+
+        $email = is_string($candidate->email) ? trim($candidate->email) : null;
+
+        if (blank($email)) {
+            return;
+        }
+
+        try {
+            Mail::to($email)->send(
+                new GuestApplicationVerificationMail($candidate, $application)
+            );
+        } catch (\Throwable $exception) {
+            Log::warning('Unable to send guest application verification email.', [
                 'candidate_id' => $candidate->id,
                 'application_id' => $application->id,
                 'email' => $email,

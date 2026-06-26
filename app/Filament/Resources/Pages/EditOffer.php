@@ -109,8 +109,8 @@ class EditOffer extends EditRecord
     {
         $this->record->loadMissing(['application.candidate', 'application.job']);
 
-        $data['candidate_name'] = $this->record->application?->candidate?->name ?? '';
-        $data['candidate_email'] = $this->record->application?->candidate?->email ?? '';
+        $data['candidate_name'] = $this->record->application?->snapshotCandidateName() ?? '';
+        $data['candidate_email'] = $this->record->application?->snapshotCandidateEmail() ?? '';
         $data['job_title'] = $this->record->application?->job?->title ?? '';
 
         return $data;

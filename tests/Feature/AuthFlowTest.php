@@ -5,9 +5,12 @@ namespace Tests\Feature;
 use App\Livewire\Client\Register;
 use App\Livewire\Client\ForgotPassword as ForgotPasswordPage;
 use App\Livewire\Client\ResetPassword as ResetPasswordPage;
+use App\Enums\StatusApplicationEnum;
+use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
 use App\Livewire\Client\Login;
+use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -306,6 +309,67 @@ class AuthFlowTest extends TestCase
             ->set('terms_accepted', true)
             ->call('register')
             ->assertHasErrors('phone');
+    }
+
+    public function test_candidate_registration_links_existing_guest_candidate_by_email(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Guest Link',
+            'city' => 'ho_chi_minh',
+            'is_active' => true,
+        ]);
+        $employer = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $guestCandidate = Candidate::query()->create([
+            'name' => 'Guest Applicant',
+            'email' => 'guest-link@example.com',
+            'phone' => '0901234567',
+            'cv_file' => 'candidates/guest/cv.pdf',
+        ]);
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Guest Link Developer',
+            'slug' => 'guest-link-developer',
+            'description' => 'Build account linking.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+        Application::query()->create([
+            'job_id' => $job->id,
+            'candidate_id' => $guestCandidate->id,
+            'cv_path' => 'candidates/guest/cv.pdf',
+            'source' => 'website',
+            'status' => StatusApplicationEnum::NEW,
+            'branch_id' => $branch->id,
+        ]);
+
+        Livewire::test(Register::class)
+            ->set('role', 'candidate')
+            ->set('name', 'Guest Applicant Account')
+            ->set('email', 'guest-link@example.com')
+            ->set('phone', '0912345678')
+            ->set('password', 'password123')
+            ->set('password_confirmation', 'password123')
+            ->set('terms_accepted', true)
+            ->call('register')
+            ->assertRedirect(route('candidates.candidate_profile'));
+
+        $user = User::query()->where('email', 'guest-link@example.com')->firstOrFail();
+
+        $this->assertDatabaseHas('candidates', [
+            'id' => $guestCandidate->id,
+            'user_id' => $user->id,
+            'email' => 'guest-link@example.com',
+        ]);
+        $this->assertSame(1, Candidate::query()->where('email', 'guest-link@example.com')->count());
+        $this->assertDatabaseHas('applications', [
+            'job_id' => $job->id,
+            'candidate_id' => $guestCandidate->id,
+        ]);
     }
 
     public function test_employer_registration_rejects_branch_from_different_province(): void

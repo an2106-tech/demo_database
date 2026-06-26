@@ -4,6 +4,7 @@ namespace App\Livewire\Client;
 
 use App\Models\CandidateResume;
 use App\Models\Candidate;
+use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -73,12 +74,19 @@ class CandidateProfile extends Component
 
     public string $activeSection = 'personal-info';
 
+    public int $applicationCompletion = 0;
+
+    public array $missingApplicationFields = [];
+
+    public ?string $lastSavedSectionLabel = null;
+
     public function mount(): void
     {
         $user = Auth::user();
         abort_unless($user, 401);
 
-        $candidate = app(CandidateAccountService::class)->resolveFor($user);
+        $candidateAccounts = app(CandidateAccountService::class);
+        $candidate = $candidateAccounts->resolveFor($user);
 
         $this->candidateId = $candidate->id;
         $this->name = (string) $candidate->name;
@@ -105,93 +113,190 @@ class CandidateProfile extends Component
         $this->activities = is_array($resume->activities) ? $resume->activities : [];
         $this->references = is_array($resume->references) ? $resume->references : [];
         $this->extra = is_array($resume->extra) ? ($resume->extra['text'] ?? null) : null;
+
+        $this->refreshApplicationStatus($candidate);
+        $this->focusSectionForIncompleteProfile($candidateAccounts->missingApplicationProfileFields($candidate));
     }
 
     public function save(): void
     {
-        $this->saveSection();
+        $this->validate($this->allValidationRules());
+
+        if (! $this->assertCvPresent()) {
+            $this->activeSection = 'extra-info';
+
+            return;
+        }
+
+        $this->persistProfile();
+        $this->lastSavedSectionLabel = 'toàn bộ hồ sơ';
+        $this->dispatch('app-notify', message: $this->savedMessage($this->lastSavedSectionLabel));
     }
 
     public function saveSection(?string $nextSection = null): void
     {
-        // Validation logic remains same as original save()
-        $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
-            'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
-            'cv' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx'],
+        $savedSection = $this->activeSection;
 
-            'profile_title' => ['nullable', 'string', 'max:255'],
-            'personal_info' => ['array'],
-            'personal_info.date_of_birth' => ['nullable', 'date'],
-            'personal_info.gender' => ['nullable', 'string', 'max:50'],
-            'personal_info.country' => ['nullable', 'string', 'max:100'],
-            'personal_info.city' => ['nullable', 'string', 'max:100'],
-            'personal_info.address' => ['nullable', 'string', 'max:255'],
-            'personal_info.website' => ['nullable', 'string', 'max:255'],
-            'personal_info.linkedin' => ['nullable', 'string', 'max:255'],
+        $this->validate($this->rulesForSection($this->activeSection));
 
-            'career_objective' => ['nullable', 'string', 'max:4000'],
+        if ($this->activeSection === 'extra-info' && ! $this->assertCvPresent()) {
+            return;
+        }
 
-            'desired_job' => ['array'],
-            'desired_job.position' => ['nullable', 'string', 'max:255'],
-            'desired_job.level' => ['nullable', 'string', 'max:100'],
-            'desired_job.workplace' => ['nullable', 'string', 'max:100'],
-            'desired_job.expected_salary' => ['nullable', 'string', 'max:100'],
-            'desired_job.location' => ['nullable', 'string', 'max:255'],
+        $this->persistProfile();
 
-            'experiences' => ['array'],
-            'experiences.*.company' => ['nullable', 'string', 'max:255'],
-            'experiences.*.position' => ['nullable', 'string', 'max:255'],
-            'experiences.*.from' => ['nullable', 'string', 'max:50'],
-            'experiences.*.to' => ['nullable', 'string', 'max:50'],
-            'experiences.*.description' => ['nullable', 'string', 'max:4000'],
+        if ($nextSection) {
+            $this->activeSection = $nextSection;
+        }
 
-            'educations' => ['array'],
-            'educations.*.school' => ['nullable', 'string', 'max:255'],
-            'educations.*.degree' => ['nullable', 'string', 'max:255'],
-            'educations.*.from' => ['nullable', 'string', 'max:50'],
-            'educations.*.to' => ['nullable', 'string', 'max:50'],
-            'educations.*.description' => ['nullable', 'string', 'max:4000'],
+        $this->lastSavedSectionLabel = $this->sectionLabel($savedSection);
+        $this->dispatch('app-notify', message: $this->savedMessage($this->lastSavedSectionLabel));
+    }
 
-            'certifications' => ['array'],
-            'certifications.*.name' => ['nullable', 'string', 'max:255'],
-            'certifications.*.issuer' => ['nullable', 'string', 'max:255'],
-            'certifications.*.date' => ['nullable', 'string', 'max:50'],
-            'certifications.*.description' => ['nullable', 'string', 'max:2000'],
+    public function switchSection(string $section): void
+    {
+        if (! array_key_exists($section, $this->sectionLabels())) {
+            return;
+        }
 
-            'languages' => ['array'],
-            'languages.*.name' => ['nullable', 'string', 'max:100'],
-            'languages.*.level' => ['nullable', 'string', 'max:100'],
+        $this->activeSection = $section;
+    }
 
-            'skills' => ['array'],
-            'skills.*.name' => ['nullable', 'string', 'max:100'],
-            'skills.*.level' => ['nullable', 'string', 'max:100'],
+    /**
+     * @return array<string, mixed>
+     */
+    private function allValidationRules(): array
+    {
+        return array_merge(
+            $this->rulesForSection('personal-info'),
+            $this->rulesForSection('career-objective'),
+            $this->rulesForSection('desired-job'),
+            $this->rulesForSection('experiences'),
+            $this->rulesForSection('educations'),
+            $this->rulesForSection('skills'),
+            $this->rulesForSection('languages'),
+            $this->rulesForSection('certifications'),
+            $this->rulesForSection('extra-info'),
+        );
+    }
 
-            'achievements' => ['array'],
-            'achievements.*.title' => ['nullable', 'string', 'max:255'],
-            'achievements.*.date' => ['nullable', 'string', 'max:50'],
-            'achievements.*.description' => ['nullable', 'string', 'max:2000'],
+    /**
+     * @return array<string, mixed>
+     */
+    private function rulesForSection(string $section): array
+    {
+        return match ($section) {
+            'personal-info' => [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255'],
+                'phone' => ['required', 'string', 'max:50', new VietnamPhone()],
+                'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
+                'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
+                'profile_title' => ['nullable', 'string', 'max:255'],
+                'personal_info' => ['array'],
+                'personal_info.date_of_birth' => ['nullable', 'date'],
+                'personal_info.gender' => ['nullable', 'string', 'max:50'],
+                'personal_info.country' => ['nullable', 'string', 'max:100'],
+                'personal_info.city' => ['nullable', 'string', 'max:100'],
+                'personal_info.address' => ['nullable', 'string', 'max:255'],
+                'personal_info.website' => ['nullable', 'string', 'max:255'],
+                'personal_info.linkedin' => ['nullable', 'string', 'max:255'],
+            ],
+            'career-objective' => [
+                'career_objective' => ['nullable', 'string', 'max:4000'],
+            ],
+            'desired-job' => [
+                'desired_job' => ['array'],
+                'desired_job.position' => ['nullable', 'string', 'max:255'],
+                'desired_job.level' => ['nullable', 'string', 'max:100'],
+                'desired_job.workplace' => ['nullable', 'string', 'max:100'],
+                'desired_job.expected_salary' => ['nullable', 'string', 'max:100'],
+                'desired_job.location' => ['nullable', 'string', 'max:255'],
+            ],
+            'experiences' => [
+                'experiences' => ['array'],
+                'experiences.*.company' => ['nullable', 'string', 'max:255'],
+                'experiences.*.position' => ['nullable', 'string', 'max:255'],
+                'experiences.*.from' => ['nullable', 'string', 'max:50'],
+                'experiences.*.to' => ['nullable', 'string', 'max:50'],
+                'experiences.*.description' => ['nullable', 'string', 'max:4000'],
+            ],
+            'educations' => [
+                'educations' => ['array'],
+                'educations.*.school' => ['nullable', 'string', 'max:255'],
+                'educations.*.degree' => ['nullable', 'string', 'max:255'],
+                'educations.*.from' => ['nullable', 'string', 'max:50'],
+                'educations.*.to' => ['nullable', 'string', 'max:50'],
+                'educations.*.description' => ['nullable', 'string', 'max:4000'],
+            ],
+            'skills' => [
+                'skills' => ['array'],
+                'skills.*.name' => ['nullable', 'string', 'max:100'],
+                'skills.*.level' => ['nullable', 'string', 'max:100'],
+            ],
+            'languages' => [
+                'languages' => ['array'],
+                'languages.*.name' => ['nullable', 'string', 'max:100'],
+                'languages.*.level' => ['nullable', 'string', 'max:100'],
+            ],
+            'certifications' => [
+                'certifications' => ['array'],
+                'certifications.*.name' => ['nullable', 'string', 'max:255'],
+                'certifications.*.issuer' => ['nullable', 'string', 'max:255'],
+                'certifications.*.date' => ['nullable', 'string', 'max:50'],
+                'certifications.*.description' => ['nullable', 'string', 'max:2000'],
+            ],
+            'extra-info' => [
+                'cv' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx'],
+                'extra' => ['nullable', 'string', 'max:4000'],
+            ],
+            default => [],
+        };
+    }
 
-            'activities' => ['array'],
-            'activities.*.title' => ['nullable', 'string', 'max:255'],
-            'activities.*.from' => ['nullable', 'string', 'max:50'],
-            'activities.*.to' => ['nullable', 'string', 'max:50'],
-            'activities.*.description' => ['nullable', 'string', 'max:2000'],
+    private function sectionLabel(string $section): string
+    {
+        return $this->sectionLabels()[$section] ?? 'hồ sơ';
+    }
 
-            'references' => ['array'],
-            'references.*.name' => ['nullable', 'string', 'max:255'],
-            'references.*.company' => ['nullable', 'string', 'max:255'],
-            'references.*.position' => ['nullable', 'string', 'max:255'],
-            'references.*.phone' => ['nullable', 'string', 'max:50'],
-            'references.*.email' => ['nullable', 'string', 'max:255'],
-            'references.*.note' => ['nullable', 'string', 'max:2000'],
+    /**
+     * @return array<string, string>
+     */
+    private function sectionLabels(): array
+    {
+        return [
+            'personal-info' => 'Thông tin cá nhân',
+            'career-objective' => 'Mục tiêu nghề nghiệp',
+            'desired-job' => 'Công việc mong muốn',
+            'experiences' => 'Kinh nghiệm',
+            'educations' => 'Học vấn',
+            'skills' => 'Kỹ năng',
+            'languages' => 'Ngôn ngữ',
+            'certifications' => 'Chứng chỉ',
+            'extra-info' => 'CV',
+        ];
+    }
 
-            'extra' => ['nullable', 'string', 'max:4000'],
-        ]);
+    private function savedMessage(string $sectionLabel): string
+    {
+        return "Đã lưu {$sectionLabel}.";
+    }
 
+    private function assertCvPresent(): bool
+    {
+        $candidate = Candidate::query()->find($this->candidateId);
+
+        if ($this->cv || ($candidate && app(CandidateAccountService::class)->candidateHasCv($candidate))) {
+            return true;
+        }
+
+        $this->addError('cv', 'Vui lòng tải CV lên để hoàn tất hồ sơ ứng viên.');
+
+        return false;
+    }
+
+    private function persistProfile(): void
+    {
         $candidate = Candidate::query()->findOrFail($this->candidateId);
         $user = Auth::user();
         $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
@@ -201,6 +306,14 @@ class CandidateProfile extends Component
             $candidate->email = trim($this->email);
             $candidate->phone = $this->phone;
             $candidate->experience_years = $this->experience_years;
+
+            if ($user) {
+                $user->name = trim($this->name);
+
+                if ($user->isDirty()) {
+                    $user->save();
+                }
+            }
 
             if ($this->avatar && $user) {
                 $oldAvatar = $user->avatar;
@@ -260,12 +373,31 @@ class CandidateProfile extends Component
 
         $this->avatar = null;
         $this->cv = null;
-        
-        if ($nextSection) {
-            $this->activeSection = $nextSection;
+
+        $candidate->refresh();
+        $this->refreshApplicationStatus($candidate);
+    }
+
+    /**
+     * @param  array<string>  $missingFields
+     */
+    private function focusSectionForIncompleteProfile(array $missingFields): void
+    {
+        if ($missingFields === []) {
+            return;
         }
 
-        $this->dispatch('app-notify', message: 'Cập nhật thành công.');
+        $contactFields = ['họ tên', 'email', 'số điện thoại'];
+
+        if (array_intersect($missingFields, $contactFields) !== []) {
+            $this->activeSection = 'personal-info';
+
+            return;
+        }
+
+        if (in_array('CV', $missingFields, true)) {
+            $this->activeSection = 'extra-info';
+        }
     }
 
     public function addExperience(): void
@@ -381,6 +513,14 @@ class CandidateProfile extends Component
         }
 
         return asset('storage/' . ltrim($avatar, '/'));
+    }
+
+    private function refreshApplicationStatus(Candidate $candidate): void
+    {
+        $candidateAccounts = app(CandidateAccountService::class);
+
+        $this->applicationCompletion = $candidateAccounts->applicationProfileCompletion($candidate);
+        $this->missingApplicationFields = $candidateAccounts->missingApplicationProfileFields($candidate);
     }
 
     #[Layout('layouts.client')]

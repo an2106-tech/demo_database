@@ -12,8 +12,8 @@
                         <div class="welcome-section">
                             <div class="row align-items-center">
                                 <div class="col-md-8">
-                                    <h3>{{ $greeting }}, {{ $user->name }}!</h3>
-                                    <p>Chúc bạn một ngày làm việc hiệu quả và tuyển dụng thành công.</p>
+                                    <h3 style="color: #0f172a; margin-bottom: 8px;">{{ $greeting }}, {{ $user->name }}!</h3>
+                                    <p style="color: #64748b; margin: 0;">Chúc bạn một ngày làm việc hiệu quả và tuyển dụng thành công.</p>
                                 </div>
                                 <div class="col-md-4 text-md-end d-none d-md-block">
                                     <a href="{{ route('employers.post_job') }}" class="quick-action-btn">
@@ -72,7 +72,7 @@
                             <!-- Recent Applications -->
                             <div class="dashboard-panel">
                                 <div class="panel-header">
-                                    <h4>Ứng viên mới nhất</h4>
+                                    <h4>Ứng tuyển gần đây</h4>
                                     <a href="{{ route('employers.manage_candidates') }}" class="text-orange" style="font-size: 0.85rem; font-weight: 600;">Xem tất cả</a>
                                 </div>
                                 <div class="recent-activity-list">
@@ -82,8 +82,8 @@
                                                 <i class="fa fa-user"></i>
                                             </div>
                                             <div class="activity-content">
-                                                <div class="activity-text"><strong>{{ $app->candidate->name }}</strong> vừa ứng tuyển vào <strong>{{ $app->job->title }}</strong></div>
-                                                <div class="activity-time">{{ $app->created_at->diffForHumans() }} • Nguồn: {{ ucfirst($app->source) }}</div>
+                                                <div class="activity-text"><strong>{{ $app->snapshotCandidateName() }}</strong> vừa ứng tuyển vào <strong>{{ $app->job?->title ?? 'Vị trí đã bị xoá' }}</strong></div>
+                                                <div class="activity-time">{{ optional($app->applied_at ?? $app->created_at)->diffForHumans() }} • Nguồn: {{ ucfirst((string) $app->source) }}</div>
                                             </div>
                                             <div class="activity-status">
                                                 <span class="badge rounded-pill" style="background: {{ $app->status->getColor() }}20; color: {{ $app->status->getColor() }};">
@@ -102,9 +102,25 @@
                             <!-- Dashboard Quick Tips / Info -->
                             <div class="dashboard-panel">
                                 <div class="panel-header">
-                                    <h4>Thông tin nhanh</h4>
+                                    <h4>Thao tác nhanh</h4>
                                 </div>
                                 <div class="quick-actions-list d-flex flex-column gap-3">
+                                    <a href="{{ route('employers.manage_candidates') }}" class="activity-item" style="text-decoration: none;">
+                                        <div class="activity-badge text-primary"><i class="fa fa-users"></i></div>
+                                        <div>
+                                            <div class="activity-text"><strong>Quản lý ứng viên</strong></div>
+                                            <div class="activity-time">Xem hồ sơ, lọc và đi vào pipeline.</div>
+                                        </div>
+                                    </a>
+
+                                    <a href="{{ route('employers.application_pipeline') }}" class="activity-item" style="text-decoration: none;">
+                                        <div class="activity-badge text-primary"><i class="fa fa-diagram-project"></i></div>
+                                        <div>
+                                            <div class="activity-text"><strong>Pipeline tuyển dụng</strong></div>
+                                            <div class="activity-time">Theo dõi trạng thái ứng tuyển theo giai đoạn.</div>
+                                        </div>
+                                    </a>
+
                                     <div class="activity-item">
                                         <div class="activity-badge text-primary"><i class="fa fa-info-circle"></i></div>
                                         <div>

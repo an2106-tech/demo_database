@@ -48,7 +48,7 @@ class CandidateAccountMiddlewareTest extends TestCase
         $this->get(route('candidates.submit_resume'))->assertStatus(200);
     }
 
-    public function test_hr_without_candidate_account_is_redirected_before_apply(): void
+    public function test_hr_without_candidate_account_can_open_apply_page_but_cannot_submit_as_candidate(): void
     {
         $job = $this->makeJob();
         $user = User::factory()->create([
@@ -63,9 +63,15 @@ class CandidateAccountMiddlewareTest extends TestCase
 
         $response = $this->get(route('candidates.apply_job', ['job' => $job]));
 
-        $response->assertRedirectToRoute('candidates.register', [
-            'next_route' => 'candidates.apply_job',
-        ]);
+        $response->assertOk();
+    }
+
+    public function test_guest_can_open_apply_page(): void
+    {
+        $job = $this->makeJob();
+
+        $this->get(route('candidates.apply_job', ['job' => $job]))
+            ->assertOk();
     }
 
     public function test_candidate_with_incomplete_profile_is_redirected_before_apply(): void

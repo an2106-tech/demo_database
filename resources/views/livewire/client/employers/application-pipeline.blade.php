@@ -213,22 +213,35 @@
                                     </div>
                                     <div class="column-content">
                                         @foreach($applicationsByStatus[$status->value] as $app)
+                                            @php
+                                                $snapshot = is_array($app->profile_snapshot) ? $app->profile_snapshot : [];
+                                                $candidateName = data_get($snapshot, 'name') ?: data_get($snapshot, 'candidate.name') ?: $app->candidate?->name ?: 'Ứng viên';
+                                                $candidateEmail = data_get($snapshot, 'email') ?: data_get($snapshot, 'candidate.email') ?: $app->candidate?->email;
+                                                $profileTitle = data_get($snapshot, 'profile_title') ?: data_get($snapshot, 'resume.profile_title');
+                                                $submittedCvName = data_get($snapshot, 'cv.original_filename') ?: ($app->cv_path ? basename($app->cv_path) : null);
+                                            @endphp
                                             <div class="candidate-card">
                                                 <div class="d-flex align-items-center gap-3">
-                                                    @if($app->candidate->user?->avatar && file_exists(public_path('storage/' . $app->candidate->user->avatar)))
+                                                    @if($app->candidate?->user?->avatar && file_exists(public_path('storage/' . $app->candidate->user->avatar)))
                                                         <img src="{{ asset('storage/' . $app->candidate->user->avatar) }}" class="candidate-avatar" alt="">
                                                     @else
                                                         <div class="candidate-avatar d-flex align-items-center justify-content-center bg-light text-muted font-weight-bold">
-                                                            {{ substr($app->candidate->name, 0, 1) }}
+                                                            {{ mb_substr($candidateName, 0, 1) }}
                                                         </div>
                                                     @endif
                                                     <div style="min-width: 0;">
                                                         <h5 class="candidate-name text-truncate">
-                                                            <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate->id]) }}" class="text-decoration-none text-dark">
-                                                                {{ $app->candidate->name }}
+                                                            <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate_id]) }}" class="text-decoration-none text-dark">
+                                                                {{ $candidateName }}
                                                             </a>
                                                         </h5>
-                                                        <span class="job-tag" title="{{ $app->job->title }}">{{ $app->job->title }}</span>
+                                                        @if($candidateEmail)
+                                                            <span class="job-tag" title="{{ $candidateEmail }}">{{ $candidateEmail }}</span>
+                                                        @endif
+                                                        @if($profileTitle)
+                                                            <span class="job-tag" title="{{ $profileTitle }}">{{ $profileTitle }}</span>
+                                                        @endif
+                                                        <span class="job-tag" title="{{ $app->job?->title }}">{{ $app->job?->title ?? 'Vị trí không còn khả dụng' }}</span>
                                                     </div>
                                                 </div>
 
@@ -245,8 +258,14 @@
                                                         <span class="text-muted" style="font-size: 0.7rem;">Chưa có điểm AI</span>
                                                     @endif
                                                     
-                                                    <span class="text-muted" style="font-size: 0.7rem;">{{ $app->created_at->format('d/m') }}</span>
+                                                    <span class="text-muted" style="font-size: 0.7rem;">{{ optional($app->applied_at ?? $app->created_at)->format('d/m') }}</span>
                                                 </div>
+
+                                                @if($submittedCvName)
+                                                    <div class="job-tag" title="{{ $submittedCvName }}">
+                                                        CV: {{ $submittedCvName }}
+                                                    </div>
+                                                @endif
 
                                                 <div class="card-actions">
                                                     <div class="dropdown">
@@ -266,7 +285,7 @@
                                                             @endforeach
                                                         </ul>
                                                     </div>
-                                                    <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate->id]) }}" class="text-decoration-none" style="font-size: 0.75rem; color: var(--fpt-orange);">
+                                                    <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate_id]) }}" class="text-decoration-none" style="font-size: 0.75rem; color: var(--fpt-orange);">
                                                         Hồ sơ <i class="fa fa-arrow-right"></i>
                                                     </a>
                                                 </div>

@@ -75,7 +75,7 @@
 
     <button
         type="button"
-        class="client-logout-btn"
+        {{ $attributes->merge(['class' => 'client-logout-btn']) }}
         wire:click="logout"
         wire:loading.attr="disabled"
         wire:target="logout"

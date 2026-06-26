@@ -138,7 +138,7 @@
             border: none !important;
             color: #fff !important;
             -webkit-text-fill-color: #fff !important;
-            font-family: 'Inter', sans-serif !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
             font-size: 15px !important;
             font-weight: 700 !important;
             line-height: 1 !important;
