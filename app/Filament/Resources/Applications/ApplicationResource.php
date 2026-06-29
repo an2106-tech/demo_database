@@ -57,7 +57,14 @@ class ApplicationResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()
+            ->with([
+                'candidate',
+                'cvAttachment',
+                'job.branch',
+                'latestInterview',
+                'latestOffer',
+            ]);
 
         /** @var User|null $user */
         $user = Auth::user();

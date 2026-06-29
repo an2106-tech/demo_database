@@ -35,11 +35,15 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Html;
+use Filament\Schemas\Components\Section;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -50,6 +54,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
 class ApplicationsTable
@@ -422,14 +427,7 @@ class ApplicationsTable
                                         : 'Đã lưu đánh giá — hồ sơ giữ ở Phỏng vấn.'))
                                 ->send();
                         })
-                        ->visible(function (Application $record): bool {
-                            $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
-
-                            return in_array($status, [
-                                StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                                StatusApplicationEnum::INTERVIEW,
-                            ], true);
-                        }),
+                        ->visible(fn (Application $record): bool => static::canEvaluateInterview($record)),
                     Action::make('reject_application')
                         ->label('Từ chối')
                         ->icon('heroicon-o-x-circle')
@@ -455,17 +453,7 @@ class ApplicationsTable
                                 ->title('Đã từ chối ứng viên')
                                 ->send();
                         })
-                        ->visible(function (Application $record): bool {
-                            $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
-
-                            return in_array($status, [
-                                StatusApplicationEnum::NEW,
-                                StatusApplicationEnum::SCREENING,
-                                StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                                StatusApplicationEnum::INTERVIEW,
-                                StatusApplicationEnum::OFFER,
-                            ], true);
-                        }),
+                        ->visible(fn (Application $record): bool => static::canRejectApplication($record)),
                     Action::make('send_offer')
                         ->label(fn (Application $record): string => match($record->latestOffer?->status) {
                             'awaiting_approval' => 'Gửi duyệt đề nghị',
@@ -555,7 +543,7 @@ class ApplicationsTable
                                 ->body('Bạn có thể chỉnh sửa đề nghị tuyển dụng và gửi lại thư mời cho ứng viên.')
                                 ->send();
                         })
-                        ->visible(fn (Application $record): bool => in_array($record->latestOffer?->status, ['accepted', 'declined', 'expired'], true)),
+                        ->visible(fn (Application $record): bool => static::canReopenOfferResponse($record)),
                     Action::make('download_offer_pdf')
                         ->label('Tải thư mời PDF')
                         ->icon('heroicon-o-arrow-down-tray')
@@ -666,6 +654,53 @@ class ApplicationsTable
         ], true);
     }
 
+    protected static function canEvaluateInterview(Application $record): bool
+    {
+        $status = $record->status instanceof StatusApplicationEnum
+            ? $record->status
+            : StatusApplicationEnum::tryFrom((string) $record->status);
+
+        if (! in_array($status, [StatusApplicationEnum::INTERVIEW_SCHEDULED, StatusApplicationEnum::INTERVIEW], true)) {
+            return false;
+        }
+
+        $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
+
+        if (! $interview || $interview->result !== 'pending') {
+            return false;
+        }
+
+        if ($status === StatusApplicationEnum::INTERVIEW) {
+            return true;
+        }
+
+        return $interview->scheduled_at?->lte(now()) ?? false;
+    }
+
+    protected static function canRejectApplication(Application $record): bool
+    {
+        $status = $record->status instanceof StatusApplicationEnum
+            ? $record->status
+            : StatusApplicationEnum::tryFrom((string) $record->status);
+
+        return in_array($status, [
+            StatusApplicationEnum::NEW,
+            StatusApplicationEnum::SCREENING,
+            StatusApplicationEnum::INTERVIEW_SCHEDULED,
+            StatusApplicationEnum::INTERVIEW,
+            StatusApplicationEnum::OFFER,
+        ], true);
+    }
+
+    protected static function canReopenOfferResponse(Application $record): bool
+    {
+        if (Auth::user()?->hasRole('super_admin') !== true) {
+            return false;
+        }
+
+        return in_array($record->latestOffer?->status, ['accepted', 'declined', 'expired'], true);
+    }
+
     protected static function getInterviewActionLabel(Application $record): ?string
     {
         if (! static::canManageInterview($record)) {
@@ -680,7 +715,7 @@ class ApplicationsTable
         $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
         if ($status === StatusApplicationEnum::NEW) {
-            return 'Chuyển sơ tuyển';
+            return 'Sàng lọc CV';
         }
 
         if (static::canManageInterview($record)) {
@@ -731,7 +766,7 @@ class ApplicationsTable
 
     protected static function canSendOffer(Application $record): bool
     {
-        $offer = $record->offers()->latest('id')->first();
+        $offer = $record->latestOffer;
 
         if (! static::canManageOffer($record) || ! filled($record->snapshotCandidateEmail()) || ! $offer) {
             return false;
@@ -933,6 +968,90 @@ class ApplicationsTable
         };
     }
 
+    protected static function getCvScreeningFormSchema(): array
+    {
+        return [
+            Grid::make(['default' => 1, 'xl' => 12])
+                ->schema([
+                    Section::make('Thông tin & quyết định')
+                        ->description('Đối chiếu nhanh hồ sơ trước khi chuyển bước.')
+                        ->columns(2)
+                        ->schema([
+                            Placeholder::make('candidate_name_display')
+                                ->label('Ứng viên')
+                                ->content(fn (Application $record): string => $record->snapshotCandidateName() ?: '-'),
+                            Placeholder::make('job_title_display')
+                                ->label('Vị trí')
+                                ->content(fn (Application $record): string => $record->job?->title ?? '-'),
+                            Placeholder::make('candidate_email_display')
+                                ->label('Email')
+                                ->content(fn (Application $record): string => $record->snapshotCandidateEmail() ?: '-'),
+                            Placeholder::make('candidate_phone_display')
+                                ->label('Số điện thoại')
+                                ->content(fn (Application $record): string => $record->snapshotCandidatePhone() ?: '-'),
+                            Placeholder::make('candidate_experience_display')
+                                ->label('Kinh nghiệm')
+                                ->content(function (Application $record): string {
+                                    $experience = $record->snapshotCandidateExperienceYears();
+
+                                    return is_numeric($experience) ? $experience.' năm' : '-';
+                                }),
+                            Placeholder::make('profile_title_display')
+                                ->label('Tiêu đề hồ sơ')
+                                ->content(fn (Application $record): string => $record->snapshotProfileTitle() ?: '-'),
+                            Select::make('screening_decision')
+                                ->label('Kết quả sàng lọc CV')
+                                ->options([
+                                    'pass' => 'Đạt sơ tuyển',
+                                    'reject' => 'Từ chối',
+                                ])
+                                ->placeholder('Chọn kết quả sàng lọc')
+                                ->live()
+                                ->required()
+                                ->columnSpanFull(),
+                            Textarea::make('screening_note')
+                                ->label('Ghi chú sàng lọc')
+                                ->helperText('Ghi rõ kinh nghiệm/kỹ năng phù hợp hoặc điểm cần xác minh ở vòng sau.')
+                                ->rows(4)
+                                ->visible(fn (callable $get): bool => $get('screening_decision') === 'pass')
+                                ->required(fn (callable $get): bool => $get('screening_decision') === 'pass')
+                                ->columnSpanFull(),
+                            Textarea::make('rejected_reason')
+                                ->label('Lý do từ chối')
+                                ->helperText('Ghi rõ lý do hồ sơ chưa phù hợp với yêu cầu tuyển dụng.')
+                                ->rows(3)
+                                ->visible(fn (callable $get): bool => $get('screening_decision') === 'reject')
+                                ->required(fn (callable $get): bool => $get('screening_decision') === 'reject')
+                                ->columnSpanFull(),
+                        ])
+                        ->columnSpan(['default' => 'full', 'xl' => 3]),
+                    Section::make('CV ứng tuyển')
+                        ->description('CV được lưu theo snapshot tại thời điểm ứng viên nộp hồ sơ.')
+                        ->schema([
+                            Html::make(function (Application $record): HtmlString {
+                                $url = $record->submittedCvUrl();
+                                $name = $record->submittedCvName() ?: 'CV ứng tuyển';
+
+                                if (! $url) {
+                                    return new HtmlString('<div class="rounded-lg border border-dashed border-gray-300 p-6 text-sm text-gray-500 dark:border-gray-700 dark:text-gray-400">Không có CV đính kèm.</div>');
+                                }
+
+                                return new HtmlString(
+                                    '<div class="space-y-3">'
+                                    .'<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">'
+                                    .'<div class="min-w-0 text-sm font-medium text-gray-700 dark:text-gray-200">'.e($name).'</div>'
+                                    .'<a class="inline-flex shrink-0 items-center justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500" href="'.e($url).'" target="_blank" rel="noopener">Mở CV</a>'
+                                    .'</div>'
+                                    .'<iframe src="'.e($url).'#toolbar=1&navpanes=0" class="w-full rounded-lg border border-gray-200 bg-white dark:border-gray-700" style="height: min(62vh, 680px); min-height: 460px;" title="CV ứng tuyển"></iframe>'
+                                    .'</div>'
+                                );
+                            }),
+                        ])
+                        ->columnSpan(['default' => 'full', 'xl' => 9]),
+                ]),
+        ];
+    }
+
     protected static function makePipelineAction(): Action
     {
         return Action::make('pipeline')
@@ -941,29 +1060,46 @@ class ApplicationsTable
                 ? 'heroicon-o-calendar-days'
                 : 'heroicon-o-hand-raised')
             ->color(fn (Application $record): string => static::getPipelineActionColor($record))
-            ->modalWidth(fn (Application $record): string => static::canManageInterview($record) ? '3xl' : '4xl')
+            ->modalWidth(function (Application $record): string {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                if ($status === StatusApplicationEnum::NEW) {
+                    return '7xl';
+                }
+
+                return static::canManageInterview($record) ? '3xl' : '4xl';
+            })
             ->modalHeading(function (Application $record): string {
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 if ($status === StatusApplicationEnum::NEW) {
-                    return 'Chuyển hồ sơ sang sơ tuyển';
+                    return 'Sàng lọc CV';
                 }
+
                 if (static::canManageInterview($record)) {
                     return $record->interviews()->exists() ? 'Điều chỉnh lịch phỏng vấn' : 'Tạo lịch phỏng vấn';
                 }
 
                 if (static::canManageOffer($record)) {
-                    return $record->offers()->exists() ? 'Chỉnh sửa đề nghị tuyển dụng' : 'Tạo đề nghị tuyển dụng';
+                    return $record->latestOffer ? 'Chỉnh sửa đề nghị tuyển dụng' : 'Tạo đề nghị tuyển dụng';
                 }
 
                 return 'Xử lý hồ sơ';
             })
             ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.$record->snapshotCandidateName())
+            ->modalSubmitActionLabel(function (Application $record): string {
+                $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                return $status === StatusApplicationEnum::NEW ? 'Xác nhận sàng lọc' : 'Xác nhận';
+            })
+            ->modalCancelActionLabel('Hủy')
             ->fillForm(function (Application $record): array {
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 if ($status === StatusApplicationEnum::NEW) {
-                    return [];
+                    return [
+                        'screening_decision' => null,
+                    ];
                 }
 
                 if (static::canManageInterview($record)) {
@@ -985,7 +1121,7 @@ class ApplicationsTable
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 if ($status === StatusApplicationEnum::NEW) {
-                    return [];
+                    return static::getCvScreeningFormSchema();
                 }
 
                 if (static::canManageInterview($record)) {
@@ -1065,7 +1201,45 @@ class ApplicationsTable
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 if ($status === StatusApplicationEnum::NEW) {
-                    if (! static::transitionApplication($record, StatusApplicationEnum::SCREENING, 'Hồ sơ đạt bước sàng lọc CV, chuyển sang sơ tuyển.')) {
+                    $decision = $data['screening_decision'] ?? null;
+                    $note = trim((string) ($data['screening_note'] ?? ''));
+
+                    if (! in_array($decision, ['pass', 'reject'], true)) {
+                        throw ValidationException::withMessages([
+                            'screening_decision' => 'Vui lòng chọn kết quả sàng lọc.',
+                        ]);
+                    }
+
+                    if ($decision === 'reject') {
+                        $reason = trim((string) ($data['rejected_reason'] ?? ''));
+
+                        $record->forceFill([
+                            'rejected_stage' => 'screening',
+                            'rejected_reason' => $reason,
+                        ])->save();
+
+                        $comment = trim('Sàng lọc CV: Không đạt.'.($reason !== '' ? ' Lý do: '.$reason : ''));
+
+                        if (! static::transitionApplication($record, StatusApplicationEnum::REJECTED, $comment)) {
+                            return;
+                        }
+
+                        Notification::make()
+                            ->success()
+                            ->title('Đã từ chối sau sàng lọc CV')
+                            ->send();
+
+                        return;
+                    }
+
+                    $record->forceFill([
+                        'rejected_stage' => null,
+                        'rejected_reason' => null,
+                    ])->save();
+
+                    $comment = trim('Sàng lọc CV: Đạt sơ tuyển. '.$note);
+
+                    if (! static::transitionApplication($record, StatusApplicationEnum::SCREENING, $comment)) {
                         return;
                     }
 
