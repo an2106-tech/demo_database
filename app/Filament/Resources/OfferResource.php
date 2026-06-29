@@ -22,11 +22,11 @@ class OfferResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHandRaised;
 
-    protected static ?string $navigationLabel = 'Duyệt Offer';
+    protected static ?string $navigationLabel = 'Duyệt đề nghị';
 
-    protected static ?string $modelLabel = 'offer';
+    protected static ?string $modelLabel = 'đề nghị tuyển dụng';
 
-    protected static ?string $pluralModelLabel = 'offer';
+    protected static ?string $pluralModelLabel = 'đề nghị tuyển dụng';
 
     public static function form(Schema $schema): Schema
     {
@@ -50,7 +50,7 @@ class OfferResource extends Resource
             })
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID Offer')
+                    ->label('ID đề nghị')
                     ->sortable()
                     ->searchable(),
                 
@@ -127,8 +127,8 @@ class OfferResource extends Resource
                     ->color('success')
                     ->visible(fn ($record) => $record->status === 'awaiting_approval')
                     ->requiresConfirmation()
-                    ->modalHeading('Duyệt Offer')
-                    ->modalDescription(fn ($record) => 'Offer cho ' . ($record->application?->snapshotCandidateName() ?? 'ứng viên') . ' sẽ được gửi tới ứng viên.')
+                    ->modalHeading('Duyệt đề nghị tuyển dụng')
+                    ->modalDescription(fn ($record) => 'Đề nghị tuyển dụng cho ' . ($record->application?->snapshotCandidateName() ?? 'ứng viên') . ' sẽ được gửi thành thư mời nhận việc tới ứng viên.')
                     ->action(function ($record) {
                         $user = Auth::user();
                         if (!$user) {
@@ -144,14 +144,14 @@ class OfferResource extends Resource
                         if ($service->approve($record, $user)) {
                             Notification::make()
                                 ->success()
-                                ->title('Đã duyệt offer')
-                                ->body('Offer đã được gửi tới ứng viên và thông báo đã được gửi tới nhóm.')
+                                ->title('Đã duyệt đề nghị tuyển dụng')
+                                ->body('Thư mời nhận việc đã được gửi tới ứng viên và thông báo đã được gửi tới nhóm.')
                                 ->send();
                         } else {
                             Notification::make()
                                 ->danger()
-                                ->title('Lỗi khi duyệt offer')
-                                ->body('Có lỗi xảy ra khi duyệt offer. Vui lòng thử lại.')
+                                ->title('Lỗi khi duyệt đề nghị')
+                                ->body('Có lỗi xảy ra khi duyệt đề nghị tuyển dụng. Vui lòng thử lại.')
                                 ->send();
                         }
                     }),
@@ -162,8 +162,8 @@ class OfferResource extends Resource
                     ->color('danger')
                     ->visible(fn ($record) => $record->status === 'awaiting_approval')
                     ->requiresConfirmation()
-                    ->modalHeading('Từ chối Offer')
-                    ->modalDescription('HR sẽ cần xem xét lại và điều chỉnh offer trước khi gửi lại duyệt.')
+                    ->modalHeading('Từ chối đề nghị tuyển dụng')
+                    ->modalDescription('HR sẽ cần xem xét lại và điều chỉnh đề nghị tuyển dụng trước khi gửi duyệt lại.')
                     ->action(function ($record) {
                         $user = Auth::user();
                         if (!$user) {
@@ -179,13 +179,13 @@ class OfferResource extends Resource
                         if ($service->reject($record, $user, 'Từ chối từ giám đốc chi nhánh')) {
                             Notification::make()
                                 ->warning()
-                                ->title('Đã từ chối offer')
-                                ->body('Offer đã bị từ chối. HR sẽ cần điều chỉnh và gửi lại.')
+                                ->title('Đã từ chối đề nghị tuyển dụng')
+                                ->body('Đề nghị tuyển dụng đã bị từ chối. HR sẽ cần điều chỉnh và gửi lại.')
                                 ->send();
                         } else {
                             Notification::make()
                                 ->danger()
-                                ->title('Lỗi khi từ chối offer')
+                                ->title('Lỗi khi từ chối đề nghị')
                                 ->body('Có lỗi xảy ra. Vui lòng thử lại.')
                                 ->send();
                         }

@@ -25,7 +25,7 @@ class WorkplacesTable
                 TextColumn::make('code')->label('Mã')->searchable()->sortable(),
                 TextColumn::make('capacity')->label('Sức chứa')->sortable(),
                 TextColumn::make('branch.name')->label('Chi nhánh')->searchable(),
-                IconColumn::make('is_interview_room')->label('Phòng PV')->boolean(),
+                IconColumn::make('is_interview_room')->label('Phòng phỏng vấn')->boolean(),
                 IconColumn::make('is_active')->label('Hoạt động')->boolean(),
                 TextColumn::make('created_at')->label('Ngày tạo')->dateTime()->sortable(),
             ])

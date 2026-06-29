@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\CandidateApplicationRejectedMail;
 use App\Mail\CandidateApplicationStatusChangeMail;
 use App\Mail\HrApplicationStatusChangeMail;
 use App\Models\Application;
@@ -18,10 +19,53 @@ class ApplicationStatusNotificationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_status_change_sends_candidate_and_hr_notifications(): void
+    public function test_internal_status_change_records_history_without_status_change_emails(): void
     {
         Mail::fake();
 
+        $application = $this->makeApplication(StatusApplicationEnum::NEW);
+
+        $application->forceFill([
+            'status' => StatusApplicationEnum::SCREENING,
+        ])->save();
+
+        $this->assertDatabaseHas('application_status_histories', [
+            'application_id' => $application->id,
+            'from_status' => StatusApplicationEnum::NEW->value,
+            'to_status' => StatusApplicationEnum::SCREENING->value,
+        ]);
+
+        Mail::assertNotSent(CandidateApplicationStatusChangeMail::class);
+        Mail::assertNotSent(HrApplicationStatusChangeMail::class);
+        Mail::assertNotSent(CandidateApplicationRejectedMail::class);
+    }
+
+    public function test_rejected_status_change_sends_only_rejection_email(): void
+    {
+        Mail::fake();
+
+        $application = $this->makeApplication(StatusApplicationEnum::SCREENING);
+
+        $application->forceFill([
+            'status' => StatusApplicationEnum::REJECTED,
+            'rejected_reason' => 'Không phù hợp với yêu cầu vị trí.',
+        ])->save();
+
+        $this->assertDatabaseHas('application_status_histories', [
+            'application_id' => $application->id,
+            'from_status' => StatusApplicationEnum::SCREENING->value,
+            'to_status' => StatusApplicationEnum::REJECTED->value,
+        ]);
+
+        Mail::assertSent(CandidateApplicationRejectedMail::class, function (CandidateApplicationRejectedMail $mail) use ($application): bool {
+            return $mail->application->is($application);
+        });
+        Mail::assertNotSent(CandidateApplicationStatusChangeMail::class);
+        Mail::assertNotSent(HrApplicationStatusChangeMail::class);
+    }
+
+    private function makeApplication(StatusApplicationEnum $status): Application
+    {
         $branch = Branch::query()->create([
             'name' => 'Status Branch',
             'code' => 'ST',
@@ -52,13 +96,13 @@ class ApplicationStatusNotificationTest extends TestCase
             'created_by' => $hr->id,
         ]);
 
-        $application = Application::query()->create([
+        return Application::query()->create([
             'job_id' => $job->id,
             'candidate_id' => $candidate->id,
             'cv_path' => 'candidates/current-status/cv.pdf',
             'apply_method' => 'cv',
             'source' => 'website',
-            'status' => StatusApplicationEnum::NEW,
+            'status' => $status,
             'branch_id' => $branch->id,
             'profile_snapshot' => [
                 'name' => 'Snapshot Candidate',
@@ -73,17 +117,5 @@ class ApplicationStatusNotificationTest extends TestCase
             ],
             'applied_at' => now(),
         ]);
-
-        $application->forceFill([
-            'status' => StatusApplicationEnum::SCREENING,
-        ])->save();
-
-        Mail::assertSent(CandidateApplicationStatusChangeMail::class, function (CandidateApplicationStatusChangeMail $mail) use ($application, $job): bool {
-            return $mail->application->is($application) && $mail->job->is($job);
-        });
-
-        Mail::assertSent(HrApplicationStatusChangeMail::class, function (HrApplicationStatusChangeMail $mail) use ($application, $job): bool {
-            return $mail->application->is($application) && $mail->job->is($job);
-        });
     }
 }

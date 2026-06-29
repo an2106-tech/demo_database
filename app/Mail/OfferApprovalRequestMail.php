@@ -27,7 +27,7 @@ class OfferApprovalRequestMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Yeu cau duyet offer',
+            subject: 'Yêu cầu duyệt đề nghị tuyển dụng',
         );
     }
 

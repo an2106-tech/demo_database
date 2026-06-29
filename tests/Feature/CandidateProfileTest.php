@@ -8,6 +8,7 @@ use App\Models\CandidateResume;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -117,6 +118,8 @@ class CandidateProfileTest extends TestCase
 
     public function test_candidate_profile_accepts_pdf_cv_when_browser_reports_generic_mime_type(): void
     {
+        Storage::fake('public');
+
         $user = $this->candidateUser();
         $candidate = $this->candidateFor($user, [
             'phone' => '0901234567',
@@ -131,7 +134,10 @@ class CandidateProfileTest extends TestCase
             ->call('saveSection')
             ->assertHasNoErrors();
 
-        $this->assertNotNull($candidate->fresh()->cv_file);
+        $candidate->refresh();
+        $this->assertNotNull($candidate->cv_file);
+        Storage::disk('public')->assertExists($candidate->cv_file);
+
         $this->assertDatabaseHas('attachments', [
             'attachable_type' => Candidate::class,
             'attachable_id' => $candidate->id,

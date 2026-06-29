@@ -27,7 +27,7 @@ class OfferApprovedNotificationMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Offer đã được duyệt – ' . ($this->application->candidate?->name ?? 'Ứng viên') . ' – ' . ($this->job->title ?? 'Vị trí'),
+            subject: 'Đề nghị tuyển dụng đã được duyệt - ' . ($this->application->candidate?->name ?? 'Ứng viên') . ' - ' . ($this->job->title ?? 'Vị trí'),
         );
     }
 

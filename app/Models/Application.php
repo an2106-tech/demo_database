@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\StatusApplicationEnum;
-use App\Mail\CandidateApplicationStatusChangeMail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -67,67 +66,6 @@ class Application extends Model
                     }
                 }
 
-                $candidate = $application->candidate;
-
-                if ($job = $application->job) {
-                    $candidateEmail = $application->snapshotCandidateEmail() ?: $candidate?->email;
-
-                    if ($candidateEmail && $newStatus !== StatusApplicationEnum::REJECTED) {
-                        try {
-                            Mail::to($candidateEmail)->send(
-                                new CandidateApplicationStatusChangeMail($application, $job, $oldStatus, $newStatus)
-                            );
-                        } catch (\Throwable $exception) {
-                            Log::warning('Failed to send candidate application status change mail.', [
-                                'application_id' => $application->id,
-                                'recipient' => $candidateEmail,
-                                'error' => $exception->getMessage(),
-                            ]);
-                        }
-                    }
-
-                    $recipients = collect();
-
-                    if (filled($application->assigned_hr_id)) {
-                        $recipients->push($application->assignedHr);
-                    }
-
-                    if (filled($job->branch_id)) {
-                        $recipients = $recipients->merge(
-                            User::query()
-                                ->where('branch_id', $job->branch_id)
-                                ->where('is_active', true)
-                                ->where(function ($query) {
-                                    $query->where('role', 'hr')
-                                        ->orWhereHas('roles', fn ($roleQuery) => $roleQuery->whereIn('name', ['hr', 'director', 'pm']));
-                                })
-                                ->get()
-                        );
-                    }
-
-                    $recipients
-                        ->filter()
-                        ->unique('id')
-                        ->each(function (User $user) use ($application, $candidate, $job, $newStatus, $oldStatus): void {
-                            $email = is_string($user->email) ? trim($user->email) : null;
-
-                            if (blank($email)) {
-                                return;
-                            }
-
-                            try {
-                                Mail::to($email)->send(
-                                    new \App\Mail\HrApplicationStatusChangeMail($candidate, $application, $job, $oldStatus, $newStatus)
-                                );
-                            } catch (\Throwable $exception) {
-                                Log::warning('Failed to send HR application status change mail.', [
-                                    'application_id' => $application->id,
-                                    'recipient' => $email,
-                                    'error' => $exception->getMessage(),
-                                ]);
-                            }
-                        });
-                }
             }
         });
     }

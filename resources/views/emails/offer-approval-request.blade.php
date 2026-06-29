@@ -1,10 +1,10 @@
 @component('emails.layouts.base', [
-    'title' => 'Yêu cầu duyệt offer',
-    'eyebrow' => 'Offer approval',
-    'preview' => 'Có offer mới cần được xem xét.',
+    'title' => 'Yêu cầu duyệt đề nghị tuyển dụng',
+    'eyebrow' => 'Duyệt đề nghị',
+    'preview' => 'Có đề nghị tuyển dụng mới cần được xem xét.',
 ])
     <p>Chào <strong>{{ $recipientName }}</strong>,</p>
-    <p>HR đã tạo một offer mới và cần bạn xem chi tiết trước khi duyệt.</p>
+    <p>HR đã tạo một đề nghị tuyển dụng mới và cần bạn xem chi tiết trước khi duyệt.</p>
 
     <div class="info-card">
         <span class="info-item"><strong>Ứng viên:</strong> <span class="info-value">{{ $candidateName }}</span></span>

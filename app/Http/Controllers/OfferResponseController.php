@@ -30,8 +30,8 @@ class OfferResponseController extends Controller
 
         if ($offer->status !== 'pending') {
             return view('offers.response-result', [
-                'title' => 'Offer đã được phản hồi',
-                'message' => "Offer dành cho {$candidateName} đã được phản hồi trước đó.",
+                'title' => 'Thư mời đã được phản hồi',
+                'message' => "Thư mời dành cho {$candidateName} đã được phản hồi trước đó.",
                 'status' => 'info',
                 'offer' => $offer,
                 'application' => $application,
@@ -44,8 +44,8 @@ class OfferResponseController extends Controller
             ])->save();
 
             return view('offers.response-result', [
-                'title' => 'Offer đã hết hạn',
-                'message' => 'Liên kết phản hồi đã hết hạn. Vui lòng liên hệ nhà tuyển dụng để nhận offer mới.',
+                'title' => 'Thư mời đã hết hạn',
+                'message' => 'Liên kết phản hồi đã hết hạn. Vui lòng liên hệ bộ phận tuyển dụng để nhận thư mời mới.',
                 'status' => 'expired',
                 'offer' => $offer,
                 'application' => $application,
@@ -65,21 +65,21 @@ class OfferResponseController extends Controller
                 'rejected_reason' => null,
             ])->save();
 
-            $title = 'Đã đồng ý offer';
+            $title = 'Đã đồng ý nhận việc';
             $message = "Cảm ơn {$candidateName}. Bạn đã đồng ý thư mời nhận việc cho vị trí {$jobTitle}.";
             $status = 'success';
         } else {
             $payload['status'] = 'declined';
             $payload['declined_reason'] = 'Ung vien tu choi tu link email.';
             $payload['accepted_at'] = null;
-            // Ứng viên từ chối offer không đồng nghĩa HR từ chối hồ sơ.
-            // Giữ application ở trạng thái OFFER để admin quyết định offer lại hoặc reject chính thức.
+            // Ứng viên từ chối thư mời không đồng nghĩa HR từ chối hồ sơ.
+            // Giữ application ở trạng thái OFFER để admin quyết định gửi lại thư mời hoặc từ chối chính thức.
             $application->forceFill([
                 'status' => StatusApplicationEnum::OFFER,
             ])->save();
 
-            $title = 'Đã từ chối offer';
-            $message = "Phản hồi từ chối offer cho vị trí {$jobTitle} đã được ghi nhận. Bộ phận tuyển dụng sẽ liên hệ lại nếu cần đề xuất mới.";
+            $title = 'Đã từ chối thư mời';
+            $message = "Phản hồi từ chối thư mời cho vị trí {$jobTitle} đã được ghi nhận. Bộ phận tuyển dụng sẽ liên hệ lại nếu cần đề xuất mới.";
             $status = 'warning';
         }
 

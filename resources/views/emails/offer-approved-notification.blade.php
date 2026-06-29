@@ -1,10 +1,10 @@
 @component('emails.layouts.base', [
-    'title' => 'Offer đã được duyệt',
-    'eyebrow' => 'Offer approved',
-    'preview' => 'Offer đã được duyệt và sẽ được gửi tới ứng viên.',
+    'title' => 'Đề nghị tuyển dụng đã được duyệt',
+    'eyebrow' => 'Đã duyệt đề nghị',
+    'preview' => 'Đề nghị tuyển dụng đã được duyệt và sẽ được gửi tới ứng viên.',
 ])
     <p>Chào <strong>{{ $recipientName }}</strong>,</p>
-    <p>Offer cho ứng viên dưới đây đã được duyệt và sẽ được gửi cho ứng viên.</p>
+    <p>Đề nghị tuyển dụng cho ứng viên dưới đây đã được duyệt và sẽ được gửi cho ứng viên.</p>
 
     <div class="info-card">
         <span class="info-item"><strong>Ứng viên:</strong> <span class="info-value">{{ $candidateName }}</span></span>
@@ -26,7 +26,7 @@
     <div class="mail-panel">
         <p><strong>Hành động đã thực hiện:</strong></p>
         <ul>
-            <li>Offer letter PDF đã được gửi tới ứng viên.</li>
+            <li>Thư mời nhận việc PDF đã được gửi tới ứng viên.</li>
             <li>Ứng viên có {{ $offer->expires_at?->diffInDays(now()) ?? '3' }} ngày để phản hồi.</li>
             <li>HR và giám đốc chi nhánh đã được thông báo.</li>
         </ul>

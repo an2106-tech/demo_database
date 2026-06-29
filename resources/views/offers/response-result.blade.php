@@ -72,7 +72,7 @@
 
             <div class="meta">
                 <p><strong>Hồ sơ:</strong> #{{ $application->id }}</p>
-                <p><strong>Trạng thái offer:</strong> {{ $offer->status }}</p>
+                <p><strong>Trạng thái thư mời:</strong> {{ $offer->status }}</p>
                 <p><strong>Trạng thái hồ sơ:</strong> {{ $application->status?->getLabel() ?? $application->status }}</p>
             </div>
         </div>

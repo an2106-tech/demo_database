@@ -523,7 +523,7 @@
                             id="cv-file"
                             wire:model="cv"
                             hidden
-                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
                             x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
                         >
                         <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>

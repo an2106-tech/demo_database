@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Rules\CvUploadFile;
 use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
+use App\Support\CvUpload;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;

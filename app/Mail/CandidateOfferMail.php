@@ -44,7 +44,7 @@ class CandidateOfferMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.candidate-application-received',
+            view: 'emails.candidate-offer',
             with: [
                 'subjectLine' => $this->subjectLine,
                 'htmlBody' => $this->htmlBody,
@@ -72,8 +72,8 @@ class CandidateOfferMail extends Mailable
 
     protected function resolveTemplate(): array
     {
-        // 1. Cập nhật nội dung Offer chuyên nghiệp theo yêu cầu
-        $fallbackSubject = 'Thư mời làm việc (Job Offer) – Vị trí {{job_title}} – {{app_name}}';
+        // Nội dung dự phòng khi chưa cấu hình mẫu email thư mời nhận việc.
+        $fallbackSubject = 'Thư mời nhận việc - Vị trí {{job_title}} - {{app_name}}';
         
         $fallbackBody = implode("\n", [
             '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
@@ -88,7 +88,7 @@ class CandidateOfferMail extends Mailable
             '<p><strong>Vui lòng xem file PDF đính kèm</strong> để biết chi tiết về các điều khoản công việc, quyền lợi bảo hiểm, và chính sách phúc lợi dành cho bạn.</p>',
             '<div>{{offer_content}}</div>',
             '{{offer_response_actions}}',
-            '<p>Để xác nhận lời mời này, bạn vui lòng phản hồi email này hoặc ký tên vào bản Offer Letter đính kèm và gửi lại cho chúng tôi trước ngày <strong>{{expiration_date}}</strong>.</p>',
+            '<p>Để xác nhận lời mời này, bạn vui lòng chọn phản hồi bên dưới hoặc ký tên vào bản thư mời đính kèm và gửi lại cho chúng tôi trước ngày <strong>{{expiration_date}}</strong>.</p>',
             '<p>Chào mừng bạn đến với đội ngũ của chúng tôi!</p>',
             '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
@@ -107,6 +107,10 @@ class CandidateOfferMail extends Mailable
                 $subject = $template->subject ?: $fallbackSubject;
                 $body = $template->body ?: $fallbackBody;
             }
+        }
+
+        if (! str_contains($body, '{{offer_response_actions}}')) {
+            $body .= "\n{{offer_response_actions}}";
         }
 
         $replacements = [
@@ -163,9 +167,9 @@ class CandidateOfferMail extends Mailable
 
         return implode('', [
             '<div style="margin: 24px 0; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">',
-            '<p style="margin: 0 0 16px;"><strong>Phản hồi offer ngay từ email</strong></p>',
-            '<a href="' . e($acceptUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #16a34a; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Đồng ý offer</a>',
-            '<a href="' . e($declineUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Từ chối offer</a>',
+            '<p style="margin: 0 0 16px;"><strong>Phản hồi thư mời nhận việc</strong></p>',
+            '<a href="' . e($acceptUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #16a34a; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Đồng ý nhận việc</a>',
+            '<a href="' . e($declineUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Từ chối thư mời</a>',
             '<p style="margin: 12px 0 0; color: #475569; font-size: 13px;">Liên kết có hiệu lực đến ' . e($expiresAt->format('d/m/Y H:i')) . '.</p>',
             '</div>',
         ]);

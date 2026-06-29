@@ -6,7 +6,6 @@ use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
 use App\Models\CandidateJobSubmission;
 use App\Models\RecruitmentJob;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
@@ -18,22 +17,7 @@ class ApplicationPipeline extends Component
 
     public function mount(): void
     {
-        // Optional: filter by first job if exists
-    }
-
-    public function updateStatus(int $applicationId, string $newStatus): void
-    {
-        $application = Application::with('job')->findOrFail($applicationId);
-        
-        // Authorization check
-        $user = Auth::user();
-        if ($user->branch_id && $application->job->branch_id !== $user->branch_id) {
-            abort(403);
-        }
-
-        $application->update(['status' => $newStatus]);
-        
-        session()->flash('message', 'Đã cập nhật trạng thái ứng viên thành công.');
+        // Optional: filter by first job if exists.
     }
 
     #[Layout('layouts.employer')]
@@ -42,23 +26,21 @@ class ApplicationPipeline extends Component
         /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Jobs for filter
         $jobs = RecruitmentJob::query()
-            ->when($user->branchScopeId(), fn($q, $id) => $q->where('branch_id', $id))
-            ->when(!in_array($user->role, ['director', 'admin']) && !$user->branchScopeId(), fn($q) => $q->where('created_by', $user->id))
+            ->when($user->branchScopeId(), fn ($q, $id) => $q->where('branch_id', $id))
+            ->when(! in_array($user->role, ['director', 'admin'], true) && ! $user->branchScopeId(), fn ($q) => $q->where('created_by', $user->id))
             ->orderBy('title')
             ->get();
 
-        // Applications grouped by status
         $statuses = StatusApplicationEnum::cases();
         $statusValues = array_map(fn (StatusApplicationEnum $status) => $status->value, $statuses);
 
         $applications = Application::query()
             ->with(['candidate.user', 'job'])
             ->whereIn('status', $statusValues)
-            ->when($this->selectedJobId, fn($q) => $q->where('job_id', $this->selectedJobId))
-            ->when($user->branchScopeId(), fn($q, $id) => $q->where('branch_id', $id))
-            ->when(!in_array($user->role, ['director', 'admin']) && !$user->branchScopeId(), fn($q) => $q->whereHas('job', fn($jq) => $jq->where('created_by', $user->id)))
+            ->when($this->selectedJobId, fn ($q) => $q->where('job_id', $this->selectedJobId))
+            ->when($user->branchScopeId(), fn ($q, $id) => $q->where('branch_id', $id))
+            ->when(! in_array($user->role, ['director', 'admin'], true) && ! $user->branchScopeId(), fn ($q) => $q->whereHas('job', fn ($jq) => $jq->where('created_by', $user->id)))
             ->latest()
             ->get();
 

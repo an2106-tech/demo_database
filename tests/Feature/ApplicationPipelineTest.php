@@ -75,6 +75,7 @@ class ApplicationPipelineTest extends TestCase
             ->assertSee('snapshot@example.com')
             ->assertSee('Snapshot Backend Developer')
             ->assertSee('snapshot-cv.pdf')
+            ->assertDontSee('updateStatus')
             ->assertDontSee('Current Candidate Name')
             ->assertDontSee('current-candidate@example.com');
     }

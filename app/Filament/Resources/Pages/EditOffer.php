@@ -20,7 +20,7 @@ class EditOffer extends EditRecord
 {
     protected static string $resource = OfferResource::class;
 
-    protected static ?string $title = 'Duyệt Offer';
+    protected static ?string $title = 'Duyệt đề nghị tuyển dụng';
 
     public function form(Schema $schema): Schema
     {
@@ -41,7 +41,7 @@ class EditOffer extends EditRecord
                             ->disabled(),
                     ]),
 
-                Section::make('Chi tiết offer')
+                Section::make('Chi tiết đề nghị tuyển dụng')
                     ->columns(2)
                     ->schema([
                         TextInput::make('salary_offered')
@@ -56,11 +56,11 @@ class EditOffer extends EditRecord
                             ->disabled()
                             ->suffix(' tháng'),
                         TextInput::make('id')
-                            ->label('ID Offer')
+                            ->label('ID đề nghị')
                             ->disabled(),
                     ]),
 
-                Section::make('Nội dung offer')
+                Section::make('Nội dung thư mời')
                     ->schema([
                         Textarea::make('content')
                             ->label('Nội dung bổ sung')
@@ -127,13 +127,13 @@ class EditOffer extends EditRecord
 
         return [
             Action::make('approve')
-                ->label('Duyệt offer')
+                ->label('Duyệt đề nghị')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Xác nhận duyệt offer')
-                ->modalDescription('Offer sẽ được gửi tới ứng viên sau khi duyệt.')
+                ->modalHeading('Xác nhận duyệt đề nghị tuyển dụng')
+                ->modalDescription('Thư mời nhận việc sẽ được gửi tới ứng viên sau khi duyệt.')
                 ->action(function () use ($offer) {
                     $user = Auth::user();
 
@@ -152,8 +152,8 @@ class EditOffer extends EditRecord
                     if ($service->approve($offer, $user)) {
                         Notification::make()
                             ->success()
-                            ->title('Đã duyệt offer')
-                            ->body('Offer đã được gửi tới ứng viên.')
+                            ->title('Đã duyệt đề nghị tuyển dụng')
+                            ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));
@@ -161,7 +161,7 @@ class EditOffer extends EditRecord
                         Notification::make()
                             ->danger()
                             ->title('Lỗi')
-                            ->body('Có lỗi xảy ra khi duyệt offer.')
+                            ->body('Có lỗi xảy ra khi duyệt đề nghị tuyển dụng.')
                             ->send();
                     }
                 }),
@@ -172,8 +172,8 @@ class EditOffer extends EditRecord
                 ->color('danger')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Từ chối offer')
-                ->modalDescription('HR cần điều chỉnh offer trước khi gửi lại.')
+                ->modalHeading('Từ chối đề nghị tuyển dụng')
+                ->modalDescription('HR cần điều chỉnh đề nghị tuyển dụng trước khi gửi lại.')
                 ->action(function () use ($offer) {
                     $user = Auth::user();
 
@@ -192,8 +192,8 @@ class EditOffer extends EditRecord
                     if ($service->reject($offer, $user, 'Từ chối từ giám đốc chi nhánh')) {
                         Notification::make()
                             ->warning()
-                            ->title('Đã từ chối offer')
-                            ->body('Offer đã bị từ chối.')
+                            ->title('Đã từ chối đề nghị tuyển dụng')
+                            ->body('Đề nghị tuyển dụng đã bị từ chối.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));

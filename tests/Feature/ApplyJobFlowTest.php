@@ -99,6 +99,8 @@ class ApplyJobFlowTest extends TestCase
         $this->assertSame($application->candidate_id, $submission?->candidate_id);
         $this->assertSame($application->cv_attachment_id, $submission?->cv_attachment_id);
         $this->assertNotEmpty($submission?->cv_path);
+        Storage::disk('public')->assertExists($application->cv_path);
+        Storage::disk('public')->assertExists($submission->cv_path);
         $this->assertSame('Nguyen Van A', data_get($application->profile_snapshot, 'candidate.name'));
         $this->assertSame('candidate-apply@example.com', data_get($application->profile_snapshot, 'candidate.email'));
         $this->assertSame('PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
@@ -294,6 +296,8 @@ class ApplyJobFlowTest extends TestCase
 
         $application = Application::query()->where('candidate_id', $existingCandidate->id)->first();
 
+        $this->assertNotNull($application?->cv_path);
+        Storage::disk('public')->assertExists($application->cv_path);
         $this->assertSame('Guest Candidate', data_get($application?->profile_snapshot, 'candidate.name'));
         $this->assertSame('guest-apply@example.com', data_get($application?->profile_snapshot, 'candidate.email'));
         $this->assertSame('guest-cv.pdf', data_get($application?->profile_snapshot, 'cv.original_filename'));

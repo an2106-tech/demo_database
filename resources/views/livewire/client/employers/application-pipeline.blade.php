@@ -68,7 +68,6 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
             transition: all 0.2s ease;
-            cursor: move;
         }
 
         .candidate-card:hover {
@@ -115,23 +114,8 @@
             padding-top: 0.75rem;
             border-top: 1px solid #f1f5f9;
             display: flex;
-            justify-content: space-between;
+            justify-content: flex-end;
             align-items: center;
-        }
-
-        .btn-status-change {
-            font-size: 0.75rem;
-            color: #64748b;
-            background: none;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .btn-status-change:hover {
-            background: #f1f5f9;
-            color: var(--fpt-orange);
         }
 
         .filter-section {
@@ -167,7 +151,7 @@
         <ul>
             <li><a href="{{ route('home') }}">Trang chủ</a></li>
             <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-            <li class="active">Pipeline Ứng viên</li>
+            <li class="active">Pipeline ứng viên</li>
         </ul>
     </div>
 
@@ -177,13 +161,15 @@
                 <div class="col-md-4 col-lg-3 dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
                 </div>
-                
+
                 <div class="col-md-8 col-lg-9">
                     <div class="dashboard-right">
                         <div class="filter-section">
                             <div>
-                                <h3 style="margin: 0; font-weight: 700;">Pipeline Tuyển Dụng</h3>
-                                <p style="margin: 5px 0 0; color: #64748b; font-size: 0.9rem;">Quản lý quy trình ứng tuyển của các ứng viên.</p>
+                                <h3 style="margin: 0; font-weight: 700;">Pipeline tuyển dụng</h3>
+                                <p style="margin: 5px 0 0; color: #64748b; font-size: 0.9rem;">
+                                    Theo dõi tiến độ ứng tuyển theo chi nhánh và vị trí.
+                                </p>
                             </div>
                             <div>
                                 <select wire:model.live="selectedJobId" class="premium-select">
@@ -194,12 +180,6 @@
                                 </select>
                             </div>
                         </div>
-
-                        @if (session()->has('message'))
-                            <div class="alert alert-success border-0 rounded-4 mb-4" style="background: #ecfdf5; color: #059669;">
-                                <i class="fa fa-check-circle me-1"></i> {{ session('message') }}
-                            </div>
-                        @endif
 
                         <div class="pipeline-container">
                             @foreach($statuses as $status)
@@ -219,7 +199,9 @@
                                                 $candidateEmail = data_get($snapshot, 'email') ?: data_get($snapshot, 'candidate.email') ?: $app->candidate?->email;
                                                 $profileTitle = data_get($snapshot, 'profile_title') ?: data_get($snapshot, 'resume.profile_title');
                                                 $submittedCvName = data_get($snapshot, 'cv.original_filename') ?: ($app->cv_path ? basename($app->cv_path) : null);
+                                                $latestSubmission = $latestSubmissionsByApplicationKey[$app->candidate_id . ':' . $app->job_id] ?? null;
                                             @endphp
+
                                             <div class="candidate-card">
                                                 <div class="d-flex align-items-center gap-3">
                                                     @if($app->candidate?->user?->avatar && file_exists(public_path('storage/' . $app->candidate->user->avatar)))
@@ -245,10 +227,6 @@
                                                     </div>
                                                 </div>
 
-                                                @php
-                                                    $latestSubmission = $latestSubmissionsByApplicationKey[$app->candidate_id . ':' . $app->job_id] ?? null;
-                                                @endphp
-
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     @if($latestSubmission && $latestSubmission->ai_matching_score)
                                                         <span class="ai-match-badge {{ $latestSubmission->ai_matching_score >= 80 ? 'bg-success text-white' : ($latestSubmission->ai_matching_score >= 50 ? 'bg-warning text-dark' : 'bg-danger text-white') }}">
@@ -257,7 +235,7 @@
                                                     @else
                                                         <span class="text-muted" style="font-size: 0.7rem;">Chưa có điểm AI</span>
                                                     @endif
-                                                    
+
                                                     <span class="text-muted" style="font-size: 0.7rem;">{{ optional($app->applied_at ?? $app->created_at)->format('d/m') }}</span>
                                                 </div>
 
@@ -268,23 +246,6 @@
                                                 @endif
 
                                                 <div class="card-actions">
-                                                    <div class="dropdown">
-                                                        <button class="btn-status-change" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                                            <i class="fa fa-exchange"></i> Chuyển...
-                                                        </button>
-                                                        <ul class="dropdown-menu shadow border-0 rounded-3">
-                                                            @foreach(\App\Enums\StatusApplicationEnum::cases() as $targetStatus)
-                                                                @if($targetStatus->value !== $status->value)
-                                                                    <li>
-                                                                        <a class="dropdown-item py-2" href="#" wire:click.prevent="updateStatus({{ $app->id }}, '{{ $targetStatus->value }}')">
-                                                                            <i class="fa {{ $targetStatus->getIcon() }} me-2" style="color: {{ $targetStatus->getColor() }};"></i>
-                                                                            {{ $targetStatus->getLabel() }}
-                                                                        </a>
-                                                                    </li>
-                                                                @endif
-                                                            @endforeach
-                                                        </ul>
-                                                    </div>
                                                     <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate_id]) }}" class="text-decoration-none" style="font-size: 0.75rem; color: var(--fpt-orange);">
                                                         Hồ sơ <i class="fa fa-arrow-right"></i>
                                                     </a>

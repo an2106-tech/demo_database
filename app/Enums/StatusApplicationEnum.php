@@ -56,7 +56,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
             self::SCREENING => 'Sơ tuyển',
             self::INTERVIEW_SCHEDULED => 'Hẹn phỏng vấn',
             self::INTERVIEWING => 'Đang phỏng vấn',
-            self::OFFERED => 'Đã gửi Offer',
+            self::OFFERED => 'Đề nghị tuyển dụng',
             self::HIRED => 'Đã tuyển',
             self::REJECTED => 'Từ chối',
         };
