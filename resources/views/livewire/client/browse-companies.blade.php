@@ -825,8 +825,7 @@
                                     <div>
                                         <div class="company-header">
                                             <h3 class="company-title">
-                                                <a
-                                                    href="{{ $featuredJob ? route('candidates.job_detail', ['id' => $featuredJob->id]) : '#' }}">
+                                                <a href="{{ route('employers.single_company', ['branch' => $branch->id]) }}">
                                                     {{ $branch->name }}
                                                 </a>
                                             </h3>
@@ -893,7 +892,7 @@
                                             </div>
 
                                             @if ($featuredJob)
-                                                <a href="{{ route('candidates.job_detail', ['id' => $featuredJob->id]) }}"
+                                                <a href="{{ route('employers.single_company', ['branch' => $branch->id]) }}"
                                                     class="jobguru-btn-2">
                                                     Xem chi tiết
                                                 </a>

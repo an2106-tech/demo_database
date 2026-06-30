@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\CandidateResume;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -111,6 +112,31 @@ class CandidateProfileTest extends TestCase
             'candidate_id' => $candidate->id,
             'profile_title' => 'Backend Developer',
             'career_objective' => 'Build reliable hiring systems.',
+        ]);
+    }
+
+    public function test_candidate_profile_accepts_pdf_cv_when_browser_reports_generic_mime_type(): void
+    {
+        $user = $this->candidateUser();
+        $candidate = $this->candidateFor($user, [
+            'phone' => '0901234567',
+            'cv_file' => null,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(CandidateProfile::class)
+            ->set('activeSection', 'extra-info')
+            ->set('cv', UploadedFile::fake()->create('scanner-export.pdf', 120, 'application/octet-stream'))
+            ->call('saveSection')
+            ->assertHasNoErrors();
+
+        $this->assertNotNull($candidate->fresh()->cv_file);
+        $this->assertDatabaseHas('attachments', [
+            'attachable_type' => Candidate::class,
+            'attachable_id' => $candidate->id,
+            'type' => 'cv',
+            'original_filename' => 'scanner-export.pdf',
         ]);
     }
 

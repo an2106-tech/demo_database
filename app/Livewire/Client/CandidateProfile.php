@@ -4,6 +4,7 @@ namespace App\Livewire\Client;
 
 use App\Models\CandidateResume;
 use App\Models\Candidate;
+use App\Rules\CvUploadFile;
 use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
@@ -247,7 +248,7 @@ class CandidateProfile extends Component
                 'certifications.*.description' => ['nullable', 'string', 'max:2000'],
             ],
             'extra-info' => [
-                'cv' => ['nullable', 'file', 'max:10240', 'mimes:pdf,doc,docx'],
+                'cv' => ['nullable', 'file', 'max:10240', new CvUploadFile()],
                 'extra' => ['nullable', 'string', 'max:4000'],
             ],
             default => [],

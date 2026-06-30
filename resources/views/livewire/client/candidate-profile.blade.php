@@ -423,15 +423,43 @@
                             </div>
                         </div>
 
-                        <div class="profile-redesign__upload">
+                        <div
+                            class="profile-redesign__upload"
+                            x-data="{ selectedCvName: '' }"
+                        >
                             <div>
                                 <span class="profile-redesign__upload-mark">CV</span>
                                 <h3>Tải lên CV cá nhân</h3>
                                 <p>Hỗ trợ PDF, DOC, DOCX. Dung lượng tối đa 10MB.</p>
                             </div>
-                            <input type="file" id="cv_upload" wire:model="cv" class="d-none">
+                            <input
+                                type="file"
+                                id="cv_upload"
+                                wire:model="cv"
+                                class="d-none"
+                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
+                            >
                             <label for="cv_upload">Chọn file</label>
                             <div wire:loading wire:target="cv" class="profile-redesign__uploading">Đang tải lên...</div>
+                            <div
+                                x-show="selectedCvName"
+                                x-cloak
+                                class="profile-redesign__selected-cv"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                <span>Đã chọn</span>
+                                <strong x-text="selectedCvName"></strong>
+                                <small>Bấm lưu để cập nhật CV trong hồ sơ.</small>
+                            </div>
+                            @if($cv && method_exists($cv, 'getClientOriginalName'))
+                                <div class="profile-redesign__selected-cv" role="status" aria-live="polite">
+                                    <span>Đã tải lên tạm thời</span>
+                                    <strong>{{ $cv->getClientOriginalName() }}</strong>
+                                    <small>Bấm lưu để cập nhật CV trong hồ sơ.</small>
+                                </div>
+                            @endif
                             @if($this->currentCvUrl)
                                 <a href="{{ $this->currentCvUrl }}" target="_blank" class="profile-redesign__current-cv">
                                     Xem CV hiện tại

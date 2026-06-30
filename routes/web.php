@@ -182,7 +182,7 @@ Route::prefix('auth')->name('auth.')->group(function () {
 
 Route::prefix('employers')->name('employers.')->group(function () {
     Route::get('/browse', BrowseCandidates::class)->name('browse');
-    Route::get('/single-company', SingleCompany::class)->name('single_company');
+    Route::get('/single-company/{branch?}', SingleCompany::class)->name('single_company');
     Route::get('/job-detail/{id}', JobDetail::class)->name('job_detail');
 
     Route::middleware(['auth', 'employer.account'])->group(function () {

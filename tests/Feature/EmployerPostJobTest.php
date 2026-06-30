@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\RecruitmentJob;
 use App\Models\Skill;
 use App\Models\User;
+use App\Models\Workplace;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -63,6 +64,129 @@ class EmployerPostJobTest extends TestCase
         $this->assertSame($branch->id, $job->branch_id);
         $this->assertSame(StatusRecruitmentJobsEnum::PENDING, $job->status);
         $this->assertEquals(['min' => 15000000.0, 'max' => 25000000.0], $job->salary_range);
+    }
+
+    public function test_branch_scoped_employer_cannot_post_job_for_another_branch(): void
+    {
+        $ownBranch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+
+        $otherBranch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Can Tho',
+            'code' => 'CT',
+            'city' => 'Can Tho',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $ownBranch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'PHP']);
+        $category = Category::query()->create(['name' => 'Technology', 'slug' => 'technology']);
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Cross Branch Developer')
+            ->set('description', 'Xay dung ung dung tuyen dung noi bo.')
+            ->set('branch_id', $otherBranch->id)
+            ->set('positions_count', 1)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('save')
+            ->assertHasErrors(['branch_id']);
+
+        $this->assertDatabaseMissing('recruitment_jobs', [
+            'title' => 'Cross Branch Developer',
+        ]);
+    }
+
+    public function test_employer_can_create_job_with_workplace_without_department(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Quy Nhon',
+            'code' => 'QN',
+            'city' => 'Quy Nhon',
+        ]);
+
+        $workplace = Workplace::query()->create([
+            'name' => 'Quy Nhon Office',
+            'branch_id' => $branch->id,
+            'is_active' => true,
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Livewire']);
+        $category = Category::query()->create(['name' => 'Software', 'slug' => 'software']);
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Livewire Developer')
+            ->set('description', 'Phat trien tinh nang cho cong thong tin viec lam.')
+            ->set('workplace_id', $workplace->id)
+            ->set('positions_count', 1)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('save')
+            ->assertRedirect(route('employers.manage_jobs'));
+
+        $this->assertDatabaseHas('recruitment_jobs', [
+            'title' => 'Livewire Developer',
+            'branch_id' => $branch->id,
+            'department_id' => null,
+            'workplace_id' => $workplace->id,
+        ]);
+    }
+
+    public function test_editing_title_that_keeps_same_slug_does_not_add_suffix(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Hue',
+            'code' => 'HUE',
+            'city' => 'Hue',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'director',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Laravel Developer!',
+            'slug' => 'laravel-developer',
+            'description' => 'Mo ta cong viec hien tai.',
+            'status' => StatusRecruitmentJobsEnum::PUBLISHED->value,
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $user->id,
+        ]);
+        $job->skills()->attach($skill->id, ['level' => 'mid', 'is_required' => true]);
+        $job->categories()->attach($category->id);
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class, ['id' => $job->id])
+            ->set('title', 'Laravel Developer')
+            ->call('save')
+            ->assertRedirect(route('employers.manage_jobs'));
+
+        $this->assertDatabaseHas('recruitment_jobs', [
+            'id' => $job->id,
+            'title' => 'Laravel Developer',
+            'slug' => 'laravel-developer',
+        ]);
     }
 
     public function test_manage_jobs_only_shows_jobs_created_by_current_employer(): void

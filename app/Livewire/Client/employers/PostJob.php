@@ -138,6 +138,13 @@ class PostJob extends Component
     public function save(): mixed
     {
         $validated = $this->validate();
+        $user = Auth::user();
+
+        if ($user?->branchScopeId() && (int) $validated['branch_id'] !== (int) $user->branchScopeId()) {
+            $this->addError('branch_id', 'Bạn chỉ được đăng tin cho chi nhánh của mình.');
+
+            return null;
+        }
 
         if (
             filled($validated['salary_min'] ?? null)
@@ -177,7 +184,6 @@ class PostJob extends Component
             }
         }
 
-        $user = Auth::user();
         $finalStatus = $validated['status'];
 
         // Logic: if not Director/Admin, must be PENDING (even on edits as requested)
@@ -204,7 +210,7 @@ class PostJob extends Component
                 abort(403);
             }
             if ($job->title !== trim($validated['title'])) {
-                $data['slug'] = $this->generateUniqueSlug($validated['title']);
+                $data['slug'] = $this->generateUniqueSlug($validated['title'], $job->id);
             }
             $job->update($data);
         } else {
@@ -327,14 +333,17 @@ class PostJob extends Component
         ];
     }
 
-    private function generateUniqueSlug(string $title): string
+    private function generateUniqueSlug(string $title, ?int $ignoreJobId = null): string
     {
         $baseSlug = Str::slug($title);
         $slug = $baseSlug !== '' ? $baseSlug : 'job';
         $originalSlug = $slug;
         $suffix = 2;
 
-        while (RecruitmentJob::query()->where('slug', $slug)->exists()) {
+        while (RecruitmentJob::query()
+            ->where('slug', $slug)
+            ->when($ignoreJobId, fn ($query, int $jobId) => $query->whereKeyNot($jobId))
+            ->exists()) {
             $slug = $originalSlug.'-'.$suffix;
             $suffix++;
         }

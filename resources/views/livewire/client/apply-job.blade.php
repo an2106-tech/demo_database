@@ -290,6 +290,27 @@
             font-size: 0.85rem;
         }
 
+        .selected-cv-pill {
+            margin-top: 18px;
+            padding: 12px 16px;
+            border: 1px solid #bbf7d0;
+            border-radius: 14px;
+            background: #f0fdf4;
+            color: #166534;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            max-width: 100%;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .selected-cv-pill strong {
+            color: #0f172a;
+            overflow-wrap: anywhere;
+        }
+
         /* Submit Button */
         .submit-trigger {
             width: 100%;
@@ -492,8 +513,19 @@
                             Tải lên Hồ sơ (CV) *
                         @endif
                     </label>
-                    <div class="upload-wrapper" onclick="document.getElementById('cv-file').click()">
-                        <input type="file" id="cv-file" wire:model="cv" hidden>
+                    <div
+                        class="upload-wrapper"
+                        onclick="document.getElementById('cv-file').click()"
+                        x-data="{ selectedCvName: '' }"
+                    >
+                        <input
+                            type="file"
+                            id="cv-file"
+                            wire:model="cv"
+                            hidden
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
+                        >
                         <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>
                         <div class="upload-hint">
                             <h4>Nhấp để chọn file hồ sơ mới</h4>
@@ -503,6 +535,22 @@
                                 <p>Định dạng hỗ trợ: PDF, DOC, DOCX (Tối đa 10MB)</p>
                             @endif
                         </div>
+                        <div
+                            x-show="selectedCvName"
+                            x-cloak
+                            class="selected-cv-pill"
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <i class="fa fa-check-circle"></i>
+                            <span>Đã chọn: <strong x-text="selectedCvName"></strong></span>
+                        </div>
+                        @if($cv && method_exists($cv, 'getClientOriginalName'))
+                            <div class="selected-cv-pill" role="status" aria-live="polite">
+                                <i class="fa fa-check-circle"></i>
+                                <span>Đã tải lên tạm thời: <strong>{{ $cv->getClientOriginalName() }}</strong></span>
+                            </div>
+                        @endif
                     </div>
                     @error('cv') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
 

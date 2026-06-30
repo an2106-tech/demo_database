@@ -92,8 +92,8 @@
                                                 <div class="col-md-6">
                                                     <div class="field-card">
                                                         <label for="job-workplace">Nơi làm việc</label>
-                                                        <select id="job-workplace" wire:model.defer="workplace_id" @disabled(! $department_id)>
-                                                            <option value="">{{ $department_id ? 'Không bắt buộc' : 'Chọn phòng ban trước' }}</option>
+                                                        <select id="job-workplace" wire:model.defer="workplace_id" @disabled(! $branch_id)>
+                                                            <option value="">{{ $branch_id ? 'Không bắt buộc' : 'Chọn chi nhánh trước' }}</option>
                                                             @foreach ($workplaces as $workplace)
                                                                 <option value="{{ $workplace->id }}">{{ $workplace->name }}</option>
                                                             @endforeach
@@ -246,6 +246,10 @@
 
                                         <div class="field-card" x-data="{
                                             initEditor() {
+                                                if (! window.ClassicEditor) {
+                                                    return;
+                                                }
+
                                                 ClassicEditor
                                                     .create(this.$refs.editor, {
                                                         toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|', 'undo', 'redo']

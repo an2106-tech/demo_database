@@ -1,5 +1,6 @@
 @php
     $isProfileReady = empty($missingProfileFields);
+    $cityLabel = \App\Enums\VietnamProvince::tryFrom((string) $city)?->label() ?? $city;
 @endphp
 
 <div class="profile-redesign employer-profile-redesign">
@@ -22,10 +23,31 @@
                 <div class="profile-redesign__company-card">
                     <div class="profile-redesign__company-logo">
                         <img
-                            src="{{ $branch?->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png') }}"
+                            src="{{ $logo ? $logo->temporaryUrl() : ($branch?->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png')) }}"
                             alt="{{ $name ?: 'Logo công ty' }}"
                         >
                     </div>
+
+                    @if($canEdit)
+                        <input
+                            type="file"
+                            id="company_logo_upload"
+                            wire:model="logo"
+                            class="d-none"
+                            accept="image/jpeg,image/png,image/webp"
+                        >
+                        <label for="company_logo_upload" class="profile-redesign__current-cv">Chọn logo</label>
+                        <div wire:loading wire:target="logo" class="profile-redesign__uploading">Đang tải logo...</div>
+                        @if($logo && method_exists($logo, 'getClientOriginalName'))
+                            <div class="profile-redesign__selected-cv" role="status" aria-live="polite">
+                                <span>Logo mới</span>
+                                <strong>{{ $logo->getClientOriginalName() }}</strong>
+                                <small>Bấm cập nhật để lưu logo.</small>
+                            </div>
+                        @endif
+                        @error('logo') <small class="profile-redesign__error">{{ $message }}</small> @enderror
+                    @endif
+
                     <span>{{ $canEdit ? 'Director có quyền cập nhật' : 'Chế độ xem' }}</span>
                     <strong>{{ $name ?: 'Hồ sơ công ty' }}</strong>
                     <p>{{ $code ? 'Mã chi nhánh: ' . $code : 'Thông tin chi nhánh tuyển dụng' }}</p>
@@ -61,8 +83,8 @@
                         <strong>{{ $province_code ?: '-' }}</strong>
                     </div>
                     <div>
-                        <span>Thành phố</span>
-                        <strong>{{ $city ?: '-' }}</strong>
+                        <span>Địa phương</span>
+                        <strong>{{ $cityLabel ?: '-' }}</strong>
                     </div>
                     <div>
                         <span>Trạng thái</span>
@@ -106,13 +128,18 @@
                             </label>
                             <label class="profile-redesign__field">
                                 <span>Tỉnh/TP</span>
-                                <input type="text" wire:model.defer="province_code" @readonly(! $canEdit)>
-                                @error('province_code') <small class="profile-redesign__error">{{ $message }}</small> @enderror
+                                <select wire:model.live="city" @disabled(! $canEdit)>
+                                    <option value="">Chọn tỉnh/thành phố</option>
+                                    @foreach($provinceOptions as $value => $label)
+                                        <option value="{{ $value }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('city') <small class="profile-redesign__error">{{ $message }}</small> @enderror
                             </label>
                             <label class="profile-redesign__field">
-                                <span>Thành phố</span>
-                                <input type="text" wire:model.defer="city" @readonly(! $canEdit)>
-                                @error('city') <small class="profile-redesign__error">{{ $message }}</small> @enderror
+                                <span>Mã tỉnh</span>
+                                <input type="text" wire:model.defer="province_code" readonly>
+                                @error('province_code') <small class="profile-redesign__error">{{ $message }}</small> @enderror
                             </label>
                             <label class="profile-redesign__field profile-redesign__field--full">
                                 <span>Mô tả chi tiết</span>

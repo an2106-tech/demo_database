@@ -13,6 +13,7 @@ use App\Models\CandidateJobSubmission;
 use App\Models\CandidateResume;
 use App\Models\RecruitmentJob;
 use App\Models\User;
+use App\Rules\CvUploadFile;
 use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
@@ -115,7 +116,7 @@ class ApplyJob extends Component
             'career_objective' => ['nullable', 'string', 'max:4000'],
         ];
 
-        $rules['cv'] = [$this->existing_cv_url ? 'nullable' : 'required', 'file', 'max:10240', 'mimes:pdf,doc,docx'];
+        $rules['cv'] = [$this->existing_cv_url ? 'nullable' : 'required', 'file', 'max:10240', new CvUploadFile()];
 
         $this->validate($rules);
 

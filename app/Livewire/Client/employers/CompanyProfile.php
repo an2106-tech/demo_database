@@ -2,17 +2,23 @@
 
 namespace App\Livewire\Client\Employers;
 
+use App\Enums\VietnamProvince;
 use App\Models\Branch;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Layout('layouts.employer')]
 class CompanyProfile extends Component
 {
+    use WithFileUploads;
+
     public $branch = null;
 
-    public $canEdit = false;
+    public bool $canEdit = false;
 
     public string $name = '';
 
@@ -40,6 +46,8 @@ class CompanyProfile extends Component
 
     public ?string $linkedin_url = null;
 
+    public $logo = null;
+
     public int $profileCompletion = 0;
 
     public array $missingProfileFields = [];
@@ -49,8 +57,7 @@ class CompanyProfile extends Component
         $user = Auth::user();
 
         if ($user && in_array($user->role, ['hr', 'director', 'pm'], true)) {
-            $this->branch = Branch::with(['workplaces'])
-                ->find($user->branch_id);
+            $this->branch = Branch::with(['workplaces'])->find($user->branch_id);
             $this->canEdit = $user->role === 'director';
 
             $this->fillFromBranch();
@@ -62,29 +69,48 @@ class CompanyProfile extends Component
         abort_unless($this->canEdit, 403);
 
         $branch = $this->editableBranch();
+        $this->province_code = VietnamProvince::tryFrom((string) $this->city)?->provinceCode();
 
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'province_code' => ['nullable', 'string', 'max:10'],
-            'city' => ['required', 'string', 'max:100'],
+            'city' => ['required', Rule::enum(VietnamProvince::class)],
             'employee_count' => ['nullable', 'integer', 'min:0', 'max:1000000'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'phone' => ['nullable', 'string', 'max:50'],
-            'email_contact' => ['nullable', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50', 'regex:/^(0|\+84)[0-9\s.\-]{8,14}$/'],
+            'email_contact' => ['nullable', 'email', 'max:255', Rule::unique('branches', 'email_contact')->ignore($branch->id)],
             'address' => ['nullable', 'string', 'max:1000'],
             'website' => ['nullable', 'url', 'max:255'],
             'facebook_url' => ['nullable', 'url', 'max:255'],
             'twitter_url' => ['nullable', 'url', 'max:255'],
             'linkedin_url' => ['nullable', 'url', 'max:255'],
+            'logo' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
         ]);
+
+        unset($validated['logo']);
+
+        if ($this->logo) {
+            $oldLogo = $branch->image;
+            $validated['image'] = $this->logo->storePublicly("branches/{$branch->id}/logo", 'public');
+
+            if ($oldLogo && $oldLogo !== $validated['image'] && Storage::disk('public')->exists($oldLogo)) {
+                Storage::disk('public')->delete($oldLogo);
+            }
+        }
 
         $branch->fill($validated);
         $branch->save();
 
+        $this->logo = null;
         $this->branch = $branch->fresh(['workplaces']);
         $this->fillFromBranch();
 
         $this->dispatch('app-notify', message: 'Cập nhật hồ sơ công ty thành công.');
+    }
+
+    public function updatedCity(?string $value): void
+    {
+        $this->province_code = VietnamProvince::tryFrom((string) $value)?->provinceCode();
     }
 
     public function render(): mixed
@@ -92,6 +118,7 @@ class CompanyProfile extends Component
         return view('livewire.client.employers.company_profile', [
             'branch' => $this->branch,
             'canEdit' => $this->canEdit,
+            'provinceOptions' => VietnamProvince::options(),
         ]);
     }
 
@@ -99,10 +126,16 @@ class CompanyProfile extends Component
     {
         return [
             'name.required' => 'Vui lòng nhập tên công ty.',
-            'city.required' => 'Vui lòng nhập thành phố.',
+            'city.required' => 'Vui lòng chọn tỉnh/thành phố.',
+            'city' => 'Vui lòng chọn tỉnh/thành phố hợp lệ.',
             'employee_count.integer' => 'Số lượng nhân sự phải là số.',
             'employee_count.min' => 'Số lượng nhân sự không hợp lệ.',
+            'phone.regex' => 'Số điện thoại công ty không hợp lệ.',
             'email_contact.email' => 'Email liên hệ không đúng định dạng.',
+            'email_contact.unique' => 'Email liên hệ này đã được sử dụng cho chi nhánh khác.',
+            'logo.image' => 'Logo phải là tệp hình ảnh.',
+            'logo.mimes' => 'Logo chỉ hỗ trợ JPG, PNG hoặc WEBP.',
+            'logo.max' => 'Logo không được vượt quá 5MB.',
             '*.url' => 'Liên kết không đúng định dạng URL.',
         ];
     }
@@ -145,7 +178,7 @@ class CompanyProfile extends Component
     {
         $fields = [
             'name' => 'tên công ty',
-            'city' => 'thành phố',
+            'city' => 'tỉnh/thành phố',
             'address' => 'địa chỉ',
             'phone' => 'số điện thoại',
             'email_contact' => 'email liên hệ',

@@ -4260,6 +4260,7 @@ body.client-app .profile-redesign__field > span {
 }
 
 body.client-app .profile-redesign__field input,
+body.client-app .profile-redesign__field select,
 body.client-app .profile-redesign__field textarea,
 body.client-app .profile-redesign__inline-field input,
 body.client-app .profile-redesign__row-repeat input {
@@ -4276,6 +4277,12 @@ body.client-app .profile-redesign__row-repeat input {
     border-color .22s cubic-bezier(.32,.72,0,1),
     box-shadow .22s cubic-bezier(.32,.72,0,1),
     transform .22s cubic-bezier(.32,.72,0,1);
+}
+
+body.client-app .profile-redesign__field select {
+  min-height: 52px;
+  padding: 0 16px;
+  background: #ffffff;
 }
 
 body.client-app .profile-redesign__field textarea {
@@ -4471,6 +4478,32 @@ body.client-app .profile-redesign__uploading {
   color: var(--profile-accent-dark);
   font-size: 13px;
   font-weight: 800;
+}
+
+body.client-app .profile-redesign__selected-cv {
+  display: grid;
+  gap: 4px;
+  width: min(100%, 520px);
+  padding: 12px 16px;
+  border: 1px solid rgba(15, 143, 99, 0.22);
+  border-radius: 16px;
+  background: rgba(15, 143, 99, 0.08);
+  color: var(--profile-success);
+  text-align: left;
+}
+
+body.client-app .profile-redesign__selected-cv span,
+body.client-app .profile-redesign__selected-cv small {
+  color: #40756a;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+body.client-app .profile-redesign__selected-cv strong {
+  color: var(--profile-ink);
+  font-size: 14px;
+  font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 body.client-app .profile-redesign__company-card {
@@ -5143,6 +5176,105 @@ body.client-app .profile-redesign__submit:disabled {
   color: #64748b;
   box-shadow: none;
   cursor: not-allowed;
+}
+
+body.client-app .company-public-profile .single-candidate-page {
+  background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%);
+}
+
+body.client-app .company-public-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 28px;
+  align-items: center;
+  padding: clamp(24px, 4vw, 42px);
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+}
+
+body.client-app .company-public-identity {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+body.client-app .company-public-logo {
+  width: 112px;
+  height: 112px;
+  padding: 14px;
+  border: 1px solid rgba(243, 112, 33, 0.14);
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+body.client-app .company-public-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+body.client-app .company-public-identity span {
+  display: inline-flex;
+  margin-bottom: 8px;
+  color: #d94f13;
+  font-size: 12px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+body.client-app .company-public-identity h1 {
+  margin: 0 0 10px;
+  color: #111827;
+  font-size: clamp(2rem, 4vw, 3.25rem);
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+body.client-app .company-public-identity p {
+  margin: 0;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+body.client-app .company-public-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  gap: 10px;
+}
+
+body.client-app .company-public-stats div {
+  padding: 16px;
+  border-radius: 18px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+body.client-app .company-public-stats strong {
+  display: block;
+  color: #111827;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+body.client-app .company-public-stats span {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 767px) {
+  body.client-app .company-public-hero,
+  body.client-app .company-public-identity {
+    grid-template-columns: 1fr;
+  }
+
+  body.client-app .company-public-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 767px) {
