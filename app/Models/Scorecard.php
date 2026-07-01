@@ -17,7 +17,9 @@ class Scorecard extends Model
         'evaluator_id',
         'criteria',
         'average_score',
+        'recommended_conclusion',
         'notes',
+        'override_reason',
         'conclusion',
     ];
 

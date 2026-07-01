@@ -6,6 +6,7 @@ use App\Models\Offer;
 use App\Services\OfferApprovalService;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -14,6 +15,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class OfferResource extends Resource
@@ -33,6 +35,41 @@ class OfferResource extends Resource
         return $schema;
     }
 
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin')
+            || $user->role === 'admin'
+            || $user->hasRole('director')
+            || $user->role === 'director';
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('super_admin') || $user->role === 'admin') {
+            return true;
+        }
+
+        $isDirector = $user->hasRole('director') || $user->role === 'director';
+
+        if (! $isDirector || ! $user->branchScopeId()) {
+            return false;
+        }
+
+        return (int) $record->application?->job?->branch_id === (int) $user->branchScopeId();
+    }
+
     public static function table(Table $table): Table
     {
         return $table
@@ -40,7 +77,7 @@ class OfferResource extends Resource
                 $user = Auth::user();
                 
                 // Only show offers awaiting approval for this branch director
-                if ($user && $user->branchScopeId()) {
+                if ($user && ($user->hasRole('director') || $user->role === 'director') && $user->branchScopeId()) {
                     $query->whereHas('application.job', fn ($q) => 
                         $q->where('branch_id', $user->branchScopeId())
                     );
@@ -50,7 +87,8 @@ class OfferResource extends Resource
             })
             ->columns([
                 TextColumn::make('id')
-                    ->label('ID đề nghị')
+                    ->label('Mã đề nghị')
+                    ->formatStateUsing(fn ($state) => 'OFF-'.str_pad((string) $state, 6, '0', STR_PAD_LEFT))
                     ->sortable()
                     ->searchable(),
                 
@@ -164,7 +202,13 @@ class OfferResource extends Resource
                     ->requiresConfirmation()
                     ->modalHeading('Từ chối đề nghị tuyển dụng')
                     ->modalDescription('HR sẽ cần xem xét lại và điều chỉnh đề nghị tuyển dụng trước khi gửi duyệt lại.')
-                    ->action(function ($record) {
+                    ->form([
+                        Textarea::make('approval_notes')
+                            ->label('Lý do từ chối')
+                            ->rows(4)
+                            ->required(),
+                    ])
+                    ->action(function ($record, array $data) {
                         $user = Auth::user();
                         if (!$user) {
                             Notification::make()
@@ -176,7 +220,7 @@ class OfferResource extends Resource
                         }
 
                         $service = app(OfferApprovalService::class);
-                        if ($service->reject($record, $user, 'Từ chối từ giám đốc chi nhánh')) {
+                        if ($service->reject($record, $user, trim((string) ($data['approval_notes'] ?? '')))) {
                             Notification::make()
                                 ->warning()
                                 ->title('Đã từ chối đề nghị tuyển dụng')
@@ -209,7 +253,9 @@ class OfferResource extends Resource
 
         // Only show to directors for their branches
         if ($user && !$user->hasRole('super_admin')) {
-            if ($user->hasRole('director') && $user->branchScopeId()) {
+            $isDirector = $user->hasRole('director') || $user->role === 'director';
+
+            if ($isDirector && $user->branchScopeId()) {
                 $query->whereHas('application.job', fn ($q) => 
                     $q->where('branch_id', $user->branchScopeId())
                 );

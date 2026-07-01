@@ -182,17 +182,27 @@
                         </div>
 
                         <div class="pipeline-container">
-                            @foreach($statuses as $status)
+                            @foreach($stages as $stageKey => $stage)
+                                @php
+                                    $stageIcons = [
+                                        'applied' => 'fa-inbox',
+                                        'screening' => 'fa-search',
+                                        'interview' => 'fa-users',
+                                        'offer' => 'fa-envelope-open',
+                                        'hired' => 'fa-check-circle',
+                                        'rejected' => 'fa-times-circle',
+                                    ];
+                                @endphp
                                 <div class="pipeline-column">
                                     <div class="column-header">
                                         <div class="column-title">
-                                            <i class="fa {{ $status->getIcon() }}" style="color: {{ $status->getColor() }};"></i>
-                                            {{ $status->getLabel() }}
+                                            <i class="fa {{ $stageIcons[$stageKey] ?? 'fa-circle' }}"></i>
+                                            {{ $stage['label'] }}
                                         </div>
-                                        <span class="column-count">{{ count($applicationsByStatus[$status->value]) }}</span>
+                                        <span class="column-count">{{ count($applicationsByStage[$stageKey]) }}</span>
                                     </div>
                                     <div class="column-content">
-                                        @foreach($applicationsByStatus[$status->value] as $app)
+                                        @foreach($applicationsByStage[$stageKey] as $app)
                                             @php
                                                 $snapshot = is_array($app->profile_snapshot) ? $app->profile_snapshot : [];
                                                 $candidateName = data_get($snapshot, 'name') ?: data_get($snapshot, 'candidate.name') ?: $app->candidate?->name ?: 'Ứng viên';
@@ -200,6 +210,9 @@
                                                 $profileTitle = data_get($snapshot, 'profile_title') ?: data_get($snapshot, 'resume.profile_title');
                                                 $submittedCvName = data_get($snapshot, 'cv.original_filename') ?: ($app->cv_path ? basename($app->cv_path) : null);
                                                 $latestSubmission = $latestSubmissionsByApplicationKey[$app->candidate_id . ':' . $app->job_id] ?? null;
+                                                $status = $app->status instanceof \App\Enums\StatusApplicationEnum
+                                                    ? $app->status
+                                                    : \App\Enums\StatusApplicationEnum::tryFrom((string) $app->status);
                                             @endphp
 
                                             <div class="candidate-card">
@@ -224,6 +237,9 @@
                                                             <span class="job-tag" title="{{ $profileTitle }}">{{ $profileTitle }}</span>
                                                         @endif
                                                         <span class="job-tag" title="{{ $app->job?->title }}">{{ $app->job?->title ?? 'Vị trí không còn khả dụng' }}</span>
+                                                        @if($status)
+                                                            <span class="job-tag" title="{{ $status->getLabel() }}">{{ $status->getLabel() }}</span>
+                                                        @endif
                                                     </div>
                                                 </div>
 

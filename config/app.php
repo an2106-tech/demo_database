@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'FPT Careers'),
+    'name' => env('APP_NAME', 'FPT Career'),
 
     /*
     |--------------------------------------------------------------------------
@@ -69,7 +69,7 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'UTC'),
 
-    'interview_timezone' => env('INTERVIEW_TIMEZONE', 'Asia/Saigon'),
+    'interview_timezone' => env('INTERVIEW_TIMEZONE', 'Asia/Ho_Chi_Minh'),
 
     /*
     |--------------------------------------------------------------------------

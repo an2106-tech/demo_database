@@ -34,6 +34,7 @@ class OfferPdfService
         $candidateName = $offer->application?->candidate?->name ?? '';
 
         $pdf = Pdf::loadView('pdf.offer-letter', [
+            'offer' => $offer,
             'letterInnerHtml' => $merged.$additionalBlock,
             'candidateName' => $candidateName,
         ])->setPaper('a4');

@@ -1,7 +1,7 @@
 @php
-    $brandName = config('mail.from.name', config('app.name', 'FPT Careers'));
+    $brandName = config('mail.from.name', config('app.name', 'FPT Career'));
     $pageTitle = $title ?? $brandName;
-    $eyebrowText = $eyebrow ?? 'FPT Careers';
+    $eyebrowText = $eyebrow ?? 'FPT Career';
     $previewText = $preview ?? 'Thông báo từ hệ thống tuyển dụng.';
 @endphp
 <!DOCTYPE html>

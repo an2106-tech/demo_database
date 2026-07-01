@@ -73,24 +73,25 @@ class CandidateOfferMail extends Mailable
     protected function resolveTemplate(): array
     {
         // Nội dung dự phòng khi chưa cấu hình mẫu email thư mời nhận việc.
-        $fallbackSubject = 'Thư mời nhận việc - Vị trí {{job_title}} - {{app_name}}';
+        $fallbackSubject = 'Đề nghị tuyển dụng - Vị trí {{job_title}} - {{app_name}}';
         
         $fallbackBody = implode("\n", [
             '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
-            '<p>Thay mặt ban lãnh đạo <strong>{{app_name}}</strong>, tôi rất vui mừng thông báo rằng chúng tôi chính thức mời bạn gia nhập công ty với vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p>Chúng tôi rất ấn tượng với năng lực chuyên môn và thái độ làm việc của bạn trong suốt quá trình phỏng vấn. Chúng tôi tin rằng bạn sẽ là một mảnh ghép tuyệt vời cho đội ngũ của chúng tôi.</p>',
-            '<p>Dưới đây là tóm tắt một số thông tin cơ bản:</p>',
+            '<p><strong>{{app_name}}</strong> trân trọng gửi đến bạn đề nghị tuyển dụng cho vị trí <strong>{{job_title}}</strong>.</p>',
+            '<p>Dựa trên kết quả đánh giá trong quá trình tuyển dụng, chúng tôi tin rằng kinh nghiệm và định hướng nghề nghiệp của bạn phù hợp với nhu cầu của vị trí này.</p>',
+            '<p>Thông tin chính của đề nghị:</p>',
             '<ul>',
+            '<li><strong>Mã đề nghị:</strong> #{{offer_id}}</li>',
             '<li><strong>Mức lương đề nghị:</strong> {{salary_offered}}</li>',
             '<li><strong>Ngày bắt đầu làm việc:</strong> {{start_date}}</li>',
             '<li><strong>Thời gian thử việc:</strong> {{probation_months}}</li>',
+            '<li><strong>Hạn phản hồi:</strong> {{expiration_date}}</li>',
             '</ul>',
-            '<p><strong>Vui lòng xem file PDF đính kèm</strong> để biết chi tiết về các điều khoản công việc, quyền lợi bảo hiểm, và chính sách phúc lợi dành cho bạn.</p>',
+            '<p>Vui lòng xem file PDF đính kèm để biết chi tiết nội dung đề nghị tuyển dụng.</p>',
             '<div>{{offer_content}}</div>',
             '{{offer_response_actions}}',
-            '<p>Để xác nhận lời mời này, bạn vui lòng chọn phản hồi bên dưới hoặc ký tên vào bản thư mời đính kèm và gửi lại cho chúng tôi trước ngày <strong>{{expiration_date}}</strong>.</p>',
-            '<p>Chào mừng bạn đến với đội ngũ của chúng tôi!</p>',
-            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+            '<p>Đề nghị này không thay thế hợp đồng lao động chính thức. Sau khi bạn xác nhận đồng ý, bộ phận tuyển dụng sẽ liên hệ để hướng dẫn các thủ tục tiếp theo.</p>',
+            '<p>Trân trọng,<br><strong>Bộ phận Tuyển dụng - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
@@ -116,6 +117,7 @@ class CandidateOfferMail extends Mailable
         $replacements = [
             '{{candidate_name}}' => e($this->candidate->name),
             '{{candidate_email}}' => e((string) $this->candidate->email),
+            '{{offer_id}}' => e((string) $this->offer->id),
             '{{job_title}}' => e($this->job->title),
             '{{salary_offered}}' => e(number_format((float) $this->offer->salary_offered, 0, ',', '.').' VND'),
             '{{start_date}}' => e(optional($this->offer->start_date)->format('d/m/Y') ?? 'Chưa cập nhật'),

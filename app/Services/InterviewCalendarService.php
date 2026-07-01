@@ -129,7 +129,7 @@ class InterviewCalendarService
 
     protected function interviewTimezone(): string
     {
-        return config('app.interview_timezone', 'Asia/Saigon');
+        return config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
     }
 
     protected function escapeText(string $value): string

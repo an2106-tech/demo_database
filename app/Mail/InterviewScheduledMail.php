@@ -75,6 +75,7 @@ class InterviewScheduledMail extends Mailable
             '<ul style="line-height: 1.6;">',
             '<li><strong>Vị trí ứng tuyển:</strong> {{job_title}}</li>',
             '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
+            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
             '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
             '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
             '<li><strong>Người phỏng vấn:</strong> {{interviewer_name}}</li>',
@@ -106,6 +107,7 @@ class InterviewScheduledMail extends Mailable
             '{{candidate_email}}' => e((string) ($candidate?->email ?? '')),
             '{{job_title}}' => e($job?->title ?? 'Vị trí ứng tuyển'),
             '{{scheduled_at}}' => e($this->formatDisplayDate($this->interview->scheduled_at)),
+            '{{duration_minutes}}' => e((string) ((int) ($this->interview->duration_minutes ?: 60))),
             '{{interview_type}}' => e($this->interview->type === 'online' ? 'Phỏng vấn Online' : 'Phỏng vấn trực tiếp (Offline)'),
             '{{interview_location}}' => e($locationText),
             '{{interviewer_name}}' => e($interviewer?->name ?? 'Hội đồng tuyển dụng'),
@@ -123,11 +125,11 @@ class InterviewScheduledMail extends Mailable
     protected function formatDisplayDate($date): string
     {
         if (! $date) {
-            return now()->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))->format('d/m/Y H:i');
+            return now()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('d/m/Y H:i');
         }
 
         return $date->copy()
-            ->setTimezone(config('app.interview_timezone', 'Asia/Saigon'))
+            ->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
             ->format('H:i, \n\g\à\y d/m/Y');
     }
 }

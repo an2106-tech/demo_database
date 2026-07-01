@@ -18,10 +18,12 @@ class ListApplications extends ListRecords
             'all' => Tab::make('Tất cả'),
         ];
 
-        foreach (StatusApplicationEnum::cases() as $status) {
-            $tabs[$status->value] = Tab::make($status->getLabel())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', $status->value))
-                ->badge(fn () => static::getResource()::getEloquentQuery()->where('status', $status->value)->count());
+        foreach (StatusApplicationEnum::pipelineStages() as $stageKey => $stage) {
+            $statusValues = StatusApplicationEnum::statusValuesForPipelineStage($stageKey);
+
+            $tabs[$stageKey] = Tab::make($stage['label'])
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereIn('status', $statusValues))
+                ->badge(fn () => static::getResource()::getEloquentQuery()->whereIn('status', $statusValues)->count());
         }
 
         return $tabs;

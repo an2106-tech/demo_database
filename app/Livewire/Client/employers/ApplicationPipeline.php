@@ -32,6 +32,7 @@ class ApplicationPipeline extends Component
             ->orderBy('title')
             ->get();
 
+        $stages = StatusApplicationEnum::pipelineStages();
         $statuses = StatusApplicationEnum::cases();
         $statusValues = array_map(fn (StatusApplicationEnum $status) => $status->value, $statuses);
 
@@ -46,17 +47,19 @@ class ApplicationPipeline extends Component
 
         $latestSubmissionsByApplicationKey = $this->latestSubmissionsByApplicationKey($applications);
 
-        $applicationsByStatus = [];
-        foreach ($statuses as $status) {
-            $applicationsByStatus[$status->value] = $applications
-                ->filter(fn (Application $application): bool => $this->applicationStatusValue($application) === $status->value)
+        $applicationsByStage = [];
+        foreach ($stages as $stageKey => $stage) {
+            $stageStatusValues = array_map(fn (StatusApplicationEnum $status): string => $status->value, $stage['statuses']);
+
+            $applicationsByStage[$stageKey] = $applications
+                ->filter(fn (Application $application): bool => in_array($this->applicationStatusValue($application), $stageStatusValues, true))
                 ->values();
         }
 
         return view('livewire.client.employers.application-pipeline', [
             'jobs' => $jobs,
-            'statuses' => $statuses,
-            'applicationsByStatus' => $applicationsByStatus,
+            'stages' => $stages,
+            'applicationsByStage' => $applicationsByStage,
             'latestSubmissionsByApplicationKey' => $latestSubmissionsByApplicationKey,
         ]);
     }

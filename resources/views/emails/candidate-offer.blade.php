@@ -1,7 +1,7 @@
 @component('emails.layouts.base', [
     'title' => $subjectLine,
-    'eyebrow' => 'Thư mời nhận việc',
-    'preview' => 'Vui lòng phản hồi thư mời nhận việc từ hệ thống tuyển dụng.',
+    'eyebrow' => 'Đề nghị tuyển dụng',
+    'preview' => 'Vui lòng phản hồi đề nghị tuyển dụng từ FPT Career.',
 ])
     {!! $htmlBody !!}
 @endcomponent

@@ -7,6 +7,7 @@
 
     $cvUrl = $record->submittedCvUrl();
     $cvName = $record->submittedCvName();
+    $latestInterview = $record->interviews()->with('interviewer')->latest('id')->first();
 
     $experiences = is_array($resumeSnap['experiences'] ?? null) ? $resumeSnap['experiences'] : [];
     $educations = is_array($resumeSnap['educations'] ?? null) ? $resumeSnap['educations'] : [];
@@ -262,4 +263,21 @@
             </details>
         </div>
     @endif
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+        <div class="flex flex-wrap items-start justify-between gap-3">
+            <div>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Đánh giá phỏng vấn</h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Theo dõi người phỏng vấn và các đánh giá đã ghi nhận.</p>
+            </div>
+            <div class="text-sm text-gray-600 dark:text-gray-300">
+                Người phỏng vấn:
+                <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $latestInterview?->interviewer?->name ?? '-' }}</span>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            {!! \App\Filament\Resources\Applications\Tables\ApplicationsTable::renderInterviewScorecardsSummary($record) !!}
+        </div>
+    </div>
 </div>

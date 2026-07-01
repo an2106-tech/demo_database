@@ -91,22 +91,31 @@ class EmailTemplateSeeder extends Seeder
             ],
         );
 
+        EmailTemplate::query()
+            ->where('type', 'offer')
+            ->where('name', '<>', 'Đề nghị tuyển dụng')
+            ->update(['is_active' => false]);
+
         EmailTemplate::query()->updateOrCreate(
-            ['type' => 'offer', 'name' => 'Thư mời nhận việc'],
+            ['type' => 'offer', 'name' => 'Đề nghị tuyển dụng'],
             [
-                'subject' => 'Thư mời nhận việc - {{job_title}}',
+                'subject' => 'Đề nghị tuyển dụng - {{job_title}} - {{app_name}}',
                 'body' => implode("\n", [
-                    '<p>Chào {{candidate_name}},</p>',
-                    '<p>Chúc mừng bạn đã vượt qua các vòng đánh giá cho vị trí <strong>{{job_title}}</strong>.</p>',
-                    '<p>Chúng tôi trân trọng gửi đến bạn thư mời nhận việc với các thông tin chính sau:</p>',
+                    '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
+                    '<p><strong>{{app_name}}</strong> trân trọng gửi đến bạn đề nghị tuyển dụng cho vị trí <strong>{{job_title}}</strong>.</p>',
+                    '<p>Thông tin chính của đề nghị:</p>',
                     '<ul>',
+                    '<li>Mã đề nghị: #{{offer_id}}</li>',
                     '<li>Mức lương đề nghị: {{salary_offered}}</li>',
                     '<li>Ngày bắt đầu dự kiến: {{start_date}}</li>',
                     '<li>Thời gian thử việc: {{probation_months}}</li>',
+                    '<li>Hạn phản hồi: {{expiration_date}}</li>',
                     '</ul>',
+                    '<p>Vui lòng xem file PDF đính kèm để biết chi tiết nội dung đề nghị tuyển dụng.</p>',
                     '<div>{{offer_content}}</div>',
-                    '<p>Nếu bạn đồng ý với đề nghị này, vui lòng phản hồi lại bộ phận tuyển dụng để chúng tôi hỗ trợ các bước tiếp theo.</p>',
-                    '<p>Trân trọng,<br>{{app_name}}</p>',
+                    '{{offer_response_actions}}',
+                    '<p>Đề nghị này không thay thế hợp đồng lao động chính thức. Sau khi bạn xác nhận đồng ý, bộ phận tuyển dụng sẽ liên hệ để hướng dẫn các thủ tục tiếp theo.</p>',
+                    '<p>Trân trọng,<br>Bộ phận Tuyển dụng - {{app_name}}</p>',
                 ]),
                 'is_active' => true,
                 'created_by' => $creatorId,

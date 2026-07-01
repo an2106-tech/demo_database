@@ -9,11 +9,43 @@
             color: #111;
             line-height: 1.45;
         }
+        .brand {
+            border-bottom: 2px solid #f97316;
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+        }
+        .brand-name {
+            color: #f97316;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .brand-meta {
+            color: #555;
+            font-size: 10px;
+            margin-top: 4px;
+        }
         h1 {
             font-size: 17px;
             text-align: center;
             margin: 0 0 18px;
             letter-spacing: 0.5px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 0 18px;
+        }
+        .summary-table td {
+            border: 1px solid #ddd;
+            padding: 7px 8px;
+            vertical-align: top;
+        }
+        .summary-label {
+            width: 30%;
+            color: #555;
+            background: #f8fafc;
+            font-weight: bold;
         }
         .letter-body {
             text-align: justify;
@@ -54,7 +86,34 @@
     </style>
 </head>
 <body>
-<h1>THƯ MỜI NHẬN VIỆC</h1>
+<div class="brand">
+    <p class="brand-name">FPT Career</p>
+    <div class="brand-meta">Hệ thống quản lý tuyển dụng và kết nối ứng viên</div>
+</div>
+
+<h1>ĐỀ NGHỊ TUYỂN DỤNG</h1>
+
+<table class="summary-table">
+    <tr>
+        <td class="summary-label">Mã đề nghị</td>
+        <td>#{{ $offer->id }}</td>
+        <td class="summary-label">Ngày phát hành</td>
+        <td>{{ $offer->created_at?->format('d/m/Y') ?? now()->format('d/m/Y') }}</td>
+    </tr>
+    <tr>
+        <td class="summary-label">Ứng viên</td>
+        <td>{{ $candidateName ?: '-' }}</td>
+        <td class="summary-label">Vị trí</td>
+        <td>{{ $offer->application?->job?->title ?? '-' }}</td>
+    </tr>
+    <tr>
+        <td class="summary-label">Chi nhánh/đơn vị</td>
+        <td>{{ $offer->application?->job?->branch?->name ?? '-' }}</td>
+        <td class="summary-label">Hạn phản hồi</td>
+        <td>{{ $offer->expires_at?->format('d/m/Y H:i') ?? '-' }}</td>
+    </tr>
+</table>
+
 <div class="letter-body">{!! $letterInnerHtml !!}</div>
 
 <table class="sig-table">
@@ -67,16 +126,17 @@
             </div>
         </td>
         <td style="text-align: right; padding-right: 0; padding-left: 8px;">
-            <div class="stamp">CHỮ KÝ MINH HỌA</div>
+            <div class="stamp">XÁC NHẬN HỆ THỐNG</div>
             <div class="sig-line" style="text-align: right;">
-                Đại diện công ty<br>
-                <span class="footer-note">Chữ ký ảo / demo — không có giá trị pháp lý</span>
+                Đại diện tuyển dụng<br>
+                <strong>FPT Career</strong><br>
+                <span class="footer-note">Xác nhận trên hệ thống</span>
             </div>
         </td>
     </tr>
 </table>
 <p class="footer-note">
-    Văn bản được tạo tự động từ hệ thống. Vui lòng đối chiếu email và hợp đồng chính thức (nếu có).
+    Văn bản này là đề nghị tuyển dụng được tạo từ hệ thống FPT Career và không thay thế hợp đồng lao động chính thức.
 </p>
 </body>
 </html>

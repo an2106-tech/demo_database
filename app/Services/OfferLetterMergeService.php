@@ -19,12 +19,16 @@ class OfferLetterMergeService
         $branch = $job?->branch;
 
         $base = [
+            '{{offer_id}}' => e((string) $offer->id),
+            '{{issued_date}}' => e(optional($offer->created_at)->format('d/m/Y') ?? now()->format('d/m/Y')),
             '{{candidate_name}}' => e($candidate?->name ?? ''),
+            '{{candidate_email}}' => e($application?->snapshotCandidateEmail() ?? $candidate?->email ?? ''),
             '{{job_title}}' => e($job?->title ?? ''),
             '{{branch_name}}' => e($branch?->name ?? ''),
             '{{salary_offered}}' => e(number_format((float) $offer->salary_offered, 0, ',', '.').' VND'),
             '{{start_date}}' => e(optional($offer->start_date)->format('d/m/Y') ?? ''),
             '{{probation_months}}' => e((string) $offer->probation_months),
+            '{{expiration_date}}' => e(optional($offer->expires_at)->format('d/m/Y H:i') ?? ''),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
