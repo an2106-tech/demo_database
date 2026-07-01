@@ -6,7 +6,6 @@ use App\Filament\Resources\Workplaces\Pages\CreateWorkplace;
 use App\Filament\Resources\Workplaces\Pages\EditWorkplace;
 use App\Filament\Resources\Workplaces\Pages\ListWorkplaces;
 use App\Filament\Resources\Workplaces\Pages\ViewWorkplaces;
-use App\Filament\Resources\Workplaces\RelationManagers\RecruitmentJobRelationManager;
 use App\Filament\Resources\Workplaces\Schemas\WorkplaceForm;
 use App\Filament\Resources\Workplaces\Tables\WorkplacesTable;
 use App\Models\User;
@@ -69,9 +68,7 @@ class WorkplaceResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RecruitmentJobRelationManager::class
-        ];
+        return [];
     }
 
     public static function getPages(): array

@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Workplace extends Model
@@ -18,13 +17,8 @@ class Workplace extends Model
         'is_active' => 'boolean',
     ];
     public function branch(): BelongsTo
-    {
-        return $this->belongsTo(Branch::class);
-    }
-
-
-    public function recruitmentJob():HasMany{
-        return $this->hasMany(RecruitmentJob::class, 'workplace_id', 'id');
-    }
+{
+    return $this->belongsTo(Branch::class);
+}
 
 }
