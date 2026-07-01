@@ -2,18 +2,42 @@
     <div class="browse-companies-page">
         <style>
             .browse-companies-page {
-                --company-primary: #2f7ff7;
-                --company-accent: #ff6b35;
-                --company-ink: #0f172a;
+                --company-primary: #d45a18;
+                --company-primary-soft: rgba(212, 90, 24, .09);
+                --company-ink: #111827;
                 --company-muted: #64748b;
-                --company-line: rgba(226, 232, 240, .9);
+                --company-line: rgba(203, 213, 225, .72);
                 --company-soft: #f8fafc;
+            }
+
+            .browse-companies-page .browse-page {
+                background: linear-gradient(180deg, #f8fafc 0%, #fff 48%, #f8fafc 100%);
+            }
+
+            .browse-companies-page .browse-page .container {
+                max-width: 1180px;
             }
 
             .browse-companies-page .filter-sidebar {
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 16px;
+                position: sticky;
+                top: 96px;
+                max-height: calc(100dvh - 116px);
+                overflow-y: auto;
+                padding-right: 2px;
+                scrollbar-width: thin;
+                scrollbar-color: rgba(212, 90, 24, .32) transparent;
+            }
+
+            .browse-companies-page .filter-sidebar::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .browse-companies-page .filter-sidebar::-webkit-scrollbar-thumb {
+                background: rgba(212, 90, 24, .32);
+                border-radius: 999px;
             }
 
             .browse-companies-page .filter-card,
@@ -22,17 +46,17 @@
             .browse-companies-page .summary-card {
                 background: #fff;
                 border: 1px solid var(--company-line);
-                border-radius: 20px;
-                box-shadow: 0 20px 50px rgba(15, 23, 42, .06);
+                border-radius: 18px;
+                box-shadow: 0 18px 42px rgba(15, 23, 42, .045);
             }
 
             .browse-companies-page .filter-card {
-                padding: 22px 20px;
+                padding: 20px 18px;
             }
 
             .browse-companies-page .filter-card h3 {
                 margin: 0 0 18px;
-                font-size: 17px;
+                font-size: 16px;
                 font-weight: 800;
                 color: var(--company-ink);
             }
@@ -48,15 +72,15 @@
                 display: flex;
                 align-items: center;
                 gap: 12px;
-                padding: 10px 12px;
-                border-radius: 14px;
+                padding: 9px 10px;
+                border-radius: 12px;
                 border: 1px solid transparent;
                 transition: .2s ease;
             }
 
             .browse-companies-page .filter-option:hover {
                 background: var(--company-soft);
-                border-color: rgba(47, 127, 247, .14);
+                border-color: rgba(212, 90, 24, .18);
             }
 
             .browse-companies-page .filter-option+.filter-option {
@@ -78,31 +102,31 @@
             .browse-companies-page .salary-value {
                 width: 100%;
                 height: 48px;
-                border-radius: 14px;
+                border-radius: 12px;
                 border: 1px solid rgba(148, 163, 184, .26);
                 background: var(--company-soft);
-                color: var(--company-accent);
+                color: var(--company-primary);
                 font-weight: 800;
                 padding: 0 16px;
                 margin-bottom: 18px;
             }
 
             .browse-companies-page .toolbar-card {
-                padding: 24px;
-                margin-bottom: 24px;
+                padding: 20px;
+                margin-bottom: 16px;
             }
 
             .browse-companies-page .toolbar-top {
                 display: grid;
                 grid-template-columns: minmax(0, 1fr) auto;
-                gap: 16px;
+                gap: 14px;
                 align-items: center;
             }
 
             .browse-companies-page .search-row {
                 display: grid;
-                grid-template-columns: minmax(0, 1fr) 230px;
-                gap: 14px;
+                grid-template-columns: minmax(0, 1fr) 210px;
+                gap: 12px;
                 align-items: stretch;
             }
 
@@ -114,8 +138,8 @@
             .browse-companies-page .search-box input,
             .browse-companies-page .city-search-input,
             .browse-companies-page .toolbar-button {
-                height: 50px;
-                border-radius: 14px;
+                height: 46px;
+                border-radius: 12px;
                 border: 1px solid rgba(148, 163, 184, .28);
                 background: var(--company-soft);
                 transition: .2s ease;
@@ -130,14 +154,14 @@
             }
 
             .browse-companies-page .search-box input {
-                border-radius: 14px 0 0 14px;
+                border-radius: 12px 0 0 12px;
                 border-right: 0;
             }
 
             .browse-companies-page .search-box button {
                 width: 58px;
                 border: 1px solid var(--company-primary);
-                border-radius: 0 14px 14px 0;
+                border-radius: 0 12px 12px 0;
                 background: var(--company-primary);
                 color: #fff;
             }
@@ -148,7 +172,7 @@
                 outline: none;
                 background: #fff;
                 border-color: var(--company-primary);
-                box-shadow: 0 0 0 4px rgba(47, 127, 247, .1);
+                box-shadow: 0 0 0 4px var(--company-primary-soft);
             }
 
             .browse-companies-page .toolbar-button {
@@ -179,9 +203,9 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 10px;
-                padding: 10px 16px;
+                padding: 9px 14px;
                 border-radius: 999px;
-                background: rgba(47, 127, 247, .08);
+                background: var(--company-primary-soft);
                 color: var(--company-primary);
                 font-size: 13px;
                 font-weight: 800;
@@ -197,10 +221,10 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
-                padding: 8px 12px;
+                padding: 7px 11px;
                 border-radius: 999px;
-                background: rgba(255, 107, 53, .08);
-                color: #c2410c;
+                background: var(--company-primary-soft);
+                color: var(--company-primary);
                 font-size: 12px;
                 font-weight: 700;
             }
@@ -209,7 +233,7 @@
                 width: 320px;
                 padding: 0;
                 border: 1px solid var(--company-line);
-                border-radius: 20px;
+                border-radius: 18px;
                 overflow: hidden;
                 box-shadow: 0 24px 50px rgba(15, 23, 42, .14);
             }
@@ -293,15 +317,15 @@
                 padding: 0 18px;
                 border-radius: 999px;
                 border: 0;
-                background: var(--company-accent);
+                background: var(--company-primary);
                 color: #fff;
                 font-size: 13px;
                 font-weight: 800;
             }
 
             .browse-companies-page .summary-card {
-                padding: 18px 20px;
-                margin-bottom: 18px;
+                padding: 16px 18px;
+                margin-bottom: 16px;
             }
 
             .browse-companies-page .summary-card h4 {
@@ -318,28 +342,28 @@
             }
 
             .browse-companies-page .company-card {
-                padding: 24px;
-                margin-bottom: 20px;
+                padding: 18px;
+                margin-bottom: 14px;
                 transition: .2s ease;
             }
 
             .browse-companies-page .company-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 26px 60px rgba(15, 23, 42, .09);
-                border-color: rgba(47, 127, 247, .26);
+                transform: translateY(-2px);
+                box-shadow: 0 24px 52px rgba(15, 23, 42, .07);
+                border-color: rgba(212, 90, 24, .24);
             }
 
             .browse-companies-page .company-card-inner {
                 display: grid;
-                grid-template-columns: 108px minmax(0, 1fr);
-                gap: 22px;
+                grid-template-columns: 86px minmax(0, 1fr);
+                gap: 18px;
                 align-items: start;
             }
 
             .browse-companies-page .company-logo {
-                width: 108px;
-                height: 108px;
-                border-radius: 24px;
+                width: 86px;
+                height: 86px;
+                border-radius: 18px;
                 border: 1px solid rgba(226, 232, 240, .9);
                 background: linear-gradient(180deg, #fff, #f8fafc);
                 display: flex;
@@ -349,20 +373,20 @@
             }
 
             .browse-companies-page .company-logo img {
-                width: 76px;
-                height: 76px;
+                width: 62px;
+                height: 62px;
                 object-fit: contain;
             }
 
             .browse-companies-page .company-header {
-                margin-bottom: 16px;
+                margin-bottom: 12px;
             }
 
             .browse-companies-page .company-title {
-                margin: 0 0 8px;
-                font-size: 22px;
+                margin: 0 0 7px;
+                font-size: 20px;
                 line-height: 1.35;
-                font-weight: 900;
+                font-weight: 850;
             }
 
             .browse-companies-page .company-title a {
@@ -376,22 +400,22 @@
             .browse-companies-page .company-meta {
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 8px;
             }
 
             .browse-companies-page .meta-pill {
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
-                min-height: 38px;
-                padding: 8px 14px;
+                gap: 7px;
+                min-height: 32px;
+                padding: 6px 11px;
                 border-radius: 999px;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 700;
             }
 
             .browse-companies-page .meta-pill.jobs {
-                background: rgba(47, 127, 247, .1);
+                background: var(--company-primary-soft);
                 color: var(--company-primary);
             }
 
@@ -408,22 +432,22 @@
             .browse-companies-page .company-contact {
                 display: grid;
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 12px;
-                margin-bottom: 18px;
+                gap: 10px;
+                margin-bottom: 12px;
             }
 
             .browse-companies-page .contact-box {
-                padding: 14px 16px;
-                border-radius: 16px;
+                padding: 10px 12px;
+                border-radius: 13px;
                 background: var(--company-soft);
                 border: 1px solid rgba(226, 232, 240, .8);
             }
 
             .browse-companies-page .contact-box span {
                 display: block;
-                margin-bottom: 4px;
+                margin-bottom: 3px;
                 color: var(--company-muted);
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: .04em;
@@ -432,17 +456,17 @@
             .browse-companies-page .contact-box p {
                 margin: 0;
                 color: var(--company-ink);
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 700;
-                line-height: 1.5;
+                line-height: 1.45;
                 word-break: break-word;
             }
 
             .browse-companies-page .featured-job {
-                border-radius: 18px;
+                border-radius: 15px;
                 border: 1px solid rgba(226, 232, 240, .85);
                 background: linear-gradient(180deg, rgba(248, 250, 252, .95), #fff);
-                padding: 18px;
+                padding: 14px 16px;
             }
 
             .browse-companies-page .featured-job-head {
@@ -450,12 +474,12 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 12px;
-                margin-bottom: 14px;
+                margin-bottom: 10px;
             }
 
             .browse-companies-page .featured-job-head h5 {
                 margin: 0;
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 800;
                 color: var(--company-ink);
             }
@@ -470,7 +494,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                gap: 14px;
+                gap: 12px;
             }
 
             .browse-companies-page .featured-job-title {
@@ -480,9 +504,9 @@
             .browse-companies-page .featured-job-title a {
                 display: block;
                 color: var(--company-ink);
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 800;
-                line-height: 1.5;
+                line-height: 1.45;
             }
 
             .browse-companies-page .featured-job-title a:hover {
@@ -506,8 +530,8 @@
             .browse-companies-page .job-badge {
                 padding: 9px 12px;
                 border-radius: 12px;
-                background: rgba(255, 107, 53, .08);
-                color: #c2410c;
+                background: var(--company-primary-soft);
+                color: var(--company-primary);
                 font-size: 12px;
                 font-weight: 800;
                 white-space: nowrap;
@@ -525,8 +549,8 @@
                 align-items: center;
                 justify-content: space-between;
                 gap: 12px;
-                margin-top: 18px;
-                padding-top: 18px;
+                margin-top: 12px;
+                padding-top: 12px;
                 border-top: 1px solid rgba(226, 232, 240, .8);
             }
 
@@ -537,8 +561,8 @@
             }
 
             .browse-companies-page .jobguru-btn-2 {
-                border-radius: 14px;
-                padding: 11px 20px;
+                border-radius: 12px;
+                padding: 10px 18px;
                 font-weight: 800;
             }
 
@@ -572,6 +596,85 @@
 
             .browse-companies-page .pagination-wrap {
                 margin-top: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                flex-wrap: wrap;
+            }
+
+            .browse-companies-page .pagination-info {
+                margin: 0;
+                color: var(--company-muted);
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .browse-companies-page .pagination-controls {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 6px;
+                border: 1px solid var(--company-line);
+                border-radius: 16px;
+                background: #fff;
+                box-shadow: 0 16px 34px rgba(15, 23, 42, .05);
+            }
+
+            .browse-companies-page .pager-btn {
+                min-width: 38px;
+                height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 10px;
+                border: 1px solid var(--company-line);
+                background: #fff;
+                color: var(--company-ink);
+                font-size: 13px;
+                font-weight: 800;
+                line-height: 1;
+                box-shadow: none;
+                transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+            }
+
+            .browse-companies-page .pager-btn:hover:not(:disabled) {
+                background: var(--company-primary-soft);
+                border-color: rgba(212, 90, 24, .28);
+                color: var(--company-primary);
+            }
+
+            .browse-companies-page .pager-btn:active:not(:disabled) {
+                transform: translateY(1px);
+            }
+
+            .browse-companies-page .pager-btn.is-active {
+                background: var(--company-primary);
+                border-color: var(--company-primary);
+                color: #fff;
+            }
+
+            .browse-companies-page .pager-btn:disabled {
+                background: var(--company-soft);
+                color: #94a3b8;
+                cursor: not-allowed;
+                opacity: .72;
+            }
+
+            .browse-companies-page .pager-nav {
+                padding: 0 14px;
+            }
+
+            .browse-companies-page .pager-ellipsis {
+                min-width: 28px;
+                height: 38px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--company-muted);
+                font-size: 13px;
+                font-weight: 800;
             }
 
             @media (max-width: 1199px) {
@@ -581,6 +684,12 @@
             }
 
             @media (max-width: 991px) {
+                .browse-companies-page .filter-sidebar {
+                    position: static;
+                    max-height: none;
+                    overflow: visible;
+                    padding-right: 0;
+                }
 
                 .browse-companies-page .company-card-inner,
                 .browse-companies-page .toolbar-top,
@@ -599,9 +708,14 @@
                 .browse-companies-page .featured-job-row,
                 .browse-companies-page .company-footer,
                 .browse-companies-page .toolbar-summary,
+                .browse-companies-page .pagination-wrap,
                 .browse-companies-page .city-dropdown-foot {
                     flex-direction: column;
                     align-items: stretch;
+                }
+
+                .browse-companies-page .pagination-controls {
+                    align-self: center;
                 }
 
                 .browse-companies-page .featured-job-side {
@@ -620,7 +734,7 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="breadcromb-box">
-                                <h3>Danh sách chi nhánh tuyển dụng</h3>
+                                <h3>Doanh nghiệp tuyển dụng</h3>
                             </div>
                         </div>
                     </div>
@@ -634,7 +748,7 @@
                                 <ul>
                                     <li><a href="{{ route('home') }}">Trang chủ</a></li>
                                     <li><a href="#">Ứng viên</a></li>
-                                    <li class="active-breadcromb"><a href="#">Danh sách chi nhánh</a></li>
+                                    <li class="active-breadcromb"><a href="#">Doanh nghiệp</a></li>
                                 </ul>
                             </div>
                         </div>
@@ -650,7 +764,7 @@
                         <div class="filter-sidebar">
                             <div class="filter-card">
                                 <h3>Ngày đăng tuyển</h3>
-                                <p class="filter-helper">Lọc chi nhánh đang có tin mới nhất theo khoảng thời gian bạn quan
+                                <p class="filter-helper">Lọc doanh nghiệp có tin mới theo khoảng thời gian bạn quan
                                     tâm.</p>
 
                                 <div class="filter-option">
@@ -687,7 +801,7 @@
 
                             <div class="filter-card" wire:ignore>
                                 <h3>Mức lương tối thiểu</h3>
-                                <p class="filter-helper">Chỉ hiển thị chi nhánh có việc làm với mức lương tối đa phù hợp.
+                                <p class="filter-helper">Lọc theo mức lương cao nhất của các vị trí đang mở.
                                 </p>
                                 <input type="text" id="amount" class="salary-value" readonly>
                                 <div id="slider-single"></div>
@@ -702,7 +816,7 @@
                                     <div class="search-box">
                                         <form wire:submit.prevent="">
                                             <input type="search" wire:model.live.debounce.500ms="search"
-                                                placeholder="Tìm chi nhánh, vị trí tuyển dụng hoặc địa điểm...">
+                                                placeholder="Tìm doanh nghiệp, vị trí hoặc khu vực...">
                                             <button type="button" aria-label="Tìm kiếm">
                                                 <i class="fa fa-search"></i>
                                             </button>
@@ -713,7 +827,7 @@
                                         <button class="toolbar-button dropdown-toggle" type="button"
                                             id="cityDropdownBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside">
                                             <i class="fa fa-map-marker"></i>
-                                            {{ count($applied_cities) > 0 ? 'Địa điểm (' . count($applied_cities) . ')' : 'Chọn địa điểm' }}
+                                            {{ count($applied_cities) > 0 ? 'Khu vực (' . count($applied_cities) . ')' : 'Chọn khu vực' }}
                                         </button>
 
                                         <div class="dropdown-menu city-dropdown-menu" wire:ignore.self>
@@ -753,7 +867,7 @@
 
                                 <div class="summary-badge">
                                     <i class="fa fa-building-o"></i>
-                                    {{ $branches->total() }} chi nhánh phù hợp
+                                    {{ $branches->total() }} doanh nghiệp
                                 </div>
                             </div>
 
@@ -769,7 +883,7 @@
                                     @if (!empty($applied_cities))
                                         <span class="filter-chip">
                                             <i class="fa fa-map-marker"></i>
-                                            {{ count($applied_cities) }} địa điểm đã chọn
+                                            {{ count($applied_cities) }} khu vực đã chọn
                                         </span>
                                     @endif
 
@@ -782,22 +896,12 @@
                                 </div>
 
                                 <div class="company-footer-note">
-                                    Cập nhật danh sách chi nhánh đang có tin tuyển dụng còn hiệu lực.
+                                    Chỉ hiển thị doanh nghiệp có vị trí còn hạn ứng tuyển.
                                 </div>
                             </div>
                         </div>
 
-                        <div class="summary-card">
-                            <h4>Khám phá nhà tuyển dụng đang hoạt động</h4>
-                            <p>Thông tin được sắp theo chi nhánh mới cập nhật gần đây, kèm vị trí tuyển dụng nổi bật và
-                                mức lương tham khảo.</p>
-                        </div>
-
-                        @php
-                            $visibleBranches = $branches->filter(fn($branch) => ((int) ($branch->published_jobs_count ?? 0)) > 0);
-                        @endphp
-
-                        @forelse ($visibleBranches as $branch)
+                        @forelse ($branches as $branch)
                             @php
                                 $featuredJob = $branch->recruitmentJobs->first();
                                 $salaryText = 'Thỏa thuận';
@@ -833,7 +937,7 @@
                                             <div class="company-meta">
                                                 <span class="meta-pill jobs">
                                                     <i class="fa fa-briefcase"></i>
-                                                    {{ $branch->published_jobs_count }} vị trí đang tuyển
+                                                    {{ $branch->published_jobs_count }} vị trí
                                                 </span>
                                                 <span class="meta-pill location">
                                                     <i class="fa fa-map-marker"></i>
@@ -841,18 +945,18 @@
                                                 </span>
                                                 <span class="meta-pill status">
                                                     <i class="fa fa-check-circle"></i>
-                                                    {{ $branch->is_active ? 'Đang hoạt động' : 'Tạm ngưng' }}
+                                                    {{ $branch->is_active ? 'Đang tuyển' : 'Tạm ngưng' }}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div class="company-contact">
                                             <div class="contact-box">
-                                                <span>Email liên hệ</span>
+                                                <span>Email</span>
                                                 <p>{{ $branch->email_contact ?: 'Chưa cập nhật email liên hệ' }}</p>
                                             </div>
                                             <div class="contact-box">
-                                                <span>Địa chỉ</span>
+                                                <span>Khu vực</span>
                                                 <p>{{ $branch->address ?: ($cityLabel ?: 'Chưa cập nhật địa chỉ') }}</p>
                                             </div>
                                         </div>
@@ -860,8 +964,8 @@
                                         @if ($featuredJob)
                                             <div class="featured-job">
                                                 <div class="featured-job-head">
-                                                    <h5>Vị trí nổi bật</h5>
-                                                    <span>{{ $branch->recruitmentJobs->count() }} tin hiển thị</span>
+                                                    <h5>Vị trí phù hợp</h5>
+                                                    <span>{{ $branch->recruitmentJobs->count() }} tin</span>
                                                 </div>
 
                                                 <div class="featured-job-row">
@@ -870,9 +974,6 @@
                                                             href="{{ route('candidates.job_detail', ['id' => $featuredJob->id]) }}">
                                                             {{ $featuredJob->title }}
                                                         </a>
-                                                        <div class="featured-job-sub">
-                                                            Tin tuyển dụng mới nhất từ công ty này.
-                                                        </div>
                                                     </div>
 
                                                     <div class="featured-job-side">
@@ -888,13 +989,15 @@
 
                                         <div class="company-footer">
                                             <div class="company-footer-note">
-                                                Doanh nghiệp đang có nhu cầu tuyển dụng và còn hạn nhận hồ sơ.
+                                                @if (!empty($featuredJob?->created_at))
+                                                    Cập nhật {{ $featuredJob->created_at?->format('d/m/Y') }}
+                                                @endif
                                             </div>
 
                                             @if ($featuredJob)
                                                 <a href="{{ route('employers.single_company', ['branch' => $branch->id]) }}"
                                                     class="jobguru-btn-2">
-                                                    Xem chi tiết
+                                                    Xem vị trí
                                                 </a>
                                             @endif
                                         </div>
@@ -904,16 +1007,77 @@
                         @empty
                             <div class="empty-state">
                                 <img src="{{ asset('assets/img/no-results.png') }}" alt="Không có dữ liệu">
-                                <h4>Không tìm thấy công ty phù hợp</h4>
+                                <h4>Không tìm thấy doanh nghiệp phù hợp</h4>
                                 <p>Hãy thử thay đổi từ khóa, mở rộng khu vực tìm kiếm hoặc giảm mức lương tối thiểu để xem
                                     thêm kết quả.</p>
                             </div>
                         @endforelse
 
                         @if ($branches->hasPages())
-                            <div class="pagination-wrap">
-                                {{ $branches->links() }}
-                            </div>
+                            @php
+                                $currentPage = $branches->currentPage();
+                                $lastPage = $branches->lastPage();
+                                $startPage = max(1, $currentPage - 1);
+                                $endPage = min($lastPage, $currentPage + 1);
+
+                                if ($currentPage <= 2) {
+                                    $endPage = min($lastPage, 3);
+                                }
+
+                                if ($currentPage >= $lastPage - 1) {
+                                    $startPage = max(1, $lastPage - 2);
+                                }
+                            @endphp
+
+                            <nav class="pagination-wrap" aria-label="Phân trang danh sách doanh nghiệp">
+                                <p class="pagination-info">
+                                    Hiển thị {{ $branches->firstItem() }}-{{ $branches->lastItem() }} trong
+                                    {{ $branches->total() }} doanh nghiệp
+                                </p>
+
+                                <div class="pagination-controls">
+                                    <button type="button" class="pager-btn pager-nav" wire:click="previousPage"
+                                        wire:loading.attr="disabled" @disabled($branches->onFirstPage()) aria-label="Trang trước">
+                                        Trước
+                                    </button>
+
+                                    @if ($startPage > 1)
+                                        <button type="button" class="pager-btn" wire:click="gotoPage(1)"
+                                            wire:loading.attr="disabled" aria-label="Đến trang 1">
+                                            1
+                                        </button>
+
+                                        @if ($startPage > 2)
+                                            <span class="pager-ellipsis" aria-hidden="true">...</span>
+                                        @endif
+                                    @endif
+
+                                    @for ($page = $startPage; $page <= $endPage; $page++)
+                                        <button type="button" class="pager-btn {{ $page === $currentPage ? 'is-active' : '' }}"
+                                            wire:click="gotoPage({{ $page }})" wire:loading.attr="disabled"
+                                            @disabled($page === $currentPage) @if ($page === $currentPage) aria-current="page" @endif
+                                            aria-label="Đến trang {{ $page }}">
+                                            {{ $page }}
+                                        </button>
+                                    @endfor
+
+                                    @if ($endPage < $lastPage)
+                                        @if ($endPage < $lastPage - 1)
+                                            <span class="pager-ellipsis" aria-hidden="true">...</span>
+                                        @endif
+
+                                        <button type="button" class="pager-btn" wire:click="gotoPage({{ $lastPage }})"
+                                            wire:loading.attr="disabled" aria-label="Đến trang {{ $lastPage }}">
+                                            {{ $lastPage }}
+                                        </button>
+                                    @endif
+
+                                    <button type="button" class="pager-btn pager-nav" wire:click="nextPage"
+                                        wire:loading.attr="disabled" @disabled(! $branches->hasMorePages()) aria-label="Trang sau">
+                                        Sau
+                                    </button>
+                                </div>
+                            </nav>
                         @endif
                     </div>
                 </div>

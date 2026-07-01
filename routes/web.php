@@ -208,7 +208,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
 Route::prefix('pages')->name('pages.')->group(function () {
     Route::get('/about', PagesAbout::class)->name('about');
     Route::get('/blog', Blog::class)->name('blog');
-    Route::get('/single', Single::class)->name('single');
+    Route::get('/single/{post?}', Single::class)->name('single');
     Route::get('/job-page', JobPage::class)->name('job');
     Route::get('/contact', Contact::class)->name('contact');
 });
