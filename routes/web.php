@@ -34,6 +34,7 @@ use App\Livewire\Client\JobPage;
 use App\Livewire\Client\Login as PagesLogin;
 use App\Livewire\Client\ManageJobs;
 use App\Livewire\Client\Messages;
+use App\Livewire\Client\Notifications;
 use App\Livewire\Client\PostJobs as ClientPostJobs;
 use App\Livewire\Client\ForgotPassword;
 use App\Livewire\Client\Register as PagesRegister;
@@ -170,6 +171,7 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
         Route::get('manage-jobs', ManageJobs::class)->name('manage_jobs');
         Route::get('applications/{application}', ApplicationDetail::class)->name('application_detail');
         Route::get('earnings', Earnings::class)->name('earnings');
+        Route::get('notifications', Notifications::class)->name('notifications');
         Route::get('change-password', EmployerChangePassword::class)->name('change_password');
     });
 });
@@ -193,6 +195,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/message', EmployerMessage::class)->name('message');
         Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
         Route::get('/transaction', Transaction::class)->name('transaction');
+        Route::get('/notifications', Notifications::class)->name('notifications');
         Route::get('/change-password', EmployerChangePassword::class)->name('change_password');
         Route::get('/candidate-profile', EmpCandidateProfile::class)->name('candidate_profile');
         Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');

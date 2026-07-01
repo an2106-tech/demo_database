@@ -69,6 +69,12 @@
                 <span>Đổi mật khẩu</span>
             </a>
         </li>
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.notifications') ? 'is-active' : '' }}" href="{{ route('employers.notifications') }}">
+                <i class="fa fa-bell"></i>
+                <span>Thông báo</span>
+            </a>
+        </li>
     </ul>
 
     <div class="sidebar-shell__footer">

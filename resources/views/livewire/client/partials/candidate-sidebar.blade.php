@@ -51,6 +51,12 @@
                 <span>Bảo mật & Mật khẩu</span>
             </a>
         </li>
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('candidates.notifications') ? 'is-active' : '' }}" href="{{ route('candidates.notifications') }}">
+                <i class="fa fa-bell"></i>
+                <span>Thông báo</span>
+            </a>
+        </li>
     </ul>
 
     <div class="sidebar-shell__footer">
