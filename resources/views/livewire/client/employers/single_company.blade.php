@@ -45,8 +45,8 @@
                 <div class="col-md-10 col-lg-8 mx-auto">
                     <div class="single-candidate-bottom-left">
                         <div class="single-candidate-widget">
-                            <h3>Mô tả công ty</h3>
-                            <p>{!! nl2br(e($branch->description ?: 'Công ty đang cập nhật phần giới thiệu để ứng viên hiểu rõ hơn về môi trường làm việc, định hướng phát triển và nhu cầu tuyển dụng.')) !!}</p>
+                            <h3>Mô tả chi nhánh</h3>
+                            <p>{!! nl2br(e($branch->description ?: 'Chi nhánh đang cập nhật phần giới thiệu để ứng viên hiểu rõ hơn về môi trường làm việc, định hướng phát triển và nhu cầu tuyển dụng.')) !!}</p>
                         </div>
 
                         <div class="single-candidate-widget">

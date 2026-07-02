@@ -439,7 +439,8 @@
                                 class="d-none"
                                 accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
                                 x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
-                            >`r`n                            <label for="cv_upload">Chọn file</label>
+                            >
+                            <label for="cv_upload">Chọn file</label>
                             <div wire:loading wire:target="cv" class="profile-redesign__uploading">Đang tải lên...</div>
                             <div
                                 x-show="selectedCvName"

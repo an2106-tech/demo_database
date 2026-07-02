@@ -215,7 +215,7 @@
                                     </button>
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('employers.company_profile') }}">Hồ sơ công ty</a>
+                                        <a href="{{ route('employers.company_profile') }}">Hồ sơ chi nhánh</a>
                                         @if(!($canCandidateAccess ?? false))
                                             <a href="{{ route('candidates.register') }}">Kích hoạt hồ sơ ứng viên</a>
                                         @else

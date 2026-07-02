@@ -105,7 +105,7 @@ class CompanyProfile extends Component
         $this->branch = $branch->fresh(['workplaces']);
         $this->fillFromBranch();
 
-        $this->dispatch('app-notify', message: 'Cập nhật hồ sơ công ty thành công.');
+        $this->dispatch('app-notify', message: 'Cập nhật hồ sơ chi nhánh thành công.');
     }
 
     public function updatedCity(?string $value): void
@@ -125,12 +125,12 @@ class CompanyProfile extends Component
     protected function messages(): array
     {
         return [
-            'name.required' => 'Vui lòng nhập tên công ty.',
+            'name.required' => 'Vui lòng nhập tên chi nhánh.',
             'city.required' => 'Vui lòng chọn tỉnh/thành phố.',
             'city' => 'Vui lòng chọn tỉnh/thành phố hợp lệ.',
             'employee_count.integer' => 'Số lượng nhân sự phải là số.',
             'employee_count.min' => 'Số lượng nhân sự không hợp lệ.',
-            'phone.regex' => 'Số điện thoại công ty không hợp lệ.',
+            'phone.regex' => 'Số điện thoại chi nhánh không hợp lệ.',
             'email_contact.email' => 'Email liên hệ không đúng định dạng.',
             'email_contact.unique' => 'Email liên hệ này đã được sử dụng cho chi nhánh khác.',
             'logo.image' => 'Logo phải là tệp hình ảnh.',
@@ -177,12 +177,12 @@ class CompanyProfile extends Component
     private function refreshProfileStatus(): void
     {
         $fields = [
-            'name' => 'tên công ty',
+            'name' => 'tên chi nhánh',
             'city' => 'tỉnh/thành phố',
             'address' => 'địa chỉ',
             'phone' => 'số điện thoại',
             'email_contact' => 'email liên hệ',
-            'description' => 'mô tả công ty',
+            'description' => 'mô tả chi nhánh',
             'website' => 'website',
         ];
 

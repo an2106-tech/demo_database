@@ -20,7 +20,7 @@
         <li>
             <a class="sidebar-nav__link {{ request()->routeIs('employers.company_profile') ? 'is-active' : '' }}" href="{{ route('employers.company_profile') }}">
                 <i class="fa fa-building"></i>
-                <span>Hồ sơ công ty</span>
+                <span>Hồ sơ chi nhánh</span>
             </a>
         </li>
 

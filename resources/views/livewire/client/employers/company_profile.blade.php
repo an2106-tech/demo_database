@@ -8,7 +8,7 @@
         <ul>
             <li><a href="{{ route('home') }}">Trang chủ</a></li>
             <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-            <li class="active">Hồ sơ công ty</li>
+            <li class="active">Hồ sơ chi nhánh</li>
         </ul>
     </div>
 
@@ -24,7 +24,7 @@
                     <div class="profile-redesign__company-logo">
                         <img
                             src="{{ $logo ? $logo->temporaryUrl() : ($branch?->image ? asset('storage/' . ltrim($branch->image, '/')) : asset('assets/img/company-logo-1.png')) }}"
-                            alt="{{ $name ?: 'Logo công ty' }}"
+                            alt="{{ $name ?: 'Logo chi nhánh' }}"
                         >
                     </div>
 
@@ -48,8 +48,8 @@
                         @error('logo') <small class="profile-redesign__error">{{ $message }}</small> @enderror
                     @endif
 
-                    <span>{{ $canEdit ? 'Director có quyền cập nhật' : 'Chế độ xem' }}</span>
-                    <strong>{{ $name ?: 'Hồ sơ công ty' }}</strong>
+                    <span>{{ $canEdit ? 'Giám đốc chi nhánh có quyền cập nhật' : 'Chế độ xem' }}</span>
+                    <strong>{{ $name ?: 'Hồ sơ chi nhánh' }}</strong>
                     <p>{{ $code ? 'Mã chi nhánh: ' . $code : 'Thông tin chi nhánh tuyển dụng' }}</p>
                 </div>
 
@@ -65,7 +65,7 @@
                         </div>
 
                         @if ($isProfileReady)
-                            <p class="profile-redesign__status-note is-ready">Hồ sơ công ty đã đủ thông tin hiển thị cho ứng viên.</p>
+                            <p class="profile-redesign__status-note is-ready">Hồ sơ chi nhánh đã đủ thông tin hiển thị cho ứng viên.</p>
                         @else
                             <div class="profile-redesign__missing-list">
                                 <span>Còn thiếu</span>
@@ -97,8 +97,8 @@
                 <header class="profile-redesign__hero profile-redesign__hero--company">
                     <div class="profile-redesign__hero-copy">
                         <span class="profile-redesign__eyebrow">Hồ sơ nhà tuyển dụng</span>
-                        <h1>{{ $name ?: 'Hồ sơ công ty' }}</h1>
-                        <p>{{ $address ?: 'Quản lý thông tin nhận diện, liên hệ và mô tả công ty để ứng viên có đủ dữ liệu trước khi ứng tuyển.' }}</p>
+                        <h1>{{ $name ?: 'Hồ sơ chi nhánh' }}</h1>
+                        <p>{{ $address ?: 'Quản lý thông tin nhận diện, liên hệ và mô tả chi nhánh để ứng viên có đủ dữ liệu trước khi ứng tuyển.' }}</p>
                     </div>
                 </header>
 
@@ -107,13 +107,13 @@
                         <div class="profile-redesign__panel-head">
                             <div>
                                 <span>01</span>
-                                <h2>Thông tin công ty</h2>
+                                <h2>Thông tin chi nhánh</h2>
                             </div>
                         </div>
 
                         <div class="profile-redesign__grid">
                             <label class="profile-redesign__field profile-redesign__field--wide">
-                                <span>Tên công ty</span>
+                                <span>Tên chi nhánh</span>
                                 <input type="text" wire:model.defer="name" @readonly(! $canEdit)>
                                 @error('name') <small class="profile-redesign__error">{{ $message }}</small> @enderror
                             </label>
@@ -211,7 +211,7 @@
                     @if($canEdit)
                         <div class="profile-redesign__actions">
                             <button type="submit" class="profile-redesign__submit" wire:loading.attr="disabled" wire:target="save">
-                                <span wire:loading.remove wire:target="save">Cập nhật hồ sơ công ty</span>
+                                <span wire:loading.remove wire:target="save">Cập nhật hồ sơ chi nhánh</span>
                                 <span wire:loading wire:target="save">Đang lưu...</span>
                                 <span>→</span>
                             </button>
@@ -219,7 +219,7 @@
                     @else
                         <div class="profile-redesign__actions profile-redesign__actions--muted">
                             <button type="button" class="profile-redesign__submit" disabled>
-                                Chỉ Director được cập nhật hồ sơ công ty
+                                Chỉ Giám đốc chi nhánh được cập nhật hồ sơ
                             </button>
                         </div>
                     @endif
