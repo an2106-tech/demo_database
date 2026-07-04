@@ -256,8 +256,128 @@
             color: #991b1b;
         }
 
+        .pipeline-action--schedule {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .pipeline-action--schedule:hover {
+            background: #16a34a;
+            border-color: #16a34a;
+            color: #fff;
+        }
+
         .pipeline-action--wide {
             grid-column: 1 / -1;
+        }
+
+        .interview-modal-backdrop {
+            align-items: center;
+            background: rgba(15, 23, 42, 0.48);
+            display: flex;
+            inset: 0;
+            justify-content: center;
+            padding: 1.5rem;
+            position: fixed;
+            z-index: 1050;
+        }
+
+        .interview-modal {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 22px;
+            box-shadow: 0 35px 80px -35px rgba(15, 23, 42, 0.65);
+            max-height: 92vh;
+            max-width: 760px;
+            overflow-y: auto;
+            padding: 1.5rem;
+            width: min(760px, 100%);
+        }
+
+        .interview-modal__head {
+            align-items: flex-start;
+            display: flex;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .interview-modal__head h3 {
+            color: #0f172a;
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin: 0;
+        }
+
+        .interview-modal__head p {
+            color: #64748b;
+            font-size: 0.86rem;
+            margin: 0.25rem 0 0;
+        }
+
+        .interview-form-grid {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .interview-field {
+            display: grid;
+            gap: 0.35rem;
+        }
+
+        .interview-field--full {
+            grid-column: 1 / -1;
+        }
+
+        .interview-field label {
+            color: #334155;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .interview-field input,
+        .interview-field select,
+        .interview-field textarea {
+            border: 1px solid #dbe3ef;
+            border-radius: 12px;
+            color: #0f172a;
+            font-size: 0.9rem;
+            padding: 0.72rem 0.85rem;
+            width: 100%;
+        }
+
+        .interview-field textarea {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .interview-error {
+            color: #b91c1c;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .interview-modal__actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.35rem;
+        }
+
+        .interview-modal__button {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 800;
+            padding: 0.78rem 1rem;
+        }
+
+        .interview-modal__button--primary {
+            background: var(--fpt-orange);
+            border-color: var(--fpt-orange);
+            color: #fff;
         }
 
         .filter-section {
@@ -393,6 +513,11 @@
                                                 $advancedUrl = \Illuminate\Support\Facades\Route::has('filament.admin.resources.applications.edit')
                                                     ? route('filament.admin.resources.applications.edit', ['record' => $app->id])
                                                     : null;
+                                                $canScheduleInterview = in_array($status, [
+                                                    \App\Enums\StatusApplicationEnum::SCREENING,
+                                                    \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                                                    \App\Enums\StatusApplicationEnum::INTERVIEWING,
+                                                ], true);
                                                 $warnings = [];
                                                 if (! $app->is_viewed) {
                                                     $warnings[] = ['label' => 'Chưa xem', 'class' => 'pipeline-alert--warning'];
@@ -496,6 +621,19 @@
                                                         </button>
                                                     @endif
 
+                                                    @if($canScheduleInterview)
+                                                        <button
+                                                            type="button"
+                                                            wire:click="openInterviewScheduler({{ $app->id }})"
+                                                            wire:loading.attr="disabled"
+                                                            wire:target="openInterviewScheduler({{ $app->id }})"
+                                                            class="pipeline-action pipeline-action--schedule"
+                                                        >
+                                                            <i class="fa fa-calendar"></i>
+                                                            {{ $app->latestInterview ? 'Sửa lịch PV' : 'Lên lịch PV' }}
+                                                        </button>
+                                                    @endif
+
                                                     @if($status && ! in_array($status, [\App\Enums\StatusApplicationEnum::REJECTED, \App\Enums\StatusApplicationEnum::HIRED], true))
                                                         <button
                                                             type="button"
@@ -526,5 +664,105 @@
             </div>
         </div>
     </section>
-</div>
 
+    @if($showInterviewModal)
+        <div class="interview-modal-backdrop" wire:keydown.escape.window="closeInterviewScheduler">
+            <div class="interview-modal">
+                <div class="interview-modal__head">
+                    <div>
+                        <h3>{{ $selectedInterviewApplication?->latestInterview ? 'Cập nhật lịch phỏng vấn' : 'Lên lịch phỏng vấn' }}</h3>
+                        <p>
+                            {{ $selectedInterviewApplication?->snapshotCandidateName() ?? 'Ứng viên' }}
+                            @if($selectedInterviewApplication?->job)
+                                · {{ $selectedInterviewApplication->job->title }}
+                            @endif
+                        </p>
+                    </div>
+                    <button type="button" class="pipeline-action" style="width: auto;" wire:click="closeInterviewScheduler">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="saveInterviewSchedule">
+                    <div class="interview-form-grid">
+                        <div class="interview-field">
+                            <label for="interview-round-name">Tên vòng phỏng vấn</label>
+                            <input id="interview-round-name" type="text" wire:model="interviewForm.round_name" placeholder="Phỏng vấn vòng 1">
+                            @error('interviewForm.round_name') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="interview-scheduled-at">Thời gian</label>
+                            <input id="interview-scheduled-at" type="datetime-local" wire:model="interviewForm.scheduled_at">
+                            @error('interviewForm.scheduled_at') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="interview-duration">Thời lượng</label>
+                            <select id="interview-duration" wire:model="interviewForm.duration_minutes">
+                                <option value="30">30 phút</option>
+                                <option value="45">45 phút</option>
+                                <option value="60">60 phút</option>
+                                <option value="90">90 phút</option>
+                            </select>
+                            @error('interviewForm.duration_minutes') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="interview-interviewer">Người phỏng vấn</label>
+                            <select id="interview-interviewer" wire:model="interviewForm.interviewer_id">
+                                <option value="">Chọn người phỏng vấn</option>
+                                @foreach($interviewerOptions as $id => $label)
+                                    <option value="{{ $id }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('interviewForm.interviewer_id') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="interview-type">Hình thức</label>
+                            <select id="interview-type" wire:model.live="interviewForm.type">
+                                <option value="online">Online</option>
+                                <option value="offline">Offline</option>
+                            </select>
+                            @error('interviewForm.type') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        @if(($interviewForm['type'] ?? 'online') === 'online')
+                            <div class="interview-field">
+                                <label for="interview-meeting-link">Link phỏng vấn</label>
+                                <input id="interview-meeting-link" type="url" wire:model="interviewForm.meeting_link" placeholder="https://meet.google.com/...">
+                                @error('interviewForm.meeting_link') <span class="interview-error">{{ $message }}</span> @enderror
+                            </div>
+                        @else
+                            <div class="interview-field">
+                                <label for="interview-workplace">Phòng phỏng vấn</label>
+                                <select id="interview-workplace" wire:model="interviewForm.workplace_id">
+                                    <option value="">Chọn phòng phỏng vấn</option>
+                                    @foreach($workplaceOptions as $id => $label)
+                                        <option value="{{ $id }}">{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                                @error('interviewForm.workplace_id') <span class="interview-error">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
+
+                        <div class="interview-field interview-field--full">
+                            <label for="interview-notes">Ghi chú gửi kèm</label>
+                            <textarea id="interview-notes" wire:model="interviewForm.notes" placeholder="Ví dụ: chuẩn bị portfolio, vào meeting trước 5 phút..."></textarea>
+                            @error('interviewForm.notes') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="interview-modal__actions">
+                        <button type="button" class="interview-modal__button" wire:click="closeInterviewScheduler">Hủy</button>
+                        <button type="submit" class="interview-modal__button interview-modal__button--primary" wire:loading.attr="disabled" wire:target="saveInterviewSchedule">
+                            <span wire:loading.remove wire:target="saveInterviewSchedule">Lưu lịch phỏng vấn</span>
+                            <span wire:loading wire:target="saveInterviewSchedule">Đang lưu...</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+</div>

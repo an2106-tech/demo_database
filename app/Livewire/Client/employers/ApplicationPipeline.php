@@ -3,14 +3,22 @@
 namespace App\Livewire\Client\Employers;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\CandidateJobSubmission;
+use App\Models\Interview;
 use App\Models\RecruitmentJob;
 use App\Models\User;
+use App\Models\Workplace;
 use App\Services\ApplicationPipelineService;
+use App\Services\InterviewCalendarService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -19,9 +27,132 @@ class ApplicationPipeline extends Component
 {
     public ?int $selectedJobId = null;
 
+    public bool $showInterviewModal = false;
+
+    public ?int $interviewApplicationId = null;
+
+    public array $interviewForm = [
+        'round_name' => '',
+        'scheduled_at' => '',
+        'duration_minutes' => 60,
+        'type' => 'online',
+        'meeting_link' => '',
+        'workplace_id' => '',
+        'interviewer_id' => '',
+        'notes' => '',
+    ];
+
     public function mount(): void
     {
         // Optional: filter by first job if exists.
+    }
+
+    public function openInterviewScheduler(int $applicationId): void
+    {
+        $application = $this->findManageableApplication($applicationId);
+
+        abort_unless($this->canScheduleInterview($application), 403);
+
+        $interview = $application->interviews()->latest('id')->first();
+        $defaultScheduledAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+            ->addDay()
+            ->setTime(9, 0);
+
+        $this->interviewApplicationId = $application->id;
+        $this->interviewForm = [
+            'round_name' => $interview?->round_name ?: 'Phỏng vấn vòng '.((int) ($interview?->round_number ?: 1)),
+            'scheduled_at' => ($interview?->scheduled_at ?? $defaultScheduledAt)->format('Y-m-d\TH:i'),
+            'duration_minutes' => (int) ($interview?->duration_minutes ?: 60),
+            'type' => $interview?->type ?: 'online',
+            'meeting_link' => (string) ($interview?->meeting_link ?: ''),
+            'workplace_id' => $interview?->workplace_id ? (string) $interview->workplace_id : '',
+            'interviewer_id' => $interview?->interviewer_id ? (string) $interview->interviewer_id : (string) Auth::id(),
+            'notes' => (string) ($interview?->notes ?: ''),
+        ];
+        $this->showInterviewModal = true;
+    }
+
+    public function closeInterviewScheduler(): void
+    {
+        $this->showInterviewModal = false;
+        $this->interviewApplicationId = null;
+        $this->resetValidation();
+    }
+
+    public function saveInterviewSchedule(
+        ApplicationPipelineService $pipelineService,
+        InterviewCalendarService $calendarService,
+    ): void {
+        $application = $this->findManageableApplication((int) $this->interviewApplicationId);
+
+        abort_unless($this->canScheduleInterview($application), 403);
+
+        $this->validate($this->interviewRules($application), [], [
+            'interviewForm.round_name' => 'tên vòng phỏng vấn',
+            'interviewForm.scheduled_at' => 'thời gian phỏng vấn',
+            'interviewForm.duration_minutes' => 'thời lượng',
+            'interviewForm.type' => 'hình thức',
+            'interviewForm.meeting_link' => 'link phỏng vấn',
+            'interviewForm.workplace_id' => 'địa điểm phỏng vấn',
+            'interviewForm.interviewer_id' => 'người phỏng vấn',
+            'interviewForm.notes' => 'ghi chú',
+        ]);
+
+        $scheduledAt = Carbon::parse($this->interviewForm['scheduled_at'], config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
+
+        if ($scheduledAt->lt(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))) {
+            throw ValidationException::withMessages([
+                'interviewForm.scheduled_at' => 'Thời gian phỏng vấn không được ở quá khứ.',
+            ]);
+        }
+
+        $existingInterview = $application->interviews()->latest('id')->first();
+        $roundNumber = (int) ($existingInterview?->round_number ?: 1);
+        $interview = $existingInterview ?? new Interview([
+            'application_id' => $application->id,
+            'round_number' => $roundNumber,
+            'result' => 'pending',
+        ]);
+
+        $interview->fill([
+            'application_id' => $application->id,
+            'interviewer_id' => (int) $this->interviewForm['interviewer_id'],
+            'round_name' => trim((string) $this->interviewForm['round_name']) ?: 'Phỏng vấn vòng '.$roundNumber,
+            'duration_minutes' => (int) $this->interviewForm['duration_minutes'],
+            'scheduled_at' => $scheduledAt,
+            'type' => $this->interviewForm['type'],
+            'meeting_link' => $this->interviewForm['type'] === 'online' ? trim((string) $this->interviewForm['meeting_link']) : null,
+            'workplace_id' => $this->interviewForm['type'] === 'offline' ? (int) $this->interviewForm['workplace_id'] : null,
+            'notes' => trim((string) $this->interviewForm['notes']) ?: null,
+        ]);
+        $interview->save();
+
+        $interview->loadMissing(['application.candidate', 'application.job.branch', 'interviewer', 'workplace']);
+        $calendarService->store($interview);
+
+        $status = $application->status instanceof StatusApplicationEnum
+            ? $application->status
+            : StatusApplicationEnum::tryFrom((string) $application->status);
+
+        if ($status === StatusApplicationEnum::SCREENING) {
+            $pipelineService->transition(
+                $application,
+                StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                Auth::user(),
+                $this->interviewScheduleComment($interview, false),
+            );
+        } else {
+            $application->recordStatusHistory(
+                $status?->value,
+                $status?->value ?? StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
+                $this->interviewScheduleComment($interview, (bool) $existingInterview),
+            );
+        }
+
+        $this->sendInterviewNotifications($interview);
+        $this->closeInterviewScheduler();
+
+        $this->dispatch('app-notify', message: $existingInterview ? 'Đã cập nhật lịch phỏng vấn.' : 'Đã tạo lịch phỏng vấn.');
     }
 
     public function markAsViewed(int $applicationId): void
@@ -116,6 +247,7 @@ class ApplicationPipeline extends Component
 
         $latestSubmissionsByApplicationKey = $this->latestSubmissionsByApplicationKey($applications);
         $nextActionStatusesByApplicationId = $this->nextActionStatusesByApplicationId($applications);
+        $selectedInterviewApplication = $this->selectedInterviewApplication();
 
         $applicationsByStage = [];
         foreach ($stages as $stageKey => $stage) {
@@ -132,6 +264,9 @@ class ApplicationPipeline extends Component
             'applicationsByStage' => $applicationsByStage,
             'latestSubmissionsByApplicationKey' => $latestSubmissionsByApplicationKey,
             'nextActionStatusesByApplicationId' => $nextActionStatusesByApplicationId,
+            'selectedInterviewApplication' => $selectedInterviewApplication,
+            'interviewerOptions' => $this->interviewerOptions($selectedInterviewApplication),
+            'workplaceOptions' => $this->workplaceOptions($selectedInterviewApplication),
         ]);
     }
 
@@ -167,6 +302,154 @@ class ApplicationPipeline extends Component
         return (int) $application->job?->created_by === (int) $user->id;
     }
 
+    private function canScheduleInterview(Application $application): bool
+    {
+        $status = $application->status instanceof StatusApplicationEnum
+            ? $application->status
+            : StatusApplicationEnum::tryFrom((string) $application->status);
+
+        return in_array($status, [
+            StatusApplicationEnum::SCREENING,
+            StatusApplicationEnum::INTERVIEW_SCHEDULED,
+            StatusApplicationEnum::INTERVIEWING,
+        ], true);
+    }
+
+    private function interviewRules(Application $application): array
+    {
+        $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+        return [
+            'interviewForm.round_name' => ['required', 'string', 'max:100'],
+            'interviewForm.scheduled_at' => ['required', 'date'],
+            'interviewForm.duration_minutes' => ['required', 'integer', Rule::in([30, 45, 60, 90])],
+            'interviewForm.type' => ['required', Rule::in(['online', 'offline'])],
+            'interviewForm.meeting_link' => [
+                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'online'),
+                'nullable',
+                'url',
+                'max:500',
+            ],
+            'interviewForm.workplace_id' => [
+                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'offline'),
+                'nullable',
+                Rule::exists('workplaces', 'id')->where(fn ($query) => $query
+                    ->where('branch_id', $branchId)
+                    ->where('is_interview_room', true)
+                    ->where('is_active', true)),
+            ],
+            'interviewForm.interviewer_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->where('branch_id', $branchId)
+                    ->where('is_active', true)
+                    ->whereIn('role', ['hr', 'pm', 'director'])),
+            ],
+            'interviewForm.notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    private function interviewScheduleComment(Interview $interview, bool $isUpdate): string
+    {
+        $scheduledAt = $interview->scheduled_at
+            ? $interview->scheduled_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y')
+            : '-';
+        $type = $interview->type === 'offline' ? 'Offline' : 'Online';
+        $location = app(InterviewCalendarService::class)->resolveLocation($interview);
+        $prefix = $isUpdate ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn';
+
+        return sprintf('%s: %s, %s, %d phút, %s.', $prefix, $scheduledAt, $type, (int) ($interview->duration_minutes ?: 60), $location);
+    }
+
+    private function sendInterviewNotifications(Interview $interview): void
+    {
+        $recipients = [];
+        $candidateEmail = $interview->application?->snapshotCandidateEmail();
+        $interviewerEmail = $interview->interviewer?->email;
+
+        if (filled($candidateEmail)) {
+            $recipients[$candidateEmail] = 'candidate';
+        }
+
+        if (filled($interviewerEmail)) {
+            $recipients[$interviewerEmail] = 'interviewer';
+        }
+
+        $sentCount = 0;
+
+        foreach ($recipients as $email => $label) {
+            try {
+                Mail::to($email)->send(new InterviewScheduledMail($interview, $label));
+                $sentCount++;
+            } catch (\Throwable $exception) {
+                Log::warning('Failed to send HR portal interview schedule mail.', [
+                    'interview_id' => $interview->id,
+                    'recipient' => $email,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if ($sentCount > 0) {
+            $interview->forceFill(['invite_sent_at' => now()])->save();
+        }
+    }
+
+    private function selectedInterviewApplication(): ?Application
+    {
+        if (! $this->interviewApplicationId) {
+            return null;
+        }
+
+        return Application::query()
+            ->with(['job.branch'])
+            ->find($this->interviewApplicationId);
+    }
+
+    private function interviewerOptions(?Application $application): array
+    {
+        if (! $application) {
+            return [];
+        }
+
+        $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+        return User::query()
+            ->where('branch_id', $branchId)
+            ->where('is_active', true)
+            ->whereIn('role', ['hr', 'pm', 'director'])
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (User $user): array => [
+                $user->id => trim($user->name.' - '.strtoupper((string) $user->role)),
+            ])
+            ->all();
+    }
+
+    private function workplaceOptions(?Application $application): array
+    {
+        if (! $application) {
+            return [];
+        }
+
+        $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+        return Workplace::query()
+            ->where('branch_id', $branchId)
+            ->where('is_interview_room', true)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (Workplace $workplace): array => [
+                $workplace->id => trim(implode(' - ', array_filter([
+                    $workplace->name,
+                    $workplace->room ? 'Phòng '.$workplace->room : null,
+                    $workplace->floor ? 'Tầng '.$workplace->floor : null,
+                ]))),
+            ])
+            ->all();
+    }
+
     private function nextActionStatus(Application $application, ApplicationPipelineService $pipelineService): ?StatusApplicationEnum
     {
         return collect($pipelineService->allowedTransitions($application->status))
@@ -194,13 +477,13 @@ class ApplicationPipeline extends Component
     private function statusLabel(StatusApplicationEnum $status): string
     {
         return match ($status) {
-            StatusApplicationEnum::CV_REVIEWING => 'Chá» sÃ ng lá»c CV',
-            StatusApplicationEnum::SCREENING => 'SÆ¡ tuyá»ƒn',
-            StatusApplicationEnum::INTERVIEW_SCHEDULED => 'ÄÃ£ lÃªn lá»‹ch phá»ng váº¥n',
-            StatusApplicationEnum::INTERVIEWING => 'Chá» Ä‘Ã¡nh giÃ¡ phá»ng váº¥n',
-            StatusApplicationEnum::OFFERED => 'Äá» nghá»‹ tuyá»ƒn dá»¥ng',
-            StatusApplicationEnum::HIRED => 'ÄÃ£ tuyá»ƒn',
-            StatusApplicationEnum::REJECTED => 'Tá»« chá»‘i',
+            StatusApplicationEnum::CV_REVIEWING => 'Chờ sàng lọc CV',
+            StatusApplicationEnum::SCREENING => 'Sơ tuyển',
+            StatusApplicationEnum::INTERVIEW_SCHEDULED => 'Đã lên lịch phỏng vấn',
+            StatusApplicationEnum::INTERVIEWING => 'Chờ đánh giá phỏng vấn',
+            StatusApplicationEnum::OFFERED => 'Đề nghị tuyển dụng',
+            StatusApplicationEnum::HIRED => 'Đã tuyển',
+            StatusApplicationEnum::REJECTED => 'Từ chối',
         };
     }
 

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\StatusApplicationEnum;
 use App\Livewire\Client\Employers\ApplicationPipeline;
+use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
@@ -11,6 +12,7 @@ use App\Models\RecruitmentJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -133,6 +135,48 @@ class ApplicationPipelineTest extends TestCase
             'changed_by_id' => $hr->id,
             'comment' => 'HR chuyển nhanh từ Pipeline.',
         ]);
+    }
+
+    public function test_hr_can_schedule_interview_from_pipeline(): void
+    {
+        Mail::fake();
+        Storage::fake('local');
+
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::SCREENING,
+        ]);
+
+        $scheduledAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+            ->addDays(2)
+            ->setTime(10, 30)
+            ->format('Y-m-d\TH:i');
+
+        $this->actingAs($hr);
+
+        Livewire::test(ApplicationPipeline::class)
+            ->call('openInterviewScheduler', $application->id)
+            ->assertSet('showInterviewModal', true)
+            ->set('interviewForm.round_name', 'Phỏng vấn chuyên môn')
+            ->set('interviewForm.scheduled_at', $scheduledAt)
+            ->set('interviewForm.duration_minutes', 60)
+            ->set('interviewForm.type', 'online')
+            ->set('interviewForm.meeting_link', 'https://meet.google.com/fpt-demo')
+            ->set('interviewForm.interviewer_id', (string) $hr->id)
+            ->set('interviewForm.notes', 'Chuẩn bị portfolio.')
+            ->call('saveInterviewSchedule')
+            ->assertSet('showInterviewModal', false);
+
+        $application->refresh();
+        $interview = $application->interviews()->first();
+
+        $this->assertNotNull($interview);
+        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED, $application->status);
+        $this->assertSame($hr->id, $interview->interviewer_id);
+        $this->assertSame('online', $interview->type);
+        $this->assertSame('https://meet.google.com/fpt-demo', $interview->meeting_link);
+
+        Storage::disk('local')->assertExists("interviews/interview-{$interview->id}.ics");
+        Mail::assertSent(InterviewScheduledMail::class);
     }
 
     public function test_hr_can_reject_application_from_pipeline(): void
