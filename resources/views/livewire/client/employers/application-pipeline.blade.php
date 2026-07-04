@@ -226,7 +226,7 @@
                                                     @endif
                                                     <div style="min-width: 0;">
                                                         <h5 class="candidate-name text-truncate">
-                                                            <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate_id]) }}" class="text-decoration-none text-dark">
+                                                            <a href="{{ route('employers.candidate_detail', ['candidate' => $app->candidate_id]) }}" class="text-decoration-none text-dark">
                                                                 {{ $candidateName }}
                                                             </a>
                                                         </h5>
@@ -262,7 +262,7 @@
                                                 @endif
 
                                                 <div class="card-actions">
-                                                    <a href="{{ route('candidates.candidate_detail', ['id' => $app->candidate_id]) }}" class="text-decoration-none" style="font-size: 0.75rem; color: var(--fpt-orange);">
+                                                    <a href="{{ route('employers.candidate_detail', ['candidate' => $app->candidate_id]) }}" class="text-decoration-none" style="font-size: 0.75rem; color: var(--fpt-orange);">
                                                         Hồ sơ <i class="fa fa-arrow-right"></i>
                                                     </a>
                                                 </div>

@@ -194,6 +194,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/company-profile', CompanyProfile::class)->name('company_profile');
         Route::get('/message', EmployerMessage::class)->name('message');
         Route::get('/manage-candidates', ManageCandidate::class)->name('manage_candidates');
+        Route::get('/candidates/{candidate}', CandidatesDetails::class)->name('candidate_detail');
         Route::get('/transaction', Transaction::class)->name('transaction');
         Route::get('/notifications', Notifications::class)->name('notifications');
         Route::get('/change-password', EmployerChangePassword::class)->name('change_password');

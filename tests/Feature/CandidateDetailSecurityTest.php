@@ -55,6 +55,10 @@ class CandidateDetailSecurityTest extends TestCase
         $this->actingAs($hr)
             ->get(route('candidates.candidate_detail', ['id' => $candidate->id]))
             ->assertForbidden();
+
+        $this->actingAs($hr)
+            ->get(route('employers.candidate_detail', ['candidate' => $candidate->id]))
+            ->assertForbidden();
     }
 
     public function test_branch_scoped_hr_can_view_candidate_from_own_branch(): void
@@ -93,5 +97,13 @@ class CandidateDetailSecurityTest extends TestCase
         $this->actingAs($hr)
             ->get(route('candidates.candidate_detail', ['id' => $candidate->id]))
             ->assertOk();
+
+        $this->actingAs($hr)
+            ->get(route('employers.candidate_detail', ['candidate' => $candidate->id]))
+            ->assertOk()
+            ->assertSee('Candidate ATS Detail')
+            ->assertSee('Snapshot ứng tuyển')
+            ->assertSee('Timeline xử lý hồ sơ')
+            ->assertSee('Own Branch Job');
     }
 }

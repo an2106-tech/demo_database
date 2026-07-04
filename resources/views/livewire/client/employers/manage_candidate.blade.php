@@ -87,7 +87,7 @@
 
                                             <div class="candidate-card__identity">
                                                 <h3>
-                                                    <a href="{{ route('candidates.candidate_detail', ['id' => $candidate->id]) }}">
+                                                    <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}">
                                                         {{ $candidate->name }}
                                                     </a>
                                                 </h3>
@@ -127,7 +127,7 @@
 
                                     <div class="candidate-card__footer">
                                         <div class="candidate-card__actions">
-                                            <a href="{{ route('candidates.candidate_detail', ['id' => $candidate->id]) }}" class="jobguru-btn-2">
+                                            <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}" class="jobguru-btn-2">
                                                 Chi tiết hồ sơ
                                             </a>
 
