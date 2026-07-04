@@ -88,4 +88,81 @@ class EmployerManageCandidateTest extends TestCase
             ->assertSee('Quản lý ứng viên')
             ->assertSee('Manage Candidate');
     }
+
+    public function test_manage_candidates_scopes_displayed_applications_to_hr_branch(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'Scoped Branch',
+            'code' => 'SC',
+            'city' => 'ho_chi_minh',
+            'is_active' => true,
+        ]);
+        $otherBranch = Branch::query()->create([
+            'name' => 'Other Scoped Branch',
+            'code' => 'OSC',
+            'city' => 'ha_noi',
+            'is_active' => true,
+        ]);
+
+        $hr = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+
+        $candidate = Candidate::query()->create([
+            'name' => 'Scoped Candidate',
+            'email' => 'scoped-candidate@example.com',
+            'phone' => '0901234567',
+            'cv_file' => 'candidates/scoped/cv.pdf',
+        ]);
+
+        $branchJob = RecruitmentJob::query()->create([
+            'title' => 'Visible Branch Job',
+            'slug' => 'visible-branch-job',
+            'description' => 'Visible branch job.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $hr->id,
+        ]);
+        $otherJob = RecruitmentJob::query()->create([
+            'title' => 'Hidden Other Branch Job',
+            'slug' => 'hidden-other-branch-job',
+            'description' => 'Hidden other branch job.',
+            'status' => 'published',
+            'branch_id' => $otherBranch->id,
+            'positions_count' => 1,
+            'created_by' => $hr->id,
+        ]);
+
+        Application::query()->create([
+            'job_id' => $branchJob->id,
+            'candidate_id' => $candidate->id,
+            'cv_path' => 'candidates/scoped/cv.pdf',
+            'apply_method' => 'cv',
+            'source' => 'website',
+            'status' => StatusApplicationEnum::NEW,
+            'branch_id' => null,
+            'applied_at' => now()->subDay(),
+        ]);
+        Application::query()->create([
+            'job_id' => $otherJob->id,
+            'candidate_id' => $candidate->id,
+            'cv_path' => 'candidates/scoped/cv.pdf',
+            'apply_method' => 'cv',
+            'source' => 'website',
+            'status' => StatusApplicationEnum::NEW,
+            'branch_id' => $otherBranch->id,
+            'applied_at' => now(),
+        ]);
+
+        $this->actingAs($hr);
+
+        Livewire::test(ManageCandidate::class)
+            ->assertOk()
+            ->assertSee('Scoped Candidate')
+            ->assertSee('Visible Branch Job')
+            ->assertDontSee('Hidden Other Branch Job');
+    }
 }

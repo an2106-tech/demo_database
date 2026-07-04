@@ -48,7 +48,17 @@ class ManageCandidate extends Component
         $candidates = Candidate::query()
             ->with([
                 'user',
-                'applications' => fn ($query) => $query->with('job')->latest(),
+                'applications' => fn ($query) => $query
+                    ->with('job')
+                    ->when($user?->branchScopeId(), function (Builder $query, int $branchId) {
+                        $query->where(function (Builder $query) use ($branchId) {
+                            $query
+                                ->where('branch_id', $branchId)
+                                ->orWhereHas('job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId));
+                        });
+                    })
+                    ->latest('applied_at')
+                    ->latest(),
                 'submissions' => fn ($query) => $query
                     ->with('job')
                     ->when($user?->branchScopeId(), function ($query, int $branchId) {
@@ -59,7 +69,11 @@ class ManageCandidate extends Component
             ->when($user?->branchScopeId(), function (Builder $query, int $branchId) {
                 $query->where(function (Builder $query) use ($branchId) {
                     $query
-                        ->whereHas('applications.job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId))
+                        ->whereHas('applications', function (Builder $applicationQuery) use ($branchId) {
+                            $applicationQuery
+                                ->where('branch_id', $branchId)
+                                ->orWhereHas('job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId));
+                        })
                         ->orWhereHas('submissions.job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId));
                 });
             })

@@ -61,6 +61,9 @@
                                 @php
                                     $latestApplication = $candidate->applications->sortByDesc('created_at')->first();
                                     $latestSubmission = $candidate->submissions->sortByDesc('created_at')->first();
+                                    $applicationJobs = $candidate->applications
+                                        ->sortByDesc(fn ($application) => $application->applied_at ?? $application->created_at)
+                                        ->take(4);
                                     $jobTitle = $latestApplication?->job?->title
                                         ?? $latestSubmission?->job?->title
                                         ?? 'Chưa có vị trí';
@@ -124,6 +127,17 @@
                                             <strong>{{ $latestApplication ? 'Ứng tuyển gần nhất' : 'Chưa ứng tuyển' }}</strong>
                                         </div>
                                     </div>
+
+                                    @if ($applicationJobs->isNotEmpty())
+                                        <div class="candidate-card__body mt-3">
+                                            <div class="candidate-card__item" style="grid-column: 1 / -1;">
+                                                <span>Các vị trí đã ứng tuyển</span>
+                                                <strong>
+                                                    {{ $applicationJobs->map(fn ($application) => $application->job?->title)->filter()->join(' • ') }}
+                                                </strong>
+                                            </div>
+                                        </div>
+                                    @endif
 
                                     <div class="candidate-card__footer">
                                         <div class="candidate-card__actions">
