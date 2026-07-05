@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\Auth;
 
 class InterviewCalendar extends CalendarWidget
 {
-    protected string | HtmlString | bool | null $heading = 'Lich phong van';
+    protected static ?int $sort = 10;
+
+    protected string | HtmlString | bool | null $heading = 'Lịch phỏng vấn';
 
     protected int | string | array $columnSpan = 'full';
 

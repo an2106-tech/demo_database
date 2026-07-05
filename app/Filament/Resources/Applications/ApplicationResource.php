@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Applications;
 use App\Filament\Resources\Applications\Pages\EditApplication;
 use App\Filament\Resources\Applications\Pages\CreateApplication;
 use App\Filament\Resources\Applications\Pages\ListApplications;
+use App\Filament\Resources\Applications\Pages\ViewApplication;
 use App\Filament\Resources\Applications\Schemas\ApplicationForm;
+use App\Filament\Resources\Applications\Schemas\ApplicationInfolist;
 use App\Filament\Resources\Applications\Tables\ApplicationsTable;
 use App\Models\Application;
 use App\Models\User;
@@ -41,6 +43,11 @@ class ApplicationResource extends Resource
         return ApplicationsTable::configure($table);
     }
 
+    public static function infolist(Schema $schema): Schema
+    {
+        return ApplicationInfolist::configure($schema);
+    }
+
     public static function getRelations(): array
     {
         return [];
@@ -51,6 +58,7 @@ class ApplicationResource extends Resource
         return [
             'index' => ListApplications::route('/'),
             'create' => CreateApplication::route('/create'),
+            'view' => ViewApplication::route('/{record}'),
             'edit' => EditApplication::route('/{record}/edit'),
         ];
     }
@@ -62,8 +70,13 @@ class ApplicationResource extends Resource
                 'candidate',
                 'cvAttachment',
                 'job.branch',
-                'latestInterview',
-                'latestOffer',
+                'job.department',
+                'latestInterview.interviewer',
+                'latestInterview.workplace',
+                'latestOffer.approvedByUser',
+                'latestOffer.letterTemplate',
+                'latestScorecard.evaluator',
+                'latestScorecard.template',
             ]);
 
         /** @var User|null $user */
