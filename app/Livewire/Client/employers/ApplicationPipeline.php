@@ -31,6 +31,10 @@ class ApplicationPipeline extends Component
 
     public ?int $interviewApplicationId = null;
 
+    public bool $showEvaluationModal = false;
+
+    public ?int $evaluationApplicationId = null;
+
     public array $interviewForm = [
         'round_name' => '',
         'scheduled_at' => '',
@@ -44,7 +48,27 @@ class ApplicationPipeline extends Component
 
     public function mount(): void
     {
-        // Optional: filter by first job if exists.
+        $scheduleInterviewApplicationId = request()->integer('schedule_interview');
+
+        if ($scheduleInterviewApplicationId) {
+            $this->openInterviewScheduler($scheduleInterviewApplicationId);
+        }
+
+        $evaluateInterviewApplicationId = request()->integer('evaluate_interview');
+
+        if ($evaluateInterviewApplicationId) {
+            $this->openInterviewEvaluation($evaluateInterviewApplicationId);
+        }
+    }
+
+    public function openInterviewEvaluation(int $applicationId): void
+    {
+        $application = $this->findManageableApplication($applicationId);
+
+        abort_unless($this->canEvaluateInterview($application), 403);
+
+        $this->evaluationApplicationId = $application->id;
+        $this->showEvaluationModal = true;
     }
 
     public function openInterviewScheduler(int $applicationId): void
@@ -79,10 +103,10 @@ class ApplicationPipeline extends Component
         $this->resetValidation();
     }
 
-    public function saveInterviewSchedule(
-        ApplicationPipelineService $pipelineService,
-        InterviewCalendarService $calendarService,
-    ): void {
+    public function saveInterviewSchedule(): void
+    {
+        $pipelineService = app(ApplicationPipelineService::class);
+        $calendarService = app(InterviewCalendarService::class);
         $application = $this->findManageableApplication((int) $this->interviewApplicationId);
 
         abort_unless($this->canScheduleInterview($application), 403);
@@ -167,13 +191,22 @@ class ApplicationPipeline extends Component
         $this->dispatch('app-notify', message: 'Đã đánh dấu hồ sơ là đã xem.');
     }
 
-    public function advanceApplication(int $applicationId, ApplicationPipelineService $pipelineService): void
+    public function advanceApplication(int $applicationId): void
     {
+        $pipelineService = app(ApplicationPipelineService::class);
         $application = $this->findManageableApplication($applicationId);
         $nextStatus = $this->nextActionStatus($application, $pipelineService);
 
         if (! $nextStatus) {
-            $this->dispatch('app-notify', message: 'Hồ sơ này chưa có bước kế tiếp phù hợp.', type: 'warning');
+            $currentStatus = $application->status instanceof StatusApplicationEnum
+                ? $application->status
+                : StatusApplicationEnum::tryFrom((string) $application->status);
+
+            $message = $currentStatus === StatusApplicationEnum::SCREENING
+                ? 'Vui lòng dùng nút Lên lịch PV để chuyển hồ sơ sang vòng phỏng vấn.'
+                : 'Hồ sơ này chưa có bước kế tiếp phù hợp.';
+
+            $this->dispatch('app-notify', message: $message, type: 'warning');
 
             return;
         }
@@ -194,8 +227,9 @@ class ApplicationPipeline extends Component
         $this->dispatch('app-notify', message: 'Đã chuyển hồ sơ sang: '.$this->statusLabel($nextStatus).'.');
     }
 
-    public function rejectApplication(int $applicationId, ApplicationPipelineService $pipelineService): void
+    public function rejectApplication(int $applicationId): void
     {
+        $pipelineService = app(ApplicationPipelineService::class);
         $application = $this->findManageableApplication($applicationId);
 
         try {
@@ -213,7 +247,6 @@ class ApplicationPipeline extends Component
 
         $this->dispatch('app-notify', message: 'Đã chuyển hồ sơ sang trạng thái Từ chối.', type: 'warning');
     }
-
     #[Layout('layouts.employer')]
     public function render()
     {
@@ -248,6 +281,7 @@ class ApplicationPipeline extends Component
         $latestSubmissionsByApplicationKey = $this->latestSubmissionsByApplicationKey($applications);
         $nextActionStatusesByApplicationId = $this->nextActionStatusesByApplicationId($applications);
         $selectedInterviewApplication = $this->selectedInterviewApplication();
+        $selectedEvaluationApplication = $this->selectedEvaluationApplication();
 
         $applicationsByStage = [];
         foreach ($stages as $stageKey => $stage) {
@@ -265,6 +299,7 @@ class ApplicationPipeline extends Component
             'latestSubmissionsByApplicationKey' => $latestSubmissionsByApplicationKey,
             'nextActionStatusesByApplicationId' => $nextActionStatusesByApplicationId,
             'selectedInterviewApplication' => $selectedInterviewApplication,
+            'selectedEvaluationApplication' => $selectedEvaluationApplication,
             'interviewerOptions' => $this->interviewerOptions($selectedInterviewApplication),
             'workplaceOptions' => $this->workplaceOptions($selectedInterviewApplication),
         ]);
@@ -313,6 +348,18 @@ class ApplicationPipeline extends Component
             StatusApplicationEnum::INTERVIEW_SCHEDULED,
             StatusApplicationEnum::INTERVIEWING,
         ], true);
+    }
+
+    private function canEvaluateInterview(Application $application): bool
+    {
+        $status = $application->status instanceof StatusApplicationEnum
+            ? $application->status
+            : StatusApplicationEnum::tryFrom((string) $application->status);
+
+        return in_array($status, [
+            StatusApplicationEnum::INTERVIEW_SCHEDULED,
+            StatusApplicationEnum::INTERVIEWING,
+        ], true) && $application->interviews()->exists();
     }
 
     private function interviewRules(Application $application): array
@@ -406,6 +453,17 @@ class ApplicationPipeline extends Component
             ->find($this->interviewApplicationId);
     }
 
+    private function selectedEvaluationApplication(): ?Application
+    {
+        if (! $this->evaluationApplicationId) {
+            return null;
+        }
+
+        return Application::query()
+            ->with(['job.branch', 'latestInterview.scorecards', 'latestScorecard'])
+            ->find($this->evaluationApplicationId);
+    }
+
     private function interviewerOptions(?Application $application): array
     {
         if (! $application) {
@@ -452,6 +510,22 @@ class ApplicationPipeline extends Component
 
     private function nextActionStatus(Application $application, ApplicationPipelineService $pipelineService): ?StatusApplicationEnum
     {
+        $currentStatus = $application->status instanceof StatusApplicationEnum
+            ? $application->status
+            : StatusApplicationEnum::tryFrom((string) $application->status);
+
+        if ($currentStatus === StatusApplicationEnum::SCREENING) {
+            return null;
+        }
+
+        if ($currentStatus === StatusApplicationEnum::INTERVIEWING) {
+            $latestScorecard = $application->latestScorecard;
+
+            if (! $latestScorecard || $latestScorecard->conclusion !== 'pass') {
+                return null;
+            }
+        }
+
         return collect($pipelineService->allowedTransitions($application->status))
             ->first(fn (StatusApplicationEnum $status): bool => $status !== StatusApplicationEnum::REJECTED);
     }

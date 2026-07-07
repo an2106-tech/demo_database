@@ -174,6 +174,11 @@
             gap: 0.5rem;
         }
 
+        .card-actions form {
+            margin: 0;
+            width: 100%;
+        }
+
         .pipeline-alerts {
             display: flex;
             flex-wrap: wrap;
@@ -442,6 +447,18 @@
 
                 <div class="col-md-8 col-lg-9">
                     <div class="dashboard-right">
+                        @if (session()->has('message'))
+                            <div class="alert alert-success">{{ session('message') }}</div>
+                        @endif
+
+                        @if (session()->has('warning'))
+                            <div class="alert alert-warning">{{ session('warning') }}</div>
+                        @endif
+
+                        @if (session()->has('error'))
+                            <div class="alert alert-danger">{{ session('error') }}</div>
+                        @endif
+
                         <div class="filter-section">
                             <div>
                                 <h3 style="margin: 0; font-weight: 700;">Pipeline tuyển dụng</h3>
@@ -479,7 +496,7 @@
                                         'rejected' => 'Từ chối',
                                     ];
                                 @endphp
-                                <div class="pipeline-column">
+                                <div class="pipeline-column" wire:key="pipeline-column-{{ $stageKey }}">
                                     <div class="column-header">
                                         <div class="column-title">
                                             <i class="fa {{ $stageIcons[$stageKey] ?? 'fa-circle' }}"></i>
@@ -518,6 +535,10 @@
                                                     \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
                                                     \App\Enums\StatusApplicationEnum::INTERVIEWING,
                                                 ], true);
+                                                $canEvaluateInterview = in_array($status, [
+                                                    \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                                                    \App\Enums\StatusApplicationEnum::INTERVIEWING,
+                                                ], true) && $app->latestInterview;
                                                 $warnings = [];
                                                 if (! $app->is_viewed) {
                                                     $warnings[] = ['label' => 'Chưa xem', 'class' => 'pipeline-alert--warning'];
@@ -533,7 +554,7 @@
                                                 }
                                             @endphp
 
-                                            <div class="candidate-card">
+                                            <div class="candidate-card" wire:key="pipeline-application-{{ $app->id }}-{{ $status?->value ?? 'none' }}">
                                                 <div class="candidate-card__top">
                                                     @if($app->candidate?->user?->avatar && file_exists(public_path('storage/' . $app->candidate->user->avatar)))
                                                         <img src="{{ asset('storage/' . $app->candidate->user->avatar) }}" class="candidate-avatar" alt="">
@@ -607,31 +628,37 @@
                                                     @endif
 
                                                     @if($nextAction)
-                                                        <button
-                                                            type="button"
-                                                            wire:click="advanceApplication({{ $app->id }})"
-                                                            wire:loading.attr="disabled"
-                                                            wire:target="advanceApplication({{ $app->id }})"
-                                                            class="pipeline-action"
-                                                            title="Chuyển sang {{ $nextAction['label'] }}"
-                                                        >
-                                                            <i class="fa fa-arrow-right"></i>
-                                                            <span wire:loading.remove wire:target="advanceApplication({{ $app->id }})">Chuyển vòng</span>
-                                                            <span wire:loading wire:target="advanceApplication({{ $app->id }})">Đang chuyển</span>
-                                                        </button>
+                                                        <form method="POST" action="{{ route('employers.application_pipeline.advance', ['application' => $app->id]) }}" class="m-0">
+                                                            @csrf
+                                                            <button
+                                                                type="submit"
+                                                                class="pipeline-action"
+                                                                title="Chuyển sang {{ $nextAction['label'] }}"
+                                                            >
+                                                                <i class="fa fa-arrow-right"></i>
+                                                                Chuyển vòng
+                                                            </button>
+                                                        </form>
                                                     @endif
 
                                                     @if($canScheduleInterview)
-                                                        <button
-                                                            type="button"
-                                                            wire:click="openInterviewScheduler({{ $app->id }})"
-                                                            wire:loading.attr="disabled"
-                                                            wire:target="openInterviewScheduler({{ $app->id }})"
+                                                        <a
+                                                            href="{{ route('employers.application_pipeline', ['schedule_interview' => $app->id]) }}"
                                                             class="pipeline-action pipeline-action--schedule"
                                                         >
                                                             <i class="fa fa-calendar"></i>
                                                             {{ $app->latestInterview ? 'Sửa lịch PV' : 'Lên lịch PV' }}
-                                                        </button>
+                                                        </a>
+                                                    @endif
+
+                                                    @if($canEvaluateInterview)
+                                                        <a
+                                                            href="{{ route('employers.application_pipeline', ['evaluate_interview' => $app->id]) }}"
+                                                            class="pipeline-action pipeline-action--primary"
+                                                        >
+                                                            <i class="fa fa-star-half-o"></i>
+                                                            {{ $app->latestScorecard ? 'Sửa đánh giá PV' : 'Đánh giá PV' }}
+                                                        </a>
                                                     @endif
 
                                                     @if($status && ! in_array($status, [\App\Enums\StatusApplicationEnum::REJECTED, \App\Enums\StatusApplicationEnum::HIRED], true))
@@ -639,7 +666,7 @@
                                                             type="button"
                                                             wire:click="rejectApplication({{ $app->id }})"
                                                             wire:loading.attr="disabled"
-                                                            wire:target="rejectApplication({{ $app->id }})"
+                                                            wire:target="rejectApplication"
                                                             onclick="return confirm('Từ chối nhanh hồ sơ này?')"
                                                             class="pipeline-action pipeline-action--danger"
                                                         >
@@ -678,87 +705,192 @@
                             @endif
                         </p>
                     </div>
-                    <button type="button" class="pipeline-action" style="width: auto;" wire:click="closeInterviewScheduler">
+                    <a href="{{ route('employers.application_pipeline') }}" class="pipeline-action" style="width: auto;">
                         <i class="fa fa-times"></i>
-                    </button>
+                    </a>
                 </div>
 
-                <form wire:submit.prevent="saveInterviewSchedule">
+                @php
+                    $interviewFormValues = [
+                        'round_name' => old('round_name', $interviewForm['round_name'] ?? ''),
+                        'scheduled_at' => old('scheduled_at', $interviewForm['scheduled_at'] ?? ''),
+                        'duration_minutes' => (string) old('duration_minutes', $interviewForm['duration_minutes'] ?? 60),
+                        'interviewer_id' => (string) old('interviewer_id', $interviewForm['interviewer_id'] ?? ''),
+                        'type' => old('type', $interviewForm['type'] ?? 'online'),
+                        'meeting_link' => old('meeting_link', $interviewForm['meeting_link'] ?? ''),
+                        'workplace_id' => (string) old('workplace_id', $interviewForm['workplace_id'] ?? ''),
+                        'notes' => old('notes', $interviewForm['notes'] ?? ''),
+                    ];
+                @endphp
+
+                <form method="POST" action="{{ route('employers.application_pipeline.schedule_interview', ['application' => $selectedInterviewApplication->id ?? 0]) }}">
+                    @csrf
                     <div class="interview-form-grid">
                         <div class="interview-field">
                             <label for="interview-round-name">Tên vòng phỏng vấn</label>
-                            <input id="interview-round-name" type="text" wire:model="interviewForm.round_name" placeholder="Phỏng vấn vòng 1">
+                            <input id="interview-round-name" name="round_name" type="text" wire:model="interviewForm.round_name" value="{{ $interviewFormValues['round_name'] }}" placeholder="Phỏng vấn vòng 1">
+                            @error('round_name') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.round_name') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="interview-field">
                             <label for="interview-scheduled-at">Thời gian</label>
-                            <input id="interview-scheduled-at" type="datetime-local" wire:model="interviewForm.scheduled_at">
+                            <input id="interview-scheduled-at" name="scheduled_at" type="datetime-local" wire:model="interviewForm.scheduled_at" value="{{ $interviewFormValues['scheduled_at'] }}">
+                            @error('scheduled_at') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.scheduled_at') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="interview-field">
                             <label for="interview-duration">Thời lượng</label>
-                            <select id="interview-duration" wire:model="interviewForm.duration_minutes">
-                                <option value="30">30 phút</option>
-                                <option value="45">45 phút</option>
-                                <option value="60">60 phút</option>
-                                <option value="90">90 phút</option>
+                            <select id="interview-duration" name="duration_minutes" wire:model="interviewForm.duration_minutes">
+                                <option value="30" @selected($interviewFormValues['duration_minutes'] === '30')>30 phút</option>
+                                <option value="45" @selected($interviewFormValues['duration_minutes'] === '45')>45 phút</option>
+                                <option value="60" @selected($interviewFormValues['duration_minutes'] === '60')>60 phút</option>
+                                <option value="90" @selected($interviewFormValues['duration_minutes'] === '90')>90 phút</option>
                             </select>
+                            @error('duration_minutes') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.duration_minutes') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="interview-field">
                             <label for="interview-interviewer">Người phỏng vấn</label>
-                            <select id="interview-interviewer" wire:model="interviewForm.interviewer_id">
+                            <select id="interview-interviewer" name="interviewer_id" wire:model="interviewForm.interviewer_id">
                                 <option value="">Chọn người phỏng vấn</option>
                                 @foreach($interviewerOptions as $id => $label)
-                                    <option value="{{ $id }}">{{ $label }}</option>
+                                    <option value="{{ $id }}" @selected($interviewFormValues['interviewer_id'] === (string) $id)>{{ $label }}</option>
                                 @endforeach
                             </select>
+                            @error('interviewer_id') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.interviewer_id') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
 
                         <div class="interview-field">
                             <label for="interview-type">Hình thức</label>
-                            <select id="interview-type" wire:model.live="interviewForm.type">
-                                <option value="online">Online</option>
-                                <option value="offline">Offline</option>
+                            <select id="interview-type" name="type" wire:model.live="interviewForm.type">
+                                <option value="online" @selected($interviewFormValues['type'] === 'online')>Online</option>
+                                <option value="offline" @selected($interviewFormValues['type'] === 'offline')>Offline</option>
                             </select>
+                            @error('type') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.type') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
 
-                        @if(($interviewForm['type'] ?? 'online') === 'online')
-                            <div class="interview-field">
-                                <label for="interview-meeting-link">Link phỏng vấn</label>
-                                <input id="interview-meeting-link" type="url" wire:model="interviewForm.meeting_link" placeholder="https://meet.google.com/...">
-                                @error('interviewForm.meeting_link') <span class="interview-error">{{ $message }}</span> @enderror
-                            </div>
-                        @else
-                            <div class="interview-field">
-                                <label for="interview-workplace">Phòng phỏng vấn</label>
-                                <select id="interview-workplace" wire:model="interviewForm.workplace_id">
-                                    <option value="">Chọn phòng phỏng vấn</option>
-                                    @foreach($workplaceOptions as $id => $label)
-                                        <option value="{{ $id }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                @error('interviewForm.workplace_id') <span class="interview-error">{{ $message }}</span> @enderror
-                            </div>
-                        @endif
+                        <div class="interview-field">
+                            <label for="interview-meeting-link">Link phỏng vấn</label>
+                            <input id="interview-meeting-link" name="meeting_link" type="url" wire:model="interviewForm.meeting_link" value="{{ $interviewFormValues['meeting_link'] }}" placeholder="https://meet.google.com/...">
+                            @error('meeting_link') <span class="interview-error">{{ $message }}</span> @enderror
+                            @error('interviewForm.meeting_link') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="interview-workplace">Phòng phỏng vấn</label>
+                            <select id="interview-workplace" name="workplace_id" wire:model="interviewForm.workplace_id">
+                                <option value="">Chọn phòng phỏng vấn nếu offline</option>
+                                @foreach($workplaceOptions as $id => $label)
+                                    <option value="{{ $id }}" @selected($interviewFormValues['workplace_id'] === (string) $id)>{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('workplace_id') <span class="interview-error">{{ $message }}</span> @enderror
+                            @error('interviewForm.workplace_id') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
 
                         <div class="interview-field interview-field--full">
                             <label for="interview-notes">Ghi chú gửi kèm</label>
-                            <textarea id="interview-notes" wire:model="interviewForm.notes" placeholder="Ví dụ: chuẩn bị portfolio, vào meeting trước 5 phút..."></textarea>
+                            <textarea id="interview-notes" name="notes" wire:model="interviewForm.notes" placeholder="Ví dụ: chuẩn bị portfolio, vào meeting trước 5 phút...">{{ $interviewFormValues['notes'] }}</textarea>
+                            @error('notes') <span class="interview-error">{{ $message }}</span> @enderror
                             @error('interviewForm.notes') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
                     <div class="interview-modal__actions">
-                        <button type="button" class="interview-modal__button" wire:click="closeInterviewScheduler">Hủy</button>
-                        <button type="submit" class="interview-modal__button interview-modal__button--primary" wire:loading.attr="disabled" wire:target="saveInterviewSchedule">
-                            <span wire:loading.remove wire:target="saveInterviewSchedule">Lưu lịch phỏng vấn</span>
-                            <span wire:loading wire:target="saveInterviewSchedule">Đang lưu...</span>
+                        <a href="{{ route('employers.application_pipeline') }}" class="interview-modal__button">Hủy</a>
+                        <button type="submit" class="interview-modal__button interview-modal__button--primary">
+                            Lưu lịch phỏng vấn
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    @if($showEvaluationModal && $selectedEvaluationApplication)
+        @php
+            $evaluationScorecard = $selectedEvaluationApplication->latestScorecard;
+            $evaluationCriteria = collect($evaluationScorecard?->criteria ?? [])->keyBy('name');
+            $evaluationValues = [
+                'technical_score' => old('technical_score', data_get($evaluationCriteria->get('Kinh nghiem va chuyen mon'), 'score', '')),
+                'problem_solving_score' => old('problem_solving_score', data_get($evaluationCriteria->get('Tu duy giai quyet van de'), 'score', '')),
+                'communication_score' => old('communication_score', data_get($evaluationCriteria->get('Giao tiep va phoi hop'), 'score', '')),
+                'culture_score' => old('culture_score', data_get($evaluationCriteria->get('Phu hop van hoa FPT Education'), 'score', '')),
+                'conclusion' => old('conclusion', $evaluationScorecard?->conclusion ?: 'hold'),
+                'notes' => old('notes', $evaluationScorecard?->notes ?: ''),
+            ];
+        @endphp
+
+        <div class="interview-modal-backdrop">
+            <div class="interview-modal">
+                <div class="interview-modal__head">
+                    <div>
+                        <h3>Đánh giá kết quả phỏng vấn</h3>
+                        <p>
+                            {{ $selectedEvaluationApplication->snapshotCandidateName() }}
+                            @if($selectedEvaluationApplication->job)
+                                · {{ $selectedEvaluationApplication->job->title }}
+                            @endif
+                        </p>
+                    </div>
+                    <a href="{{ route('employers.application_pipeline') }}" class="pipeline-action" style="width: auto;">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </div>
+
+                <form method="POST" action="{{ route('employers.application_pipeline.evaluate_interview', ['application' => $selectedEvaluationApplication->id]) }}">
+                    @csrf
+                    <div class="interview-form-grid">
+                        <div class="interview-field">
+                            <label for="technical-score">Chuyên môn / kinh nghiệm</label>
+                            <input id="technical-score" name="technical_score" type="number" min="0" max="10" step="0.5" value="{{ $evaluationValues['technical_score'] }}" placeholder="0 - 10">
+                            @error('technical_score') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="problem-solving-score">Tư duy giải quyết vấn đề</label>
+                            <input id="problem-solving-score" name="problem_solving_score" type="number" min="0" max="10" step="0.5" value="{{ $evaluationValues['problem_solving_score'] }}" placeholder="0 - 10">
+                            @error('problem_solving_score') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="communication-score">Giao tiếp / phối hợp</label>
+                            <input id="communication-score" name="communication_score" type="number" min="0" max="10" step="0.5" value="{{ $evaluationValues['communication_score'] }}" placeholder="0 - 10">
+                            @error('communication_score') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field">
+                            <label for="culture-score">Phù hợp văn hóa FPT Edu</label>
+                            <input id="culture-score" name="culture_score" type="number" min="0" max="10" step="0.5" value="{{ $evaluationValues['culture_score'] }}" placeholder="0 - 10">
+                            @error('culture_score') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field interview-field--full">
+                            <label for="interview-conclusion">Kết luận</label>
+                            <select id="interview-conclusion" name="conclusion">
+                                <option value="pass" @selected($evaluationValues['conclusion'] === 'pass')>Đạt - chuyển sang đề nghị tuyển dụng</option>
+                                <option value="hold" @selected($evaluationValues['conclusion'] === 'hold')>Cần theo dõi / phỏng vấn thêm</option>
+                                <option value="fail" @selected($evaluationValues['conclusion'] === 'fail')>Không đạt - từ chối</option>
+                            </select>
+                            @error('conclusion') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field interview-field--full">
+                            <label for="evaluation-notes">Nhận xét phỏng vấn</label>
+                            <textarea id="evaluation-notes" name="notes" placeholder="Ví dụ: chuyên môn tốt, cần đào tạo thêm về quy trình nội bộ...">{{ $evaluationValues['notes'] }}</textarea>
+                            @error('notes') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="interview-modal__actions">
+                        <a href="{{ route('employers.application_pipeline') }}" class="interview-modal__button">Hủy</a>
+                        <button type="submit" class="interview-modal__button interview-modal__button--primary">
+                            Lưu đánh giá PV
                         </button>
                     </div>
                 </form>

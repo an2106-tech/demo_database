@@ -8,6 +8,7 @@ use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
+use App\Models\Interview;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -137,6 +138,21 @@ class ApplicationPipelineTest extends TestCase
         ]);
     }
 
+    public function test_hr_can_advance_application_with_pipeline_post_fallback(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::CV_REVIEWING,
+        ]);
+
+        $this->actingAs($hr)
+            ->post(route('employers.application_pipeline.advance', ['application' => $application->id]))
+            ->assertRedirect();
+
+        $application->refresh();
+
+        $this->assertSame(StatusApplicationEnum::SCREENING, $application->status);
+    }
+
     public function test_hr_can_schedule_interview_from_pipeline(): void
     {
         Mail::fake();
@@ -177,6 +193,147 @@ class ApplicationPipelineTest extends TestCase
 
         Storage::disk('local')->assertExists("interviews/interview-{$interview->id}.ics");
         Mail::assertSent(InterviewScheduledMail::class);
+    }
+
+    public function test_hr_can_schedule_interview_with_pipeline_post_fallback(): void
+    {
+        Mail::fake();
+        Storage::fake('local');
+
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::SCREENING,
+        ]);
+
+        $scheduledAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+            ->addDays(2)
+            ->setTime(10, 30)
+            ->format('Y-m-d\TH:i');
+
+        $this->actingAs($hr)
+            ->post(route('employers.application_pipeline.schedule_interview', ['application' => $application->id]), [
+                'round_name' => 'Phong van chuyen mon',
+                'scheduled_at' => $scheduledAt,
+                'duration_minutes' => 60,
+                'type' => 'online',
+                'meeting_link' => 'https://meet.google.com/fpt-demo',
+                'interviewer_id' => (string) $hr->id,
+                'notes' => 'Chuan bi portfolio.',
+            ])
+            ->assertRedirect(route('employers.application_pipeline'));
+
+        $application->refresh();
+        $interview = $application->interviews()->first();
+
+        $this->assertNotNull($interview);
+        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED, $application->status);
+        $this->assertSame($hr->id, $interview->interviewer_id);
+        $this->assertSame('Phong van chuyen mon', $interview->round_name);
+        $this->assertSame('online', $interview->type);
+        $this->assertSame('https://meet.google.com/fpt-demo', $interview->meeting_link);
+
+        Storage::disk('local')->assertExists("interviews/interview-{$interview->id}.ics");
+        Mail::assertSent(InterviewScheduledMail::class);
+    }
+
+    public function test_screening_application_requires_interview_schedule_instead_of_quick_advance(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::SCREENING,
+        ]);
+
+        $this->actingAs($hr);
+
+        Livewire::test(ApplicationPipeline::class)
+            ->call('advanceApplication', $application->id);
+
+        $application->refresh();
+
+        $this->assertSame(StatusApplicationEnum::SCREENING, $application->status);
+        $this->assertFalse($application->interviews()->exists());
+    }
+
+    public function test_hr_can_evaluate_interview_and_move_application_to_offer(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::INTERVIEWING,
+        ]);
+
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phong van chuyen mon',
+            'scheduled_at' => now()->subDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $this->actingAs($hr)
+            ->post(route('employers.application_pipeline.evaluate_interview', ['application' => $application->id]), [
+                'technical_score' => 8.5,
+                'problem_solving_score' => 8,
+                'communication_score' => 7.5,
+                'culture_score' => 8,
+                'conclusion' => 'pass',
+                'notes' => 'Dat yeu cau phong van.',
+            ])
+            ->assertRedirect(route('employers.application_pipeline'));
+
+        $application->refresh();
+        $interview->refresh();
+
+        $this->assertSame(StatusApplicationEnum::OFFERED, $application->status);
+        $this->assertSame('pass', $interview->result);
+        $this->assertDatabaseHas('scorecards', [
+            'application_id' => $application->id,
+            'interview_id' => $interview->id,
+            'evaluator_id' => $hr->id,
+            'conclusion' => 'pass',
+        ]);
+    }
+
+    public function test_hr_can_hold_interview_evaluation_without_offering(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::INTERVIEW_SCHEDULED,
+        ]);
+
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phong van vong 1',
+            'scheduled_at' => now()->subDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $this->actingAs($hr)
+            ->post(route('employers.application_pipeline.evaluate_interview', ['application' => $application->id]), [
+                'technical_score' => 6,
+                'problem_solving_score' => 6,
+                'communication_score' => 7,
+                'culture_score' => 7,
+                'conclusion' => 'hold',
+                'notes' => 'Can phong van them voi truong nhom.',
+            ])
+            ->assertRedirect(route('employers.application_pipeline'));
+
+        $application->refresh();
+        $interview->refresh();
+
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->status);
+        $this->assertSame('pending', $interview->result);
+        $this->assertDatabaseHas('scorecards', [
+            'application_id' => $application->id,
+            'interview_id' => $interview->id,
+            'evaluator_id' => $hr->id,
+            'conclusion' => 'hold',
+        ]);
     }
 
     public function test_hr_can_reject_application_from_pipeline(): void
