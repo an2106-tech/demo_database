@@ -28,7 +28,7 @@ use Spatie\Permission\Traits\HasRoles;
     'metadata',
 ])]
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
@@ -53,7 +53,12 @@ class User extends Authenticatable
 
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return $this->is_active && $this->roles()->exists();
+        if ($panel->getId() !== 'admin' || ! $this->is_active) {
+            return false;
+        }
+
+        return in_array($this->role, ['admin', 'director', 'pm', 'hr'], true)
+            || $this->hasAnyRole(['super_admin', 'director', 'pm', 'hr']);
     }
 
     public function syncAssignedRole(): void

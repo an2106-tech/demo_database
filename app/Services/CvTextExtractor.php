@@ -60,16 +60,37 @@ class CvTextExtractor
 
     private function extractPdf(string $absolutePath): ?string
     {
-        $pdftotext = trim((string) @shell_exec('where pdftotext 2>NUL'));
-        if ($pdftotext === '') {
+        $pdftotext = $this->resolvePdfToTextBinary();
+        if ($pdftotext === null) {
             return null;
         }
 
+        $binary = $pdftotext === 'pdftotext' ? $pdftotext : escapeshellarg($pdftotext);
         $escapedPath = escapeshellarg($absolutePath);
-        $out = @shell_exec("pdftotext -layout -nopgbrk {$escapedPath} - 2>NUL");
+        $out = @shell_exec("{$binary} -layout -nopgbrk {$escapedPath} - 2>NUL");
         $out = is_string($out) ? trim($out) : '';
 
         return $out !== '' ? $out : null;
     }
-}
 
+    private function resolvePdfToTextBinary(): ?string
+    {
+        $configuredPath = config('services.poppler.pdftotext_path') ?: env('PDFTOTEXT_PATH');
+        if (is_string($configuredPath) && trim($configuredPath) !== '') {
+            $configuredPath = trim($configuredPath, "\"' ");
+
+            if (is_file($configuredPath)) {
+                return $configuredPath;
+            }
+        }
+
+        $detectedPath = trim((string) @shell_exec('where pdftotext 2>NUL'));
+        if ($detectedPath !== '') {
+            $firstPath = strtok($detectedPath, "\r\n");
+
+            return is_string($firstPath) && $firstPath !== '' ? $firstPath : 'pdftotext';
+        }
+
+        return null;
+    }
+}

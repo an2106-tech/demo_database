@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('offers', function (Blueprint $table) {
-            // Change enum to include awaiting_approval and rejected statuses
-            $table->enum('status', ['awaiting_approval', 'pending', 'accepted', 'declined', 'rejected', 'expired'])
+            // Change enum to include approval workflow statuses.
+            $table->enum('status', ['draft', 'awaiting_approval', 'pending', 'accepted', 'declined', 'rejected', 'expired'])
                 ->change();
             
             // Add fields for tracking approval workflow

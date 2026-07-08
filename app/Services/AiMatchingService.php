@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\Log;
 class AiMatchingService
 {
     protected ?string $apiKey;
-    protected string $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+    protected string $apiUrl;
 
     public function __construct()
     {
         $this->apiKey = config('services.gemini.key') ?? env('GEMINI_API_KEY');
+        $model = config('services.gemini.model', 'gemini-2.5-flash');
+        $this->apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/'.$model.':generateContent';
     }
 
     public function calculateMatch(CandidateJobSubmission $submission): bool

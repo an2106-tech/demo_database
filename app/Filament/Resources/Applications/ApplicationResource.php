@@ -16,7 +16,9 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class ApplicationResource extends Resource
@@ -31,11 +33,18 @@ class ApplicationResource extends Resource
 
     protected static ?string $pluralModelLabel = 'ứng tuyển';
 
-    protected static ?string $recordTitleAttribute = 'candidate_id';
-
     public static function form(Schema $schema): Schema
     {
         return ApplicationForm::configure($schema);
+    }
+
+    public static function getRecordTitle(?Model $record): string|Htmlable|null
+    {
+        if (! $record instanceof Application) {
+            return null;
+        }
+
+        return $record->snapshotCandidateName() ?: 'Hồ sơ #'.$record->id;
     }
 
     public static function table(Table $table): Table
@@ -77,6 +86,8 @@ class ApplicationResource extends Resource
                 'latestOffer.letterTemplate',
                 'latestScorecard.evaluator',
                 'latestScorecard.template',
+                'latestScreeningAiAnalysis',
+                'latestInterviewQuestionAiAnalysis',
             ]);
 
         /** @var User|null $user */

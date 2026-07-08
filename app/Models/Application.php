@@ -151,6 +151,25 @@ class Application extends Model
         return $this->hasMany(Scorecard::class);
     }
 
+    public function aiAnalyses(): HasMany
+    {
+        return $this->hasMany(ApplicationAiAnalysis::class);
+    }
+
+    public function latestScreeningAiAnalysis(): HasOne
+    {
+        return $this->hasOne(ApplicationAiAnalysis::class)
+            ->where('analysis_type', 'screening')
+            ->latestOfMany();
+    }
+
+    public function latestInterviewQuestionAiAnalysis(): HasOne
+    {
+        return $this->hasOne(ApplicationAiAnalysis::class)
+            ->where('analysis_type', 'interview_questions')
+            ->latestOfMany();
+    }
+
     public function latestScorecard(): HasOne
     {
         return $this->hasOne(Scorecard::class)->latestOfMany();

@@ -20,6 +20,7 @@ use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
+use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationPipelineService;
 use App\Services\OfferApprovalService;
 use App\Services\OfferPdfService;
@@ -44,7 +45,10 @@ use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Actions as SchemaActions;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -132,9 +136,17 @@ class ApplicationsTable
                     ->state(fn (Application $record): string => $record->status instanceof StatusApplicationEnum
                         ? $record->status->getPipelineStageLabel()
                         : (StatusApplicationEnum::tryFrom((string) $record->status)?->getPipelineStageLabel() ?? '-'))
-                    ->description(fn (Application $record): ?string => $record->status instanceof StatusApplicationEnum
-                        ? $record->status->getLabel()
-                        : StatusApplicationEnum::tryFrom((string) $record->status)?->getLabel())
+                    ->description(function (Application $record): ?string {
+                        $status = $record->status instanceof StatusApplicationEnum
+                            ? $record->status
+                            : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                        if (! $status || $status->getLabel() === $status->getPipelineStageLabel()) {
+                            return null;
+                        }
+
+                        return (string) $status->getLabel();
+                    })
                     ->color(fn (Application $record): string => $record->status instanceof StatusApplicationEnum
                         ? $record->status->getPipelineStageColor()
                         : (StatusApplicationEnum::tryFrom((string) $record->status)?->getPipelineStageColor() ?? 'gray'))
@@ -279,7 +291,6 @@ class ApplicationsTable
             ->filtersFormColumns(3)
             ->recordActions([
                 static::makePipelineAction(),
-                ActionGroup::make([
                     Action::make('evaluate_interview')
                         ->label('Chấm phỏng vấn')
                         ->icon('heroicon-o-clipboard-document-check')
@@ -445,6 +456,8 @@ class ApplicationsTable
                                 ->send();
                         })
                         ->visible(fn (Application $record): bool => static::canEvaluateInterview($record)),
+                ActionGroup::make([
+                    static::makeAnalyzeScreeningAiAction(),
                     Action::make('reject_application')
                         ->label('Từ chối hồ sơ')
                         ->icon('heroicon-o-x-circle')
@@ -548,11 +561,14 @@ class ApplicationsTable
                         ->label('Xóa')
                         ->visible(fn (): bool => Auth::user()?->hasRole('super_admin') === true),
                 ])
-                    ->label(fn (Application $record): string => static::canEvaluateInterview($record) ? 'Chấm phỏng vấn' : 'Thao tác khác')
-                    ->icon(fn (Application $record): string => static::canEvaluateInterview($record) ? 'heroicon-o-clipboard-document-check' : 'heroicon-o-ellipsis-horizontal')
-                    ->color(fn (Application $record): string => static::canEvaluateInterview($record) ? 'info' : 'gray')
+                    ->label('Thao tác khác')
+                    ->icon('heroicon-o-ellipsis-horizontal')
+                    ->color('gray')
                     ->button(),
-            ])            ->toolbarActions([
+            ], position: RecordActionsPosition::BeforeColumns)
+            ->recordActionsColumnLabel('Thao tác')
+            ->recordActionsAlignment('center')
+            ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()->label('Xóa đã chọn'),
                     ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
@@ -1052,6 +1068,265 @@ class ApplicationsTable
         };
     }
 
+    protected static function makeAnalyzeScreeningAiAction(): Action
+    {
+        return Action::make('analyze_screening_ai')
+            ->label(fn (Application $record): string => $record->latestScreeningAiAnalysis?->status === 'completed'
+                ? 'Phân tích lại AI'
+                : 'Phân tích CV bằng AI')
+            ->icon('heroicon-o-sparkles')
+            ->color('info')
+            ->requiresConfirmation()
+            ->action(function (Application $record): void {
+                $force = $record->latestScreeningAiAnalysis?->status === 'completed';
+                $analysis = app(ApplicationAiAnalysisService::class)
+                    ->analyzeScreening($record, Auth::user(), 'admin', $force);
+
+                if ($analysis->status === 'completed') {
+                    Notification::make()
+                        ->success()
+                        ->title('Đã có kết quả phân tích AI')
+                        ->body('Mở lại modal Sàng lọc CV để xem điểm phù hợp, tóm tắt và gợi ý ghi chú.')
+                        ->send();
+
+                    return;
+                }
+
+                Notification::make()
+                    ->warning()
+                    ->title('Chưa thể phân tích AI')
+                    ->body($analysis->error_message ?: 'Vui lòng kiểm tra CV, JD hoặc cấu hình GEMINI_API_KEY.')
+                    ->send();
+            })
+            ->visible(function (Application $record): bool {
+                $status = $record->status instanceof StatusApplicationEnum
+                    ? $record->status
+                    : StatusApplicationEnum::tryFrom((string) $record->status);
+
+                return $status === StatusApplicationEnum::NEW
+                    && filled($record->submittedCvPath());
+            });
+    }
+
+    public static function renderScreeningAiAnalysis(Application $record): HtmlString
+    {
+        $analysis = $record->latestScreeningAiAnalysis
+            ?? $record->latestScreeningAiAnalysis()->latest('id')->first();
+
+        if (! $analysis) {
+            return new HtmlString(
+                '<div style="grid-column:1/-1;border:1px dashed rgba(148,163,184,.65);border-radius:12px;padding:12px 14px;background:rgba(148,163,184,.08);font-size:13px;line-height:1.45;color:#64748b;">'
+                .'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">'
+                .'<strong style="color:#334155;">Gợi ý AI</strong>'
+                .'<span style="border-radius:999px;background:#e2e8f0;color:#475569;padding:3px 8px;font-size:11px;font-weight:700;white-space:nowrap;">Chưa phân tích</span>'
+                .'</div>'
+                .'Chạy phân tích AI để so khớp CV với JD, tạo cơ sở tham khảo trước khi HR quyết định.'
+                .'</div>'
+            );
+        }
+
+        if ($analysis->status !== 'completed') {
+            $message = e($analysis->error_message ?: 'Kết quả phân tích chưa sẵn sàng.');
+
+            return new HtmlString(
+                '<div style="grid-column:1/-1;border:1px solid #f59e0b;border-radius:10px;padding:12px 14px;background:rgba(245,158,11,.10);font-size:13px;line-height:1.45;color:#92400e;">'
+                .'<strong style="display:block;margin-bottom:4px;">Phân tích AI chưa hoàn tất</strong>'
+                .$message
+                .'</div>'
+            );
+        }
+
+        $score = is_numeric($analysis->score) ? (int) $analysis->score : 0;
+        $recommendation = static::aiRecommendationLabel($analysis->recommendation);
+        $recommendationColor = static::aiRecommendationColor($analysis->recommendation);
+        $strengths = static::renderAiList($analysis->strengths);
+        $gaps = static::renderAiList($analysis->gaps);
+        $summary = e($analysis->summary ?: 'AI chưa trả về tóm tắt.');
+        $suggestedNote = e($analysis->suggested_note ?: 'Chưa có gợi ý ghi chú.');
+        $analyzedAt = $analysis->analyzed_at?->format('d/m/Y H:i') ?? '';
+
+        return new HtmlString(<<<HTML
+            <div style="grid-column:1/-1;border:1px solid #dbe3ef;border-radius:14px;background:#ffffff;padding:14px;color:#0f172a;box-shadow:0 1px 2px rgba(15,23,42,.04);">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;">
+                    <div>
+                        <div style="font-size:14px;font-weight:800;">Gợi ý AI sàng lọc</div>
+                        <div style="font-size:12px;color:#64748b;">{$analyzedAt}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+                        <span style="border-radius:999px;background:#0f172a;color:#fff;padding:4px 9px;font-size:12px;font-weight:800;white-space:nowrap;">{$score}/100</span>
+                        <span style="border-radius:999px;background:{$recommendationColor};color:#fff;padding:4px 9px;font-size:12px;font-weight:700;white-space:nowrap;">{$recommendation}</span>
+                    </div>
+                </div>
+                <div style="border-left:3px solid {$recommendationColor};padding-left:10px;font-size:13px;line-height:1.5;color:#334155;">{$summary}</div>
+                <div style="margin-top:12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:10px;">
+                    <div style="display:grid;grid-template-columns:1fr;gap:10px;">
+                        <div>
+                            <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:4px;">Điểm phù hợp</div>
+                            {$strengths}
+                        </div>
+                        <div>
+                            <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px;">Điểm cần làm rõ</div>
+                            {$gaps}
+                        </div>
+                        <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
+                            <div style="font-size:12px;font-weight:800;color:#475569;margin-bottom:4px;">Gợi ý ghi chú sàng lọc</div>
+                            <div style="font-size:13px;line-height:1.45;color:#334155;">{$suggestedNote}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        HTML);
+    }
+
+    protected static function renderAiList(?array $items): string
+    {
+        $items = static::normalizeAiListItems($items ?? []);
+
+        if ($items === []) {
+            return '<div style="font-size:13px;color:#64748b;">Chưa có dữ liệu.</div>';
+        }
+
+        $html = '<div style="display:grid;gap:6px;font-size:13px;line-height:1.45;color:#334155;">';
+        foreach (array_slice($items, 0, 3) as $item) {
+            $html .= '<div style="display:grid;grid-template-columns:7px minmax(0,1fr);gap:8px;align-items:start;">'
+                .'<span style="width:5px;height:5px;border-radius:999px;background:#94a3b8;margin-top:7px;"></span>'
+                .'<span>'.e((string) $item).'</span>'
+                .'</div>';
+        }
+
+        return $html.'</div>';
+    }
+
+    protected static function normalizeAiListItems(array $items): array
+    {
+        $normalized = [];
+
+        foreach ($items as $item) {
+            $text = trim((string) $item);
+
+            if ($text === '') {
+                continue;
+            }
+
+            $parts = preg_split('/(?:\r?\n|\s*-\s+|\s*•\s*|\s*\d+[\.)]\s+|;\s*)/u', $text) ?: [$text];
+
+            foreach ($parts as $part) {
+                $part = trim($part);
+
+                if ($part !== '') {
+                    $normalized[] = $part;
+                }
+            }
+        }
+
+        return array_values(array_unique($normalized));
+    }
+
+    protected static function aiRecommendationLabel(?string $recommendation): string
+    {
+        return match ($recommendation) {
+            'pass' => 'Phù hợp',
+            'reject' => 'Chưa phù hợp',
+            default => 'Cần xem thêm',
+        };
+    }
+
+    protected static function aiRecommendationColor(?string $recommendation): string
+    {
+        return match ($recommendation) {
+            'pass' => '#16a34a',
+            'reject' => '#dc2626',
+            default => '#f59e0b',
+        };
+    }
+
+    protected static function getLatestCompletedAiAnalysis(Application $record, string $type): mixed
+    {
+        $relationName = match ($type) {
+            'screening' => 'latestScreeningAiAnalysis',
+            'interview_questions' => 'latestInterviewQuestionAiAnalysis',
+            default => null,
+        };
+
+        $loaded = $relationName && $record->relationLoaded($relationName)
+            ? $record->getRelation($relationName)
+            : null;
+
+        if ($loaded?->status === 'completed') {
+            return $loaded;
+        }
+
+        return $record->aiAnalyses()
+            ->where('analysis_type', $type)
+            ->where('status', 'completed')
+            ->latest('id')
+            ->first();
+    }
+
+    public static function renderInterviewPreparation(Application $record): HtmlString
+    {
+        $screening = static::getLatestCompletedAiAnalysis($record, 'screening');
+        $questionAnalysis = static::getLatestCompletedAiAnalysis($record, 'interview_questions');
+
+        if (! $screening || $screening->status !== 'completed') {
+            return new HtmlString(
+                '<div style="border:1px dashed #cbd5e1;border-radius:12px;padding:12px 14px;background:rgba(148,163,184,.08);font-size:13px;line-height:1.45;color:#64748b;">'
+                .'<strong style="display:block;color:#334155;margin-bottom:4px;">Gợi ý chuẩn bị phỏng vấn</strong>'
+                .'Chưa có dữ liệu sàng lọc AI để gợi ý trọng tâm phỏng vấn.'
+                .'</div>'
+            );
+        }
+
+        $gaps = static::renderAiList($screening->gaps);
+        $questions = static::renderInterviewQuestions((array) data_get($questionAnalysis?->result_json, 'questions', []));
+
+        return new HtmlString(<<<HTML
+            <div style="border:1px solid #dbe3ef;border-radius:14px;background:#ffffff;padding:14px;color:#0f172a;box-shadow:0 1px 2px rgba(15,23,42,.04);">
+                <div style="font-size:14px;font-weight:800;margin-bottom:10px;">Gợi ý chuẩn bị phỏng vấn</div>
+                <div>
+                    <div style="font-size:12px;font-weight:800;color:#475569;margin-bottom:6px;">Cần làm rõ</div>
+                    {$gaps}
+                </div>
+                <div style="margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px;">
+                    <div style="font-size:12px;font-weight:800;color:#475569;margin-bottom:6px;">Câu hỏi gợi ý</div>
+                    {$questions}
+                </div>
+            </div>
+        HTML);
+    }
+
+    protected static function renderInterviewQuestions(array $questions): string
+    {
+        $questions = array_values(array_filter($questions, fn ($question): bool => is_array($question) && filled($question['question'] ?? null)));
+
+        if ($questions === []) {
+            return '<div style="font-size:13px;line-height:1.45;color:#64748b;">Chưa có câu hỏi gợi ý. Có thể tạo từ điểm cần làm rõ và tiêu chí scorecard hiện tại.</div>';
+        }
+
+        $html = '<div style="display:grid;gap:7px;">';
+        foreach (array_slice($questions, 0, 4) as $index => $question) {
+            $number = $index + 1;
+            $criterion = trim((string) ($question['criterion'] ?? ''));
+            $purpose = trim((string) ($question['purpose'] ?? ''));
+            $meta = $criterion !== ''
+                ? '<div style="font-size:11px;font-weight:700;color:#0369a1;margin-bottom:3px;">'.e($criterion).'</div>'
+                : '';
+            $purposeHtml = $purpose !== ''
+                ? '<div style="font-size:12px;line-height:1.45;color:#64748b;margin-top:4px;">Mục đích: '.e($purpose).'</div>'
+                : '';
+
+            $html .= '<div style="display:grid;grid-template-columns:24px 1fr;gap:8px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:9px 10px;">'
+                .'<div style="width:22px;height:22px;border-radius:999px;background:#e0f2fe;color:#075985;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;">'.$number.'</div>'
+                .'<div>'
+                .$meta
+                .'<div style="font-size:13px;line-height:1.45;color:#334155;font-weight:650;">'.e((string) $question['question']).'</div>'
+                .$purposeHtml
+                .'</div>'
+                .'</div>';
+        }
+
+        return $html.'</div>';
+    }
     protected static function getCvScreeningFormSchema(): array
     {
         return [
@@ -1083,6 +1358,8 @@ class ApplicationsTable
                             Placeholder::make('profile_title_display')
                                 ->label('Tiêu đề hồ sơ')
                                 ->content(fn (Application $record): string => $record->snapshotProfileTitle() ?: '-'),
+                            Html::make(fn (Application $record): HtmlString => static::renderScreeningAiAnalysis($record))
+                                ->columnSpanFull(),
                             Select::make('screening_decision')
                                 ->label('Kết quả sàng lọc CV')
                                 ->options([
@@ -1108,7 +1385,7 @@ class ApplicationsTable
                                 ->required(fn (callable $get): bool => $get('screening_decision') === 'reject')
                                 ->columnSpanFull(),
                         ])
-                        ->columnSpan(['default' => 'full', 'xl' => 3]),
+                        ->columnSpan(['default' => 'full', 'xl' => 4]),
                     Section::make('CV ứng tuyển')
                         ->description('CV được lưu theo snapshot tại thời điểm ứng viên nộp hồ sơ.')
                         ->schema([
@@ -1126,12 +1403,12 @@ class ApplicationsTable
                                     .'<div class="min-w-0 text-sm font-medium text-gray-700 dark:text-gray-200">'.e($name).'</div>'
                                     .'<a class="inline-flex shrink-0 items-center justify-center rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500" href="'.e($url).'" target="_blank" rel="noopener">Mở CV</a>'
                                     .'</div>'
-                                    .'<iframe src="'.e($url).'#toolbar=1&navpanes=0" class="w-full rounded-lg border border-gray-200 bg-white dark:border-gray-700" style="height: min(62vh, 680px); min-height: 460px;" title="CV ứng tuyển"></iframe>'
+                                    .'<iframe src="'.e($url).'#toolbar=1&navpanes=0" class="w-full rounded-lg border border-gray-200 bg-white dark:border-gray-700" style="height: min(76vh, 820px); min-height: 640px;" title="CV ứng tuyển"></iframe>'
                                     .'</div>'
                                 );
                             }),
                         ])
-                        ->columnSpan(['default' => 'full', 'xl' => 9]),
+                        ->columnSpan(['default' => 'full', 'xl' => 8]),
                 ]),
         ];
     }
@@ -1305,6 +1582,48 @@ class ApplicationsTable
                                 ->label('Ghi chú sàng lọc')
                                 ->content(fn (Application $record): string => static::getLatestScreeningComment($record) ?: '-')
                                 ->columnSpanFull(),
+                            Html::make(fn (Application $record): HtmlString => static::renderInterviewPreparation($record))
+                                ->columnSpanFull(),
+                            SchemaActions::make([
+                                Action::make('generate_interview_questions')
+                                    ->label(fn (Application $record): string => static::getLatestCompletedAiAnalysis($record, 'interview_questions')
+                                        ? 'Tạo lại câu hỏi gợi ý'
+                                        : 'Tạo câu hỏi gợi ý')
+                                    ->icon('heroicon-o-sparkles')
+                                    ->color('info')
+                                    ->requiresConfirmation()
+                                    ->modalHeading('Tạo câu hỏi gợi ý bằng AI?')
+                                    ->modalDescription('AI sẽ dùng kết quả sàng lọc và tiêu chí scorecard hiện tại để tạo danh sách câu hỏi tham khảo cho buổi phỏng vấn.')
+                                    ->action(function (Application $record, Get $get): void {
+                                        $existingQuestions = static::getLatestCompletedAiAnalysis($record, 'interview_questions');
+                                        $analysis = app(ApplicationAiAnalysisService::class)
+                                            ->generateInterviewQuestions(
+                                                $record,
+                                                (array) ($get('criteria') ?? []),
+                                                Auth::user(),
+                                                'admin',
+                                                filled($existingQuestions),
+                                            );
+
+                                        if ($analysis->status === 'completed') {
+                                            Notification::make()
+                                                ->success()
+                                                ->title('Đã tạo câu hỏi gợi ý')
+                                                ->body('Danh sách câu hỏi đã được lưu cho hồ sơ phỏng vấn này.')
+                                                ->send();
+
+                                            return;
+                                        }
+
+                                        Notification::make()
+                                            ->warning()
+                                            ->title('Chưa thể tạo câu hỏi')
+                                            ->body($analysis->error_message ?: 'Vui lòng kiểm tra kết quả sàng lọc AI hoặc cấu hình AI.')
+                                            ->send();
+                                    })
+                                    ->visible(fn (Application $record): bool => filled(static::getLatestCompletedAiAnalysis($record, 'screening'))),
+                            ])
+                                ->columnSpanFull(),
                             Placeholder::make('interview_note_display')
                                 ->label('Ghi chú lịch phỏng vấn')
                                 ->content(fn (Application $record): string => $record->interviews()->latest('id')->first()?->notes ?: '-')
@@ -1447,7 +1766,7 @@ class ApplicationsTable
         }
 
         return $record->scorecards()
-            ->with('evaluator')
+            ->with(['evaluator', 'interview', 'template'])
             ->where('interview_id', $interview->id)
             ->latest('updated_at')
             ->get();
@@ -1464,6 +1783,13 @@ class ApplicationsTable
         $items = $scorecards->map(function (Scorecard $scorecard): string {
             $evaluator = e($scorecard->evaluator?->name ?? 'Người đánh giá');
             $role = e(static::formatUserRole($scorecard->evaluator?->role));
+            $roundName = e(
+                $scorecard->interview?->round_name
+                    ?: ($scorecard->interview?->round_number ? 'Vòng '.$scorecard->interview->round_number : 'Vòng phỏng vấn')
+            );
+            $templateName = filled($scorecard->template?->name)
+                ? '<span class="text-gray-500 dark:text-gray-400">Mẫu:</span> <span class="font-medium text-gray-900 dark:text-gray-100">'.e($scorecard->template->name).'</span>'
+                : '';
             $updatedAt = $scorecard->updated_at
                 ? e($scorecard->updated_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y'))
                 : '-';
@@ -1473,28 +1799,71 @@ class ApplicationsTable
             $recommendation = e(static::interviewConclusionLabel($scorecard->recommended_conclusion));
             $conclusion = e(static::interviewConclusionLabel($scorecard->conclusion));
             $overrideReason = filled($scorecard->override_reason)
-                ? '<div class="mt-1 text-xs text-amber-700 dark:text-amber-300">Lý do ngoại lệ: '.e($scorecard->override_reason).'</div>'
+                ? '<div class="mt-2 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:bg-amber-500/10 dark:text-amber-300">Lý do quyết định khác khuyến nghị: '.e($scorecard->override_reason).'</div>'
                 : '';
             $notes = filled($scorecard->notes)
-                ? '<div class="mt-1 text-xs text-gray-600 dark:text-gray-300">Nhận xét: '.e($scorecard->notes).'</div>'
+                ? '<div class="mt-2 text-xs leading-5 text-gray-600 dark:text-gray-300"><span class="font-medium text-gray-800 dark:text-gray-100">Nhận xét tổng quan:</span> '.e($scorecard->notes).'</div>'
                 : '';
+            $criteria = is_array($scorecard->criteria) ? $scorecard->criteria : [];
+            $criteriaRows = collect($criteria)
+                ->filter(fn ($criterion): bool => is_array($criterion))
+                ->map(function (array $criterion, int $index): string {
+                    $name = e((string) ($criterion['name'] ?? 'Tiêu chí '.($index + 1)));
+                    $score = isset($criterion['score']) && $criterion['score'] !== ''
+                        ? e(number_format((float) $criterion['score'], 1, ',', '.').'/10')
+                        : '-';
+                    $note = filled($criterion['note'] ?? null)
+                        ? e((string) $criterion['note'])
+                        : '<span class="text-gray-400 dark:text-gray-500">Chưa có nhận xét riêng</span>';
+
+                    return <<<HTML
+                        <div class="grid gap-2 border-t border-gray-100 px-3 py-2 text-xs first:border-t-0 dark:border-gray-800 md:grid-cols-[minmax(0,1fr)_5rem_minmax(0,1.25fr)]">
+                            <div class="font-medium text-gray-900 dark:text-gray-100">{$name}</div>
+                            <div class="font-semibold tabular-nums text-gray-900 dark:text-gray-100">{$score}</div>
+                            <div class="leading-5 text-gray-600 dark:text-gray-300">{$note}</div>
+                        </div>
+                    HTML;
+                })
+                ->implode('');
+
+            $criteriaDetail = $criteriaRows !== ''
+                ? <<<HTML
+                    <details class="mt-3 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+                        <summary class="cursor-pointer px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-white/5">
+                            Xem chi tiết điểm theo tiêu chí
+                        </summary>
+                        <div class="border-t border-gray-100 dark:border-gray-800">
+                            <div class="hidden grid-cols-[minmax(0,1fr)_5rem_minmax(0,1.25fr)] gap-2 bg-gray-50 px-3 py-2 text-xs font-medium text-gray-500 dark:bg-white/5 dark:text-gray-400 md:grid">
+                                <div>Tiêu chí</div>
+                                <div>Điểm</div>
+                                <div>Nhận xét</div>
+                            </div>
+                            {$criteriaRows}
+                        </div>
+                    </details>
+                HTML
+                : '<div class="mt-3 rounded-lg border border-dashed border-gray-200 px-3 py-2 text-xs text-gray-500 dark:border-gray-800 dark:text-gray-400">Chưa có chi tiết tiêu chí chấm điểm.</div>';
 
             return <<<HTML
-                <div class="rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950">
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{$evaluator}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">{$role}</div>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">{$role} · {$roundName}</div>
                         </div>
                         <div class="text-xs text-gray-500 dark:text-gray-400">{$updatedAt}</div>
                     </div>
+                    <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+                        {$templateName}
+                    </div>
                     <div class="mt-2 grid grid-cols-1 gap-2 text-xs md:grid-cols-3">
-                        <div><span class="text-gray-500 dark:text-gray-400">Điểm TB:</span> <span class="font-semibold text-gray-900 dark:text-gray-100">{$average}</span></div>
+                        <div><span class="text-gray-500 dark:text-gray-400">Điểm trung bình:</span> <span class="font-semibold text-gray-900 dark:text-gray-100">{$average}</span></div>
                         <div><span class="text-gray-500 dark:text-gray-400">Khuyến nghị:</span> <span class="font-semibold text-gray-900 dark:text-gray-100">{$recommendation}</span></div>
                         <div><span class="text-gray-500 dark:text-gray-400">Kết luận:</span> <span class="font-semibold text-gray-900 dark:text-gray-100">{$conclusion}</span></div>
                     </div>
                     {$overrideReason}
                     {$notes}
+                    {$criteriaDetail}
                 </div>
             HTML;
         })->implode('');
@@ -2023,7 +2392,7 @@ class ApplicationsTable
                 $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 if ($status === StatusApplicationEnum::NEW) {
-                    return 'Xác nhận sàng lọc';
+                    return 'Lưu kết quả sàng lọc';
                 }
 
                 if (static::canManageInterview($record)) {

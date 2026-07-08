@@ -20,6 +20,11 @@ return [
 
     'gemini' => [
         'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+    'poppler' => [
+        'pdftotext_path' => env('PDFTOTEXT_PATH'),
     ],
 
     'resend' => [
