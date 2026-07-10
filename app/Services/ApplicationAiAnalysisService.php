@@ -318,6 +318,9 @@ Quy tắc:
 - Chỉ đưa ra gợi ý, không thay HR quyết định.
 - Không suy đoán thông tin không có trong CV/JD.
 - Nếu thiếu dữ liệu, ghi rõ là cần xác minh thêm.
+- Ưu tiên căn cứ có thể đối chiếu từ CV/JD, tránh nhận xét chung chung.
+- Đánh giá theo góc nhìn HR ở bước sàng lọc CV: có đủ cơ sở chuyển bước tiếp theo hay cần làm rõ/từ chối.
+- Đồng thời tạo bản tóm tắt rất ngắn cho giám đốc chi nhánh khi xem đề nghị tuyển dụng ở bước sau.
 - Trả về JSON hợp lệ, không bọc markdown.
 
 Thông tin ứng viên:
@@ -336,7 +339,16 @@ Trả về đúng cấu trúc JSON:
   "summary": "Tóm tắt 2-3 câu về mức độ phù hợp của ứng viên.",
   "strengths": ["Điểm phù hợp 1", "Điểm phù hợp 2", "Điểm phù hợp 3"],
   "gaps": ["Điểm cần làm rõ hoặc còn thiếu 1", "Điểm cần làm rõ hoặc còn thiếu 2"],
-  "suggested_note": "Gợi ý ghi chú sàng lọc ngắn để HR có thể chỉnh sửa trước khi lưu."
+  "evidence": ["Căn cứ cụ thể từ CV/JD giúp HR đối chiếu"],
+  "risks": ["Rủi ro hoặc điểm còn mơ hồ cần cân nhắc"],
+  "next_step_hint": "Gợi ý bước tiếp theo cho HR, ví dụ chuyển phỏng vấn và làm rõ điểm nào.",
+  "suggested_note": "Gợi ý ghi chú sàng lọc ngắn để HR có thể chỉnh sửa trước khi lưu.",
+  "director_brief": {
+    "summary": "Tóm tắt 1-2 câu cho giám đốc chi nhánh khi duyệt đề nghị tuyển dụng.",
+    "key_points": ["Căn cứ chính để xem xét duyệt đề nghị"],
+    "risks": ["Điểm cần lưu ý trước khi duyệt nếu có"],
+    "decision_support": "Gợi ý hỗ trợ xem xét, không thay quyết định duyệt/từ chối."
+  }
 }
 PROMPT;
     }
@@ -359,12 +371,16 @@ Bạn là trợ lý tuyển dụng cho hệ thống FPT Career. Hãy tạo câu 
 
 Quy tắc:
 - Chỉ tạo câu hỏi tham khảo, không thay người phỏng vấn đánh giá.
-- Ưu tiên các điểm cần làm rõ từ bước sàng lọc.
+- Ưu tiên các điểm cần làm rõ từ bước sàng lọc và tiêu chí scorecard.
+- Nếu CV có dự án hoặc kinh nghiệm gần nhất, hãy hỏi sâu vào dự án/kinh nghiệm đó để kiểm chứng vai trò thật.
+- Không tạo câu hỏi Có/Không, câu hỏi quá cơ bản, câu hỏi định nghĩa lý thuyết đơn giản hoặc câu hỏi đã rõ trong CV.
+- Ưu tiên câu hỏi tình huống, bài toán thực tế, quyết định kỹ thuật, kết quả đạt được hoặc mức độ tham gia thật.
 - Gắn mỗi câu hỏi với một tiêu chí scorecard phù hợp nếu có thể.
 - Câu hỏi phải cụ thể, lịch sự, dùng được trong phỏng vấn thực tế.
-- Mỗi câu hỏi là một câu duy nhất, tối đa 120 ký tự.
+- Mỗi câu hỏi là một câu duy nhất, tối đa 95 ký tự.
 - Không giải thích dài trong trường question; phần giải thích ngắn đặt ở purpose.
-- Purpose tối đa 80 ký tự.
+- Purpose tối đa 70 ký tự.
+- expected_signal mô tả ngắn dấu hiệu của câu trả lời tốt, tối đa 110 ký tự.
 - Không hỏi thông tin nhạy cảm hoặc không liên quan công việc.
 - Trả về JSON hợp lệ, không bọc markdown.
 
@@ -387,13 +403,16 @@ Trả về đúng cấu trúc JSON:
   "questions": [
     {
       "criterion": "Tên tiêu chí scorecard phù hợp",
+      "type": "project_deep_dive|gap_validation|scenario|risk_check",
       "question": "Câu hỏi phỏng vấn cụ thể",
-      "purpose": "Mục đích hỏi, gắn với điểm cần làm rõ"
+      "purpose": "Mục đích hỏi, gắn với điểm cần làm rõ",
+      "expected_signal": "Dấu hiệu người phỏng vấn nên nghe trong câu trả lời tốt"
     }
   ]
 }
 
 Yêu cầu số lượng: đúng 4 câu hỏi nếu dữ liệu đủ, tối thiểu 3 câu nếu dữ liệu hạn chế.
+Phân bổ ưu tiên: 1 câu đào sâu dự án/kinh nghiệm gần nhất, 1 câu làm rõ gap quan trọng nhất, 1 câu tình huống sát JD, 1 câu kiểm tra rủi ro hoặc mức độ tham gia thật.
 PROMPT;
     }
 
@@ -439,8 +458,10 @@ PROMPT;
             ->filter(fn ($question): bool => is_array($question) && filled($question['question'] ?? null))
             ->map(fn (array $question): array => [
                 'criterion' => $this->normalizeText((string) ($question['criterion'] ?? '')),
+                'type' => $this->normalizeText((string) ($question['type'] ?? '')),
                 'question' => $this->normalizeText((string) ($question['question'] ?? '')),
                 'purpose' => $this->normalizeText((string) ($question['purpose'] ?? '')),
+                'expected_signal' => $this->normalizeText((string) ($question['expected_signal'] ?? '')),
             ])
             ->take(4)
             ->values()

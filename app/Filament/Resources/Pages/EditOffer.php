@@ -469,9 +469,15 @@ class EditOffer extends EditRecord
         $analysis = $this->latestCompletedScreeningAnalysis($application);
         $score = $analysis?->score;
         $recommendation = $analysis?->recommendation;
-        $summary = trim((string) ($analysis?->summary ?? ''));
-        $strengths = $this->renderInlineList((array) ($analysis?->strengths ?? []), '#15803d');
-        $gaps = $this->renderInlineList((array) ($analysis?->gaps ?? []), '#ea580c');
+        $resultJson = (array) ($analysis?->result_json ?? []);
+        $directorSummary = trim((string) data_get($resultJson, 'director_brief.summary', ''));
+        $summary = $directorSummary !== ''
+            ? $directorSummary
+            : trim((string) ($analysis?->summary ?? ''));
+        $directorKeyPoints = (array) data_get($resultJson, 'director_brief.key_points', []);
+        $directorRisks = (array) data_get($resultJson, 'director_brief.risks', []);
+        $strengths = $this->renderInlineList($directorKeyPoints !== [] ? $directorKeyPoints : (array) ($analysis?->strengths ?? []), '#15803d');
+        $gaps = $this->renderInlineList($directorRisks !== [] ? $directorRisks : (array) ($analysis?->gaps ?? []), '#ea580c');
 
         $scoreBadge = filled($score)
             ? '<span style="min-width:52px;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid #e5e7eb;background:#f9fafb;padding:4px 10px;font-size:12px;font-weight:800;color:#111827;white-space:nowrap;">'.(int) $score.'/100</span>'
@@ -489,21 +495,21 @@ class EditOffer extends EditRecord
             <div style="position:relative;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:13px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04);">
                 <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:16px;align-items:start;">
                     <div style="min-width:0;">
-                        <div style="margin-bottom:5px;font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;">Đánh giá tổng quan</div>
+                        <div style="margin-bottom:5px;font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;">Tóm tắt hỗ trợ duyệt</div>
                         {$summaryHtml}
                     </div>
                     <div style="display:grid;gap:10px;justify-items:end;">
                         <div style="display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:6px;">{$scoreBadge}{$recommendationBadge}</div>
                         <details>
-                        <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;white-space:nowrap;">Xem phân tích AI</summary>
+                        <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;white-space:nowrap;">Xem căn cứ AI</summary>
                         <div style="position:absolute;z-index:20;margin-top:8px;right:14px;width:min(520px,calc(100vw - 80px));border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:12px;box-shadow:0 10px 24px rgba(15,23,42,.16);">
                             <div style="display:grid;gap:10px;">
                                 <div>
-                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#15803d;">Điểm phù hợp</div>
+                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#15803d;">Căn cứ duyệt</div>
                                     {$strengths}
                                 </div>
                                 <div>
-                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#ea580c;">Cần làm rõ</div>
+                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#ea580c;">Điểm cần lưu ý</div>
                                     {$gaps}
                                 </div>
                             </div>

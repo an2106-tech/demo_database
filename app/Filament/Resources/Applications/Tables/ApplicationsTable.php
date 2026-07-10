@@ -1139,10 +1139,20 @@ class ApplicationsTable
         $score = is_numeric($analysis->score) ? (int) $analysis->score : 0;
         $recommendation = static::aiRecommendationLabel($analysis->recommendation);
         $recommendationColor = static::aiRecommendationColor($analysis->recommendation);
-        $strengths = static::renderAiList($analysis->strengths);
+        $resultJson = (array) ($analysis->result_json ?? []);
+        $evidenceItems = (array) data_get($resultJson, 'evidence', []);
+        $riskItems = (array) data_get($resultJson, 'risks', []);
+        $evidence = static::renderAiList($evidenceItems !== [] ? $evidenceItems : $analysis->strengths);
         $gaps = static::renderAiList($analysis->gaps);
         $summary = e($analysis->summary ?: 'AI chưa trả về tóm tắt.');
         $suggestedNote = e($analysis->suggested_note ?: 'Chưa có gợi ý ghi chú.');
+        $nextStepHint = trim((string) data_get($resultJson, 'next_step_hint', ''));
+        $nextStepHtml = $nextStepHint !== ''
+            ? '<div style="margin-top:10px;border-top:1px solid #e2e8f0;padding-top:10px;"><div style="font-size:12px;font-weight:800;color:#475569;margin-bottom:4px;">Gợi ý bước tiếp theo</div><div style="font-size:13px;line-height:1.45;color:#334155;">'.e($nextStepHint).'</div></div>'
+            : '';
+        $risksHtml = $riskItems !== []
+            ? '<div><div style="font-size:12px;font-weight:800;color:#b45309;margin-bottom:4px;">Lưu ý rủi ro</div>'.static::renderAiList($riskItems).'</div>'
+            : '';
         $analyzedAt = $analysis->analyzed_at?->format('d/m/Y H:i') ?? '';
 
         return new HtmlString(<<<HTML
@@ -1161,17 +1171,19 @@ class ApplicationsTable
                 <div style="margin-top:12px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:10px;">
                     <div style="display:grid;grid-template-columns:1fr;gap:10px;">
                         <div>
-                            <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:4px;">Điểm phù hợp</div>
-                            {$strengths}
+                            <div style="font-size:12px;font-weight:800;color:#166534;margin-bottom:4px;">Căn cứ phù hợp</div>
+                            {$evidence}
                         </div>
                         <div>
                             <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:4px;">Điểm cần làm rõ</div>
                             {$gaps}
                         </div>
+                        {$risksHtml}
                         <div style="border-top:1px solid #e2e8f0;padding-top:10px;">
                             <div style="font-size:12px;font-weight:800;color:#475569;margin-bottom:4px;">Gợi ý ghi chú sàng lọc</div>
                             <div style="font-size:13px;line-height:1.45;color:#334155;">{$suggestedNote}</div>
                         </div>
+                        {$nextStepHtml}
                     </div>
                 </div>
             </div>
@@ -1307,12 +1319,25 @@ class ApplicationsTable
         foreach (array_slice($questions, 0, 4) as $index => $question) {
             $number = $index + 1;
             $criterion = trim((string) ($question['criterion'] ?? ''));
+            $type = trim((string) ($question['type'] ?? ''));
             $purpose = trim((string) ($question['purpose'] ?? ''));
-            $meta = $criterion !== ''
-                ? '<div style="font-size:11px;font-weight:700;color:#0369a1;margin-bottom:3px;">'.e($criterion).'</div>'
+            $expectedSignal = trim((string) ($question['expected_signal'] ?? ''));
+            $typeLabel = match ($type) {
+                'project_deep_dive' => 'Đào sâu dự án',
+                'gap_validation' => 'Làm rõ gap',
+                'scenario' => 'Tình huống',
+                'risk_check' => 'Kiểm tra rủi ro',
+                default => '',
+            };
+            $metaParts = array_filter([$criterion, $typeLabel]);
+            $meta = $metaParts !== []
+                ? '<div style="font-size:11px;font-weight:700;color:#0369a1;margin-bottom:3px;">'.e(implode(' · ', $metaParts)).'</div>'
                 : '';
             $purposeHtml = $purpose !== ''
                 ? '<div style="font-size:12px;line-height:1.45;color:#64748b;margin-top:4px;">Mục đích: '.e($purpose).'</div>'
+                : '';
+            $expectedHtml = $expectedSignal !== ''
+                ? '<div style="font-size:12px;line-height:1.45;color:#475569;margin-top:4px;">Tín hiệu tốt: '.e($expectedSignal).'</div>'
                 : '';
 
             $html .= '<div style="display:grid;grid-template-columns:24px 1fr;gap:8px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;padding:9px 10px;">'
@@ -1321,6 +1346,7 @@ class ApplicationsTable
                 .$meta
                 .'<div style="font-size:13px;line-height:1.45;color:#334155;font-weight:650;">'.e((string) $question['question']).'</div>'
                 .$purposeHtml
+                .$expectedHtml
                 .'</div>'
                 .'</div>';
         }

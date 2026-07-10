@@ -3,11 +3,12 @@
 namespace App\Filament\Resources\Branches\Schemas;
 
 use App\Enums\VietnamProvince;
-use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 
 
@@ -43,16 +44,20 @@ class BranchForm
 
                 Select::make('city')
                     ->label('Thành phố')
-                    ->placeholder('Cần Thơ')
+                    ->placeholder('Chọn tỉnh/thành phố')
+                    ->options(VietnamProvince::options())
+                    ->searchable()
+                    ->live()
                     ->required()
-                    ->maxLength(100)
-                    ->dehydrateStateUsing(fn ($state) => trim($state)),
+                    ->dehydrateStateUsing(fn ($state) => $state ? trim($state) : null),
 
                 TextInput::make('province_code')
                     ->label('Mã tỉnh')
-                    ->placeholder('900000')
+                    ->placeholder('Tự động theo tỉnh/thành phố')
                     ->maxLength(10)
-                    ->dehydrateStateUsing(fn ($state) =>$state ? trim($state) : null),
+                    ->readOnly()
+                    ->dehydrated()
+                    ->dehydrateStateUsing(fn ($state, Get $get) => VietnamProvince::tryFrom((string) $get('city'))?->provinceCode()),
 
                 Textarea::make('address')
                     ->label('Địa chỉ')
@@ -64,7 +69,7 @@ class BranchForm
                     ->label('Số điện thoại')
                     ->placeholder('097468XXXX')
                     ->tel()
-                    ->rule('regex:/^0[0-9]{9}$/')
+                    ->rule('regex:/^(0|\+84)[0-9\s.\-]{8,14}$/')
                     ->nullable(),
 
                 TextInput::make('email_contact')
