@@ -23,9 +23,9 @@ class ManageCandidate extends Component
         $success = $aiService->calculateMatch($submission);
 
         if ($success) {
-            session()->flash('message', 'Phan tich AI hoan tat cho '.$submission->candidate->name);
+            session()->flash('message', 'Phân tích AI hoàn tất cho '.$submission->candidate->name);
         } else {
-            session()->flash('error', 'Khong the phan tich AI. Vui long kiem tra lai API key hoac noi dung CV.');
+            session()->flash('error', $aiService->getLastError() ?: 'Không thể phân tích AI. Vui lòng kiểm tra lại API key hoặc nội dung CV.');
         }
     }
 

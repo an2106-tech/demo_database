@@ -19,7 +19,7 @@ class ApplicationAiAnalysisService
     public function __construct(
         private CvExtractionService $cvExtractionService,
     ) {
-        $this->model = config('services.gemini.model', 'gemini-2.5-flash');
+        $this->model = config('services.gemini.model', 'gemini-3.1-flash-lite');
         $this->apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/'.$this->model.':generateContent';
     }
 

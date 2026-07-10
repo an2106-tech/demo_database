@@ -1,4 +1,4 @@
-<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-candidate" role="banner" x-data="{ openUserMenu: false }">
+﻿<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-candidate" role="banner" x-data="{ openUserMenu: false }">
     <style>
         @media (min-width: 992px) {
             .app-header-candidate .row {
@@ -6,8 +6,8 @@
             }
 
             .app-header-candidate .col-lg-2 {
-                flex: 0 0 170px;
-                max-width: 170px;
+                flex: 0 0 150px;
+                max-width: 150px;
             }
 
             .app-header-candidate .col-lg-6 {
@@ -31,7 +31,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 8px;
+                gap: 2px;
                 flex-wrap: nowrap;
             }
 
@@ -44,8 +44,8 @@
                 align-items: center;
                 white-space: nowrap !important;
                 line-height: 1.2 !important;
-                padding-left: 10px !important;
-                padding-right: 10px !important;
+                padding-left: 7px !important;
+                padding-right: 7px !important;
             }
         }
 
@@ -132,14 +132,14 @@
             align-items: center !important;
             justify-content: center !important;
             min-height: 44px !important;
-            padding: 12px 24px !important;
+            padding: 11px 16px !important;
             border-radius: 999px !important;
             background: var(--fpt-orange) !important;
             border: none !important;
             color: #fff !important;
             -webkit-text-fill-color: #fff !important;
             font-family: 'Plus Jakarta Sans', sans-serif !important;
-            font-size: 15px !important;
+            font-size: 13px !important;
             font-weight: 700 !important;
             line-height: 1 !important;
             letter-spacing: 0 !important;
@@ -156,6 +156,47 @@
             transform: translateY(-2px) !important;
             box-shadow: 0 8px 20px var(--fpt-orange-glow) !important;
             background: var(--fpt-orange-light) !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .app-header-candidate .row {
+                justify-content: space-between;
+            }
+
+            .app-header-candidate .col-lg-2 {
+                width: 100% !important;
+                max-width: none;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .app-header-candidate .col-lg-6,
+            .app-header-candidate .col-lg-4 {
+                display: none !important;
+            }
+
+            .app-header-candidate .site-logo {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .app-header-candidate .site-logo img {
+                max-width: 136px;
+                height: auto;
+            }
+
+            .app-header-candidate .jobguru-responsive-menu {
+                display: flex;
+                justify-content: flex-end;
+                margin-left: auto;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1320px) {
+            .app-header-candidate #jobguru_navigation > li:nth-child(6) {
+                display: none;
+            }
         }
     </style>
     <div class="menu-animation">
@@ -193,7 +234,7 @@
                                     href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
                                     class="switch-role-btn"
                                 >
-                                    {{ request()->routeIs('employers.portal') ? 'Khu Ứng Viên' : 'Dành cho Nhà Tuyển Dụng' }}
+                                    {{ request()->routeIs('employers.portal') ? 'Khu ứng viên' : 'Nhà tuyển dụng' }}
                                 </a>
                             </li>
                             @if($canCandidateAccess ?? false)

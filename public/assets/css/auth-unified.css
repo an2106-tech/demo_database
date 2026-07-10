@@ -9,6 +9,7 @@
 .auth-site-shell {
   position: relative;
   min-height: 100vh;
+  overflow-x: hidden;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 252, 0.98) 100%);
 }
@@ -595,13 +596,23 @@ body.client-app .auth-unified-page {
 }
 
 @media (max-width: 767px) {
+  .auth-topbar {
+    padding: 12px 12px 0;
+  }
+
+  .auth-topbar__shell {
+    border-radius: 18px;
+    padding: 14px;
+  }
+
   .auth-topbar__brand {
-    flex-direction: column;
-    text-align: center;
+    width: 100%;
+    justify-content: space-between;
+    text-align: left;
   }
 
   .auth-topbar__brand-copy {
-    justify-items: center;
+    justify-items: start;
   }
 
   .auth-topbar__actions,
@@ -627,5 +638,31 @@ body.client-app .auth-unified-page {
 
   .auth-role-tabs--login {
     max-width: none;
+  }
+
+  .auth-unified-page {
+    padding: 18px 12px 36px;
+  }
+
+  .auth-unified-shell {
+    border-radius: 24px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
+  }
+
+  .auth-unified-aside {
+    display: none;
+  }
+
+  .auth-unified-main {
+    padding: 24px 18px;
+  }
+
+  .auth-unified-header h2 {
+    font-size: clamp(28px, 8vw, 38px);
+  }
+
+  .auth-unified-options {
+    gap: 10px;
+    padding: 14px;
   }
 }

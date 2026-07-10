@@ -13,6 +13,10 @@
         }
 
         .app-header-employer #jobguru_navigation > li > a {
+            display: inline-flex !important;
+            align-items: center;
+            white-space: nowrap !important;
+            line-height: 1.2 !important;
             padding-left: 10px !important;
             padding-right: 10px !important;
         }
@@ -122,18 +126,47 @@
         }
 
         @media (max-width: 991.98px) {
+            .app-header-employer .row {
+                justify-content: space-between;
+            }
+
+            .app-header-employer .col-lg-2 {
+                width: 100% !important;
+                max-width: none;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
             .app-header-employer .header-menu {
                 display: none !important;
             }
 
-            .app-header-employer .row {
-                gap: 12px;
+            .app-header-employer .col-lg-6,
+            .app-header-employer .col-lg-4 {
+                display: none !important;
             }
 
-            .employer-actions ul {
-                justify-content: flex-start;
-                flex-wrap: wrap !important;
-                white-space: normal;
+            .app-header-employer .site-logo {
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .app-header-employer .site-logo img {
+                max-width: 136px;
+                height: auto;
+            }
+
+            .app-header-employer .jobguru-responsive-menu {
+                display: flex;
+                justify-content: flex-end;
+                margin-left: auto;
+            }
+        }
+
+        @media (min-width: 992px) and (max-width: 1320px) {
+            .app-header-employer #jobguru_navigation > li:nth-child(6) {
+                display: none;
             }
         }
 

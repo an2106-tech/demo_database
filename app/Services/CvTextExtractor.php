@@ -82,6 +82,14 @@ class CvTextExtractor
             if (is_file($configuredPath)) {
                 return $configuredPath;
             }
+
+            if (is_dir($configuredPath)) {
+                $binaryPath = rtrim($configuredPath, DIRECTORY_SEPARATOR.'\\/').DIRECTORY_SEPARATOR.'pdftotext.exe';
+
+                if (is_file($binaryPath)) {
+                    return $binaryPath;
+                }
+            }
         }
 
         $detectedPath = trim((string) @shell_exec('where pdftotext 2>NUL'));

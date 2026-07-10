@@ -10,25 +10,30 @@ class AiMatchingService
 {
     protected ?string $apiKey;
     protected string $apiUrl;
+    protected ?string $lastError = null;
 
     public function __construct()
     {
         $this->apiKey = config('services.gemini.key') ?? env('GEMINI_API_KEY');
-        $model = config('services.gemini.model', 'gemini-2.5-flash');
+        $model = config('services.gemini.model', 'gemini-3.1-flash-lite');
         $this->apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/'.$model.':generateContent';
     }
 
     public function calculateMatch(CandidateJobSubmission $submission): bool
     {
+        $this->lastError = null;
+
         if (blank($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể phân tích AI.';
             Log::error('AI Matching Failed: GEMINI_API_KEY is missing in .env');
             return false;
         }
 
-        $jobDescription = $submission->job->description;
+        $jobDescription = $submission->job?->description;
         $cvText = $submission->cv_text_snapshot;
 
         if (blank($jobDescription) || blank($cvText)) {
+            $this->lastError = 'Thiếu mô tả công việc hoặc nội dung CV để AI phân tích.';
             return false;
         }
 
@@ -51,6 +56,7 @@ class AiMatchingService
             ]);
 
             if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
                 Log::error('Gemini API Error: ' . $response->body());
                 return false;
             }
@@ -66,11 +72,39 @@ class AiMatchingService
                 return true;
             }
 
+            $this->lastError = 'AI trả về dữ liệu không đúng định dạng JSON.';
             return false;
         } catch (\Throwable $e) {
+            $this->lastError = mb_substr($e->getMessage(), 0, 1000);
             Log::error('AI Matching Failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    public function getLastError(): ?string
+    {
+        return $this->lastError;
+    }
+
+    protected function formatProviderError($response): string
+    {
+        $status = $response->status();
+        $providerStatus = (string) ($response->json('error.status') ?: '');
+        $providerMessage = (string) ($response->json('error.message') ?: $response->body());
+
+        if ($status === 503 || $providerStatus === 'UNAVAILABLE') {
+            return 'Model AI đang quá tải tạm thời. Vui lòng thử lại sau ít phút.';
+        }
+
+        if ($status === 404) {
+            return 'Model AI hiện không khả dụng với cấu hình hiện tại. Vui lòng kiểm tra GEMINI_MODEL.';
+        }
+
+        if (in_array($status, [401, 403], true)) {
+            return 'API key AI không hợp lệ hoặc chưa có quyền sử dụng model hiện tại.';
+        }
+
+        return mb_substr($providerMessage, 0, 1000);
     }
 
     protected function buildPrompt(string $jd, string $cv): string

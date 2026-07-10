@@ -26,6 +26,7 @@ body.client-app {
   line-height: 1.65;
   color: var(--cv-text) !important;
   background-color: var(--cv-bg) !important;
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
 }
@@ -2670,15 +2671,22 @@ body.client-app .job-tab-switch .nav-link.active {
 
 /* ---------- Mobile nav (slicknav) ---------- */
 body.client-app .slicknav_menu {
-  background: var(--cv-surface) !important;
-  border-radius: var(--cv-radius) !important;
-  border: 1px solid var(--cv-line) !important;
-  box-shadow: var(--cv-shadow-md) !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+body.client-app .jobguru-responsive-menu {
+  position: relative;
 }
 
 body.client-app .slicknav_btn {
   background: var(--cv-ink) !important;
   border-radius: 10px !important;
+  margin: 0 !important;
+  padding: 10px 12px !important;
 }
 
 body.client-app .slicknav_nav a {
@@ -2689,6 +2697,19 @@ body.client-app .slicknav_nav a {
 body.client-app .slicknav_nav a:hover {
   background: #f1f5f9 !important;
   color: var(--cv-primary) !important;
+}
+
+body.client-app .slicknav_nav {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: calc(100% + 8px);
+  z-index: 1000;
+  padding: 10px !important;
+  border: 1px solid var(--cv-line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--cv-shadow-md);
 }
 
 /* ---------- Blog / content cards ---------- */
