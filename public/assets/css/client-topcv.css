@@ -3907,6 +3907,428 @@ body.client-app .home-premium-btn-apply:hover {
     border-color: #e05f12 !important;
 }
 
+/* ---------- High-end hiring surfaces ---------- */
+body.client-app .home-premium-spotlight {
+  background:
+    linear-gradient(180deg, rgba(255, 247, 242, 0.78) 0%, rgba(248, 250, 252, 0.94) 100%);
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+body.client-app .home-premium-section-head h2 {
+  letter-spacing: 0;
+}
+
+body.client-app .home-premium-kicker {
+  display: none;
+}
+
+body.client-app .home-premium-view-all,
+body.client-app .home-premium-spotlight .jobguru-btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(243, 112, 33, 0.2);
+  background: #ffffff;
+  color: var(--cv-primary) !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-weight: 900;
+  box-shadow: 0 16px 38px rgba(15, 23, 42, 0.08);
+}
+
+body.client-app .home-premium-view-all:hover,
+body.client-app .home-premium-spotlight .jobguru-btn:hover {
+  background: var(--cv-primary);
+  color: #ffffff !important;
+  box-shadow: 0 20px 42px rgba(243, 112, 33, 0.24);
+}
+
+body.client-app .home-premium-job-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.88);
+  border-radius: 22px;
+  padding: 26px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 252, 249, 0.98));
+  box-shadow: 0 20px 56px rgba(15, 23, 42, 0.07);
+}
+
+body.client-app .home-premium-job-card__accent {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #f37021 0%, #f8b26a 52%, #0f172a 100%);
+  opacity: 0.92;
+}
+
+body.client-app .home-premium-job-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(243, 112, 33, 0.28);
+  box-shadow: 0 30px 72px rgba(15, 23, 42, 0.1);
+}
+
+body.client-app .home-premium-job-card__logo {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 18px;
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  background: #f8fafc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+body.client-app .home-premium-job-card__title {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+body.client-app .home-premium-job-card__company {
+  color: #64748b;
+  font-weight: 700;
+}
+
+body.client-app .home-premium-job-card__meta {
+  gap: 10px;
+  padding: 14px 0 0 !important;
+  border-top: 1px solid rgba(226, 232, 240, 0.8);
+}
+
+body.client-app .home-premium-job-card__meta li {
+  min-height: 24px;
+  color: #334155;
+  font-weight: 700;
+}
+
+body.client-app .home-premium-job-card__meta li i {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+}
+
+body.client-app .home-premium-job-card__actions {
+  gap: 12px;
+  margin-top: 26px;
+}
+
+body.client-app .home-premium-job-card__actions .btn {
+  min-height: 44px;
+  border-radius: 14px;
+  font-weight: 900;
+}
+
+body.client-app .home-premium-job-card__actions .btn-outline-secondary {
+  border-color: #0f172a;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+body.client-app .home-premium-job-card__actions .btn-outline-secondary:hover {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+body.client-app .home-premium-btn-apply {
+  box-shadow: 0 14px 28px rgba(243, 112, 33, 0.22);
+}
+
+body.client-app .bj2-section {
+  background:
+    linear-gradient(180deg, #f8fafc 0%, #ffffff 44%, #f8fafc 100%) !important;
+}
+
+body.client-app .bj2-stat-card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  border-radius: 20px !important;
+  background: #ffffff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.07) !important;
+}
+
+body.client-app .bj2-stat-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #f37021;
+}
+
+body.client-app .bj2-stat-card .card-body {
+  padding: 24px 26px;
+}
+
+body.client-app .bj2-stat-card p:first-child {
+  color: #64748b !important;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+body.client-app .bj2-stat-card h2 {
+  color: #0f172a;
+  font-size: 34px;
+  line-height: 1.05;
+  margin-bottom: 6px;
+}
+
+body.client-app .bj2-stat-card--action h2 {
+  font-size: 32px;
+}
+
+body.client-app .bj2-filters {
+  border-radius: 24px;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  padding: 24px;
+}
+
+body.client-app .bj2-field .form-control,
+body.client-app .bj2-field .form-select {
+  height: 56px;
+  border-radius: 16px !important;
+  background: #f8fafc !important;
+  border-color: rgba(203, 213, 225, 0.88) !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+body.client-app .bj2-field .form-control:focus,
+body.client-app .bj2-field .form-select:focus {
+  background: #ffffff !important;
+  border-color: rgba(243, 112, 33, 0.58) !important;
+  box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.1) !important;
+}
+
+body.client-app .bj2-reset {
+  height: 56px;
+  border-radius: 16px;
+  background: #fff7ed;
+}
+
+body.client-app .bj2-view {
+  padding: 4px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  background: #f8fafc;
+  gap: 4px;
+}
+
+body.client-app .bj2-view__btn {
+  border-radius: 14px;
+  border: 0;
+  background: transparent;
+}
+
+body.client-app .bj2-card {
+  border-radius: 24px;
+  padding: 28px;
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fffaf6 100%);
+  border: 1px solid rgba(226, 232, 240, 0.92);
+  box-shadow: 0 26px 70px rgba(15, 23, 42, 0.08);
+}
+
+body.client-app .bj2-card:hover {
+  transform: translateY(-6px);
+  border-color: rgba(243, 112, 33, 0.32);
+  box-shadow: 0 34px 86px rgba(15, 23, 42, 0.12);
+}
+
+body.client-app .bj2-card__logo {
+  width: 84px;
+  height: 84px;
+  border-radius: 20px;
+  border-color: rgba(243, 112, 33, 0.22);
+  box-shadow: 0 18px 38px rgba(15, 23, 42, 0.08);
+}
+
+body.client-app .bj2-card__logo img {
+  border-radius: 14px;
+}
+
+body.client-app .bj2-chips {
+  max-width: 100%;
+}
+
+body.client-app .bj2-chip {
+  max-width: 180px;
+  background: #f8fafc;
+}
+
+body.client-app .bj2-card__title {
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+body.client-app .bj2-card__meta {
+  color: #64748b;
+  gap: 14px !important;
+}
+
+body.client-app .bj2-deadline {
+  background: #0f172a;
+  padding: 10px 14px;
+}
+
+body.client-app .bj2-card__content {
+  margin-top: auto;
+}
+
+body.client-app .bj2-salary {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+body.client-app .bj2-excerpt {
+  min-height: 52px;
+}
+
+body.client-app .bj2-card__cta .btn {
+  min-height: 44px;
+  border-radius: 999px !important;
+  border-color: #0f172a;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+body.client-app .bj2-card__cta .btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+body.client-app .bj2-apply {
+  min-height: 58px;
+  border-radius: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.client-app .bj2-pagination {
+  align-items: center;
+}
+
+body.client-app .bj2-pagination nav,
+body.client-app .bj2-pagination .pagination {
+  margin-top: 0;
+}
+
+body.client-app .bj2-pagination .pagination {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.client-app .bj2-pagination .page-item {
+  margin: 0;
+}
+
+body.client-app .bj2-pagination .page-link {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px !important;
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+body.client-app .bj2-pagination .page-item.active .page-link,
+body.client-app .bj2-pagination .page-link:hover {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+}
+
+body.client-app .bj2-pagination p {
+  color: #64748b;
+  font-weight: 700;
+  margin: 0 14px 0 0;
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] {
+  width: 100%;
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] > div:last-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px;
+  width: 100%;
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] p {
+  margin: 0;
+  color: #64748b !important;
+  font-weight: 700;
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] a,
+body.client-app .bj2-pagination nav[role="navigation"] span[aria-current] > span,
+body.client-app .bj2-pagination nav[role="navigation"] span[aria-disabled] > span {
+  min-width: 40px !important;
+  height: 40px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(203, 213, 225, 0.92) !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 800 !important;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] span[aria-current] > span,
+body.client-app .bj2-pagination nav[role="navigation"] a:hover {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+body.client-app .bj2-pagination nav[role="navigation"] span[aria-disabled] > span {
+  color: #94a3b8 !important;
+  background: #f8fafc !important;
+  box-shadow: none;
+}
+
+@media (min-width: 992px) {
+  body.client-app .bj2-results:not(.bj2-results--list) .bj2-card {
+    min-height: 430px;
+  }
+}
+
+@media (max-width: 575px) {
+  body.client-app .home-premium-job-card,
+  body.client-app .bj2-card,
+  body.client-app .bj2-filters {
+    border-radius: 20px;
+    padding: 22px;
+  }
+
+  body.client-app .home-premium-job-card__actions,
+  body.client-app .bj2-card__cta {
+    flex-direction: column;
+  }
+}
+
 /* Enlarged Hero Banner */
 body.client-app .home-premium-hero-banner .banner-single-slider {
     height: 650px !important;

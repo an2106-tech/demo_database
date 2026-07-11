@@ -82,6 +82,15 @@ class CandidateProfile extends Component
 
     public ?string $lastSavedSectionLabel = null;
 
+    public $aiScore = null;
+    public $aiSummary = null;
+    public $aiStrengths = [];
+    public $aiWeaknesses = [];
+    public $aiSuggestions = [];
+    public $aiAtsKeywords = [];
+    public $aiMissingKeywords = [];
+    public $aiLayoutComment = null;
+
     public function mount(): void
     {
         $user = Auth::user();
@@ -523,11 +532,71 @@ class CandidateProfile extends Component
 
         $this->applicationCompletion = $candidateAccounts->applicationProfileCompletion($candidate);
         $this->missingApplicationFields = $candidateAccounts->missingApplicationProfileFields($candidate);
+
+        $this->aiScore = $candidate->match_score;
+        $matchReasons = $candidate->match_reasons ?? [];
+        $this->aiSummary = $matchReasons['summary'] ?? null;
+        $this->aiStrengths = $matchReasons['strengths'] ?? [];
+        $this->aiWeaknesses = $matchReasons['weaknesses'] ?? [];
+        $this->aiSuggestions = $matchReasons['suggestions'] ?? [];
+        $this->aiAtsKeywords = $matchReasons['ats_keywords'] ?? [];
+        $this->aiMissingKeywords = $matchReasons['missing_keywords'] ?? [];
+        $this->aiLayoutComment = $matchReasons['layout_comment'] ?? null;
     }
 
     #[Layout('layouts.client')]
     public function render()
     {
         return view('livewire.client.candidate-profile');
+    }
+    public function analyzeCvWithAi(\App\Services\AiMatchingService $aiService)
+    {
+        $candidate = Candidate::find($this->candidateId);
+        if (!$candidate) return;
+        
+        $cvText = '';
+        $cvText .= "Mục tiêu nghề nghiệp: " . ($this->career_objective ?? 'Không có') . "\n";
+        $cvText .= "Kinh nghiệm: " . json_encode($this->experiences ?? [], JSON_UNESCAPED_UNICODE) . "\n";
+        $cvText .= "Học vấn: " . json_encode($this->educations ?? [], JSON_UNESCAPED_UNICODE) . "\n";
+        $cvText .= "Kỹ năng: " . json_encode($this->skills ?? [], JSON_UNESCAPED_UNICODE) . "\n";
+        $cvText .= "Ngôn ngữ: " . json_encode($this->languages ?? [], JSON_UNESCAPED_UNICODE) . "\n";
+
+        $pdfPath = null;
+        if ($this->cv && method_exists($this->cv, 'getRealPath')) {
+            $pdfPath = $this->cv->getRealPath();
+        } elseif (!empty($candidate->cv_file)) {
+            $pdfPath = \Illuminate\Support\Facades\Storage::disk('public')->path($candidate->cv_file);
+        }
+
+        \Illuminate\Support\Facades\Log::info("CV TEXT SENT TO AI:\n" . $cvText . "\nPDF Path: " . $pdfPath);
+
+        $result = $aiService->evaluateGeneralCv($cvText, $pdfPath);
+
+        if ($result && isset($result['score'])) {
+            $this->aiScore = $result['score'];
+            $this->aiSummary = $result['summary'] ?? null;
+            $this->aiStrengths = $result['strengths'] ?? [];
+            $this->aiWeaknesses = $result['weaknesses'] ?? [];
+            $this->aiSuggestions = $result['suggestions'] ?? [];
+            $this->aiAtsKeywords = $result['ats_keywords'] ?? [];
+            $this->aiMissingKeywords = $result['missing_keywords'] ?? [];
+            $this->aiLayoutComment = $result['layout_comment'] ?? null;
+
+            // Save to DB
+            $candidate->update([
+                'match_score' => $result['score'],
+                'match_reasons' => [
+                    'summary' => $this->aiSummary,
+                    'strengths' => $this->aiStrengths,
+                    'weaknesses' => $this->aiWeaknesses,
+                    'suggestions' => $this->aiSuggestions,
+                    'ats_keywords' => $this->aiAtsKeywords,
+                    'missing_keywords' => $this->aiMissingKeywords,
+                    'layout_comment' => $this->aiLayoutComment,
+                ]
+            ]);
+        } else {
+            session()->flash('error', 'Không thể phân tích CV lúc này hoặc CV quá ngắn. Vui lòng thử lại sau.');
+        }
     }
 }

@@ -93,30 +93,32 @@
         .meta-entry {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 15px;
-            border-radius: 16px;
-            background: var(--soft-gray);
+            gap: 16px;
+            padding: 16px 0;
+            border-bottom: 1px dashed rgba(15, 23, 42, 0.1);
+            background: transparent;
             transition: all 0.3s ease;
         }
 
+        .meta-entry:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
         .meta-entry:hover {
-            background: #fff;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             transform: translateX(5px);
         }
 
         .meta-icon-box {
-            width: 45px;
-            height: 45px;
-            background: #fff;
+            width: 42px;
+            height: 42px;
+            background: rgba(243, 112, 33, 0.08);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--fpt-orange);
-            font-size: 1.2rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            font-size: 1.1rem;
         }
 
         .meta-content label {
@@ -413,8 +415,8 @@
                 <div class="company-logo-wrapper">
                     <img src="{{ $branch?->image ? asset('storage/' . $branch->image) : asset('assets/img/company-logo-1.png') }}" alt="{{ $branch?->name }}">
                 </div>
-                <h1 class="sidebar-job-title">{{ $job->title }}</h1>
-                <p class="sidebar-company-name">{{ $branch?->name }}</p>
+                <h1 class="sidebar-job-title text-white" style="color: #ffffff !important;">{{ $job->title }}</h1>
+                <p class="sidebar-company-name text-white" style="color: rgba(255, 255, 255, 0.9) !important;">{{ $branch?->name }}</p>
             </div>
 
             <div class="job-meta-list">

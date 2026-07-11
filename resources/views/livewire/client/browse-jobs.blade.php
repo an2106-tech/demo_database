@@ -47,7 +47,7 @@
         <div class="container">
             <div class="row g-4 mb-4">
                 <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card bj2-stat-card h-100 border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-uppercase text-muted mb-2">Tổng số cơ hội</p>
                             <h2 class="fw-bold">{{ $jobs->total() }}</h2>
@@ -56,7 +56,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card bj2-stat-card h-100 border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-uppercase text-muted mb-2">Phòng ban</p>
                             <h2 class="fw-bold">{{ $departments->count() }}</h2>
@@ -65,7 +65,7 @@
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-6">
-                    <div class="card h-100 border-0 shadow-sm rounded-4">
+                    <div class="card bj2-stat-card bj2-stat-card--action h-100 border-0 shadow-sm rounded-4">
                         <div class="card-body">
                             <p class="text-uppercase text-muted mb-2">Xem nhanh</p>
                             <h2 class="fw-bold">Ứng tuyển ngay</h2>
@@ -175,47 +175,65 @@
                             $workplaceName = $job->workplace?->name ?? 'Không rõ';
                         @endphp
 
-                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }}">
-                            <div class="bj2-card__top d-flex justify-content-between align-items-start flex-wrap gap-3">
-                                <div class="d-flex align-items-start gap-3 flex-grow-1">
-                                    <a class="bj2-card__logo" href="{{ $detailUrl }}">
-                                        <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}">
-                                    </a>
-
-                                    <div class="flex-grow-1">
-                                        <div class="bj2-chips d-flex flex-wrap align-items-center gap-2 mb-2">
-                                            <span class="bj2-chip bj2-chip--brand">Nội bộ FPT</span>
-                                            <span class="bj2-chip" title="{{ $departmentName }}">{{ $departmentName }}</span>
-                                            <span class="bj2-chip bj2-chip--muted" title="{{ $workplaceName }}">{{ $workplaceName }}</span>
-                                        </div>
-
-                                        <h3 class="bj2-card__title mt-0 mb-2">
-                                            <a href="{{ $detailUrl }}">{{ $job->title }}</a>
-                                        </h3>
-
-                                        <div class="bj2-card__meta d-flex flex-wrap gap-3 align-items-center mb-3">
-                                            <div><i class="fa fa-building-o me-1"></i>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</div>
-                                            <div><i class="fa fa-map-marker me-1"></i>{{ $cityText }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <span class="bj2-deadline">Hạn nộp: {{ $deadlineText }}</span>
+                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100 p-4 bg-white border rounded-4" style="border-color: #eaeaea;">
+                            <!-- Top: Logo & Deadline -->
+                            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
+                                <a href="{{ $detailUrl }}" class="border rounded p-2" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: #fff; flex-shrink: 0;">
+                                    <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                </a>
+                                <span class="badge rounded-pill bg-dark text-white px-3 py-2 fw-normal d-flex align-items-center" style="font-size: 0.85rem;">
+                                    Hạn nộp: {{ $deadlineText }}
+                                </span>
                             </div>
 
-                            <div class="bj2-card__content pt-0">
-                                <div class="d-flex flex-wrap gap-3 align-items-center mb-3">
-                                    <div class="bj2-salary">{{ $salaryText }}</div>
-                                </div>
+                            <!-- Title -->
+                            <h3 class="mt-0 mb-2 fw-bold" style="font-size: 1.2rem; line-height: 1.4;">
+                                <a href="{{ $detailUrl }}" class="text-dark text-decoration-none">{{ $job->title }}</a>
+                            </h3>
 
+                            <!-- Company -->
+                            <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.95rem;">
+                                <i class="fa fa-building-o me-2" style="width: 16px; text-align: center;"></i>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}
+                            </div>
+
+                            <!-- Chips (Tags) - allowing wrap so they don't get cut off -->
+                            <div class="d-flex flex-wrap gap-2 mb-4">
+                                <span class="badge rounded fw-normal text-start" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; border: 1px solid rgba(243, 112, 33, 0.2); font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
+                                    Nội bộ FPT
+                                </span>
+                                <span class="badge rounded bg-light text-secondary border fw-normal text-start" title="{{ $departmentName }}" style="font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
+                                    {{ $departmentName }}
+                                </span>
+                                <span class="badge rounded bg-light text-secondary border fw-normal text-start" title="{{ $workplaceName }}" style="font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
+                                    {{ $workplaceName }}
+                                </span>
+                            </div>
+
+                            <!-- Meta: Location & Salary -->
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                                <div class="d-flex align-items-center text-muted" style="font-size: 0.95rem;">
+                                    <i class="fa fa-map-marker me-2" style="color: #999;"></i> {{ $cityText }}
+                                </div>
+                                <div class="d-flex align-items-center">
+                                    <span class="badge fw-bold" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; font-size: 0.95rem; padding: 0.4rem 0.8rem; border-radius: 6px;">
+                                        <i class="fa fa-money me-1"></i> {{ $salaryText }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Excerpt -->
+                            <div class="flex-grow-1">
                                 @if ($excerpt !== '')
-                                    <p class="bj2-excerpt mb-0">{{ $excerpt }}</p>
+                                    <p class="text-muted mb-4" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.6;">
+                                        {{ $excerpt }}
+                                    </p>
                                 @endif
                             </div>
 
-                            <div class="bj2-card__cta d-flex flex-wrap gap-3">
-                                <a href="{{ $detailUrl }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">Xem chi tiết</a>
-                                <a href="{{ $applyUrl }}" class="bj2-apply">Ứng tuyển ngay</a>
+                            <!-- CTA -->
+                            <div class="d-flex flex-wrap gap-2 w-100 mt-2">
+                                <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.6rem 0; background-color: #f1f5f9; color: #475569; border: none;">Xem chi tiết</a>
+                                <a href="{{ $applyUrl }}" class="btn rounded-pill fw-medium text-white text-center" style="flex: 2; min-width: 150px; padding: 0.6rem 0; background-color: #f37021; border-color: #f37021;">Ứng tuyển ngay</a>
                             </div>
                         </article>
                     </div>
@@ -227,7 +245,7 @@
             </div>
 
             @if ($jobs->hasPages())
-                <div class="mt-5 d-flex justify-content-center">
+                <div class="bj2-pagination mt-5 d-flex justify-content-center">
                     {{ $jobs->links() }}
                 </div>
             @endif

@@ -337,29 +337,31 @@
         }
 
         .jd-apply-btn {
-            background: linear-gradient(135deg, var(--jd-primary-dark), var(--jd-primary));
-            box-shadow: 0 14px 30px rgba(143, 70, 24, 0.22);
+            background: #f37021;
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.25);
             color: #fff !important;
+            border: none;
         }
 
         .jd-apply-btn:hover,
         .jd-apply-btn:focus {
+            background: #e56314;
             color: #fff !important;
             text-decoration: none;
             transform: translateY(-2px);
         }
 
         .jd-secondary-btn {
-            background: rgba(255, 255, 255, 0.76);
-            border: 1px solid rgba(111, 77, 48, 0.14);
-            color: var(--jd-primary-dark) !important;
+            background: #f1f5f9;
+            border: none;
+            color: #475569 !important;
             margin-top: 12px;
         }
 
         .jd-secondary-btn:hover,
         .jd-secondary-btn:focus {
-            background: var(--jd-surface-soft);
-            color: var(--jd-primary-dark) !important;
+            background: #e2e8f0;
+            color: #334155 !important;
             text-decoration: none;
         }
 
@@ -414,48 +416,55 @@
         }
 
         .jd-desc {
-            display: grid;
+            display: flex;
+            flex-direction: column;
             gap: 12px;
         }
 
         .jd-desc p {
-            background: linear-gradient(180deg, #fffaf6 0%, #fff 100%);
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            border-radius: 18px;
             color: var(--jd-text);
-            font-size: 15px;
-            line-height: 1.9;
+            font-size: 15.5px;
+            line-height: 1.8;
             margin: 0;
-            padding: 16px 18px;
         }
         .jd-grid {
             display: grid;
-            gap: 14px;
+            gap: 24px;
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .jd-info {
-            background: linear-gradient(180deg, #fffaf6 0%, #fff 100%);
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            border-radius: 20px;
-            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .jd-info span {
             color: var(--jd-muted);
-            display: block;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
+        }
+
+        .jd-info span::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 12px;
+            background: var(--jd-primary);
+            border-radius: 4px;
+            margin-right: 8px;
         }
 
         .jd-info strong,
         .jd-info div {
             color: var(--jd-ink);
-            font-size: 15px;
-            line-height: 1.75;
+            font-size: 15.5px;
+            font-weight: 500;
+            line-height: 1.6;
         }
 
         .jd-skills {
@@ -465,13 +474,19 @@
         }
 
         .jd-skill {
-            background: var(--jd-surface-soft);
-            border: 1px solid rgba(195, 107, 45, 0.16);
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
             border-radius: 999px;
-            color: var(--jd-primary-dark);
+            color: #475569;
             font-size: 13px;
-            font-weight: 800;
-            padding: 10px 14px;
+            font-weight: 600;
+            padding: 8px 16px;
+            transition: all 0.2s ease;
+        }
+
+        .jd-skill:hover {
+            background: #e2e8f0;
+            color: #1e293b;
         }
 
         .jd-empty {
@@ -513,34 +528,37 @@
 
         .jd-overview-item {
             align-items: flex-start;
-            background: linear-gradient(180deg, #fffaf6 0%, #fff 100%);
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            border-radius: 18px;
             display: flex;
-            gap: 12px;
-            padding: 15px;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px dashed rgba(111, 77, 48, 0.15);
+        }
+        
+        .jd-overview-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
         }
 
         .jd-overview-icon {
             align-items: center;
-            background: #fff;
-            border-radius: 14px;
+            background: rgba(195, 107, 45, 0.08);
+            border-radius: 12px;
             color: var(--jd-primary);
             display: inline-flex;
-            flex: 0 0 38px;
-            font-size: 15px;
-            height: 38px;
+            flex: 0 0 40px;
+            font-size: 16px;
+            height: 40px;
             justify-content: center;
-            width: 38px;
+            width: 40px;
         }
 
         .jd-overview-item span {
             color: var(--jd-muted);
             display: block;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            margin-bottom: 5px;
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
             text-transform: uppercase;
         }
 
@@ -548,7 +566,8 @@
         .jd-overview-item div {
             color: var(--jd-ink);
             font-size: 15px;
-            line-height: 1.7;
+            line-height: 1.6;
+            font-weight: 500;
         }
 
         @media (max-width: 1199px) {
@@ -662,7 +681,7 @@
                                 <h1 class="jd-title">{{ $job->title }}</h1>
                                 <p class="jd-company">{{ $branch?->name ?? 'Chưa cập nhật chi nhánh' }}</p>
                                 <div class="jd-meta">
-                                    <div class="jd-meta-item"><i class="fa fa-money"></i>{{ $salaryText }}</div>
+                                    <div class="jd-meta-item" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; border: 1px solid rgba(243, 112, 33, 0.2); font-weight: 700;"><i class="fa fa-money" style="color: #f37021;"></i>{{ $salaryText }}</div>
                                     <div class="jd-meta-item"><i class="fa fa-map-marker"></i>{{ $cityLabel }}</div>
                                     <div class="jd-meta-item"><i class="fa fa-building-o"></i>{{ $department?->name ?? 'Chưa cập nhật phòng ban' }}</div>
                                     <div class="jd-meta-item"><i class="fa fa-clock-o"></i>{{ $deadlineText }}</div>

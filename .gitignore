@@ -29,6 +29,11 @@
 /vendor
 check.php
 compiled_test.php
+test_ai.php
+test_ai2.php
+test_cv.php
+test_cv2.php
+test_gemini.php
 composer-setup.php
 composer.phar
 Homestead.json

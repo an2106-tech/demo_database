@@ -494,7 +494,7 @@
 
     <section class="home-premium-spotlight section_70">
         <div class="container">
-            <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div class="home-premium-section-head d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
                 <div>
                     <h2 class="fw-bold mb-1">Việc làm <span class="text-primary">nổi bật</span></h2>
                     <p class="text-muted mb-0">Tuyển gấp, lương cạnh tranh — cập nhật liên tục.</p>
@@ -522,6 +522,7 @@
                         @endphp
                         <div class="col-md-6 col-lg-4">
                             <article class="home-premium-job-card h-100">
+                                <div class="home-premium-job-card__accent"></div>
                                 <div class="home-premium-job-card__top">
                                     <div class="home-premium-job-card__logo">
                                         <img src="{{ $spotlight->branch?->image ? '/storage/' . ltrim($spotlight->branch->image, '/') : asset('assets/img/company-logo-1.png') }}"

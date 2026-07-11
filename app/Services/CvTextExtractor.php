@@ -60,6 +60,23 @@ class CvTextExtractor
 
     private function extractPdf(string $absolutePath): ?string
     {
+        if (class_exists(\Smalot\PdfParser\Parser::class)) {
+            try {
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf    = $parser->parseFile($absolutePath);
+            $text = $pdf->getText();
+            $text = preg_replace("/\\s+/u", ' ', $text ?? '') ?? '';
+            $text = trim($text);
+                if ($text !== '') {
+                    return $text;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Smalot PDF extraction failed; falling back to pdftotext.', [
+                    'exception' => $e->getMessage(),
+                ]);
+            }
+        }
+
         $pdftotext = $this->resolvePdfToTextBinary();
         if ($pdftotext === null) {
             return null;

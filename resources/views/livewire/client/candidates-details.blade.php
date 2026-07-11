@@ -63,8 +63,11 @@
         .ats-list__item h4 { color: #0f172a; font-size: 14px; font-weight: 900; margin: 0 0 6px; }
         .ats-list__item p { color: #64748b; font-size: 13px; margin: 0; }
         .ats-actions { display: flex; flex-wrap: wrap; gap: 10px; }
-        .ats-btn { background: #f37021; border: none; border-radius: 12px; color: #fff !important; display: inline-flex; font-size: 13px; font-weight: 900; gap: 8px; padding: 10px 14px; text-decoration: none; }
+        .ats-btn { background: #f37021; border: none; border-radius: 12px; color: #fff !important; display: inline-flex; align-items: center; font-size: 13px; font-weight: 900; gap: 8px; padding: 10px 14px; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+        .ats-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(243,112,33,0.3); }
         .ats-btn--secondary { background: #fff; border: 1px solid #fed7aa; color: #c2410c !important; }
+
+
         @media (max-width: 1199px) { .ats-layout { grid-template-columns: 1fr; } }
         @media (max-width: 767px) { .ats-hero__grid, .ats-kpis, .ats-info-grid { grid-template-columns: 1fr; } }
     </style>
@@ -103,6 +106,7 @@
                                                 <i class="fa fa-file-pdf-o"></i> Mở CV đã nộp
                                             </a>
                                         @endif
+
                                         @if ($candidateEmail)
                                             <a href="mailto:{{ $candidateEmail }}" class="ats-btn ats-btn--secondary">
                                                 <i class="fa fa-envelope"></i> Gửi email
@@ -132,10 +136,7 @@
                                     <span>Giai đoạn</span>
                                     <strong>{{ $status?->getPipelineStageLabel() ?? 'Chưa có' }}</strong>
                                 </div>
-                                <div class="ats-kpi">
-                                    <span>AI Match</span>
-                                    <strong>{{ $aiScore !== null ? $aiScore.'%' : 'Chưa chấm' }}</strong>
-                                </div>
+
                                 <div class="ats-kpi">
                                     <span>Phỏng vấn</span>
                                     <strong>{{ $interviews->count() }}</strong>
@@ -213,38 +214,6 @@
                                 </main>
 
                                 <aside>
-                                    <section class="ats-card">
-                                        <div class="ats-card__head">
-                                            <h3>AI & Submission</h3>
-                                            <span class="ats-chip ats-chip--{{ $aiTone }}">{{ $aiScore !== null ? $aiScore.'%' : 'N/A' }}</span>
-                                        </div>
-                                        @if ($latestSubmission?->ai_analysis)
-                                            <div class="ats-list">
-                                                <div class="ats-list__item">
-                                                    <h4>Điểm phù hợp</h4>
-                                                    <p>{{ $latestSubmission->job?->title ?? '-' }}</p>
-                                                </div>
-                                                <div class="ats-list__item">
-                                                    <h4>Lý do phù hợp</h4>
-                                                    @forelse (($latestSubmission->ai_analysis['match_reasons'] ?? []) as $reason)
-                                                        <p>• {{ $reason }}</p>
-                                                    @empty
-                                                        <p>Chưa có phân tích.</p>
-                                                    @endforelse
-                                                </div>
-                                                <div class="ats-list__item">
-                                                    <h4>Kỹ năng còn thiếu</h4>
-                                                    @forelse (($latestSubmission->ai_analysis['missing_skills'] ?? []) as $missing)
-                                                        <p>• {{ $missing }}</p>
-                                                    @empty
-                                                        <p>Chưa có ghi nhận.</p>
-                                                    @endforelse
-                                                </div>
-                                            </div>
-                                        @else
-                                            <p class="ats-muted mb-0">Chưa có kết quả phân tích AI cho submission gần nhất.</p>
-                                        @endif
-                                    </section>
 
                                     <section class="ats-card">
                                         <div class="ats-card__head">

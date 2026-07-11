@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\JobApprovalController;
+use App\Http\Controllers\EmployerApplicationPipelineController;
 use App\Http\Controllers\OfferResponseController;
 use App\Livewire\Client\About as PagesAbout;
 use App\Livewire\Client\ApplicationDetail;
@@ -513,6 +514,8 @@ Route::prefix('employers')->name('employers.')->group(function () {
                 ->route('employers.application_pipeline')
                 ->with('message', 'Da luu danh gia phong van.');
         })->name('application_pipeline.evaluate_interview');
+
+        Route::post('/applications/{application}/advance', [EmployerApplicationPipelineController::class, 'advance'])->name('applications.advance');
     });
 });
 
