@@ -6,6 +6,7 @@ use App\Models\Application;
 use App\Models\RecruitmentJob;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -50,18 +51,12 @@ class CandidateDashboard extends Component
             ->take(5)
             ->get();
 
-        $this->aiScore = $candidate->match_score;
-        $matchReasons = $candidate->match_reasons ?? [];
-        $this->aiSummary = $matchReasons['summary'] ?? null;
-        $this->aiStrengths = $matchReasons['strengths'] ?? [];
-        $this->aiWeaknesses = $matchReasons['weaknesses'] ?? [];
-        $this->aiSuggestions = $matchReasons['suggestions'] ?? [];
-        $this->aiAtsKeywords = $matchReasons['ats_keywords'] ?? [];
-        $this->aiMissingKeywords = $matchReasons['missing_keywords'] ?? [];
-        $this->aiLayoutComment = $matchReasons['layout_comment'] ?? null;
-        
         $metadata = is_array($candidate->metadata) ? $candidate->metadata : json_decode($candidate->metadata ?? '[]', true);
         $this->aiRecommendedJobs = $metadata['ai_recommended_jobs'] ?? [];
+
+        if (session()->pull('run_candidate_job_match')) {
+            $this->findMatchingJobsWithAi(app(\App\Services\AiMatchingService::class));
+        }
     }
 
     private function getGreeting(): string
@@ -72,73 +67,7 @@ class CandidateDashboard extends Component
         return 'Chào buổi tối';
     }
 
-    public $aiScore = null;
-    public $aiSummary = null;
-    public $aiStrengths = [];
-    public $aiWeaknesses = [];
-    public $aiSuggestions = [];
-    public $aiAtsKeywords = [];
-    public $aiMissingKeywords = [];
-    public $aiLayoutComment = null;
     public $aiRecommendedJobs = [];
-
-    public function analyzeCvWithAi(\App\Services\AiMatchingService $aiService)
-    {
-        if (!$this->hasCv) {
-            $this->dispatch('app-notify', message: 'Bạn chưa tải CV lên hệ thống.', type: 'error');
-            return;
-        }
-
-        $user = Auth::user();
-        if (!$user) return;
-
-        $candidate = app(CandidateAccountService::class)->resolveFor($user);
-        $resume = $candidate->resume()->first();
-
-        $cvText = '';
-        if ($resume) {
-            $cvText = "Mục tiêu nghề nghiệp: " . ($resume->career_objective ?? 'Không có') . "\n";
-            $cvText .= "Kinh nghiệm: " . json_encode($resume->experiences ?? [], JSON_UNESCAPED_UNICODE) . "\n";
-            $cvText .= "Học vấn: " . json_encode($resume->educations ?? [], JSON_UNESCAPED_UNICODE) . "\n";
-            $cvText .= "Kỹ năng: " . json_encode($resume->skills ?? [], JSON_UNESCAPED_UNICODE) . "\n";
-            $cvText .= "Ngôn ngữ: " . json_encode($resume->languages ?? [], JSON_UNESCAPED_UNICODE) . "\n";
-        } else {
-            $cvText = "Họ tên: {$candidate->name}\nKinh nghiệm: {$candidate->experience_years} năm\nKỹ năng: " . json_encode($candidate->skills ?? [], JSON_UNESCAPED_UNICODE) . "\n";
-        }
-
-        $pdfPath = null;
-        if (!empty($candidate->cv_file)) {
-            $pdfPath = \Illuminate\Support\Facades\Storage::disk('public')->path($candidate->cv_file);
-        }
-
-        $result = $aiService->evaluateGeneralCv($cvText, $pdfPath);
-
-        if ($result && isset($result['score'])) {
-            $this->aiScore = $result['score'];
-            $this->aiSummary = $result['summary'] ?? null;
-            $this->aiStrengths = $result['strengths'] ?? [];
-            $this->aiWeaknesses = $result['weaknesses'] ?? [];
-            $this->aiSuggestions = $result['suggestions'] ?? [];
-            $this->aiAtsKeywords = $result['ats_keywords'] ?? [];
-            $this->aiMissingKeywords = $result['missing_keywords'] ?? [];
-            $this->aiLayoutComment = $result['layout_comment'] ?? null;
-
-            $candidate->update([
-                'match_score' => $result['score'],
-                'match_reasons' => [
-                    'summary' => $this->aiSummary,
-                    'strengths' => $this->aiStrengths,
-                    'weaknesses' => $this->aiWeaknesses,
-                    'suggestions' => $this->aiSuggestions,
-                    'ats_keywords' => $this->aiAtsKeywords,
-                    'missing_keywords' => $this->aiMissingKeywords,
-                    'layout_comment' => $this->aiLayoutComment,
-                ]
-            ]);
-        } else {
-            $this->dispatch('app-notify', message: 'Không thể phân tích CV lúc này hoặc CV quá ngắn. Vui lòng thử lại sau.', type: 'error');
-        }
-    }
 
     public function findMatchingJobsWithAi(\App\Services\AiMatchingService $aiService)
     {
@@ -152,7 +81,9 @@ class CandidateDashboard extends Component
 
         $candidate = app(CandidateAccountService::class)->resolveFor($user);
         
-        // Build a broader candidate set; AI will rank and return at most 3 jobs.
+        $resume = $candidate->resume()->first();
+
+        // Pre-rank a broad set using profile signals before asking AI for the final ranking.
         $jobs = \App\Models\RecruitmentJob::query()
             ->where('status', 'published')
             ->where(function ($query) {
@@ -161,9 +92,18 @@ class CandidateDashboard extends Component
             })
             ->with(['skills:id,name', 'department:id,name', 'workplace:id,name'])
             ->latest()
-            ->take(30)
+            ->take(100)
             ->get()
+            ->map(fn ($job) => [
+                'job' => $job,
+                'pre_score' => $this->preliminaryJobScore($job, $resume, $candidate),
+            ])
+            ->sortByDesc('pre_score')
+            ->take(30)
+            ->values()
             ->map(function ($job) {
+                $job = $job['job'];
+
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
@@ -184,10 +124,10 @@ class CandidateDashboard extends Component
             return;
         }
 
-        $resume = $candidate->resume()->first();
         $cvText = '';
         if ($resume) {
             $cvText = "Mục tiêu nghề nghiệp: " . ($resume->career_objective ?? 'Không có') . "\n";
+            $cvText .= "Công việc mong muốn: " . json_encode($resume->desired_job ?? [], JSON_UNESCAPED_UNICODE) . "\n";
             $cvText .= "Kinh nghiệm: " . json_encode($resume->experiences ?? [], JSON_UNESCAPED_UNICODE) . "\n";
             $cvText .= "Học vấn: " . json_encode($resume->educations ?? [], JSON_UNESCAPED_UNICODE) . "\n";
             $cvText .= "Kỹ năng: " . json_encode($resume->skills ?? [], JSON_UNESCAPED_UNICODE) . "\n";
@@ -233,8 +173,69 @@ class CandidateDashboard extends Component
             
             $this->dispatch('app-notify', message: 'AI đã phân tích và tìm ra ' . count($recommendedJobs) . ' công việc phù hợp với bạn.', type: 'success');
         } else {
-            $this->dispatch('app-notify', message: 'Không thể phân tích tìm việc lúc này. Vui lòng thử lại sau.', type: 'error');
+            $this->dispatch(
+                'app-notify',
+                message: $aiService->getLastError() ?: 'Không thể phân tích tìm việc lúc này. Vui lòng thử lại sau.',
+                type: 'error'
+            );
         }
+    }
+
+    private function preliminaryJobScore($job, $resume, $candidate): int
+    {
+        $desiredJob = is_array($resume?->desired_job) ? $resume->desired_job : [];
+        $profileSkills = $resume?->skills ?: ($candidate->skills ?? []);
+
+        $desiredTerms = $this->searchTerms([
+            $desiredJob['position'] ?? null,
+            $desiredJob['level'] ?? null,
+            $desiredJob['location'] ?? ($desiredJob['workplace'] ?? null),
+            $resume?->profile_title,
+            $profileSkills,
+        ]);
+
+        if ($desiredTerms === []) {
+            return 0;
+        }
+
+        $title = $this->normalizeSearchText($job->title);
+        $department = $this->normalizeSearchText($job->department?->name);
+        $workplace = $this->normalizeSearchText($job->workplace?->name);
+        $skills = $this->normalizeSearchText($job->skills->pluck('name')->implode(' '));
+        $description = $this->normalizeSearchText(strip_tags($job->description));
+        $score = 0;
+
+        foreach ($desiredTerms as $term) {
+            $score += str_contains($title, $term) ? 10 : 0;
+            $score += str_contains($skills, $term) ? 7 : 0;
+            $score += str_contains($department, $term) ? 5 : 0;
+            $score += str_contains($workplace, $term) ? 4 : 0;
+            $score += str_contains($description, $term) ? 1 : 0;
+        }
+
+        return $score;
+    }
+
+    private function searchTerms(array $values): array
+    {
+        $flattened = [];
+        array_walk_recursive($values, function ($value) use (&$flattened) {
+            if (is_string($value) && filled($value)) {
+                $flattened[] = $value;
+            }
+        });
+
+        $tokens = preg_split('/\s+/u', $this->normalizeSearchText(implode(' ', $flattened))) ?: [];
+
+        return array_values(array_unique(array_filter(
+            $tokens,
+            fn (string $token) => mb_strlen($token) >= 3
+        )));
+    }
+
+    private function normalizeSearchText(?string $value): string
+    {
+        return Str::lower(Str::ascii(trim((string) $value)));
     }
 
     #[Layout('layouts.client')]

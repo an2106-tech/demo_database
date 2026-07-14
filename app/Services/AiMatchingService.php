@@ -134,7 +134,15 @@ class AiMatchingService
 
     public function evaluateGeneralCv(string $cvText, ?string $pdfPath = null): ?array
     {
-        if (blank($this->apiKey) || (blank($cvText) && blank($pdfPath))) {
+        $this->lastError = null;
+
+        if (blank($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể đánh giá CV.';
+            return null;
+        }
+
+        if (blank($cvText) && blank($pdfPath)) {
+            $this->lastError = 'CV chưa có nội dung để AI phân tích.';
             return null;
         }
 
@@ -202,6 +210,7 @@ class AiMatchingService
             ]);
 
             if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
                 Log::error('Gemini API Error (General): ' . $response->body());
                 return null;
             }
@@ -210,6 +219,7 @@ class AiMatchingService
             $data = json_decode($content, true);
 
             if (!is_array($data) || !isset($data['score'])) {
+                $this->lastError = 'AI trả về kết quả đánh giá CV không đúng định dạng.';
                 return null;
             }
 
@@ -222,6 +232,9 @@ class AiMatchingService
 
             return $data;
         } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
             Log::error('AI General Evaluation Failed: ' . $e->getMessage());
             return null;
         }
@@ -270,8 +283,21 @@ class AiMatchingService
 
     public function matchJobsWithCv(string $cvText, array $jobs, ?string $pdfPath = null): ?array
     {
+        $this->lastError = null;
         $apiKey = $this->apiKey;
-        if (empty($apiKey) || (blank($cvText) && blank($pdfPath)) || empty($jobs)) {
+
+        if (empty($apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể gợi ý việc làm.';
+            return null;
+        }
+
+        if (blank($cvText) && blank($pdfPath)) {
+            $this->lastError = 'CV chưa có nội dung để đối chiếu việc làm.';
+            return null;
+        }
+
+        if (empty($jobs)) {
+            $this->lastError = 'Không có công việc phù hợp sơ bộ để AI phân tích.';
             return null;
         }
 
@@ -358,6 +384,7 @@ class AiMatchingService
                 ->post("{$this->apiUrl}?key={$apiKey}", $payload);
 
             if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
                 Log::error('Gemini API Error (Job Matching): ' . $response->body());
                 return null;
             }
@@ -366,6 +393,7 @@ class AiMatchingService
             $data = json_decode($content, true);
 
             if (!is_array($data)) {
+                $this->lastError = 'AI trả về danh sách việc làm không đúng định dạng.';
                 return null;
             }
 
@@ -399,7 +427,127 @@ class AiMatchingService
 
             return array_slice($validated, 0, 3);
         } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
             Log::error('AI Job Matching Failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function evaluateJobFitWithCv(string $cvText, array $job, ?string $pdfPath = null): ?array
+    {
+        $this->lastError = null;
+
+        if (empty($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể kiểm tra mức độ phù hợp.';
+            return null;
+        }
+
+        if (blank($cvText) && blank($pdfPath)) {
+            $this->lastError = 'CV chưa có nội dung để đối chiếu với công việc này.';
+            return null;
+        }
+
+        if (empty($job['title']) || empty($job['description'])) {
+            $this->lastError = 'Thiếu thông tin công việc để AI đánh giá.';
+            return null;
+        }
+
+        $jobJson = json_encode($job, JSON_UNESCAPED_UNICODE);
+
+        $prompt = <<<PROMPT
+            Bạn là chuyên gia tuyển dụng cao cấp.
+
+            NHIỆM VỤ
+            Đánh giá mức độ phù hợp giữa CV của ứng viên và duy nhất 1 công việc bên dưới. Không suy đoán ngoài dữ liệu được cung cấp.
+
+            QUY TẮC BẮT BUỘC
+            1. Chỉ dùng thông tin xuất hiện rõ trong CV và công việc.
+            2. Nếu CV chưa xác minh được một yêu cầu nào, ghi rõ là "Chưa xác minh từ CV".
+            3. Trả về điểm từ 0 đến 100.
+            4. Trả về tối đa 3 lý do phù hợp và tối đa 3 yêu cầu còn thiếu.
+            5. Không loại trừ ứng viên nếu dữ liệu chưa đủ, chỉ phản ánh mức độ xác minh được.
+            6. reason phải viết ngắn gọn, tiếng Việt, tối đa 2 câu.
+
+            CV ỨNG VIÊN
+            <CV_DATA>
+            $cvText
+            </CV_DATA>
+
+            CÔNG VIỆC
+            <JOB_DATA>
+            $jobJson
+            </JOB_DATA>
+
+            HÃY TRẢ VỀ DUY NHẤT JSON THEO MẪU SAU:
+            {
+                "score": 82,
+                "reason": "CV thể hiện kinh nghiệm liên quan và kỹ năng chính phù hợp với vị trí.",
+                "matched_requirements": ["Laravel", "REST API"],
+                "missing_requirements": ["Kinh nghiệm quản lý team"]
+            }
+        PROMPT;
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]]
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'response_mime_type' => 'application/json',
+                'response_schema' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'score' => ['type' => 'INTEGER'],
+                        'reason' => ['type' => 'STRING'],
+                        'matched_requirements' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'missing_requirements' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                    ],
+                    'required' => ['score', 'reason', 'matched_requirements', 'missing_requirements'],
+                ],
+            ],
+        ];
+
+        if ($pdfPath && file_exists($pdfPath)) {
+            array_unshift($payload['contents'][0]['parts'], [
+                'inlineData' => [
+                    'mimeType' => 'application/pdf',
+                    'data' => base64_encode(file_get_contents($pdfPath)),
+                ],
+            ]);
+        }
+
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post("{$this->apiUrl}?key={$this->apiKey}", $payload);
+
+            if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
+                Log::error('Gemini API Error (Single Job Fit): ' . $response->body());
+                return null;
+            }
+
+            $content = $response->json('candidates.0.content.parts.0.text');
+            $data = json_decode($content, true);
+
+            if (!is_array($data) || !isset($data['score'])) {
+                $this->lastError = 'AI trả về kết quả kiểm tra không đúng định dạng.';
+                return null;
+            }
+
+            return [
+                'score' => max(0, min(100, (int) $data['score'])),
+                'reason' => (string) ($data['reason'] ?? ''),
+                'matched_requirements' => array_slice((array) ($data['matched_requirements'] ?? []), 0, 5),
+                'missing_requirements' => array_slice((array) ($data['missing_requirements'] ?? []), 0, 5),
+            ];
+        } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
+            Log::error('AI Single Job Fit Failed: ' . $e->getMessage());
             return null;
         }
     }

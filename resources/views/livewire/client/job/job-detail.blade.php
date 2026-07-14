@@ -55,6 +55,17 @@
         default => 'Đang nhận hồ sơ',
     };
     $skillCount = $skills->count();
+    $aiScore = $jobFitAiResult['score'] ?? null;
+    $aiScoreLabel = null;
+    $aiMatchedRequirements = $jobFitAiResult['matched_requirements'] ?? [];
+    $aiMissingRequirements = $jobFitAiResult['missing_requirements'] ?? [];
+    $aiReason = $jobFitAiResult['reason'] ?? null;
+
+    if ($aiScore !== null) {
+        $aiScoreLabel = $aiScore <= 0
+            ? 'Chưa đủ dữ liệu để đánh giá'
+            : $aiScore . '% phù hợp';
+    }
 @endphp
 
 <div>
@@ -365,6 +376,121 @@
             text-decoration: none;
         }
 
+        .jd-ai-btn {
+            background: linear-gradient(135deg, #f37021 0%, #d95e11 100%);
+            border: none;
+            box-shadow: 0 12px 24px rgba(243, 112, 33, 0.22);
+            color: #fff !important;
+            margin-top: 12px;
+        }
+
+        .jd-ai-btn:hover,
+        .jd-ai-btn:focus {
+            color: #fff !important;
+            transform: translateY(-2px);
+        }
+
+        .jd-ai-section {
+            background: #fff;
+            border: 1px solid rgba(243, 112, 33, 0.16);
+            border-radius: 28px;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.06);
+            margin-top: 24px;
+            padding: 24px;
+        }
+
+        .jd-ai-section__head {
+            align-items: flex-start;
+            display: flex;
+            gap: 16px;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .jd-ai-section__title {
+            color: var(--jd-ink);
+            font-size: 24px;
+            font-weight: 900;
+            margin: 0 0 6px;
+        }
+
+        .jd-ai-section__score {
+            align-items: center;
+            background: #fff7ed;
+            border: 1px solid rgba(243, 112, 33, 0.18);
+            border-radius: 18px;
+            color: #c2410c;
+            display: inline-flex;
+            font-size: 22px;
+            font-weight: 900;
+            line-height: 1.25;
+            min-height: 60px;
+            padding: 0 18px;
+            white-space: nowrap;
+        }
+
+        .jd-ai-section__score--soft {
+            background: #fffaf4;
+            color: #9a3412;
+            font-size: 17px;
+            font-weight: 800;
+            text-align: center;
+            white-space: normal;
+        }
+
+        .jd-ai-section__reason {
+            background: #fff7ed;
+            border: 1px solid rgba(243, 112, 33, 0.16);
+            border-radius: 18px;
+            color: #9a3412;
+            font-size: 14px;
+            line-height: 1.8;
+            padding: 16px 18px;
+        }
+
+        .jd-ai-section__grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: 1fr 1fr;
+            margin-top: 16px;
+        }
+
+        .jd-ai-section__box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 18px;
+        }
+
+        .jd-ai-section__box span {
+            color: #64748b;
+            display: block;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .jd-ai-chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .jd-ai-chip {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #dbe4ee;
+            border-radius: 999px;
+            color: #334155;
+            display: inline-flex;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.4;
+            padding: 8px 12px;
+        }
+
         .jd-layout {
             display: grid;
             gap: 24px;
@@ -624,6 +750,22 @@
             .jd-grid {
                 grid-template-columns: 1fr;
             }
+
+            .jd-ai-columns {
+                grid-template-columns: 1fr;
+            }
+
+            .jd-ai-section__head {
+                flex-direction: column;
+            }
+
+            .jd-ai-section__grid {
+                grid-template-columns: 1fr;
+            }
+
+            .jd-ai-chip {
+                white-space: normal;
+            }
         }
     </style>
 
@@ -724,6 +866,42 @@
                             </a>
                         @endif
 
+                        @if ($hasCandidateAccess)
+                            @if ($hasCv)
+                                <button
+                                    type="button"
+                                    wire:click="checkJobFitWithAi"
+                                    wire:loading.attr="disabled"
+                                    wire:target="checkJobFitWithAi"
+                                    class="jd-apply-btn jd-ai-btn"
+                                >
+                                    <span wire:loading.remove wire:target="checkJobFitWithAi">
+                                        <i class="fa fa-magic"></i>
+                                        AI kiểm tra phù hợp
+                                    </span>
+                                    <span wire:loading wire:target="checkJobFitWithAi">
+                                        <i class="fa fa-circle-o-notch fa-spin"></i>
+                                        Đang kiểm tra...
+                                    </span>
+                                </button>
+                            @else
+                                <a href="{{ route('candidates.candidate_profile') }}" class="jd-secondary-btn">
+                                    <i class="fa fa-upload"></i>
+                                    Tải CV lên để dùng AI
+                                </a>
+                            @endif
+
+                            <a href="{{ route('candidates.candidate_profile') }}" class="jd-secondary-btn">
+                                <i class="fa fa-user-edit"></i>
+                                Bổ sung hồ sơ
+                            </a>
+                        @else
+                            <a href="{{ route('candidates.login') }}" class="jd-secondary-btn">
+                                <i class="fa fa-sign-in"></i>
+                                Đăng nhập để kiểm tra
+                            </a>
+                        @endif
+
                         <a href="{{ route('candidates.browse_job') }}" class="jd-secondary-btn">
                             <i class="fa fa-th-large"></i>
                             Xem thêm việc làm
@@ -731,6 +909,55 @@
                     </div>
                 </div>
             </div>
+
+            @if (is_array($jobFitAiResult))
+                <section class="jd-ai-section">
+                    <div class="jd-ai-section__head">
+                        <div>
+                            <h3 class="jd-ai-section__title">Kết quả AI</h3>
+                        </div>
+                        @if ($aiScoreLabel !== null)
+                            <div class="jd-ai-section__score {{ $aiScore <= 0 ? 'jd-ai-section__score--soft' : '' }}">
+                                {{ $aiScoreLabel }}
+                            </div>
+                        @endif
+                    </div>
+
+                    @if (filled($aiReason))
+                        <div class="jd-ai-section__reason">
+                            {{ $aiReason }}
+                        </div>
+                    @endif
+
+                    <div class="jd-ai-section__grid">
+                        <div class="jd-ai-section__box">
+                            <span>Điểm phù hợp</span>
+                            @if (!empty($aiMatchedRequirements))
+                                <div class="jd-ai-chip-list">
+                                    @foreach ($aiMatchedRequirements as $item)
+                                        <div class="jd-ai-chip">{{ $item }}</div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="jd-empty mb-0">Chưa ghi nhận điểm phù hợp rõ ràng.</div>
+                            @endif
+                        </div>
+
+                        <div class="jd-ai-section__box">
+                            <span>Cần bổ sung / xác minh</span>
+                            @if (!empty($aiMissingRequirements))
+                                <div class="jd-ai-chip-list">
+                                    @foreach ($aiMissingRequirements as $item)
+                                        <div class="jd-ai-chip">{{ $item }}</div>
+                                    @endforeach
+                                </div>
+                            @else
+                                <div class="jd-empty mb-0">Chưa thấy khoảng trống lớn theo dữ liệu hiện tại.</div>
+                            @endif
+                        </div>
+                    </div>
+                </section>
+            @endif
 
             <div class="jd-layout">
                 <div class="jd-main">

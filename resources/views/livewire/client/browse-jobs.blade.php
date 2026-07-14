@@ -4,6 +4,210 @@
         $isListView = ($display ?? 'grid') === 'list';
     @endphp
 
+    <style>
+        .bj2-page {
+            --bj2-bg: #f7f8fb;
+            --bj2-surface: #ffffff;
+            --bj2-line: rgba(226, 232, 240, .95);
+            --bj2-text: #0f172a;
+            --bj2-muted: #64748b;
+            --bj2-accent: #f37021;
+            --bj2-accent-soft: rgba(243, 112, 33, .08);
+        }
+
+        .bj2-page .bj2-card {
+            position: relative;
+            border: 1px solid var(--bj2-line) !important;
+            background: #fff;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, .05);
+            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+        }
+
+        .bj2-page .bj2-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(148, 163, 184, .55) !important;
+            box-shadow: 0 20px 44px rgba(15, 23, 42, .08);
+        }
+
+        .bj2-page .bj2-card__inner {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 1rem;
+        }
+
+        .bj2-page .bj2-card--list .bj2-card__inner {
+            padding: 1rem;
+        }
+
+        .bj2-page .bj2-card__top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 1rem;
+        }
+
+        .bj2-page .bj2-card__logo {
+            width: 72px;
+            height: 72px;
+            flex-shrink: 0;
+            border-radius: 16px;
+            border: 1px solid var(--bj2-line);
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+        }
+
+        .bj2-page .bj2-card__logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 12px;
+        }
+
+        .bj2-page .bj2-card__badges {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+
+        .bj2-page .bj2-card__label {
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            padding: .42rem .75rem;
+            border-radius: 999px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .bj2-page .bj2-card__deadline {
+            font-size: .76rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            padding: .46rem .82rem;
+            border-radius: 999px;
+            white-space: nowrap;
+            background: #111827;
+            color: #fff;
+            box-shadow: none;
+        }
+
+        .bj2-page .bj2-card__title {
+            font-size: 1.08rem;
+            line-height: 1.35;
+            letter-spacing: -.02em;
+            margin-bottom: .45rem;
+        }
+
+        .bj2-page .bj2-card__company,
+        .bj2-page .bj2-card__location {
+            color: var(--bj2-muted);
+        }
+
+        .bj2-page .bj2-card__company {
+            font-size: .9rem;
+        }
+
+        .bj2-page .bj2-card__company .fa,
+        .bj2-page .bj2-card__location .fa {
+            color: rgba(100, 116, 139, .9);
+        }
+
+        .bj2-page .bj2-card__chips .badge {
+            border-radius: 10px !important;
+            font-weight: 600;
+        }
+
+        .bj2-page .bj2-card__info {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: .75rem 1rem;
+            align-items: center;
+        }
+
+        .bj2-page .bj2-card__salary {
+            padding: .45rem .85rem;
+            border-radius: 999px;
+            background: rgba(243, 112, 33, .08);
+            color: var(--bj2-accent);
+            border: 1px solid rgba(243, 112, 33, .14);
+            font-weight: 700;
+            white-space: nowrap;
+            box-shadow: none;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .bj2-page .bj2-card__excerpt {
+            color: #475569;
+            line-height: 1.7;
+            min-height: 4.2em;
+            margin-bottom: .9rem;
+        }
+
+        .bj2-page .bj2-card__tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+            margin-bottom: .85rem;
+        }
+
+        .bj2-page .bj2-card__tag {
+            display: inline-flex;
+            align-items: center;
+            min-height: 2rem;
+            padding: .4rem .75rem;
+            border-radius: 999px;
+            font-size: .78rem;
+            line-height: 1;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .bj2-page .bj2-card__tag--accent {
+            background: #fff7ed;
+            color: #c2410c;
+            border-color: rgba(251, 146, 60, .18);
+        }
+
+        .bj2-page .bj2-card__tag--soft {
+            background: #f8fafc;
+            color: #475569;
+            border-color: rgba(226, 232, 240, .95);
+        }
+
+        .bj2-page .bj2-card__actions .btn {
+            transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
+        }
+
+        .bj2-page .bj2-card__actions .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .bj2-page .bj2-card__actions .btn:active {
+            transform: translateY(0);
+        }
+
+        @media (max-width: 575.98px) {
+            .bj2-page .bj2-card__top {
+                flex-direction: column;
+            }
+
+            .bj2-page .bj2-card__badges {
+                align-items: flex-start;
+            }
+
+            .bj2-page .bj2-card__info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+
     <section class="home-hero home-premium-hero browse-hero">
         <div class="home-premium-hero-banner">
             <img src="{{ asset('assets/img/BannerWeb_Tiensi-03.jpg') }}" alt="Tuyển dụng nội bộ FPT" class="browse-hero__bg-img">
@@ -175,65 +379,76 @@
                             $workplaceName = $job->workplace?->name ?? 'Không rõ';
                         @endphp
 
-                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100 p-4 bg-white border rounded-4" style="border-color: #eaeaea;">
-                            <!-- Top: Logo & Deadline -->
-                            <div class="d-flex justify-content-between align-items-start mb-3 gap-2">
-                                <a href="{{ $detailUrl }}" class="border rounded p-2" style="width: 70px; height: 70px; display: flex; align-items: center; justify-content: center; background: #fff; flex-shrink: 0;">
-                                    <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
-                                </a>
-                                <span class="badge rounded-pill bg-dark text-white px-3 py-2 fw-normal d-flex align-items-center" style="font-size: 0.85rem;">
-                                    Hạn nộp: {{ $deadlineText }}
-                                </span>
-                            </div>
+                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100 p-2 rounded-5">
+                            <div class="bj2-card__inner">
+                                <div class="bj2-card__top">
+                                    <a href="{{ $detailUrl }}" class="bj2-card__logo" aria-label="{{ $job->title }}">
+                                        <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}">
+                                    </a>
 
-                            <!-- Title -->
-                            <h3 class="mt-0 mb-2 fw-bold" style="font-size: 1.2rem; line-height: 1.4;">
-                                <a href="{{ $detailUrl }}" class="text-dark text-decoration-none">{{ $job->title }}</a>
-                            </h3>
+                                    <div class="bj2-card__badges">
+                                        @php
+                                            $matchLabel = $jobMatchLabels[$job->id] ?? null;
+                                            $matchStyle = match ($matchLabel) {
+                                                'Phù hợp cao' => ['bg' => '#ecfdf5', 'text' => '#047857', 'border' => '#a7f3d0'],
+                                                'Phù hợp vừa' => ['bg' => '#fffbeb', 'text' => '#b45309', 'border' => '#fde68a'],
+                                                'Phù hợp thấp' => ['bg' => '#f8fafc', 'text' => '#64748b', 'border' => '#e2e8f0'],
+                                                default => null,
+                                            };
+                                        @endphp
 
-                            <!-- Company -->
-                            <div class="text-muted mb-3 d-flex align-items-center" style="font-size: 0.95rem;">
-                                <i class="fa fa-building-o me-2" style="width: 16px; text-align: center;"></i>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}
-                            </div>
+                                        @if ($matchLabel && $matchStyle)
+                                            <span class="bj2-card__label badge rounded-pill" style="background: {{ $matchStyle['bg'] }}; color: {{ $matchStyle['text'] }}; border: 1px solid {{ $matchStyle['border'] }};">
+                                                {{ $matchLabel }}
+                                            </span>
+                                        @endif
 
-                            <!-- Chips (Tags) - allowing wrap so they don't get cut off -->
-                            <div class="d-flex flex-wrap gap-2 mb-4">
-                                <span class="badge rounded fw-normal text-start" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; border: 1px solid rgba(243, 112, 33, 0.2); font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
-                                    Nội bộ FPT
-                                </span>
-                                <span class="badge rounded bg-light text-secondary border fw-normal text-start" title="{{ $departmentName }}" style="font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
-                                    {{ $departmentName }}
-                                </span>
-                                <span class="badge rounded bg-light text-secondary border fw-normal text-start" title="{{ $workplaceName }}" style="font-size: 0.85rem; padding: 0.5rem 0.8rem; white-space: normal; line-height: 1.4;">
-                                    {{ $workplaceName }}
-                                </span>
-                            </div>
-
-                            <!-- Meta: Location & Salary -->
-                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-                                <div class="d-flex align-items-center text-muted" style="font-size: 0.95rem;">
-                                    <i class="fa fa-map-marker me-2" style="color: #999;"></i> {{ $cityText }}
+                                        <span class="bj2-card__deadline d-flex align-items-center">
+                                            Hạn nộp · {{ $deadlineText }}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div class="d-flex align-items-center">
-                                    <span class="badge fw-bold" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; font-size: 0.95rem; padding: 0.4rem 0.8rem; border-radius: 6px;">
-                                        <i class="fa fa-money me-1"></i> {{ $salaryText }}
-                                    </span>
+
+                                <h3 class="bj2-card__title mt-0 fw-bold">
+                                    <a href="{{ $detailUrl }}" class="text-dark text-decoration-none">{{ $job->title }}</a>
+                                </h3>
+
+                                <div class="bj2-card__company mb-2 d-flex align-items-center">
+                                    <i class="fa fa-building-o me-2" style="width: 16px; text-align: center;"></i>
+                                    <span>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</span>
                                 </div>
-                            </div>
 
-                            <!-- Excerpt -->
-                            <div class="flex-grow-1">
-                                @if ($excerpt !== '')
-                                    <p class="text-muted mb-4" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; line-height: 1.6;">
-                                        {{ $excerpt }}
-                                    </p>
-                                @endif
-                            </div>
+                                <div class="bj2-card__info mb-3">
+                                    <div class="bj2-card__location d-flex align-items-center" style="font-size: 0.94rem;">
+                                        <i class="fa fa-map-marker me-2"></i>
+                                        <span>{{ $cityText }}</span>
+                                    </div>
 
-                            <!-- CTA -->
-                            <div class="d-flex flex-wrap gap-2 w-100 mt-2">
-                                <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.6rem 0; background-color: #f1f5f9; color: #475569; border: none;">Xem chi tiết</a>
-                                <a href="{{ $applyUrl }}" class="btn rounded-pill fw-medium text-white text-center" style="flex: 2; min-width: 150px; padding: 0.6rem 0; background-color: #f37021; border-color: #f37021;">Ứng tuyển ngay</a>
+                                    <div class="d-flex align-items-center justify-content-sm-end">
+                                        <span class="bj2-card__salary d-inline-flex align-items-center">
+                                            <i class="fa fa-money me-1"></i> {{ $salaryText }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="bj2-card__tags">
+                                    <span class="bj2-card__tag bj2-card__tag--accent">Nội bộ FPT</span>
+                                    <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $departmentName }}">{{ $departmentName }}</span>
+                                    <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $workplaceName }}">{{ $workplaceName }}</span>
+                                </div>
+
+                                <div class="flex-grow-1">
+                                    @if ($excerpt !== '')
+                                        <p class="bj2-card__excerpt mb-0" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
+                                            {{ $excerpt }}
+                                        </p>
+                                    @endif
+                                </div>
+
+                                <div class="bj2-card__actions d-flex flex-wrap gap-2 w-100 mt-4">
+                                    <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.72rem 0; background: #f8fafc; color: #334155; border: 1px solid rgba(226, 232, 240, .95); box-shadow: none;">Xem chi tiết</a>
+                                    <a href="{{ $applyUrl }}" class="btn rounded-pill fw-semibold text-white text-center" style="flex: 2; min-width: 150px; padding: 0.72rem 0; background: #111827; border: none; box-shadow: none;">Ứng tuyển ngay</a>
+                                </div>
                             </div>
                         </article>
                     </div>

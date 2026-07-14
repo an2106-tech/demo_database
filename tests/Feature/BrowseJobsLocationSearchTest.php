@@ -6,6 +6,8 @@ use App\Enums\StatusRecruitmentJobsEnum;
 use App\Enums\VietnamProvince;
 use App\Livewire\Client\BrowseJobs;
 use App\Models\Branch;
+use App\Models\Candidate;
+use App\Models\CandidateResume;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
 use App\Models\User;
@@ -79,6 +81,73 @@ class BrowseJobsLocationSearchTest extends TestCase
             ->assertSee($haNoiDepartment->name)
             ->assertDontSee($hcmDepartment->name)
             ->assertDontSee($emptyDepartment->name);
+    }
+
+    public function test_it_shows_match_labels_for_candidates_with_cv(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Browse Candidate',
+            'email' => 'browse-candidate@example.com',
+            'role' => 'candidate',
+            'is_active' => true,
+            'metadata' => ['account_types' => ['candidate'], 'account_type' => 'candidate'],
+        ]);
+
+        $candidate = Candidate::query()->create([
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'phone' => '0901234567',
+            'cv_file' => 'candidates/demo/cv.pdf',
+        ]);
+
+        CandidateResume::query()->create([
+            'candidate_id' => $candidate->id,
+            'profile_title' => 'Laravel Developer',
+            'desired_job' => ['position' => 'Laravel Developer'],
+            'skills' => [['name' => 'Laravel'], ['name' => 'REST API']],
+        ]);
+
+        $branch = Branch::query()->create([
+            'name' => 'Matching Branch',
+            'code' => 'MATCH',
+            'city' => VietnamProvince::HO_CHI_MINH->value,
+            'address' => 'Ho Chi Minh',
+            'is_active' => true,
+        ]);
+
+        $creator = User::factory()->create([
+            'role' => 'hr',
+            'branch_id' => $branch->id,
+            'is_active' => true,
+        ]);
+
+        $matchedJob = RecruitmentJob::query()->create([
+            'title' => 'Laravel Developer',
+            'slug' => 'browse-laravel-developer',
+            'description' => 'Build Laravel systems with REST APIs.',
+            'status' => StatusRecruitmentJobsEnum::PUBLISHED->value,
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $creator->id,
+        ]);
+
+        $unmatchedJob = RecruitmentJob::query()->create([
+            'title' => 'Graphic Designer',
+            'slug' => 'browse-graphic-designer',
+            'description' => 'Design visual assets.',
+            'status' => StatusRecruitmentJobsEnum::PUBLISHED->value,
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $creator->id,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(BrowseJobs::class)
+            ->assertSee('Phù hợp cao')
+            ->assertSee($matchedJob->title)
+            ->assertSee($unmatchedJob->title);
     }
 
     private function createJob(string $title, string $city, string $branchName, ?Department $department = null): RecruitmentJob

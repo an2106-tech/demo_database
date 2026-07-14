@@ -12,6 +12,7 @@ use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Post;
 use App\Models\User;
 use Carbon\Carbon;
+use App\Services\CandidateAccountService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Illuminate\Support\Facades\Schema;
@@ -24,6 +25,28 @@ class Home extends Component
     public string $searchCity = '';
 
     public string $searchDepartmentId = '';
+
+    public bool $hasCandidateAccess = false;
+
+    public function mount(CandidateAccountService $candidateAccountService): void
+    {
+        $user = auth()->user();
+
+        if ($user) {
+            $this->hasCandidateAccess = $candidateAccountService->hasCandidateAccount($user);
+        }
+    }
+
+    public function openJobMatching(): mixed
+    {
+        if ($this->hasCandidateAccess) {
+            return redirect()
+                ->route('candidates.candidate_dashboard')
+                ->with('run_candidate_job_match', true);
+        }
+
+        return redirect()->route('candidates.login');
+    }
 
     public function searchJobs(): mixed
     {

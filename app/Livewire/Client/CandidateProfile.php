@@ -596,7 +596,11 @@ class CandidateProfile extends Component
                 ]
             ]);
         } else {
-            session()->flash('error', 'Không thể phân tích CV lúc này hoặc CV quá ngắn. Vui lòng thử lại sau.');
+            $this->dispatch(
+                'app-notify',
+                message: $aiService->getLastError() ?: 'Không thể phân tích CV lúc này. Vui lòng thử lại sau.',
+                type: 'error'
+            );
         }
     }
 }

@@ -5,9 +5,12 @@ namespace App\Livewire\Client;
 use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Department;
 use App\Models\RecruitmentJob;
+use App\Services\CandidateAccountService;
 use App\Services\LocationSearchNormalizer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -28,6 +31,8 @@ class BrowseJobs extends Component
     public ?int $department_id = null;
 
     public ?int $category_id = null;
+
+    public array $jobMatchLabels = [];
 
     protected array $queryString = [
         'display' => ['except' => 'grid'],
@@ -97,10 +102,23 @@ class BrowseJobs extends Component
     {
         $now = Carbon::now();
         $location = trim($this->city) !== '' ? $locationSearchNormalizer->normalize($this->city) : null;
+        $candidate = null;
+        $resume = null;
+
+        $user = Auth::user();
+        if ($user) {
+            $candidateService = app(CandidateAccountService::class);
+            if ($candidateService->hasCandidateAccount($user)) {
+                $candidate = $candidateService->resolveFor($user);
+                if ($candidateService->candidateHasCv($candidate)) {
+                    $resume = $candidate->resume()->first();
+                }
+            }
+        }
 
         $jobsQuery = RecruitmentJob::query()
             ->where(fn (Builder $query) => $this->applyOpenJobConstraint($query, $now))
-            ->with(['branch:id,name,image,city,address', 'workplace:id,name', 'department:id,name']);
+            ->with(['branch:id,name,image,city,address', 'workplace:id,name', 'department:id,name', 'skills:id,name']);
 
         if (trim($this->q) !== '') {
             $keyword = trim($this->q);
@@ -134,12 +152,101 @@ class BrowseJobs extends Component
         }
 
         $jobs = $jobsQuery->latest()->paginate(12);
+        $this->jobMatchLabels = $candidate && $resume
+            ? $this->buildJobMatchLabels($jobs->getCollection()->all(), $resume, $candidate)
+            : [];
         $departments = $this->availableDepartments($now, $location);
 
         return view('livewire.client.browse-jobs', [
             'jobs' => $jobs,
             'departments' => $departments,
         ]);
+    }
+
+    private function buildJobMatchLabels(array $jobs, $resume, $candidate): array
+    {
+        $scores = [];
+
+        foreach ($jobs as $job) {
+            $scores[$job->id] = $this->jobMatchScore($job, $resume, $candidate);
+        }
+
+        $maxScore = max($scores ?: [0]);
+
+        if ($maxScore <= 0) {
+            return array_fill_keys(array_keys($scores), 'Phù hợp thấp');
+        }
+
+        $highThreshold = $maxScore * 0.7;
+        $mediumThreshold = $maxScore * 0.4;
+
+        $labels = [];
+        foreach ($scores as $jobId => $score) {
+            $labels[$jobId] = match (true) {
+                $score >= $highThreshold => 'Phù hợp cao',
+                $score >= $mediumThreshold => 'Phù hợp vừa',
+                default => 'Phù hợp thấp',
+            };
+        }
+
+        return $labels;
+    }
+
+    private function jobMatchScore($job, $resume, $candidate): int
+    {
+        $desiredJob = is_array($resume?->desired_job) ? $resume->desired_job : [];
+        $profileSkills = $resume?->skills ?: ($candidate->skills ?? []);
+
+        $searchTerms = $this->searchTerms([
+            $desiredJob['position'] ?? null,
+            $desiredJob['level'] ?? null,
+            $desiredJob['location'] ?? ($desiredJob['workplace'] ?? null),
+            $resume?->profile_title,
+            $profileSkills,
+        ]);
+
+        if ($searchTerms === []) {
+            return 0;
+        }
+
+        $title = $this->normalizeSearchText($job->title);
+        $department = $this->normalizeSearchText($job->department?->name);
+        $workplace = $this->normalizeSearchText($job->workplace?->name);
+        $skills = $this->normalizeSearchText($job->skills->pluck('name')->implode(' '));
+        $description = $this->normalizeSearchText(strip_tags((string) $job->description));
+        $score = 0;
+
+        foreach ($searchTerms as $term) {
+            $score += str_contains($title, $term) ? 10 : 0;
+            $score += str_contains($skills, $term) ? 7 : 0;
+            $score += str_contains($department, $term) ? 5 : 0;
+            $score += str_contains($workplace, $term) ? 4 : 0;
+            $score += str_contains($description, $term) ? 1 : 0;
+        }
+
+        return $score;
+    }
+
+    private function searchTerms(array $values): array
+    {
+        $flattened = [];
+        array_walk_recursive($values, function ($value) use (&$flattened) {
+            if (is_string($value) && filled($value)) {
+                $flattened[] = $value;
+            }
+        });
+
+        $tokens = preg_split('/\s+/u', $this->normalizeSearchText(implode(' ', $flattened))) ?: [];
+
+        return array_values(array_unique(array_filter(
+            $tokens,
+            fn (string $token) => mb_strlen($token) >= 3
+        )));
+    }
+
+    private function normalizeSearchText(?string $value): string
+    {
+        return Str::lower(Str::ascii(trim((string) $value)));
     }
 
     private function applyOpenJobConstraint(Builder $query, Carbon $now): void

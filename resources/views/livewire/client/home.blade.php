@@ -66,6 +66,48 @@
             </div>
         </div>
     </section>
+
+    <section class="home-ai-quick-access">
+        <div class="container">
+            <div class="home-ai-quick-access__panel">
+                <div class="home-ai-quick-access__content">
+                    <span class="home-ai-quick-access__eyebrow">AI job matching</span>
+                    <h2>Quét việc làm phù hợp từ hồ sơ của bạn</h2>
+                    <p>
+                        Một lần bấm để mở dashboard và tự đối chiếu CV với các vị trí đang tuyển.
+                        Kết quả vẫn được giữ ở dashboard để bạn xem gọn hơn.
+                    </p>
+                </div>
+
+                <div class="home-ai-quick-access__actions">
+                    @if ($hasCandidateAccess)
+                        <button
+                            type="button"
+                            class="btn btn-orange btn-lg rounded-pill px-4 fw-semibold home-ai-quick-access__primary"
+                            wire:click="openJobMatching"
+                            wire:loading.attr="disabled"
+                            wire:target="openJobMatching"
+                        >
+                            <span wire:loading.remove wire:target="openJobMatching">Quét ngay</span>
+                            <span wire:loading wire:target="openJobMatching">
+                                <i class="fa fa-circle-o-notch fa-spin"></i> Đang mở...
+                            </span>
+                        </button>
+                        <a href="{{ route('candidates.candidate_profile') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-semibold">
+                            Cập nhật hồ sơ
+                        </a>
+                    @else
+                        <a href="{{ route('candidates.login') }}" class="btn btn-orange btn-lg rounded-pill px-4 fw-semibold home-ai-quick-access__primary">
+                            Đăng nhập để quét
+                        </a>
+                        <a href="{{ route('candidates.register') }}" class="btn btn-outline-secondary btn-lg rounded-pill px-4 fw-semibold">
+                            Tạo tài khoản
+                        </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
     <style>
         .home-search-strip {
             background: #ffffff;
@@ -192,6 +234,78 @@
             border-color: #f37021;
         }
 
+        .home-ai-quick-access {
+            background: #fff;
+            padding: 12px 0 28px;
+        }
+
+        .home-ai-quick-access__panel {
+            align-items: center;
+            display: grid;
+            gap: 20px;
+            grid-template-columns: minmax(0, 1.3fr) auto;
+            padding: 22px 24px;
+            border: 1px solid rgba(15, 23, 42, .08);
+            border-radius: 22px;
+            background: linear-gradient(135deg, #fffaf5 0%, #ffffff 58%);
+            box-shadow: 0 18px 48px rgba(15, 23, 42, .08);
+        }
+
+        .home-ai-quick-access__eyebrow {
+            color: #f37021;
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .12em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .home-ai-quick-access__content h2 {
+            color: #0f172a;
+            font-size: clamp(24px, 2.8vw, 34px);
+            font-weight: 900;
+            line-height: 1.15;
+            margin: 0 0 10px;
+        }
+
+        .home-ai-quick-access__content p {
+            color: #64748b;
+            font-size: 15px;
+            line-height: 1.7;
+            margin: 0;
+            max-width: 64ch;
+        }
+
+        .home-ai-quick-access__actions {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .home-ai-quick-access__primary {
+            box-shadow: 0 12px 24px rgba(243, 112, 33, .18);
+        }
+
+        .home-ai-quick-access__actions .btn {
+            min-height: 52px;
+        }
+
+        .home-ai-quick-access__actions .btn-outline-secondary {
+            border-color: #dbe4ee;
+            color: #334155;
+            background: #fff;
+        }
+
+        .home-ai-quick-access__actions .btn-outline-secondary:hover,
+        .home-ai-quick-access__actions .btn-outline-secondary:focus {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
         @media (max-width: 1199px) {
             .home-search-panel {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -213,6 +327,20 @@
                 grid-template-columns: 1fr;
                 padding: 14px;
                 border-radius: 14px;
+            }
+
+            .home-ai-quick-access__panel {
+                grid-template-columns: 1fr;
+                padding: 18px;
+                border-radius: 18px;
+            }
+
+            .home-ai-quick-access__actions {
+                justify-content: stretch;
+            }
+
+            .home-ai-quick-access__actions .btn {
+                width: 100%;
             }
         }
     </style>
