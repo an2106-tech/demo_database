@@ -13,6 +13,7 @@ class OfferApprovalService
 {
     public function __construct(
         private OfferPdfService $pdfService,
+        private RecruitmentInternalNotificationService $internalNotifications,
     ) {}
 
     /**
@@ -22,12 +23,20 @@ class OfferApprovalService
     {
         try {
             $offer->loadMissing(['application.candidate', 'application.job.branch']);
+            $responseDeadline = $offer->expires_at && $offer->expires_at->isFuture()
+                ? $offer->expires_at
+                : now()->addDays(3);
 
-            // Ensure PDF is fresh
-            if ($offer->offer_letter_template_id) {
-                $this->pdfService->refreshForOffer($offer);
+            if (! $offer->expires_at || ! $offer->expires_at->equalTo($responseDeadline)) {
+                $offer->forceFill([
+                    'expires_at' => $responseDeadline,
+                ])->save();
                 $offer->refresh();
             }
+
+            // Ensure PDF is fresh
+            $this->pdfService->refreshForOffer($offer);
+            $offer->refresh();
 
             // Send to candidate
             $candidate = $offer->application?->candidate;
@@ -35,6 +44,17 @@ class OfferApprovalService
                 Log::warning('Cannot send offer to candidate - no email', ['offer_id' => $offer->id]);
                 return false;
             }
+
+            $sentAt = now();
+
+            $offer->forceFill([
+                'status' => 'pending',
+                'approved_by_user_id' => $approver->id,
+                'approved_at' => $sentAt,
+                'sent_at' => $sentAt,
+                'expires_at' => $responseDeadline,
+            ])->save();
+            $offer->refresh();
 
             Mail::to($candidate->email)->send(
                 new CandidateOfferMail(
@@ -44,15 +64,6 @@ class OfferApprovalService
                     $offer
                 )
             );
-
-            // Update offer status
-            $offer->forceFill([
-                'status' => 'pending',
-                'approved_by_user_id' => $approver->id,
-                'approved_at' => now(),
-                'sent_at' => now(),
-                'expires_at' => now()->addDays(3), // Set expiration if not set
-            ])->save();
 
             // Notify team members (HR, PM, Director)
             $this->notifyTeam($offer, $approver);
@@ -85,6 +96,9 @@ class OfferApprovalService
                 'approved_at' => now(),
                 'approval_notes' => $notes,
             ])->save();
+            $offer->refresh();
+
+            $this->internalNotifications->notifyOfferRejectedByDirector($offer, $rejector);
 
             Log::info('Offer rejected', [
                 'offer_id' => $offer->id,

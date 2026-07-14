@@ -1,3 +1,28 @@
+@php
+    $offerLabels = [
+        'draft' => 'Bản nháp',
+        'awaiting_approval' => 'Chờ duyệt',
+        'pending' => 'Chờ phản hồi',
+        'accepted' => 'Đã đồng ý',
+        'declined' => 'Đã từ chối',
+        'rejected' => 'Giám đốc từ chối',
+        'expired' => 'Đã hết hạn',
+    ];
+
+    $applicationStatus = $application->status instanceof \App\Enums\StatusApplicationEnum
+        ? $application->status->getLabel()
+        : (string) $application->status;
+
+    $jobTitle = $application->job?->title ?? 'Vị trí ứng tuyển';
+    $branchName = $application->job?->branch?->name ?? 'Chi nhánh tuyển dụng';
+    $badgeLabels = [
+        'success' => 'Hoàn tất',
+        'warning' => 'Đã ghi nhận',
+        'info' => 'Thông tin',
+        'expired' => 'Không còn hiệu lực',
+    ];
+@endphp
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -22,7 +47,7 @@
 
         .card {
             width: 100%;
-            max-width: 680px;
+            max-width: 720px;
             background: #ffffff;
             border-radius: 20px;
             padding: 32px;
@@ -47,6 +72,7 @@
         h1 {
             margin: 0 0 12px;
             font-size: 28px;
+            line-height: 1.25;
         }
 
         p {
@@ -55,25 +81,65 @@
         }
 
         .meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
             margin-top: 24px;
             padding-top: 20px;
             border-top: 1px solid #e2e8f0;
-            color: #475569;
-            font-size: 14px;
+        }
+
+        .item {
+            padding: 14px;
+            border-radius: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .item span {
+            display: block;
+            color: #64748b;
+            font-size: 13px;
+            margin-bottom: 6px;
+        }
+
+        .item strong {
+            display: block;
+            color: #0f172a;
+            font-size: 15px;
+        }
+
+        @media (max-width: 640px) {
+            .card { padding: 24px; }
+            .meta { grid-template-columns: 1fr; }
+            h1 { font-size: 24px; }
         }
     </style>
 </head>
 <body>
     <div class="shell">
         <div class="card">
-            <span class="badge {{ $status }}">{{ strtoupper($status) }}</span>
+            <span class="badge {{ $status }}">{{ $badgeLabels[$status] ?? 'Thông tin' }}</span>
             <h1>{{ $title }}</h1>
             <p>{{ $message }}</p>
 
             <div class="meta">
-                <p><strong>Hồ sơ:</strong> #{{ $application->id }}</p>
-                <p><strong>Trạng thái thư mời:</strong> {{ $offer->status }}</p>
-                <p><strong>Trạng thái hồ sơ:</strong> {{ $application->status?->getLabel() ?? $application->status }}</p>
+                <div class="item">
+                    <span>Vị trí</span>
+                    <strong>{{ $jobTitle }}</strong>
+                </div>
+                <div class="item">
+                    <span>Chi nhánh</span>
+                    <strong>{{ $branchName }}</strong>
+                </div>
+                <div class="item">
+                    <span>Trạng thái thư mời</span>
+                    <strong>{{ $offerLabels[$offer->status] ?? $offer->status }}</strong>
+                </div>
+                <div class="item">
+                    <span>Trạng thái hồ sơ</span>
+                    <strong>{{ $applicationStatus }}</strong>
+                </div>
             </div>
         </div>
     </div>

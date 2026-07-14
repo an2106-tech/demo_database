@@ -69,11 +69,11 @@ Route::get('/preview/public-file/{path}', function (string $path) {
 
 Route::prefix('offers')->name('offers.')->group(function () {
     Route::get('/{offer}/respond/accept', [OfferResponseController::class, 'accept'])
-        ->middleware('signed:relative')
         ->name('respond.accept');
     Route::get('/{offer}/respond/decline', [OfferResponseController::class, 'decline'])
-        ->middleware('signed:relative')
         ->name('respond.decline');
+    Route::post('/{offer}/respond/decline', [OfferResponseController::class, 'submitDecline'])
+        ->name('respond.decline.submit');
 });
 
 Route::prefix('jobs')->name('jobs.')->group(function () {

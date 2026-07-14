@@ -24,6 +24,7 @@ use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationPipelineService;
 use App\Services\OfferApprovalService;
 use App\Services\OfferPdfService;
+use App\Services\RecruitmentInternalNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -650,6 +651,96 @@ class ApplicationsTable
         ];
     }
 
+    protected static function resolveInterviewScheduledAt(mixed $value): \Carbon\CarbonInterface
+    {
+        $timezone = config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
+
+        if ($value instanceof \Carbon\CarbonInterface) {
+            return $value->copy()->setTimezone($timezone);
+        }
+
+        return \Carbon\Carbon::parse((string) $value, $timezone);
+    }
+
+    protected static function validateInterviewSchedule(array $data, ?Interview $existingInterview = null): \Carbon\CarbonInterface
+    {
+        if (blank($data['scheduled_at'] ?? null)) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'Vui lòng chọn thời gian phỏng vấn.',
+            ]);
+        }
+
+        $timezone = config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
+        $scheduledAt = static::resolveInterviewScheduledAt($data['scheduled_at']);
+        $duration = max(15, (int) ($data['duration_minutes'] ?? 60));
+        $endAt = $scheduledAt->copy()->addMinutes($duration);
+
+        if ($scheduledAt->lt(now($timezone))) {
+            throw ValidationException::withMessages([
+                'scheduled_at' => 'Thời gian phỏng vấn không được ở quá khứ.',
+            ]);
+        }
+
+        $interviewerId = (int) ($data['interviewer_id'] ?? 0);
+
+        if ($interviewerId > 0 && static::hasInterviewOverlap(
+            $scheduledAt,
+            $endAt,
+            $existingInterview?->id,
+            fn (Builder $query): Builder => $query->where('interviewer_id', $interviewerId),
+        )) {
+            throw ValidationException::withMessages([
+                'interviewer_id' => 'Người phỏng vấn đã có lịch trong khoảng thời gian này.',
+            ]);
+        }
+
+        $workplaceId = (int) ($data['workplace_id'] ?? 0);
+
+        if (($data['type'] ?? null) === 'offline'
+            && $workplaceId > 0
+            && static::hasInterviewOverlap(
+                $scheduledAt,
+                $endAt,
+                $existingInterview?->id,
+                fn (Builder $query): Builder => $query->where('workplace_id', $workplaceId),
+            )
+        ) {
+            throw ValidationException::withMessages([
+                'workplace_id' => 'Địa điểm phỏng vấn đã có lịch trong khoảng thời gian này.',
+            ]);
+        }
+
+        return $scheduledAt;
+    }
+
+    protected static function hasInterviewOverlap(
+        \Carbon\CarbonInterface $startAt,
+        \Carbon\CarbonInterface $endAt,
+        ?int $ignoreInterviewId,
+        \Closure $scope,
+    ): bool {
+        $query = Interview::query()
+            ->where('result', 'pending')
+            ->where('scheduled_at', '>=', $startAt->copy()->subDay())
+            ->where('scheduled_at', '<', $endAt);
+
+        if ($ignoreInterviewId) {
+            $query->whereKeyNot($ignoreInterviewId);
+        }
+
+        $scope($query);
+
+        return $query
+            ->get(['id', 'scheduled_at', 'duration_minutes'])
+            ->contains(function (Interview $interview) use ($startAt): bool {
+                $interviewEndAt = $interview->scheduled_at
+                    ? $interview->scheduled_at->copy()->addMinutes(max(15, (int) ($interview->duration_minutes ?: 60)))
+                    : null;
+
+                return $interviewEndAt?->gt($startAt) ?? false;
+            });
+    }
+
     protected static function transitionApplication(Application $record, StatusApplicationEnum $targetStatus, ?string $comment = null): bool
     {
         $currentStatus = $record->status instanceof StatusApplicationEnum
@@ -834,13 +925,45 @@ class ApplicationsTable
         return $record->latestOffer ?? $record->offers()->latest('id')->first();
     }
 
+    protected static function canEditOffer(?Offer $offer): bool
+    {
+        return ! $offer || in_array($offer->status, ['draft', 'rejected'], true);
+    }
+
+    protected static function shouldCreateReplacementOffer(?Offer $offer): bool
+    {
+        return $offer && in_array($offer->status, ['declined', 'expired'], true);
+    }
+
+    protected static function lockedOfferMessage(?Offer $offer): string
+    {
+        return match ($offer?->status) {
+            'awaiting_approval' => 'Đề nghị tuyển dụng đã gửi giám đốc duyệt, không thể chỉnh sửa trực tiếp.',
+            'pending' => 'Đề nghị tuyển dụng đã gửi cho ứng viên phản hồi, không thể chỉnh sửa trực tiếp.',
+            'accepted' => 'Ứng viên đã đồng ý đề nghị tuyển dụng, không thể chỉnh sửa.',
+            'declined' => 'Ứng viên đã từ chối đề nghị tuyển dụng, không thể chỉnh sửa.',
+            'expired' => 'Đề nghị tuyển dụng đã hết hạn, không thể chỉnh sửa.',
+            default => 'Trạng thái đề nghị tuyển dụng hiện tại không cho phép chỉnh sửa.',
+        };
+    }
+
     protected static function getOfferActionLabel(Application $record): ?string
     {
         if (! static::canManageOffer($record)) {
             return null;
         }
 
-        return $record->offers()->exists() ? 'Sửa đề nghị tuyển dụng' : 'Tạo đề nghị tuyển dụng';
+        $offer = static::getLatestOffer($record);
+
+        if (static::shouldCreateReplacementOffer($offer)) {
+            return 'Tạo đề nghị mới';
+        }
+
+        if (! static::canEditOffer($offer)) {
+            return null;
+        }
+
+        return $offer ? 'Sửa đề nghị tuyển dụng' : 'Tạo đề nghị tuyển dụng';
     }
 
     protected static function canSendOffer(Application $record): bool
@@ -1494,7 +1617,7 @@ class ApplicationsTable
                                 ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                                 ->seconds(false)
                                 ->helperText('Thời gian theo múi giờ Việt Nam.')
-                                ->minDate(fn (Application $record) => static::hasInterviewStatus($record) ? null : now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))
+                                ->minDate(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))
                                 ->required(),
                             Select::make('duration_minutes')
                                 ->label('Thời lượng')
@@ -2339,7 +2462,7 @@ class ApplicationsTable
                     return;
                 }
 
-                if (in_array($offer->status, ['draft', 'awaiting_approval', 'rejected'], true)) {
+                if (in_array($offer->status, ['draft', 'rejected'], true)) {
                     static::sendOfferForApproval($record, $offer);
 
                     return;
@@ -2528,18 +2651,7 @@ class ApplicationsTable
                 if (static::canManageInterview($record)) {
                     $existingInterview = $record->interviews()->latest('id')->first();
                     $roundNumber = (int) ($existingInterview?->round_number ?: 1);
-
-                    if ($status === StatusApplicationEnum::SCREENING && filled($data['scheduled_at'] ?? null)) {
-                        $scheduledAt = $data['scheduled_at'] instanceof \Carbon\CarbonInterface
-                            ? $data['scheduled_at']
-                            : \Carbon\Carbon::parse($data['scheduled_at']);
-
-                        if ($scheduledAt->lt(now())) {
-                            throw ValidationException::withMessages([
-                                'scheduled_at' => 'Thời gian phỏng vấn không được ở quá khứ.',
-                            ]);
-                        }
-                    }
+                    $scheduledAt = static::validateInterviewSchedule($data, $existingInterview);
 
                     $interview = $existingInterview ?? new Interview([
                         'application_id' => $record->id,
@@ -2554,7 +2666,7 @@ class ApplicationsTable
                         'interviewer_id' => $data['interviewer_id'],
                         'round_name' => $data['round_name'] ?? ('Phỏng vấn vòng '.$roundNumber),
                         'duration_minutes' => (int) ($data['duration_minutes'] ?? 60),
-                        'scheduled_at' => $data['scheduled_at'],
+                        'scheduled_at' => $scheduledAt,
                         'type' => $data['type'],
                         'meeting_link' => $data['type'] === 'online' ? ($data['meeting_link'] ?? null) : null,
                         'workplace_id' => $data['type'] === 'offline' ? ($data['workplace_id'] ?? null) : null,
@@ -2596,10 +2708,18 @@ class ApplicationsTable
 
                 $data = static::validateOfferData($data);
                 $existingOffer = $record->offers()->latest('id')->first();
-                $offer = $existingOffer ?? new Offer([
+                $shouldCreateReplacementOffer = static::shouldCreateReplacementOffer($existingOffer);
+
+                if (! $shouldCreateReplacementOffer && ! static::canEditOffer($existingOffer)) {
+                    throw ValidationException::withMessages([
+                        'offer' => static::lockedOfferMessage($existingOffer),
+                    ]);
+                }
+
+                $offer = $shouldCreateReplacementOffer || ! $existingOffer ? new Offer([
                     'application_id' => $record->id,
                     'status' => 'draft',
-                ]);
+                ]) : $existingOffer;
 
                 $offer->fill([
                     'application_id' => $record->id,
@@ -2660,35 +2780,63 @@ class ApplicationsTable
                 return;
             }
 
-            // Refresh PDF
-            if ($offer->offer_letter_template_id) {
-                app(OfferPdfService::class)->refreshForOffer($offer);
-                $offer->refresh();
-            }
+            app(OfferPdfService::class)->refreshForOffer($offer);
+            $offer->refresh();
 
-            // Gửi email cho tất cả giám đốc chi nhánh
-            foreach ($directors as $email) {
-                $director = User::where('email', $email)->where('is_active', true)->first();
-                if ($director) {
-                    Mail::to($email)->send(new OfferApprovalRequestMail($offer, $record, $record->job, $director));
-                }
-            }
-
-            // Update status
             $offer->forceFill([
                 'status' => 'awaiting_approval',
                 'approval_requested_at' => now(),
             ])->save();
+            $offer->refresh();
+
+            app(RecruitmentInternalNotificationService::class)->notifyOfferSubmittedForApproval($offer);
+
+            $sentCount = 0;
+            $failedCount = 0;
+
+            foreach ($directors as $email) {
+                $director = User::where('email', $email)->where('is_active', true)->first();
+
+                if (! $director) {
+                    continue;
+                }
+
+                try {
+                    Mail::to($email)->send(new OfferApprovalRequestMail($offer, $record, $record->job, $director));
+                    $sentCount++;
+                } catch (\Throwable $mailException) {
+                    $failedCount++;
+
+                    Log::warning('Failed to send offer approval request mail.', [
+                        'application_id' => $record->id,
+                        'offer_id' => $offer->id,
+                        'recipient' => $email,
+                        'error' => $mailException->getMessage(),
+                    ]);
+                }
+            }
 
             $actionText = $wasRequestedBefore ? 'gửi lại' : 'gửi';
+            $notification = Notification::make()
+                ->title('Đã '.$actionText.' đề nghị tuyển dụng');
 
-            Notification::make()
-                ->success()
-                ->title('Đã ' . $actionText . ' đề nghị tuyển dụng')
-                ->body('Đề nghị tuyển dụng đã được gửi cho giám đốc chi nhánh duyệt.')
-                ->send();
+            if ($sentCount === 0) {
+                $notification
+                    ->warning()
+                    ->body('Đề nghị đã chuyển sang chờ duyệt. Email thông báo chưa gửi được, giám đốc vẫn có thể xem trong màn Duyệt đề nghị.');
+            } elseif ($failedCount > 0) {
+                $notification
+                    ->success()
+                    ->body('Đề nghị đã chuyển sang chờ giám đốc duyệt. Một số email thông báo chưa gửi được.');
+            } else {
+                $notification
+                    ->success()
+                    ->body('Đề nghị tuyển dụng đã được gửi cho giám đốc chi nhánh duyệt.');
+            }
+
+            $notification->send();
         } catch (\Throwable $exception) {
-            Log::warning('Failed to send offer for approval.', [
+            Log::warning('Failed to prepare offer for approval.', [
                 'application_id' => $record->id,
                 'offer_id' => $offer->id,
                 'error' => $exception->getMessage(),
@@ -2697,7 +2845,7 @@ class ApplicationsTable
             Notification::make()
                 ->danger()
                 ->title('Gửi đề nghị thất bại')
-                ->body('Có lỗi khi gửi đề nghị tuyển dụng. Vui lòng kiểm tra lại.')
+                ->body('Có lỗi khi chuyển đề nghị sang chờ duyệt. Vui lòng kiểm tra lại.')
                 ->send();
         }
     }
@@ -2764,16 +2912,15 @@ class ApplicationsTable
     protected static function sendOfferToCandidate(Application $record, Offer $offer, Candidate $candidate, RecruitmentJob $job): void
     {
         try {
-            if ($offer->offer_letter_template_id) {
-                app(OfferPdfService::class)->refreshForOffer($offer);
-                $offer->refresh();
-            }
-
-            Mail::to($record->snapshotCandidateEmail())->send(new CandidateOfferMail($candidate, $record, $job, $offer));
+            app(OfferPdfService::class)->refreshForOffer($offer);
+            $offer->refresh();
 
             $offer->forceFill([
                 'sent_at' => now(),
             ])->save();
+            $offer->refresh();
+
+            Mail::to($record->snapshotCandidateEmail())->send(new CandidateOfferMail($candidate, $record, $job, $offer));
 
             Notification::make()
                 ->success()

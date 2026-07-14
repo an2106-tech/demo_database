@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\RecruitmentInternalNotificationService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -9,6 +10,25 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Offer extends Model
 {
     use SoftDeletes;
+
+    protected static function booted(): void
+    {
+        static::updated(function (Offer $offer): void {
+            if (! $offer->wasChanged('status')) {
+                return;
+            }
+
+            if ($offer->status === 'accepted') {
+                app(RecruitmentInternalNotificationService::class)
+                    ->notifyOfferAcceptedByCandidate($offer->fresh(['application.candidate', 'application.job.branch']));
+            }
+
+            if ($offer->status === 'declined') {
+                app(RecruitmentInternalNotificationService::class)
+                    ->notifyOfferDeclinedByCandidate($offer->fresh(['application.candidate', 'application.job.branch']));
+            }
+        });
+    }
 
     protected $fillable = [
         'application_id',

@@ -63,8 +63,10 @@ class CandidateOfferMail extends Mailable
             return [];
         }
 
+        $absolutePath = Storage::disk('local')->path($path);
+
         return [
-            Attachment::fromStorageDisk('local', $path)
+            Attachment::fromPath($absolutePath)
                 ->as('Thu-moi-nhan-viec-' . \Illuminate\Support\Str::slug($this->candidate->name) . '.pdf')
                 ->withMime('application/pdf'),
         ];
@@ -148,19 +150,22 @@ class CandidateOfferMail extends Mailable
     protected function buildOfferResponseActionsHtml(): string
     {
         $expiresAt = $this->offer->expires_at ?? now()->addDays(3);
+        $sentAt = $this->offer->sent_at ?? now();
+        $responseParameters = [
+            'offer' => $this->offer->getKey(),
+            'sent' => $sentAt->getTimestamp(),
+        ];
         $baseUrl = $this->resolvePublicBaseUrl();
 
-        $acceptPath = URL::temporarySignedRoute(
+        $acceptPath = URL::signedRoute(
             'offers.respond.accept',
-            $expiresAt,
-            ['offer' => $this->offer->getKey()],
+            $responseParameters,
             absolute: false,
         );
 
-        $declinePath = URL::temporarySignedRoute(
+        $declinePath = URL::signedRoute(
             'offers.respond.decline',
-            $expiresAt,
-            ['offer' => $this->offer->getKey()],
+            $responseParameters,
             absolute: false,
         );
 

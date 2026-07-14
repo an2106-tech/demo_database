@@ -18,6 +18,8 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\HtmlString;
 use Filament\Panel;
 use Filament\PanelProvider;
@@ -85,6 +87,10 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ])
+            ->renderHook(
+                PanelsRenderHook::USER_MENU_BEFORE,
+                fn (): HtmlString => new HtmlString(Blade::render('@livewire(\App\Livewire\Admin\NotificationsBell::class)'))
+            )
             ->renderHook(
                 'panels::body.end',
                 fn (): HtmlString => new HtmlString(<<<'HTML'
