@@ -313,6 +313,39 @@
             overflow-wrap: anywhere;
         }
 
+        .apply-sync-options {
+            margin-top: 18px;
+            padding: 18px 20px;
+            border-radius: 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .apply-sync-options .form-check {
+            margin: 0;
+            padding-left: 1.7rem;
+        }
+
+        .apply-sync-options .form-check + .form-check {
+            margin-top: 12px;
+        }
+
+        .apply-sync-options .form-check-input {
+            margin-top: 0.25rem;
+        }
+
+        .apply-sync-options .form-check-label {
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .apply-sync-options__hint {
+            margin-top: 10px;
+            font-size: 0.88rem;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
         /* Submit Button */
         .submit-trigger {
             width: 100%;
@@ -566,6 +599,26 @@
                     </div>
                     @endif
                 </div>
+
+                @if(Auth::check() && ! $this->requiresCandidateActivation)
+                    <div class="apply-sync-options">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sync-profile-to-candidate" wire:model="sync_profile_to_candidate">
+                            <label class="form-check-label" for="sync-profile-to-candidate">
+                                Cập nhật thông tin này vào hồ sơ ứng viên của tôi
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="use-cv-as-primary" wire:model="use_cv_as_primary">
+                            <label class="form-check-label" for="use-cv-as-primary">
+                                Dùng CV này làm CV chính
+                            </label>
+                        </div>
+                        <div class="apply-sync-options__hint">
+                            Nếu không chọn, thông tin chỉ lưu cho lần ứng tuyển này và không ghi đè hồ sơ chính.
+                        </div>
+                    </div>
+                @endif
 
                 <div class="premium-field">
                     <label>Giới thiệu ngắn gọn hoặc mục tiêu nghề nghiệp</label>

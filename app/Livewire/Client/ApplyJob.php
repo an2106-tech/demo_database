@@ -49,6 +49,10 @@ class ApplyJob extends Component
 
     public $cv = null;
 
+    public bool $sync_profile_to_candidate = false;
+
+    public bool $use_cv_as_primary = false;
+
     public bool $showSuccessModal = false;
 
     public function updatedCv(): void
@@ -95,7 +99,7 @@ class ApplyJob extends Component
         $this->phone = $candidate->phone;
         $this->experience_years = $candidate->experience_years;
 
-        $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
+        $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
         $this->profile_title = $resume->profile_title;
         $this->career_objective = $resume->career_objective;
     }
@@ -122,7 +126,7 @@ class ApplyJob extends Component
         $this->validate($rules);
 
         $result = DB::transaction(function (): array {
-            $candidate = $this->upsertCandidate();
+            $candidate = $this->resolveCandidateForApplication();
             $application = Application::withTrashed()
                 ->where('job_id', $this->job->id)
                 ->where('candidate_id', $candidate->id)
@@ -137,34 +141,28 @@ class ApplyJob extends Component
                 ];
             }
 
-            $cv = $this->storeCandidateCv($candidate);
+            $cv = $this->storeSubmittedCv($candidate);
             $cvPath = $cv['path'];
             $cvAttachment = $cv['attachment'];
             $cvText = $cvPath ? app(CvTextExtractor::class)->extractFromPublicPath($cvPath) : null;
 
-            $resume = CandidateResume::query()->firstOrCreate(['candidate_id' => $candidate->id], []);
-            $resume->fill([
-                'profile_title' => $this->profile_title,
-                'career_objective' => $this->career_objective,
-                'personal_info' => array_filter([
-                    'email' => $candidate->email,
-                    'phone' => $candidate->phone,
-                ], fn ($value) => filled($value)),
-                'extra' => array_filter([
-                    'cv_text' => is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 20000) : null,
-                ], fn ($value) => filled($value)),
-            ]);
-            $resume->save();
+            $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
+            if ($this->sync_profile_to_candidate) {
+                $resume->fill([
+                    'profile_title' => $this->profile_title,
+                    'career_objective' => $this->career_objective,
+                    'personal_info' => array_filter([
+                        'email' => trim($this->email),
+                        'phone' => is_string($this->phone) ? trim($this->phone) : null,
+                    ], fn ($value) => filled($value)),
+                ]);
 
-            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath, $cvAttachment);
-            $cvTextSnapshot = is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null;
-
-            $candidateMetadata = is_array($candidate->metadata) ? $candidate->metadata : [];
-            if (is_string($cvText) && $cvText !== '') {
-                $candidateMetadata['cv_text_excerpt'] = mb_substr($cvText, 0, 4000);
+                $resume->save();
             }
-            $candidate->metadata = $candidateMetadata;
-            $candidate->save();
+
+            $resumeSnapshot = $this->buildResumeSnapshotForApplication($candidate, $resume);
+            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resumeSnapshot, $cvPath, $cvAttachment);
+            $cvTextSnapshot = is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null;
 
             $application ??= Application::withTrashed()
                 ->firstOrNew([
@@ -195,13 +193,40 @@ class ApplyJob extends Component
             $application->save();
 
             $applicationCvAttachment = $this->syncApplicationCvAttachment($application, $cvPath, $cvAttachment);
-            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resume, $cvPath, $applicationCvAttachment);
+            $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resumeSnapshot, $cvPath, $applicationCvAttachment);
 
             $application->fill([
                 'profile_snapshot' => $profileSnapshot,
                 'cv_attachment_id' => $applicationCvAttachment?->id,
             ]);
             $application->save();
+
+            if ($this->sync_profile_to_candidate) {
+                $candidate->fill([
+                    'name' => trim($this->name),
+                    'email' => trim($this->email),
+                    'phone' => is_string($this->phone) ? trim($this->phone) : null,
+                    'experience_years' => $this->experience_years,
+                ]);
+                $candidate->save();
+            }
+
+            if ($this->use_cv_as_primary && $cvPath) {
+                $candidate->cv_file = $cvPath;
+                $candidate->save();
+
+                $candidate->attachments()
+                    ->where('type', 'cv')
+                    ->delete();
+
+                $candidate->attachments()->create([
+                    'path' => $cvPath,
+                    'type' => 'cv',
+                    'original_filename' => $cvAttachment?->original_filename ?: basename($cvPath),
+                    'mime_type' => $cvAttachment?->mime_type,
+                    'size_bytes' => $cvAttachment?->size_bytes,
+                ]);
+            }
 
             CandidateJobSubmission::query()->updateOrCreate(
                 [
@@ -289,7 +314,7 @@ class ApplyJob extends Component
         return null;
     }
 
-    protected function upsertCandidate(): Candidate
+    protected function resolveCandidateForApplication(): Candidate
     {
         $candidate = $this->resolveExistingCandidate() ?? new Candidate();
 
@@ -297,12 +322,14 @@ class ApplyJob extends Component
             $candidate->user_id = Auth::id();
         }
 
-        $candidate->fill([
-            'name' => trim($this->name),
-            'email' => trim($this->email),
-            'phone' => is_string($this->phone) ? trim($this->phone) : null,
-            'experience_years' => $this->experience_years,
-        ]);
+        if (! $candidate->exists || $this->sync_profile_to_candidate) {
+            $candidate->fill([
+                'name' => trim($this->name),
+                'email' => trim($this->email),
+                'phone' => is_string($this->phone) ? trim($this->phone) : null,
+                'experience_years' => $this->experience_years,
+            ]);
+        }
 
         $candidate->save();
 
@@ -312,19 +339,12 @@ class ApplyJob extends Component
     /**
      * @return array{path: string, attachment: Attachment|null}
      */
-    protected function storeCandidateCv(Candidate $candidate): array
+    protected function storeSubmittedCv(Candidate $candidate): array
     {
         if ($this->cv) {
-            $path = $this->cv->storePublicly("candidates/{$candidate->id}/cv", 'public');
+            $path = $this->cv->storePublicly("applications/{$candidate->id}/{$this->job->id}/cv", 'public');
 
-            $candidate->cv_file = $path;
-            $candidate->save();
-
-            $candidate->attachments()
-                ->where('type', 'cv')
-                ->delete();
-
-            $attachment = $candidate->attachments()->create([
+            $attachment = new Attachment([
                 'path' => $path,
                 'type' => 'cv',
                 'original_filename' => method_exists($this->cv, 'getClientOriginalName')
@@ -375,26 +395,15 @@ class ApplyJob extends Component
         ]);
     }
 
-    protected function buildApplicationSnapshot(
-        Candidate $candidate,
-        CandidateResume $resume,
-        ?string $cvPath,
-        ?Attachment $cvAttachment = null,
-    ): array
+    protected function buildResumeSnapshotForApplication(Candidate $candidate, CandidateResume $resume): array
     {
-        $candidateSnapshot = [
-            'id' => $candidate->id,
-            'user_id' => $candidate->user_id,
-            'name' => $candidate->name,
-            'email' => $candidate->email,
-            'phone' => $candidate->phone,
-            'experience_years' => $candidate->experience_years,
-        ];
-
-        $resumeSnapshot = [
-            'profile_title' => $resume->profile_title,
-            'career_objective' => $resume->career_objective,
-            'personal_info' => $resume->personal_info ?? [],
+        return [
+            'profile_title' => filled($this->profile_title) ? $this->profile_title : $resume->profile_title,
+            'career_objective' => filled($this->career_objective) ? $this->career_objective : $resume->career_objective,
+            'personal_info' => array_filter([
+                'email' => trim($this->email) ?: $candidate->email,
+                'phone' => is_string($this->phone) ? trim($this->phone) : $candidate->phone,
+            ], fn ($value) => filled($value)),
             'desired_job' => $resume->desired_job ?? [],
             'experiences' => $resume->experiences ?? [],
             'educations' => $resume->educations ?? [],
@@ -405,6 +414,22 @@ class ApplyJob extends Component
             'activities' => $resume->activities ?? [],
             'references' => $resume->references ?? [],
             'extra' => $resume->extra ?? [],
+        ];
+    }
+
+    protected function buildApplicationSnapshot(
+        Candidate $candidate,
+        array $resumeSnapshot,
+        ?string $cvPath,
+        ?Attachment $cvAttachment = null,
+    ): array {
+        $candidateSnapshot = [
+            'id' => $candidate->id,
+            'user_id' => $candidate->user_id,
+            'name' => trim($this->name),
+            'email' => trim($this->email),
+            'phone' => is_string($this->phone) ? trim($this->phone) : null,
+            'experience_years' => $this->experience_years,
         ];
 
         return array_filter([

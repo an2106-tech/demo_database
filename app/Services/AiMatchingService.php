@@ -81,6 +81,343 @@ class AiMatchingService
         }
     }
 
+    public function draftRecruitmentJob(array $context): ?array
+    {
+        $this->lastError = null;
+
+        if (empty($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể tạo bản nháp AI.';
+            return null;
+        }
+
+        $brief = trim((string) ($context['brief'] ?? ''));
+        $title = trim((string) ($context['title'] ?? ''));
+
+        if ($brief === '' && $title === '') {
+            $this->lastError = 'Thiếu dữ liệu đầu vào để AI soạn bản nháp tin tuyển dụng.';
+            return null;
+        }
+
+        $payloadContext = [
+            'title' => $title,
+            'brief' => $brief,
+            'branch' => $context['branch'] ?? null,
+            'department' => $context['department'] ?? null,
+            'workplace' => $context['workplace'] ?? null,
+            'salary_min' => $context['salary_min'] ?? null,
+            'salary_max' => $context['salary_max'] ?? null,
+            'deadline' => $context['deadline'] ?? null,
+            'positions_count' => $context['positions_count'] ?? null,
+            'skills' => array_values(array_filter((array) ($context['skills'] ?? []), fn ($item) => filled($item))),
+            'categories' => array_values(array_filter((array) ($context['categories'] ?? []), fn ($item) => filled($item))),
+            'tone' => 'chuyên nghiệp, ngắn gọn, rõ ràng, không sáo rỗng',
+        ];
+
+        $contextJson = json_encode($payloadContext, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $prompt = <<<PROMPT
+Bạn là chuyên gia viết tin tuyển dụng cho hệ thống tuyển dụng nội bộ. Hãy viết lại một bản nháp tin tuyển dụng từ dữ liệu đầu vào dưới đây để HR đọc là hiểu ngay, dễ chỉnh sửa và đăng.
+
+Yêu cầu:
+- Viết bằng tiếng Việt tự nhiên, chuyên nghiệp, gọn gàng.
+- Không dùng câu quảng cáo sáo rỗng.
+- Không bịa thêm thông tin không có trong dữ liệu đầu vào.
+- Nếu thiếu thông tin, giữ chỗ trống hoặc ghi ngắn gọn là "Thỏa thuận" / "Chưa cập nhật".
+- Ưu tiên cấu trúc rõ ràng: giới thiệu ngắn, trách nhiệm, yêu cầu, quyền lợi, thông tin làm việc.
+- Nội dung description trả về phải là HTML hợp lệ, có thể dán vào trình soạn thảo.
+- title nên ngắn gọn, chuẩn chỉnh hơn tiêu đề đầu vào nếu cần, nhưng không thay đổi ý nghĩa chính.
+- Không thêm phần giải thích ngoài JSON.
+
+Dữ liệu đầu vào:
+$contextJson
+
+Trả về duy nhất JSON theo schema:
+{
+  "title": "Senior Laravel Developer",
+  "description": "<h3>Mô tả công việc</h3><p>...</p><ul><li>...</li></ul><h3>Yêu cầu</h3><ul><li>...</li></ul><h3>Quyền lợi</h3><ul><li>...</li></ul>",
+  "highlights": ["Làm việc với Laravel", "Tối ưu hệ thống tuyển dụng"],
+  "missing_information": ["Lương", "Hạn nộp"]
+}
+PROMPT;
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'response_mime_type' => 'application/json',
+                'response_schema' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'title' => ['type' => 'STRING'],
+                        'description' => ['type' => 'STRING'],
+                        'highlights' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'missing_information' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                    ],
+                    'required' => ['title', 'description', 'highlights', 'missing_information'],
+                ],
+            ],
+        ];
+
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?key=' . $this->apiKey, $payload);
+
+            if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
+                Log::error('Gemini API Error (Job Draft): ' . $response->body());
+                return null;
+            }
+
+            $content = $response->json('candidates.0.content.parts.0.text');
+            $data = json_decode($content, true);
+
+            if (! is_array($data) || ! isset($data['title'], $data['description'])) {
+                $this->lastError = 'AI trả về dữ liệu tạo bản nháp không đúng định dạng.';
+                return null;
+            }
+
+            return [
+                'title' => trim((string) $data['title']),
+                'description' => trim((string) $data['description']),
+                'highlights' => array_slice((array) ($data['highlights'] ?? []), 0, 6),
+                'missing_information' => array_slice((array) ($data['missing_information'] ?? []), 0, 6),
+            ];
+        } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
+            Log::error('AI Job Draft Failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function reviewRecruitmentJobDraft(array $context): ?array
+    {
+        $this->lastError = null;
+
+        if (empty($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể kiểm tra chất lượng JD.';
+            return null;
+        }
+
+        $payloadContext = [
+            'title' => trim((string) ($context['title'] ?? '')),
+            'description' => trim((string) ($context['description'] ?? '')),
+            'overview' => trim((string) ($context['overview'] ?? '')),
+            'responsibilities' => trim((string) ($context['responsibilities'] ?? '')),
+            'requirements' => trim((string) ($context['requirements'] ?? '')),
+            'benefits' => trim((string) ($context['benefits'] ?? '')),
+            'branch' => $context['branch'] ?? null,
+            'department' => $context['department'] ?? null,
+            'workplace' => $context['workplace'] ?? null,
+            'salary_min' => $context['salary_min'] ?? null,
+            'salary_max' => $context['salary_max'] ?? null,
+            'deadline' => $context['deadline'] ?? null,
+            'positions_count' => $context['positions_count'] ?? null,
+            'skills' => array_values(array_filter((array) ($context['skills'] ?? []), fn ($item) => filled($item))),
+            'categories' => array_values(array_filter((array) ($context['categories'] ?? []), fn ($item) => filled($item))),
+        ];
+
+        $contextJson = json_encode($payloadContext, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $prompt = <<<PROMPT
+Bạn là chuyên gia review JD cho hệ thống tuyển dụng nội bộ. Nhiệm vụ của bạn là kiểm tra chất lượng bản mô tả công việc hiện tại, không viết lại toàn bộ.
+
+Hãy đánh giá:
+- Tiêu đề có rõ và đúng vai trò không
+- Nội dung có đủ các phần quan trọng chưa
+- Phần nào còn quá chung chung
+- Phần nào còn thiếu thông tin để ứng viên hiểu rõ
+- Nếu cần, đề xuất một tiêu đề tốt hơn
+
+Yêu cầu:
+- Trả lời bằng tiếng Việt, ngắn gọn, thực tế, ưu tiên theo góc nhìn HR.
+- Không bịa thêm dữ liệu.
+- Nếu thiếu thông tin, nêu rõ trường nào thiếu.
+- score từ 0 đến 100, càng cao càng hoàn chỉnh.
+- title_suggestion chỉ nên có khi title hiện tại chưa ổn.
+- issues và missing_information mỗi mảng tối đa 5 ý.
+- suggestion_note tối đa 2 câu.
+
+Dữ liệu JD:
+$contextJson
+
+Trả về duy nhất JSON theo schema:
+{
+  "score": 78,
+  "title_suggestion": "Senior Laravel Developer",
+  "issues": ["Mô tả còn chung chung", "Chưa nêu rõ quyền lợi"],
+  "missing_information": ["Lương", "Hạn nộp"],
+  "suggestion_note": "JD đã có khung cơ bản nhưng cần nêu rõ hơn phạm vi công việc và quyền lợi. Tiêu đề có thể rút gọn để nhìn gọn hơn."
+}
+PROMPT;
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'response_mime_type' => 'application/json',
+                'response_schema' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'score' => ['type' => 'INTEGER'],
+                        'title_suggestion' => ['type' => 'STRING'],
+                        'issues' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'missing_information' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'suggestion_note' => ['type' => 'STRING'],
+                    ],
+                    'required' => ['score', 'title_suggestion', 'issues', 'missing_information', 'suggestion_note'],
+                ],
+            ],
+        ];
+
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?key=' . $this->apiKey, $payload);
+
+            if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
+                Log::error('Gemini API Error (Job Draft Review): ' . $response->body());
+                return null;
+            }
+
+            $content = $response->json('candidates.0.content.parts.0.text');
+            $data = json_decode($content, true);
+
+            if (! is_array($data) || ! isset($data['score'])) {
+                $this->lastError = 'AI trả về dữ liệu kiểm tra JD không đúng định dạng.';
+                return null;
+            }
+
+            return [
+                'score' => max(0, min(100, (int) $data['score'])),
+                'title_suggestion' => trim((string) ($data['title_suggestion'] ?? '')),
+                'issues' => array_slice((array) ($data['issues'] ?? []), 0, 5),
+                'missing_information' => array_slice((array) ($data['missing_information'] ?? []), 0, 5),
+                'suggestion_note' => trim((string) ($data['suggestion_note'] ?? '')),
+            ];
+        } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
+            Log::error('AI Job Draft Review Failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function improveRecruitmentJobDraft(array $context): ?array
+    {
+        $this->lastError = null;
+
+        if (empty($this->apiKey)) {
+            $this->lastError = 'Chưa cấu hình GEMINI_API_KEY nên không thể cải thiện JD.';
+            return null;
+        }
+
+        $payloadContext = [
+            'title' => trim((string) ($context['title'] ?? '')),
+            'description' => trim((string) ($context['description'] ?? '')),
+            'overview' => trim((string) ($context['overview'] ?? '')),
+            'responsibilities' => trim((string) ($context['responsibilities'] ?? '')),
+            'requirements' => trim((string) ($context['requirements'] ?? '')),
+            'benefits' => trim((string) ($context['benefits'] ?? '')),
+            'branch' => $context['branch'] ?? null,
+            'department' => $context['department'] ?? null,
+            'workplace' => $context['workplace'] ?? null,
+            'salary_min' => $context['salary_min'] ?? null,
+            'salary_max' => $context['salary_max'] ?? null,
+            'deadline' => $context['deadline'] ?? null,
+            'positions_count' => $context['positions_count'] ?? null,
+            'skills' => array_values(array_filter((array) ($context['skills'] ?? []), fn ($item) => filled($item))),
+            'categories' => array_values(array_filter((array) ($context['categories'] ?? []), fn ($item) => filled($item))),
+        ];
+
+        $contextJson = json_encode($payloadContext, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $prompt = <<<PROMPT
+Bạn là chuyên gia biên tập JD cho hệ thống tuyển dụng nội bộ. Hãy cải thiện bản JD hiện tại để ngắn gọn hơn, rõ hơn, chuyên nghiệp hơn, nhưng vẫn giữ đúng ý nghĩa gốc.
+
+Yêu cầu:
+- Viết bằng tiếng Việt tự nhiên, chuyên nghiệp, không sáo rỗng.
+- Giữ cấu trúc rõ ràng: tổng quan, trách nhiệm, yêu cầu, quyền lợi.
+- Không thêm thông tin bịa đặt.
+- Nếu thấy nội dung nào nên bỏ hoặc gộp lại để gọn hơn, hãy làm.
+- Nếu tiêu đề hiện tại chưa gọn, đề xuất tiêu đề tốt hơn.
+- description trả về phải là HTML hợp lệ.
+- Không thêm giải thích ngoài JSON.
+
+Dữ liệu JD:
+$contextJson
+
+Trả về duy nhất JSON theo schema:
+{
+  "title": "Senior Laravel Developer",
+  "description": "<h3>Tổng quan</h3><p>...</p><h3>Trách nhiệm chính</h3><ul><li>...</li></ul><h3>Yêu cầu</h3><ul><li>...</li></ul><h3>Quyền lợi</h3><ul><li>...</li></ul>",
+  "changes": ["Làm gọn mô tả", "Rút tiêu đề về ngắn hơn"],
+  "note": "JD đã được viết lại theo hướng rõ hơn, ngắn hơn và dễ đọc hơn."
+}
+PROMPT;
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+                'response_mime_type' => 'application/json',
+                'response_schema' => [
+                    'type' => 'OBJECT',
+                    'properties' => [
+                        'title' => ['type' => 'STRING'],
+                        'description' => ['type' => 'STRING'],
+                        'changes' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'note' => ['type' => 'STRING'],
+                    ],
+                    'required' => ['title', 'description', 'changes', 'note'],
+                ],
+            ],
+        ];
+
+        try {
+            $response = Http::timeout(60)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?key=' . $this->apiKey, $payload);
+
+            if ($response->failed()) {
+                $this->lastError = $this->formatProviderError($response);
+                Log::error('Gemini API Error (Job Draft Improve): ' . $response->body());
+                return null;
+            }
+
+            $content = $response->json('candidates.0.content.parts.0.text');
+            $data = json_decode($content, true);
+
+            if (! is_array($data) || ! isset($data['title'], $data['description'])) {
+                $this->lastError = 'AI trả về dữ liệu cải thiện JD không đúng định dạng.';
+                return null;
+            }
+
+            return [
+                'title' => trim((string) $data['title']),
+                'description' => trim((string) $data['description']),
+                'changes' => array_slice((array) ($data['changes'] ?? []), 0, 6),
+                'note' => trim((string) ($data['note'] ?? '')),
+            ];
+        } catch (\Throwable $e) {
+            $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
+                ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
+                : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
+            Log::error('AI Job Draft Improve Failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     public function getLastError(): ?string
     {
         return $this->lastError;

@@ -66,12 +66,12 @@ class ApplyJobFlowTest extends TestCase
         $this->actingAs($candidate);
 
         Livewire::test(ApplyJob::class, ['job' => $job])
-            ->set('name', 'Nguyen Van A')
+            ->set('name', 'Nguyen Van A Apply')
             ->set('email', 'candidate-apply@example.com')
-            ->set('phone', '0901234567')
-            ->set('experience_years', 2)
-            ->set('profile_title', 'PHP Developer')
-            ->set('career_objective', 'Muon phat trien san pham tuyen dung on dinh.')
+            ->set('phone', '0987654321')
+            ->set('experience_years', 3)
+            ->set('profile_title', 'Senior PHP Developer')
+            ->set('career_objective', 'Muon phat trien san pham tuyen dung on dinh theo huong on dinh va lau dai.')
             ->set('cv', UploadedFile::fake()->create('cv.pdf', 120, 'application/pdf'))
             ->call('submit')
             ->assertSet('showSuccessModal', true);
@@ -101,14 +101,20 @@ class ApplyJobFlowTest extends TestCase
         $this->assertNotEmpty($submission?->cv_path);
         Storage::disk('public')->assertExists($application->cv_path);
         Storage::disk('public')->assertExists($submission->cv_path);
-        $this->assertSame('Nguyen Van A', data_get($application->profile_snapshot, 'candidate.name'));
+        $this->assertSame('Nguyen Van A Apply', data_get($application->profile_snapshot, 'candidate.name'));
         $this->assertSame('candidate-apply@example.com', data_get($application->profile_snapshot, 'candidate.email'));
-        $this->assertSame('PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
-        $this->assertSame('Muon phat trien san pham tuyen dung on dinh.', data_get($application->profile_snapshot, 'resume.career_objective'));
+        $this->assertSame('0987654321', data_get($application->profile_snapshot, 'candidate.phone'));
+        $this->assertSame('Senior PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
+        $this->assertSame('Muon phat trien san pham tuyen dung on dinh theo huong on dinh va lau dai.', data_get($application->profile_snapshot, 'resume.career_objective'));
         $this->assertNotEmpty(data_get($application->profile_snapshot, 'cv.path'));
         $this->assertSame($application->cv_attachment_id, data_get($application->profile_snapshot, 'cv.attachment_id'));
         $this->assertSame('cv.pdf', data_get($application->profile_snapshot, 'cv.original_filename'));
         $this->assertSame($application->profile_snapshot, $submission?->profile_snapshot);
+        $candidateRecord = Candidate::query()->where('user_id', $candidate->id)->firstOrFail();
+        $this->assertSame('Nguyen Van A', $candidateRecord->name);
+        $this->assertSame('candidate-apply@example.com', $candidateRecord->email);
+        $this->assertSame('0901234567', $candidateRecord->phone);
+        $this->assertSame('candidates/existing/cv.pdf', $candidateRecord->cv_file);
 
         Candidate::query()
             ->whereKey($application->candidate_id)
@@ -124,9 +130,9 @@ class ApplyJobFlowTest extends TestCase
 
         $application->refresh();
 
-        $this->assertSame('Nguyen Van A', data_get($application->profile_snapshot, 'candidate.name'));
+        $this->assertSame('Nguyen Van A Apply', data_get($application->profile_snapshot, 'candidate.name'));
         $this->assertSame('candidate-apply@example.com', data_get($application->profile_snapshot, 'candidate.email'));
-        $this->assertSame('PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
+        $this->assertSame('Senior PHP Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
 
         Candidate::query()
             ->find($application->candidate_id)
@@ -270,7 +276,7 @@ class ApplyJobFlowTest extends TestCase
         ]);
 
         Livewire::test(ApplyJob::class, ['job' => $job])
-            ->set('name', 'Guest Candidate')
+            ->set('name', 'Guest Candidate Updated')
             ->set('email', 'guest-apply@example.com')
             ->set('phone', '0912345678')
             ->set('profile_title', 'Frontend Developer')
@@ -283,9 +289,9 @@ class ApplyJobFlowTest extends TestCase
         $this->assertDatabaseHas('candidates', [
             'id' => $existingCandidate->id,
             'user_id' => null,
-            'name' => 'Guest Candidate',
+            'name' => 'Old Guest Name',
             'email' => 'guest-apply@example.com',
-            'phone' => '0912345678',
+            'phone' => '0901234567',
         ]);
         $this->assertDatabaseHas('applications', [
             'job_id' => $job->id,
@@ -298,7 +304,7 @@ class ApplyJobFlowTest extends TestCase
 
         $this->assertNotNull($application?->cv_path);
         Storage::disk('public')->assertExists($application->cv_path);
-        $this->assertSame('Guest Candidate', data_get($application?->profile_snapshot, 'candidate.name'));
+        $this->assertSame('Guest Candidate Updated', data_get($application?->profile_snapshot, 'candidate.name'));
         $this->assertSame('guest-apply@example.com', data_get($application?->profile_snapshot, 'candidate.email'));
         $this->assertSame('guest-cv.pdf', data_get($application?->profile_snapshot, 'cv.original_filename'));
 
@@ -316,6 +322,88 @@ class ApplyJobFlowTest extends TestCase
         $this->assertNotNull(data_get($existingCandidate->metadata, 'guest_email_verified_at'));
         $this->assertSame($application->id, data_get($existingCandidate->metadata, 'guest_email_verified_application_id'));
         $this->assertSame('guest-apply@example.com', data_get($existingCandidate->metadata, 'guest_email_verified_email'));
+    }
+
+    public function test_candidate_can_opt_in_to_sync_application_data_to_profile(): void
+    {
+        Mail::fake();
+        Storage::fake('public');
+
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+        $employer = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $user = User::factory()->create([
+            'name' => 'Profile Sync Candidate',
+            'email' => 'sync-candidate@example.com',
+            'role' => 'candidate',
+            'is_active' => true,
+            'metadata' => ['account_types' => ['candidate']],
+        ]);
+        $candidate = Candidate::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Profile Sync Candidate',
+            'email' => 'sync-candidate@example.com',
+            'phone' => '0900000000',
+            'cv_file' => 'candidates/sync/current-cv.pdf',
+            'experience_years' => 1,
+        ]);
+        CandidateResume::query()->create([
+            'candidate_id' => $candidate->id,
+            'profile_title' => 'Junior Developer',
+            'career_objective' => 'Muốn học hỏi và phát triển.',
+        ]);
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Sync Profile Developer',
+            'slug' => 'sync-profile-developer',
+            'description' => 'Build and maintain Laravel applications.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ApplyJob::class, ['job' => $job])
+            ->set('name', 'Updated Sync Name')
+            ->set('email', 'updated-sync@example.com')
+            ->set('phone', '0911222333')
+            ->set('experience_years', 4)
+            ->set('profile_title', 'Mid Laravel Developer')
+            ->set('career_objective', 'Muc tieu nghiep vu ro rang hon.')
+            ->set('sync_profile_to_candidate', true)
+            ->set('use_cv_as_primary', true)
+            ->set('cv', UploadedFile::fake()->create('primary-cv.pdf', 120, 'application/pdf'))
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertSet('showSuccessModal', true);
+
+        $candidate->refresh();
+
+        $this->assertSame('Updated Sync Name', $candidate->name);
+        $this->assertSame('updated-sync@example.com', $candidate->email);
+        $this->assertSame('0911222333', $candidate->phone);
+        $this->assertSame(4, $candidate->experience_years);
+        $this->assertNotNull($candidate->cv_file);
+        Storage::disk('public')->assertExists($candidate->cv_file);
+
+        $this->assertDatabaseHas('candidate_resumes', [
+            'candidate_id' => $candidate->id,
+            'profile_title' => 'Mid Laravel Developer',
+        ]);
+
+        $application = Application::query()->where('candidate_id', $candidate->id)->firstOrFail();
+        $this->assertSame('Updated Sync Name', data_get($application->profile_snapshot, 'candidate.name'));
+        $this->assertSame('updated-sync@example.com', data_get($application->profile_snapshot, 'candidate.email'));
+        $this->assertSame('Mid Laravel Developer', data_get($application->profile_snapshot, 'resume.profile_title'));
+        $this->assertSame($candidate->cv_file, $application->cv_path);
     }
 
     public function test_candidate_cannot_apply_same_job_twice_or_overwrite_snapshot(): void
