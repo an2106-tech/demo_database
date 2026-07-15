@@ -768,15 +768,87 @@ class ApplicationsTable
         }
     }
 
+    protected static function currentUserCanOverseeRecruitment(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) ($user?->isSuperAdmin() || $user?->role === 'admin');
+    }
+
+    protected static function currentUserIsHr(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) ($user?->role === 'hr' || $user?->hasRole('hr'));
+    }
+
+    protected static function currentUserCanRunHrPipelineActions(): bool
+    {
+        return static::currentUserCanOverseeRecruitment() || static::currentUserIsHr();
+    }
+
+    protected static function applicationBranchId(Application $record): ?int
+    {
+        $branchId = $record->branch_id ?: $record->job?->branch_id;
+
+        return $branchId ? (int) $branchId : null;
+    }
+
+    protected static function currentUserCanAccessApplicationBranch(Application $record): bool
+    {
+        $user = Auth::user();
+
+        if (! $user) {
+            return false;
+        }
+
+        if (static::currentUserCanOverseeRecruitment()) {
+            return true;
+        }
+
+        $scopeBranchId = $user->branchScopeId();
+        $applicationBranchId = static::applicationBranchId($record);
+
+        return $scopeBranchId !== null
+            && $applicationBranchId !== null
+            && (int) $scopeBranchId === (int) $applicationBranchId;
+    }
+
+    protected static function currentUserIsAssignedInterviewer(Application $record): bool
+    {
+        $userId = Auth::id();
+
+        if (! $userId) {
+            return false;
+        }
+
+        $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
+
+        return (bool) $interview && (int) $interview->interviewer_id === (int) $userId;
+    }
+
+    protected static function canScreenApplication(Application $record): bool
+    {
+        $status = $record->status instanceof StatusApplicationEnum
+            ? $record->status
+            : StatusApplicationEnum::tryFrom((string) $record->status);
+
+        return $status === StatusApplicationEnum::NEW
+            && static::currentUserCanRunHrPipelineActions()
+            && static::currentUserCanAccessApplicationBranch($record);
+    }
+
     protected static function canManageInterview(Application $record): bool
     {
         $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
 
-        return in_array($status, [
-            StatusApplicationEnum::SCREENING->value,
-            StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
-            StatusApplicationEnum::INTERVIEW->value,
-        ], true);
+        return static::currentUserCanRunHrPipelineActions()
+            && static::currentUserCanAccessApplicationBranch($record)
+            && in_array($status, [
+                StatusApplicationEnum::SCREENING->value,
+                StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
+                StatusApplicationEnum::INTERVIEW->value,
+            ], true);
     }
 
     protected static function hasInterviewStatus(Application $record): bool
@@ -805,6 +877,16 @@ class ApplicationsTable
             return false;
         }
 
+        if (! static::currentUserCanAccessApplicationBranch($record)) {
+            return false;
+        }
+
+        if (! static::currentUserCanOverseeRecruitment()
+            && ! static::currentUserIsAssignedInterviewer($record)
+        ) {
+            return false;
+        }
+
         if ($status === StatusApplicationEnum::INTERVIEW) {
             return true;
         }
@@ -829,13 +911,15 @@ class ApplicationsTable
             ? $record->status
             : StatusApplicationEnum::tryFrom((string) $record->status);
 
-        return in_array($status, [
-            StatusApplicationEnum::NEW,
-            StatusApplicationEnum::SCREENING,
-            StatusApplicationEnum::INTERVIEW_SCHEDULED,
-            StatusApplicationEnum::INTERVIEW,
-            StatusApplicationEnum::OFFER,
-        ], true);
+        return static::currentUserCanRunHrPipelineActions()
+            && static::currentUserCanAccessApplicationBranch($record)
+            && in_array($status, [
+                StatusApplicationEnum::NEW,
+                StatusApplicationEnum::SCREENING,
+                StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                StatusApplicationEnum::INTERVIEW,
+                StatusApplicationEnum::OFFER,
+            ], true);
     }
 
     protected static function canReopenOfferResponse(Application $record): bool
@@ -860,7 +944,7 @@ class ApplicationsTable
     {
         $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
-        if ($status === StatusApplicationEnum::NEW) {
+        if ($status === StatusApplicationEnum::NEW && static::canScreenApplication($record)) {
             return 'Sàng lọc CV';
         }
 
@@ -879,7 +963,7 @@ class ApplicationsTable
     {
         $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
-        if ($status === StatusApplicationEnum::NEW) {
+        if ($status === StatusApplicationEnum::NEW && static::canScreenApplication($record)) {
             return 'warning';
         }
 
@@ -898,7 +982,7 @@ class ApplicationsTable
     {
         $status = $record->status instanceof StatusApplicationEnum ? $record->status : StatusApplicationEnum::tryFrom((string) $record->status);
 
-        if ($status === StatusApplicationEnum::NEW) {
+        if ($status === StatusApplicationEnum::NEW && static::canScreenApplication($record)) {
             return 'heroicon-o-document-magnifying-glass';
         }
 
@@ -917,7 +1001,9 @@ class ApplicationsTable
     {
         $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
 
-        return $status === StatusApplicationEnum::OFFER->value;
+        return $status === StatusApplicationEnum::OFFER->value
+            && static::currentUserCanRunHrPipelineActions()
+            && static::currentUserCanAccessApplicationBranch($record);
     }
 
     protected static function getLatestOffer(Application $record): ?Offer
@@ -1227,6 +1313,7 @@ class ApplicationsTable
                     : StatusApplicationEnum::tryFrom((string) $record->status);
 
                 return $status === StatusApplicationEnum::NEW
+                    && static::canScreenApplication($record)
                     && filled($record->submittedCvPath());
             });
     }

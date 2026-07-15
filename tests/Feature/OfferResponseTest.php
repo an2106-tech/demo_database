@@ -24,7 +24,10 @@ class OfferResponseTest extends TestCase
         $response = $this->get(URL::temporarySignedRoute(
             'offers.respond.accept',
             now()->addDays(3),
-            ['offer' => $offer->id],
+            [
+                'offer' => $offer->id,
+                'sent' => $offer->sent_at->getTimestamp(),
+            ],
             absolute: false,
         ));
 
@@ -42,12 +45,29 @@ class OfferResponseTest extends TestCase
     {
         [$application, $offer] = $this->makeOffer();
 
-        $response = $this->get(URL::temporarySignedRoute(
+        $formResponse = $this->get(URL::temporarySignedRoute(
             'offers.respond.decline',
             now()->addDays(3),
-            ['offer' => $offer->id],
+            [
+                'offer' => $offer->id,
+                'sent' => $offer->sent_at->getTimestamp(),
+            ],
             absolute: false,
         ));
+
+        $formResponse->assertOk();
+
+        $response = $this->post(URL::temporarySignedRoute(
+            'offers.respond.decline.submit',
+            now()->addDays(3),
+            [
+                'offer' => $offer->id,
+                'sent' => $offer->sent_at->getTimestamp(),
+            ],
+            absolute: false,
+        ), [
+            'decline_reason' => 'career_plan',
+        ]);
 
         $response->assertOk();
 
@@ -106,6 +126,7 @@ class OfferResponseTest extends TestCase
             'start_date' => now()->addWeek()->toDateString(),
             'probation_months' => 2,
             'expires_at' => now()->addDays(3),
+            'sent_at' => now(),
             'status' => 'pending',
             'content' => 'Offer content.',
         ]);

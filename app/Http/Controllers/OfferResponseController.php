@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusApplicationEnum;
 use App\Models\Offer;
+use App\Services\RecruitmentInternalNotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
@@ -40,6 +41,8 @@ class OfferResponseController extends Controller
             StatusApplicationEnum::HIRED->value,
             'Ứng viên đã đồng ý đề nghị tuyển dụng qua email.',
         );
+
+        app(RecruitmentInternalNotificationService::class)->notifyOfferAcceptedByCandidate($offer->fresh());
 
         return $this->resultView(
             title: 'Đã xác nhận đồng ý đề nghị tuyển dụng',
@@ -121,6 +124,8 @@ class OfferResponseController extends Controller
             'accepted_at' => null,
             'declined_reason' => $reasonText,
         ])->save();
+
+        app(RecruitmentInternalNotificationService::class)->notifyOfferDeclinedByCandidate($offer->fresh());
 
         $application->forceFill([
             'status' => StatusApplicationEnum::OFFER,

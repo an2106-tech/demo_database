@@ -23,6 +23,16 @@ class OfferApprovalService
     {
         try {
             $offer->loadMissing(['application.candidate', 'application.job.branch']);
+
+            if (! $this->canReviewOffer($offer, $approver)) {
+                Log::warning('Unauthorized offer approval attempt.', [
+                    'offer_id' => $offer->id,
+                    'user_id' => $approver->id,
+                ]);
+
+                return false;
+            }
+
             $responseDeadline = $offer->expires_at && $offer->expires_at->isFuture()
                 ? $offer->expires_at
                 : now()->addDays(3);
@@ -90,6 +100,17 @@ class OfferApprovalService
     public function reject(Offer $offer, User $rejector, string $notes = ''): bool
     {
         try {
+            $offer->loadMissing(['application.job.branch']);
+
+            if (! $this->canReviewOffer($offer, $rejector)) {
+                Log::warning('Unauthorized offer rejection attempt.', [
+                    'offer_id' => $offer->id,
+                    'user_id' => $rejector->id,
+                ]);
+
+                return false;
+            }
+
             $offer->forceFill([
                 'status' => 'rejected',
                 'approved_by_user_id' => $rejector->id,
@@ -115,6 +136,26 @@ class OfferApprovalService
 
             return false;
         }
+    }
+
+    private function canReviewOffer(Offer $offer, User $user): bool
+    {
+        if ($offer->status !== 'awaiting_approval') {
+            return false;
+        }
+
+        if ($user->isSuperAdmin() || $user->role === 'admin') {
+            return true;
+        }
+
+        $isDirector = $user->role === 'director' || $user->hasRole('director');
+        if (! $isDirector || ! $user->branchScopeId()) {
+            return false;
+        }
+
+        $branchId = $offer->application?->job?->branch_id;
+
+        return $branchId && (int) $branchId === (int) $user->branchScopeId();
     }
 
     /**
