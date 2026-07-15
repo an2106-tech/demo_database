@@ -1,4 +1,4 @@
-<div>
+﻿<div>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
     @php
@@ -33,6 +33,195 @@
                                         <p class="portal-subtitle">
                                             Giữ form theo từng cụm rõ ràng để người dùng dễ đọc, dễ sửa và tránh cảm giác rối mắt khi nhập dữ liệu.
                                         </p>
+                                    </div>
+                                </div>
+
+                                <div class="form-section mb-4">
+                                    <h2 class="form-section__title">
+                                        AI hỗ trợ viết tin
+                                    </h2>
+
+                                    <div class="field-stack">
+                                        <div class="field-card">
+                                            <label for="ai-brief">JD thô / ghi chú tuyển dụng</label>
+                                            <textarea id="ai-brief" wire:model.defer="ai_brief" rows="5" placeholder="Ví dụ: Cần tuyển 2 Laravel Developer làm hệ thống nội bộ, yêu cầu 2-4 năm kinh nghiệm, ưu tiên có kinh nghiệm REST API và Vue..."></textarea>
+                                            @error('ai_brief') <span class="field-error">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <div class="rounded-4 border border-opacity-10 p-2 p-md-3" style="background: #f8fafc; border-color: rgba(15, 23, 42, 0.08) !important;">
+                                            <div class="d-grid gap-2 gap-md-3" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
+                                                <button type="button" wire:click="generateAiDraft" wire:loading.attr="disabled" wire:target="generateAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; color: #fff;">
+                                                    <span wire:loading.remove wire:target="generateAiDraft">Tạo nháp</span>
+                                                    <span wire:loading wire:target="generateAiDraft">Đang tạo...</span>
+                                                </button>
+                                                <button type="button" wire:click="reviewAiDraft" wire:loading.attr="disabled" wire:target="reviewAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #334155; color: #fff; border: 1px solid #334155; box-shadow: none;">
+                                                    <span wire:loading.remove wire:target="reviewAiDraft">Kiểm tra</span>
+                                                    <span wire:loading wire:target="reviewAiDraft">Đang kiểm tra...</span>
+                                                </button>
+                                                <button type="button" wire:click="improveAiDraft" wire:loading.attr="disabled" wire:target="improveAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #111827; color: #fff; border: none; box-shadow: none;">
+                                                    <span wire:loading.remove wire:target="improveAiDraft">Cải thiện</span>
+                                                    <span wire:loading wire:target="improveAiDraft">Đang cải thiện...</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        @if (! is_null($ai_quality_score) || filled($ai_quality_issues) || filled($ai_quality_missing_information) || filled($ai_quality_title_suggestion) || filled($ai_quality_note))
+                                            <div class="job-summary-card" style="padding: 20px;">
+                                                <div class="d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3 mb-4">
+                                                    <div>
+                                                        <h4 class="mb-1" style="letter-spacing: -0.02em;">Kết quả AI kiểm tra chất lượng</h4>
+                                                        <p class="portal-subtitle mb-0" style="font-size: 14px;">Bản kiểm tra nhanh trước khi lưu hoặc gửi duyệt.</p>
+                                                    </div>
+                                                    @if (! is_null($ai_quality_score))
+                                                        <div class="badge rounded-pill text-white align-self-md-start" style="background: {{ $ai_quality_score >= 80 ? '#16a34a' : ($ai_quality_score >= 60 ? '#d97706' : '#dc2626') }}; padding: .85rem 1rem; font-size: 1rem; letter-spacing: -0.02em;">
+                                                            {{ $ai_quality_score }}/100
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                @if (filled($ai_quality_note))
+                                                    <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 mb-3" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                        {{ $ai_quality_note }}
+                                                    </div>
+                                                @endif
+
+                                                <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                                                    @if (filled($ai_quality_issues))
+                                                        <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 h-100" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                                                                <strong>Vấn đề cần chỉnh</strong>
+                                                                <span class="badge rounded-pill text-bg-light border">Chất lượng</span>
+                                                            </div>
+                                                            <div class="d-flex flex-wrap gap-2">
+                                                                @foreach ($ai_quality_issues as $issue)
+                                                                    <span class="badge rounded-pill text-bg-light border">{{ $issue }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    @if (filled($ai_quality_missing_information))
+                                                        <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 h-100" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                                                                <strong>Thiếu thông tin</strong>
+                                                                <span class="badge rounded-pill text-bg-warning">Cần bổ sung</span>
+                                                            </div>
+                                                            <div class="d-flex flex-wrap gap-2">
+                                                                @foreach ($ai_quality_missing_information as $item)
+                                                                    <span class="badge rounded-pill text-bg-light border">{{ $item }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+
+                                                @if (filled($ai_quality_title_suggestion))
+                                                    <div class="mt-3 rounded-4 border border-opacity-10 bg-white p-3 p-md-4" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                        <strong class="d-block mb-1">Gợi ý tiêu đề</strong>
+                                                        <span>{{ $ai_quality_title_suggestion }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+
+                                        @if (filled($ai_improve_changes) || filled($ai_improve_note))
+                                            <div class="job-summary-card" style="padding: 20px;">
+                                                <div class="d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3 mb-3">
+                                                    <div>
+                                                        <h4 class="mb-1" style="letter-spacing: -0.02em;">JD đã được AI cải thiện</h4>
+                                                        @if (filled($ai_improve_note))
+                                                            <p class="portal-subtitle mb-0" style="font-size: 14px;">{{ $ai_improve_note }}</p>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                @if (filled($ai_improve_changes))
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        @foreach ($ai_improve_changes as $change)
+                                                            <span class="badge rounded-pill text-bg-light border">{{ $change }}</span>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endif
+                                        @if (filled($ai_draft_highlights) || filled($ai_draft_missing_information))
+                                            <div class="job-summary-card" style="padding: 20px;">
+                                                <div class="d-flex flex-column flex-md-row align-items-md-start justify-content-between gap-3 mb-4">
+                                                    <div>
+                                                        <h4 class="mb-1" style="letter-spacing: -0.02em;">Bản nháp AI</h4>
+                                                        <p class="portal-subtitle mb-0" style="font-size: 14px;">Tách riêng phần mạnh và phần còn thiếu để HR xem nhanh.</p>
+                                                    </div>
+                                                </div>
+
+                                                <div class="d-grid gap-3" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                                                    @if (filled($ai_draft_highlights))
+                                                        <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 h-100" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                                                                <strong>Điểm nhấn</strong>
+                                                                <span class="badge rounded-pill text-bg-light border">Gợi ý</span>
+                                                            </div>
+                                                            <div class="d-flex flex-wrap gap-2">
+                                                                @foreach ($ai_draft_highlights as $highlight)
+                                                                    <span class="badge rounded-pill text-bg-light border">{{ $highlight }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    @if (filled($ai_draft_missing_information))
+                                                        <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 h-100" style="border-color: rgba(148, 163, 184, 0.16) !important;">
+                                                            <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+                                                                <strong>Thông tin còn thiếu</strong>
+                                                                <span class="badge rounded-pill text-bg-warning">Cần bổ sung</span>
+                                                            </div>
+                                                            <div class="d-flex flex-wrap gap-2">
+                                                                @foreach ($ai_draft_missing_information as $item)
+                                                                    <span class="badge rounded-pill text-bg-light border">{{ $item }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="form-section">
+                                    <h2 class="form-section__title">
+                                        Cấu trúc JD
+                                    </h2>
+
+                                    <div class="field-stack">
+                                        <div class="field-card">
+                                            <label for="jd-overview">Tổng quan ngắn</label>
+                                            <textarea id="jd-overview" wire:model.defer="overview" rows="3" placeholder="Mô tả ngắn về vị trí, mục tiêu của team và phạm vi công việc."></textarea>
+                                            @error('overview') <span class="field-error">{{ $message }}</span> @enderror
+                                        </div>
+
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <div class="field-card h-100">
+                                                    <label for="jd-responsibilities">Trách nhiệm chính</label>
+                                                    <textarea id="jd-responsibilities" wire:model.defer="responsibilities" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Xây dựng tính năng mới&#10;- Tối ưu hiệu năng"></textarea>
+                                                    @error('responsibilities') <span class="field-error">{{ $message }}</span> @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="field-card h-100">
+                                                    <label for="jd-requirements">Yêu cầu</label>
+                                                    <textarea id="jd-requirements" wire:model.defer="requirements" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- 2 năm kinh nghiệm Laravel&#10;- Hiểu REST API"></textarea>
+                                                    @error('requirements') <span class="field-error">{{ $message }}</span> @enderror
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="field-card h-100">
+                                                    <label for="jd-benefits">Quyền lợi</label>
+                                                    <textarea id="jd-benefits" wire:model.defer="benefits" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Môi trường nội bộ ổn định&#10;- Có lộ trình phát triển rõ"></textarea>
+                                                    @error('benefits') <span class="field-error">{{ $message }}</span> @enderror
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -255,6 +444,7 @@
                                                         toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList', 'blockQuote', '|', 'undo', 'redo']
                                                     })
                                                     .then(editor => {
+                                                        window.jobDescriptionEditor = editor;
                                                         editor.model.document.on('change:data', () => {
                                                             @this.set('description', editor.getData());
                                                         });
@@ -322,3 +512,16 @@
         </div>
     </section>
 </div>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        window.addEventListener('job-description-updated', (event) => {
+            const description = event?.detail?.description ?? '';
+
+            if (window.jobDescriptionEditor && typeof window.jobDescriptionEditor.setData === 'function') {
+                window.jobDescriptionEditor.setData(description);
+            }
+        });
+    });
+</script>
+

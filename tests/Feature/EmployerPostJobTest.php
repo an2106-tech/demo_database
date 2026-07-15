@@ -11,6 +11,7 @@ use App\Models\RecruitmentJob;
 use App\Models\Skill;
 use App\Models\User;
 use App\Models\Workplace;
+use App\Services\AiMatchingService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -145,6 +146,180 @@ class EmployerPostJobTest extends TestCase
             'department_id' => null,
             'workplace_id' => $workplace->id,
         ]);
+    }
+
+    public function test_employer_can_generate_ai_job_draft_from_brief(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+
+        $this->mock(AiMatchingService::class, function ($mock) {
+            $mock->shouldReceive('draftRecruitmentJob')
+                ->once()
+                ->andReturn([
+                    'title' => 'Senior Laravel Developer',
+                    'description' => '<h3>Mô tả công việc</h3><ul><li>Xây dựng hệ thống nội bộ</li></ul>',
+                    'highlights' => ['Làm việc với Laravel', 'Tối ưu hệ thống'],
+                    'missing_information' => ['Chưa có mức lương'],
+                ]);
+        });
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Laravel Developer')
+            ->set('ai_brief', 'Cần tuyển lập trình viên Laravel cho hệ thống nội bộ, ưu tiên kinh nghiệm REST API.')
+            ->set('branch_id', $branch->id)
+            ->set('positions_count', 2)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('generateAiDraft')
+            ->assertSet('title', 'Senior Laravel Developer')
+            ->assertSet('description', '<h3>Mô tả công việc</h3><ul><li>Xây dựng hệ thống nội bộ</li></ul>')
+            ->assertSet('ai_draft_highlights', ['Làm việc với Laravel', 'Tối ưu hệ thống'])
+            ->assertSet('ai_draft_missing_information', ['Chưa có mức lương']);
+    }
+
+    public function test_employer_can_review_job_quality_with_ai(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+
+        $this->mock(AiMatchingService::class, function ($mock) {
+            $mock->shouldReceive('reviewRecruitmentJobDraft')
+                ->once()
+                ->andReturn([
+                    'score' => 76,
+                    'title_suggestion' => 'Senior Laravel Developer',
+                    'issues' => ['Mô tả còn chung chung'],
+                    'missing_information' => ['Lương', 'Hạn nộp'],
+                    'suggestion_note' => 'JD đã có khung chính nhưng cần rõ hơn về quyền lợi và tiêu chí đầu vào.',
+                ]);
+        });
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Laravel Developer')
+            ->set('overview', 'Xây dựng và phát triển hệ thống nội bộ.')
+            ->set('responsibilities', "- Xây dựng tính năng mới\n- Tối ưu hiệu năng")
+            ->set('requirements', "- 2 năm kinh nghiệm Laravel\n- Hiểu REST API")
+            ->set('benefits', "- Môi trường ổn định\n- Có lộ trình phát triển")
+            ->set('branch_id', $branch->id)
+            ->set('positions_count', 2)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('reviewAiDraft')
+            ->assertSet('ai_quality_score', 76)
+            ->assertSet('ai_quality_title_suggestion', 'Senior Laravel Developer')
+            ->assertSet('ai_quality_issues', ['Mô tả còn chung chung'])
+            ->assertSet('ai_quality_missing_information', ['Lương', 'Hạn nộp'])
+            ->assertSet('ai_quality_note', 'JD đã có khung chính nhưng cần rõ hơn về quyền lợi và tiêu chí đầu vào.');
+    }
+
+    public function test_employer_can_improve_job_draft_with_ai(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+
+        $this->mock(AiMatchingService::class, function ($mock) {
+            $mock->shouldReceive('improveRecruitmentJobDraft')
+                ->once()
+                ->andReturn([
+                    'title' => 'Senior Laravel Developer',
+                    'description' => '<h3>Tổng quan</h3><p>Phát triển hệ thống nội bộ.</p><h3>Trách nhiệm chính</h3><ul><li>Xây dựng tính năng mới</li></ul>',
+                    'changes' => ['Làm gọn mô tả', 'Rút tiêu đề'],
+                    'note' => 'JD đã được làm rõ hơn và phù hợp để đăng.',
+                ]);
+        });
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Laravel Developer')
+            ->set('description', '<p>Mô tả dài dòng cần tối ưu.</p>')
+            ->set('branch_id', $branch->id)
+            ->set('positions_count', 2)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('improveAiDraft')
+            ->assertSet('title', 'Senior Laravel Developer')
+            ->assertSet('description', '<h3>Tổng quan</h3><p>Phát triển hệ thống nội bộ.</p><h3>Trách nhiệm chính</h3><ul><li>Xây dựng tính năng mới</li></ul>')
+            ->assertSet('ai_improve_changes', ['Làm gọn mô tả', 'Rút tiêu đề'])
+            ->assertSet('ai_improve_note', 'JD đã được làm rõ hơn và phù hợp để đăng.');
+    }
+
+    public function test_employer_can_save_job_from_structured_jd_sections(): void
+    {
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Da Nang',
+            'code' => 'DN',
+            'city' => 'Da Nang',
+        ]);
+
+        $user = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $skill = Skill::query()->create(['name' => 'Laravel']);
+        $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+
+        $this->actingAs($user);
+
+        Livewire::test(PostJob::class)
+            ->set('title', 'Laravel Developer')
+            ->set('overview', 'Xây dựng và phát triển hệ thống nội bộ.')
+            ->set('responsibilities', "- Xây dựng tính năng mới\n- Tối ưu hiệu năng")
+            ->set('requirements', "- 2 năm kinh nghiệm Laravel\n- Hiểu REST API")
+            ->set('benefits', "- Môi trường ổn định\n- Có lộ trình phát triển")
+            ->set('branch_id', $branch->id)
+            ->set('positions_count', 2)
+            ->set('skills', [$skill->id])
+            ->set('selected_categories', [$category->id])
+            ->call('save')
+            ->assertRedirect(route('employers.manage_jobs'));
+
+        $job = RecruitmentJob::query()->firstOrFail();
+
+        $this->assertStringContainsString('<h3>Tổng quan</h3>', $job->description);
+        $this->assertStringContainsString('<h3>Trách nhiệm chính</h3>', $job->description);
+        $this->assertStringContainsString('<h3>Yêu cầu</h3>', $job->description);
+        $this->assertStringContainsString('<h3>Quyền lợi</h3>', $job->description);
+        $this->assertStringContainsString('Xây dựng và phát triển hệ thống nội bộ.', $job->description);
     }
 
     public function test_editing_title_that_keeps_same_slug_does_not_add_suffix(): void
