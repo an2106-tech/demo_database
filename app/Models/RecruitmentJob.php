@@ -6,6 +6,7 @@ use App\Enums\StatusRecruitmentJobsEnum;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class RecruitmentJob extends Model
@@ -72,5 +73,10 @@ class RecruitmentJob extends Model
     public function categories(): BelongsToMany
     {
         return $this->belongsToMany(Category::class, 'recruitment_job_category', 'recruitment_job_id', 'category_id');
+    }
+
+    public function applications(): HasMany
+    {
+        return $this->hasMany(Application::class, 'job_id');
     }
 }
