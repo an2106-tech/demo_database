@@ -3,6 +3,8 @@
 namespace App\Livewire;
 
 use App\Exceptions\AiChatException;
+use App\Models\AiChatMessage;
+use App\Models\AiChatSession;
 use App\Models\User;
 use App\Services\AiChatService;
 use Illuminate\Support\Facades\Auth;
@@ -36,6 +38,8 @@ class AiChatbox extends Component
 
     public int $messageSequence = 0;
 
+    public ?int $currentSessionId = null;
+
     public function mount(?string $audience = null): void
     {
         $user = Auth::user();
@@ -51,6 +55,7 @@ class AiChatbox extends Component
         }
 
         $this->configureAssistant($user);
+        $this->loadActiveConversation($user);
     }
 
     public function toggle(): void
@@ -64,10 +69,19 @@ class AiChatbox extends Component
     public function newConversation(): void
     {
         $this->authorizeEnabledUser();
+
+        if ($this->currentSessionId) {
+            AiChatSession::query()
+                ->whereKey($this->currentSessionId)
+                ->update(['is_active' => false]);
+        }
+
         $this->messages = [];
         $this->messageSequence = 0;
+        $this->currentSessionId = null;
         $this->message = '';
         $this->error = null;
+        $this->dispatch('ai-chat-open');
     }
 
     public function rateMessage(int $messageId, string $feedback): void
@@ -78,6 +92,14 @@ class AiChatbox extends Component
         foreach ($this->messages as $index => $message) {
             if ($message['id'] === $messageId && $message['role'] === 'assistant' && $message['status'] === 'completed') {
                 $this->messages[$index]['feedback'] = $message['feedback'] === $feedback ? null : $feedback;
+
+                if (! empty($message['db_id'])) {
+                    AiChatMessage::query()
+                        ->whereKey($message['db_id'])
+                        ->update(['feedback' => $this->messages[$index]['feedback']]);
+                }
+
+                $this->dispatch('ai-chat-open');
 
                 return;
             }
@@ -90,6 +112,7 @@ class AiChatbox extends Component
     {
         $this->message = mb_substr(trim($suggestion), 0, 1000);
         $this->error = null;
+        $this->dispatch('ai-chat-open');
     }
 
     public function sendMessage(AiChatService $chatService): void
@@ -226,11 +249,11 @@ class AiChatbox extends Component
         if ($user->role === 'director') {
             $this->assistantTitle = 'AI Điều hành chi nhánh';
             $this->assistantSubtitle = 'KPI, phê duyệt và cảnh báo';
-            $this->assistantDescription = 'Mình tổng hợp hiệu quả tuyển dụng, điểm nghẽn, offer chờ duyệt và khối lượng của HR trong chi nhánh.';
+            $this->assistantDescription = 'Mình tổng hợp hiệu quả tuyển dụng, điểm đang vướng, đề nghị chờ duyệt và khối lượng của HR trong chi nhánh.';
             $this->quickPrompts = [
-                'Cho tôi briefing tuyển dụng cần xử lý hôm nay',
-                'Có offer hoặc tin tuyển dụng nào đang chờ duyệt?',
-                'Pipeline chi nhánh đang nghẽn ở giai đoạn nào?',
+                'Tóm tắt việc tuyển dụng cần xử lý hôm nay',
+                'Có đề nghị hoặc tin tuyển dụng nào đang chờ duyệt?',
+                'Quy trình tuyển dụng đang vướng ở bước nào?',
                 'HR nào đang có nhiều hồ sơ mở nhất?',
             ];
 
@@ -244,21 +267,21 @@ class AiChatbox extends Component
             $this->quickPrompts = [
                 'Tóm tắt tình hình tuyển dụng toàn hệ thống',
                 'Những hạng mục nào đang quá hạn?',
-                'Pipeline đang nghẽn ở đâu?',
+                'Quy trình tuyển dụng đang vướng ở đâu?',
                 'Khối lượng hồ sơ đang phân bổ cho HR thế nào?',
             ];
 
             return;
         }
 
-        $this->assistantTitle = 'AI Copilot tuyển dụng';
+        $this->assistantTitle = 'Trợ lý tuyển dụng AI';
         $this->assistantSubtitle = 'Ưu tiên công việc và hồ sơ';
-        $this->assistantDescription = 'Mình giúp rà soát pipeline, phát hiện việc quá hạn và đề xuất thứ tự xử lý hồ sơ tuyển dụng.';
+        $this->assistantDescription = 'Mình giúp HR xem nhanh hồ sơ cần xử lý, lịch phỏng vấn và các điểm đang vướng trong quy trình tuyển dụng.';
         $this->quickPrompts = [
-            'Tóm tắt các việc tuyển dụng cần ưu tiên hôm nay',
-            'Hồ sơ nào đang chờ sàng lọc?',
-            'Có lịch phỏng vấn nào chưa gửi hoặc chưa chấm?',
-            'Tin tuyển dụng nào đang có nhiều hồ sơ nhất?',
+            'Hôm nay có hồ sơ nào cần xử lý?',
+            'Có lịch phỏng vấn nào sắp tới?',
+            'Có hồ sơ nào lâu chưa cập nhật?',
+            'Quy trình tuyển dụng đang vướng ở bước nào?',
         ];
     }
 
@@ -273,8 +296,9 @@ class AiChatbox extends Component
     /** @param array<string, mixed> $message */
     private function appendMessage(array $message): void
     {
-        $this->messages[] = array_merge([
+        $payload = array_merge([
             'id' => ++$this->messageSequence,
+            'db_id' => null,
             'sources' => [],
             'suggestions' => [],
             'status' => 'completed',
@@ -284,14 +308,127 @@ class AiChatbox extends Component
             'latency_ms' => null,
             'error_message' => null,
             'feedback' => null,
-            'time' => now()->format('H:i'),
+            'time' => $this->displayTime(now()),
         ], $message);
 
+        $payload = $this->persistMessage($payload);
+        $this->messages[] = $payload;
+
         $this->messages = array_slice($this->messages, -30);
+    }
+
+    private function loadActiveConversation(User $user): void
+    {
+        $session = AiChatSession::query()
+            ->where('user_id', $user->id)
+            ->where('audience', $this->audience)
+            ->where('is_active', true)
+            ->latest('last_message_at')
+            ->latest('id')
+            ->first();
+
+        if (! $session) {
+            return;
+        }
+
+        $this->currentSessionId = $session->id;
+        $this->messages = $session->messages()
+            ->oldest()
+            ->take(30)
+            ->get()
+            ->map(function (AiChatMessage $message): array {
+                return [
+                    'id' => ++$this->messageSequence,
+                    'db_id' => $message->id,
+                    'role' => $message->role,
+                    'content' => $message->content,
+                    'sources' => $message->sources ?? [],
+                    'suggestions' => $message->suggestions ?? [],
+                    'status' => $message->status,
+                    'provider' => $message->provider,
+                    'model' => $message->model,
+                    'intent' => $message->intent,
+                    'latency_ms' => $message->latency_ms,
+                    'error_message' => $message->error_message,
+                    'feedback' => $message->feedback,
+                    'time' => $this->displayTime($message->created_at),
+                ];
+            })
+            ->all();
+    }
+
+    /** @param array<string, mixed> $message */
+    private function persistMessage(array $message): array
+    {
+        $user = Auth::user();
+        if (! $this->enabled || ! $user instanceof User) {
+            return $message;
+        }
+
+        $session = $this->currentSessionId
+            ? AiChatSession::query()->whereKey($this->currentSessionId)->first()
+            : null;
+
+        if (! $session) {
+            $session = AiChatSession::query()->create([
+                'user_id' => $user->id,
+                'audience' => $this->audience,
+                'title' => mb_substr((string) $message['content'], 0, 120),
+                'is_active' => true,
+                'last_message_at' => now(),
+            ]);
+            $this->currentSessionId = $session->id;
+        }
+
+        $stored = $session->messages()->create([
+            'role' => $message['role'],
+            'content' => $message['content'],
+            'sources' => $message['sources'] ?? [],
+            'suggestions' => $message['suggestions'] ?? [],
+            'status' => $message['status'] ?? 'completed',
+            'provider' => $message['provider'] ?? null,
+            'model' => $message['model'] ?? null,
+            'intent' => $message['intent'] ?? null,
+            'latency_ms' => $message['latency_ms'] ?? null,
+            'error_message' => $message['error_message'] ?? null,
+            'feedback' => $message['feedback'] ?? null,
+        ]);
+
+        $session->forceFill([
+            'is_active' => true,
+            'last_message_at' => now(),
+        ])->save();
+
+        $this->pruneStoredMessages($session);
+
+        $message['db_id'] = $stored->id;
+
+        return $message;
+    }
+
+    private function pruneStoredMessages(AiChatSession $session): void
+    {
+        $idsToKeep = $session->messages()
+            ->latest('id')
+            ->limit(30)
+            ->pluck('id');
+
+        $session->messages()
+            ->whereNotIn('id', $idsToKeep)
+            ->delete();
     }
 
     private function elapsedMilliseconds(int $startedAt): int
     {
         return max(0, (int) round((hrtime(true) - $startedAt) / 1_000_000));
+    }
+
+    private function displayTime($dateTime = null): string
+    {
+        $timezone = config('app.interview_timezone', config('app.timezone', 'Asia/Ho_Chi_Minh'));
+
+        return ($dateTime ? $dateTime->copy() : now())
+            ->timezone($timezone)
+            ->format('H:i');
     }
 }

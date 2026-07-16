@@ -142,7 +142,7 @@ class AiChatContextService
         $sources = $this->operationalContext($user);
         $sources[] = [
             'key' => 'recruitment-pipeline',
-            'label' => 'Tổng quan pipeline tuyển dụng',
+            'label' => 'Tổng quan quy trình tuyển dụng',
             'url' => route('employers.application_pipeline'),
             'content' => $this->clean('Số lượng hồ sơ theo trạng thái: '.json_encode($statusCounts, JSON_UNESCAPED_UNICODE)),
         ];
@@ -228,6 +228,77 @@ class AiChatContextService
                 ->map(fn (int $count, string $label): string => $label.': '.$count)
                 ->implode("\n")),
         ]];
+
+        $upcomingInterviews = (clone $interviews)
+            ->where('scheduled_at', '>=', now())
+            ->where('result', 'pending')
+            ->with(['application.candidate:id,name', 'application.job:id,title'])
+            ->orderBy('scheduled_at')
+            ->take(5)
+            ->get();
+
+        $sources[] = [
+            'key' => 'upcoming-interviews',
+            'label' => 'Lịch phỏng vấn sắp tới',
+            'url' => route('employers.application_pipeline'),
+            'content' => $this->clean($upcomingInterviews
+                ->map(fn (Interview $interview): string => implode(' | ', array_filter([
+                    $interview->scheduled_at?->format('d/m/Y H:i'),
+                    $interview->application?->candidate?->name,
+                    $interview->application?->job?->title,
+                    $interview->mode,
+                    $interview->location,
+                    $interview->meeting_url,
+                    $interview->invite_sent_at ? 'đã gửi thư mời' : 'chưa gửi thư mời',
+                ])))
+                ->implode("\n") ?: 'Không có lịch phỏng vấn sắp tới.'),
+        ];
+
+        $staleApplications = (clone $applications)
+            ->whereNotIn('status', ['hired', 'rejected'])
+            ->where('updated_at', '<=', now()->subDays(7))
+            ->with(['candidate:id,name', 'job:id,title'])
+            ->oldest('updated_at')
+            ->take(5)
+            ->get();
+
+        $sources[] = [
+            'key' => 'stale-applications',
+            'label' => 'Hồ sơ lâu chưa cập nhật',
+            'url' => route('employers.application_pipeline'),
+            'content' => $this->clean($staleApplications
+                ->map(fn (Application $application): string => implode(' | ', array_filter([
+                    $application->candidate?->name,
+                    $application->job?->title,
+                    $application->status?->getLabel() ?? (string) $application->status,
+                    'cập nhật lần cuối '.$application->updated_at?->format('d/m/Y H:i'),
+                ])))
+                ->implode("\n") ?: 'Không có hồ sơ lâu chưa cập nhật trong phạm vi hiện tại.'),
+        ];
+
+        $lowApplicationJobs = RecruitmentJob::query()
+            ->withCount('applications')
+            ->where('status', 'published')
+            ->where(fn (Builder $query) => $query->whereNull('deadline')->orWhereDate('deadline', '>=', now()))
+            ->having('applications_count', '<=', 1);
+        $this->scopeJobsForEmployer($lowApplicationJobs, $user);
+
+        $sources[] = [
+            'key' => 'low-application-jobs',
+            'label' => 'Tin tuyển dụng ít hồ sơ',
+            'url' => route('employers.manage_jobs'),
+            'content' => $this->clean($lowApplicationJobs
+                ->orderBy('applications_count')
+                ->orderBy('deadline')
+                ->take(5)
+                ->get()
+                ->map(fn (RecruitmentJob $job): string => implode(' | ', array_filter([
+                    $job->title,
+                    $job->applications_count.' hồ sơ',
+                    $job->deadline ? 'hạn '.$job->deadline->format('d/m/Y') : 'không có hạn nộp',
+                ])))
+                ->implode("\n") ?: 'Không có tin tuyển dụng ít hồ sơ trong phạm vi hiện tại.'),
+        ];
 
         if (in_array($user->role, ['director', 'admin'], true) || $user->isSuperAdmin()) {
             $recentApplications = clone $applications;

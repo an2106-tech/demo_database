@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\AiChatbox;
+use App\Models\AiChatSession;
 use App\Models\User;
 use App\Services\AiChatService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -156,11 +157,112 @@ class AiChatboxTest extends TestCase
             ->set('messageSequence', 1)
             ->call('rateMessage', 1, 'helpful')
             ->assertSet('messages.0.feedback', 'helpful')
+            ->assertDispatched('ai-chat-open')
             ->call('rateMessage', 1, 'helpful')
             ->assertSet('messages.0.feedback', null)
             ->call('newConversation')
             ->assertSet('messages', [])
             ->assertSet('messageSequence', 0);
+    }
+
+    public function test_using_suggestion_keeps_chatbox_open(): void
+    {
+        $user = User::factory()->create(['role' => 'hr', 'is_active' => true]);
+        $this->actingAs($user);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->call('useSuggestion', 'Hôm nay có hồ sơ nào cần xử lý?')
+            ->assertSet('message', 'Hôm nay có hồ sơ nào cần xử lý?')
+            ->assertDispatched('ai-chat-open');
+    }
+
+    public function test_chat_history_is_restored_for_active_user_session(): void
+    {
+        $user = User::factory()->create(['role' => 'hr', 'is_active' => true]);
+
+        $this->mock(AiChatService::class, function ($mock): void {
+            $mock->shouldReceive('reply')->once()->andReturn([
+                'answer' => 'Có 2 hồ sơ cần ưu tiên xử lý hôm nay.',
+                'sources' => [],
+                'suggestions' => ['Pipeline đang nghẽn ở đâu?'],
+                'provider' => 'local',
+                'model' => null,
+                'intent' => 'employer_operational_briefing',
+            ]);
+        });
+
+        $this->actingAs($user);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->set('message', 'Hôm nay cần xử lý gì?')
+            ->call('sendMessage')
+            ->assertSet('messages', fn (array $messages): bool => count($messages) === 2);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->assertSet('messages', fn (array $messages): bool => count($messages) === 2
+                && $messages[0]['content'] === 'Hôm nay cần xử lý gì?'
+                && $messages[1]['content'] === 'Có 2 hồ sơ cần ưu tiên xử lý hôm nay.');
+    }
+
+    public function test_chat_message_time_uses_business_timezone(): void
+    {
+        config(['app.interview_timezone' => 'Asia/Ho_Chi_Minh']);
+        $user = User::factory()->create(['role' => 'hr', 'is_active' => true]);
+
+        $session = AiChatSession::query()->create([
+            'user_id' => $user->id,
+            'audience' => 'employer',
+            'title' => 'Test',
+            'is_active' => true,
+            'last_message_at' => now(),
+        ]);
+
+        $message = $session->messages()->create([
+            'role' => 'assistant',
+            'content' => 'Xin chao',
+            'status' => 'completed',
+        ]);
+        $message->forceFill([
+            'created_at' => \Illuminate\Support\Carbon::parse('2026-07-16 08:00:00', 'UTC'),
+            'updated_at' => \Illuminate\Support\Carbon::parse('2026-07-16 08:00:00', 'UTC'),
+        ])->save();
+
+        $this->actingAs($user);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->assertSet('messages', fn (array $messages): bool => $messages[0]['db_id'] === $message->id
+                && $messages[0]['time'] === '15:00');
+    }
+
+    public function test_new_conversation_closes_previous_chat_session(): void
+    {
+        $user = User::factory()->create(['role' => 'hr', 'is_active' => true]);
+
+        $this->mock(AiChatService::class, function ($mock): void {
+            $mock->shouldReceive('reply')->once()->andReturn([
+                'answer' => 'Không có hồ sơ quá hạn.',
+                'sources' => [],
+                'suggestions' => [],
+                'provider' => 'local',
+                'model' => null,
+                'intent' => 'employer_operational_briefing',
+            ]);
+        });
+
+        $this->actingAs($user);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->set('message', 'Có hồ sơ quá hạn không?')
+            ->call('sendMessage')
+            ->call('newConversation')
+            ->assertSet('messages', [])
+            ->assertSet('currentSessionId', null)
+            ->assertDispatched('ai-chat-open');
+
+        $this->assertFalse(AiChatSession::query()->firstOrFail()->is_active);
+
+        Livewire::test(AiChatbox::class, ['audience' => 'employer'])
+            ->assertSet('messages', []);
     }
 
     /** @return array<string, mixed> */
