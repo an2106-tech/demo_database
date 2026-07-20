@@ -72,6 +72,80 @@ class ApplicationResource extends Resource
         ];
     }
 
+    public static function canCreate(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanManageHrPipeline($user)
+            && $user->can('Create:Application');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        $user = Auth::user();
+
+        return $record instanceof Application
+            && (bool) $user
+            && static::currentUserCanManageHrPipeline($user)
+            && static::currentUserCanAccessApplicationBranch($user, $record)
+            && $user->can('Update:Application');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('Delete:Application');
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('DeleteAny:Application');
+    }
+
+    public static function canForceDelete(Model $record): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('ForceDelete:Application');
+    }
+
+    public static function canForceDeleteAny(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('ForceDeleteAny:Application');
+    }
+
+    public static function canRestore(Model $record): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('Restore:Application');
+    }
+
+    public static function canRestoreAny(): bool
+    {
+        $user = Auth::user();
+
+        return (bool) $user
+            && static::currentUserCanOverseeRecruitment($user)
+            && $user->can('RestoreAny:Application');
+    }
+
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()
@@ -100,5 +174,34 @@ class ApplicationResource extends Resource
         }
 
         return $query;
+    }
+
+    private static function currentUserCanOverseeRecruitment(User $user): bool
+    {
+        return $user->isSuperAdmin() || $user->role === 'admin';
+    }
+
+    private static function currentUserIsHr(User $user): bool
+    {
+        return $user->role === 'hr' || $user->hasRole('hr');
+    }
+
+    private static function currentUserCanManageHrPipeline(User $user): bool
+    {
+        return static::currentUserCanOverseeRecruitment($user) || static::currentUserIsHr($user);
+    }
+
+    private static function currentUserCanAccessApplicationBranch(User $user, Application $record): bool
+    {
+        if (static::currentUserCanOverseeRecruitment($user)) {
+            return true;
+        }
+
+        $scopeBranchId = $user->branchScopeId();
+        $applicationBranchId = $record->branch_id ?: $record->job?->branch_id;
+
+        return $scopeBranchId !== null
+            && $applicationBranchId !== null
+            && (int) $scopeBranchId === (int) $applicationBranchId;
     }
 }

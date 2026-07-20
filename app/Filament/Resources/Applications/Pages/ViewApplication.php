@@ -19,7 +19,9 @@ class ViewApplication extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make()->label('Chỉnh sửa'),
+            EditAction::make()
+                ->label('Chỉnh sửa')
+                ->visible(fn (): bool => ApplicationResource::canEdit($this->record)),
         ];
     }
 }

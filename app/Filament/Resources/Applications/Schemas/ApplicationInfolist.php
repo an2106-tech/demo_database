@@ -4,8 +4,8 @@ namespace App\Filament\Resources\Applications\Schemas;
 
 use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
+use App\Services\ApplicationWorkflowSummaryService;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Illuminate\Support\HtmlString;
@@ -16,89 +16,33 @@ class ApplicationInfolist
     {
         return $schema->components([
             Section::make('Thông tin ứng tuyển')
-                ->description('Tổng quan hồ sơ, vị trí và trạng thái xử lý hiện tại.')
-                ->columns(['default' => 1, 'md' => 2, 'xl' => 4])
+                ->description('Thông tin chính của hồ sơ và vị trí ứng tuyển.')
                 ->columnSpanFull()
                 ->schema([
-                    TextEntry::make('candidate_name')
-                        ->label('Ứng viên')
-                        ->state(fn (Application $record): string => $record->snapshotCandidateName()),
-                    TextEntry::make('job.title')
-                        ->label('Vị trí ứng tuyển')
-                        ->placeholder('-'),
-                    TextEntry::make('job.branch.name')
-                        ->label('Chi nhánh')
-                        ->placeholder('-')
-                        ->columnSpan(['default' => 1, 'md' => 2, 'xl' => 1]),
-                    TextEntry::make('status')
-                        ->label('Trạng thái hiện tại')
-                        ->badge()
-                        ->formatStateUsing(fn (Application $record): string => static::statusLabel($record))
-                        ->color(fn (Application $record): string => static::statusColor($record)),
-                    TextEntry::make('candidate_email')
-                        ->label('Email liên hệ')
-                        ->state(fn (Application $record): string => $record->snapshotCandidateEmail() ?: '-')
-                        ->copyable(),
-                    TextEntry::make('candidate_phone')
-                        ->label('Số điện thoại')
-                        ->state(fn (Application $record): string => $record->snapshotCandidatePhone() ?: '-')
-                        ->copyable(),
-                    TextEntry::make('applied_at')
-                        ->label('Ngày ứng tuyển')
-                        ->dateTime('d/m/Y H:i')
-                        ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
-                        ->placeholder('-'),
-                    TextEntry::make('apply_method')
-                        ->label('Cách nộp')
-                        ->badge()
-                        ->formatStateUsing(fn (?string $state): string => static::applyMethodLabel($state)),
-                    TextEntry::make('source')
-                        ->label('Nguồn')
-                        ->badge()
-                        ->formatStateUsing(fn (?string $state): string => static::sourceLabel($state)),
+                    TextEntry::make('application_overview')
+                        ->hiddenLabel()
+                        ->state(fn (Application $record): HtmlString => static::overviewHtml($record))
+                        ->html(),
                 ]),
 
-            Grid::make(['default' => 1, 'xl' => 12])
+            Section::make('Tiến độ xử lý')
+                ->description('Trạng thái hiện tại và bước xử lý tiếp theo.')
                 ->columnSpanFull()
                 ->schema([
-                    Section::make('Hồ sơ tại thời điểm nộp')
-                        ->description('CV và snapshot dùng làm căn cứ đánh giá ứng viên.')
-                        ->columns(['default' => 1, 'md' => 2])
-                        ->schema([
-                            TextEntry::make('cv')
-                                ->label('CV ứng tuyển')
-                                ->state(fn (Application $record): string => $record->submittedCvName() ?: 'Chưa có CV')
-                                ->url(fn (Application $record): ?string => $record->submittedCvUrl())
-                                ->openUrlInNewTab()
-                                ->icon(fn (Application $record): ?string => $record->submittedCvUrl() ? 'heroicon-o-document-text' : null)
-                                ->columnSpanFull(),
-                            TextEntry::make('snapshot_profile_title')
-                                ->label('Tiêu đề hồ sơ')
-                                ->state(fn (Application $record): string => $record->snapshotProfileTitle() ?: '-'),
-                            TextEntry::make('snapshot_experience')
-                                ->label('Kinh nghiệm')
-                                ->state(fn (Application $record): string => static::snapshotExperience($record)),
-                            TextEntry::make('salary_expected')
-                                ->label('Lương mong muốn')
-                                ->state(fn (Application $record): string => static::salaryExpected($record)),
-                            TextEntry::make('cv_text_snapshot')
-                                ->label('Trích xuất CV')
-                                ->placeholder('Chưa có dữ liệu trích xuất')
-                                ->limit(360)
-                                ->prose()
-                                ->columnSpanFull(),
-                        ])
-                        ->columnSpan(['default' => 'full', 'xl' => 7]),
+                    TextEntry::make('current_step')
+                        ->hiddenLabel()
+                        ->state(fn (Application $record): HtmlString => static::currentStepHtml($record))
+                        ->html(),
+                ]),
 
-                    Section::make('Trạng thái xử lý')
-                        ->description('Thông tin cần xem ở giai đoạn hiện tại.')
-                        ->schema([
-                            TextEntry::make('current_step')
-                                ->hiddenLabel()
-                                ->state(fn (Application $record): HtmlString => static::currentStepHtml($record))
-                                ->html(),
-                        ])
-                        ->columnSpan(['default' => 'full', 'xl' => 5]),
+            Section::make('Hồ sơ ứng tuyển')
+                ->description('CV và thông tin hồ sơ được lưu tại thời điểm nộp.')
+                ->columnSpanFull()
+                ->schema([
+                    TextEntry::make('application_snapshot')
+                        ->hiddenLabel()
+                        ->state(fn (Application $record): HtmlString => static::snapshotHtml($record))
+                        ->html(),
                 ]),
 
             Section::make('Nhật ký xử lý')
@@ -117,6 +61,7 @@ class ApplicationInfolist
     protected static function currentStepHtml(Application $record): HtmlString
     {
         $status = static::statusEnum($record);
+        $summary = static::workflowSummary($record);
 
         return match ($status) {
             StatusApplicationEnum::CV_REVIEWING => static::screeningStepHtml($record),
@@ -124,37 +69,130 @@ class ApplicationInfolist
             StatusApplicationEnum::INTERVIEW_SCHEDULED,
             StatusApplicationEnum::INTERVIEWING => static::interviewStepHtml($record),
             StatusApplicationEnum::OFFERED => static::offerStepHtml($record),
-            StatusApplicationEnum::HIRED => static::finalStepHtml('Đã tuyển', 'Hồ sơ đã hoàn tất tuyển dụng.', 'success'),
-            StatusApplicationEnum::REJECTED => static::finalStepHtml('Từ chối', $record->rejected_reason ?: 'Hồ sơ đã dừng trong pipeline.', 'danger'),
+            StatusApplicationEnum::HIRED,
+            StatusApplicationEnum::REJECTED => static::finalStepHtml($summary['status_label'], $summary['description'], $summary['color']),
             default => static::finalStepHtml('Chưa xác định', 'Chưa có trạng thái hợp lệ cho hồ sơ này.', 'gray'),
         };
     }
 
+    protected static function overviewHtml(Application $record): HtmlString
+    {
+        $summary = static::workflowSummary($record);
+        $appliedAt = $record->applied_at
+            ? $record->applied_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('d/m/Y H:i')
+            : '-';
+
+        $meta = [
+            'Email liên hệ' => $record->snapshotCandidateEmail() ?: '-',
+            'Số điện thoại' => $record->snapshotCandidatePhone() ?: '-',
+            'Ngày nộp' => $appliedAt,
+            'Nguồn hồ sơ' => static::sourceLabel($record->source).' · '.static::applyMethodLabel($record->apply_method),
+        ];
+
+        $metaHtml = collect($meta)
+            ->map(fn (string $value, string $label): string => static::compactInfoHtml($label, $value))
+            ->implode('');
+
+        return new HtmlString(
+            '<div class="grid gap-4 xl:grid-cols-3">'
+            .'<div class="min-w-0 xl:col-span-2">'
+            .'<div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Ứng viên</div>'
+            .'<div class="mt-1 text-xl font-semibold leading-7 text-gray-950 dark:text-white">'.e($record->snapshotCandidateName() ?: '-').'</div>'
+            .'<div class="mt-3 grid gap-3 md:grid-cols-2">'
+            .static::compactInfoHtml('Vị trí ứng tuyển', $record->job?->title ?: '-')
+            .static::compactInfoHtml('Chi nhánh', $record->job?->branch?->name ?: '-')
+            .'</div>'
+            .'</div>'
+            .'<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">'
+            .'<div class="flex flex-wrap items-center justify-between gap-3">'
+            .'<div>'
+            .'<div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">Giai đoạn</div>'
+            .'<div class="mt-2">'.static::badgeHtml($summary['stage_label'], $summary['color']).'</div>'
+            .'</div>'
+            .'<div class="text-right text-sm font-semibold leading-5 text-gray-950 dark:text-white">'.e($summary['status_label']).'</div>'
+            .'</div>'
+            .'<div class="mt-3 text-sm leading-6 text-gray-600 dark:text-gray-300">'.e($summary['description']).'</div>'
+            .'</div>'
+            .'</div>'
+            .'<div class="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">'.$metaHtml.'</div>'
+        );
+    }
+
+    protected static function snapshotHtml(Application $record): HtmlString
+    {
+        $cvName = $record->submittedCvName() ?: 'Chưa có CV';
+        $cvUrl = $record->submittedCvUrl();
+        $cvAction = $cvUrl
+            ? '<a href="'.e($cvUrl).'" target="_blank" rel="noopener" class="inline-flex items-center rounded-lg bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500">Mở CV</a>'
+            : '<span class="text-sm text-gray-500 dark:text-gray-400">Chưa có file CV</span>';
+
+        return new HtmlString(
+            '<div class="space-y-3">'
+            .'<div class="flex min-w-0 flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">'
+            .'<div class="min-w-0">'
+            .'<div class="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">CV ứng tuyển</div>'
+            .'<div class="mt-1 break-words text-sm font-semibold leading-6 text-gray-950 dark:text-white">'.e($cvName).'</div>'
+            .'</div>'
+            .$cvAction
+            .'</div>'
+            .'<div class="grid gap-3 md:grid-cols-3">'
+            .static::compactInfoHtml('Tiêu đề hồ sơ', $record->snapshotProfileTitle() ?: '-')
+            .static::compactInfoHtml('Kinh nghiệm', static::snapshotExperience($record))
+            .static::compactInfoHtml('Lương mong muốn', static::salaryExpected($record))
+            .'</div>'
+            .'</div>'
+        );
+    }
+
+    protected static function compactInfoHtml(string $label, string $value): string
+    {
+        return '<div class="min-w-0 rounded-lg border border-gray-200 px-3 py-2.5 dark:border-white/10">'
+            .'<div class="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">'.e($label).'</div>'
+            .'<div class="mt-1 break-words text-sm font-medium leading-5 text-gray-950 dark:text-gray-100">'.e($value).'</div>'
+            .'</div>';
+    }
+
+    protected static function badgeHtml(string $label, string $color): string
+    {
+        $style = match ($color) {
+            'success' => 'background:rgba(34,197,94,.12);color:#16a34a;border-color:rgba(34,197,94,.25);',
+            'danger' => 'background:rgba(239,68,68,.12);color:#dc2626;border-color:rgba(239,68,68,.25);',
+            'info', 'primary' => 'background:rgba(59,130,246,.12);color:#2563eb;border-color:rgba(59,130,246,.25);',
+            'warning' => 'background:rgba(245,158,11,.14);color:#d97706;border-color:rgba(245,158,11,.28);',
+            default => 'background:rgba(148,163,184,.13);color:inherit;border-color:rgba(148,163,184,.25);',
+        };
+
+        return '<span style="display:inline-flex;align-items:center;border:1px solid;border-radius:999px;padding:.25rem .65rem;font-size:.75rem;font-weight:700;'.$style.'">'.e($label).'</span>';
+    }
+
     protected static function screeningStepHtml(Application $record): HtmlString
     {
+        $summary = static::workflowSummary($record);
+
         return static::panelHtml(
-            'Sàng lọc CV',
-            'Cần quyết định hồ sơ có đủ điều kiện đi tiếp sang sơ tuyển hay không.',
+            $summary['status_label'],
+            $summary['description'],
             [
-                'Căn cứ chính' => $record->submittedCvName() ?: 'Chưa có CV',
-                'Thông tin đối chiếu' => static::snapshotExperience($record),
-                'Quyết định cần ghi nhận' => 'Đạt sơ tuyển hoặc từ chối hồ sơ.',
-            ]
+                'Quyết định' => 'Đạt sơ tuyển hoặc từ chối.',
+            ],
+            $summary['color'],
         );
     }
 
     protected static function interviewPreparationStepHtml(Application $record): HtmlString
     {
         $comment = static::latestHistoryComment($record, StatusApplicationEnum::SCREENING->value);
+        $summary = static::workflowSummary($record);
 
         return static::panelHtml(
-            'Sơ tuyển',
-            'Hồ sơ đã qua sàng lọc CV và đang chờ sắp xếp phỏng vấn.',
+            $summary['status_label'],
+            $summary['description'],
             [
                 'Ghi chú sàng lọc' => $comment ?: '-',
-                'Người liên hệ' => $record->snapshotCandidateEmail() ?: $record->snapshotCandidatePhone() ?: '-',
-                'Việc cần làm' => 'Tạo lịch phỏng vấn và gửi thư mời.',
-            ]
+                'Liên hệ ứng viên' => $record->snapshotCandidateEmail() ?: $record->snapshotCandidatePhone() ?: '-',
+                'Bước tiếp theo' => 'Tạo lịch phỏng vấn và gửi thư mời.',
+            ],
+            $summary['color'],
         );
     }
 
@@ -162,52 +200,54 @@ class ApplicationInfolist
     {
         $interview = $record->latestInterview;
         $scorecard = $record->latestScorecard;
+        $summary = static::workflowSummary($record);
         $inviteSentAt = $interview?->invite_sent_at
             ? $interview->invite_sent_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('d/m/Y H:i')
             : null;
 
         return static::panelHtml(
-            'Phỏng vấn',
-            $scorecard ? 'Đã có kết quả đánh giá phỏng vấn gần nhất.' : 'Đang chờ ghi nhận kết quả phỏng vấn.',
+            $summary['status_label'],
+            $summary['description'],
             [
                 'Vòng phỏng vấn' => $interview?->round_name ?: '-',
                 'Thời gian' => $interview?->scheduled_at
                     ? $interview->scheduled_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('d/m/Y H:i')
                     : '-',
-                'Trạng thái gửi lịch' => $inviteSentAt ? 'Đã gửi email lịch lúc '.$inviteSentAt : 'Chưa gửi email lịch phỏng vấn',
+                'Thư mời' => $inviteSentAt ? 'Đã gửi lúc '.$inviteSentAt : 'Chưa gửi',
                 'Người phỏng vấn' => $interview?->interviewer?->name ?: '-',
-                'Điểm trung bình' => $scorecard?->average_score !== null ? (string) $scorecard->average_score : 'Chưa chấm',
+                'Điểm' => $scorecard?->average_score !== null ? (string) $scorecard->average_score : 'Chưa chấm',
                 'Kết luận' => static::scorecardConclusionLabel($scorecard?->conclusion),
-                'Việc cần làm' => $scorecard
+                'Bước tiếp theo' => $scorecard
                     ? 'Xem kết luận và chuyển bước phù hợp.'
-                    : ($inviteSentAt ? 'Chờ/chấm scorecard phỏng vấn sau buổi phỏng vấn.' : 'Gửi lịch phỏng vấn cho ứng viên và người liên quan.'),
-            ]
+                    : ($inviteSentAt ? 'Chấm scorecard sau buổi phỏng vấn.' : 'Gửi lịch cho ứng viên và người liên quan.'),
+            ],
+            $summary['color'],
         );
     }
 
     protected static function offerStepHtml(Application $record): HtmlString
     {
         $offer = $record->latestOffer;
+        $summary = static::workflowSummary($record);
 
         return static::panelHtml(
-            'Đề nghị tuyển dụng',
-            'Hồ sơ đã qua đánh giá và đang ở bước đề nghị tuyển dụng.',
+            $summary['status_label'],
+            $summary['description'],
             [
-                'Trạng thái đề nghị' => static::offerStatusLabel($offer?->status),
+                'Tình trạng đề nghị' => static::offerStatusLabel($offer?->status),
                 'Lương đề nghị' => $offer?->salary_offered !== null ? number_format((float) $offer->salary_offered, 0, ',', '.').' VND' : '-',
                 'Ngày bắt đầu' => $offer?->start_date?->format('d/m/Y') ?: '-',
                 'Hạn phản hồi' => $offer?->expires_at?->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('d/m/Y H:i') ?: '-',
-                'Người duyệt' => $offer?->approvedByUser?->name ?: '-',
-                'Việc cần làm' => static::offerNextAction($offer?->status),
-            ]
+                'Giám đốc duyệt' => $offer?->approvedByUser?->name ?: '-',
+                'Bước tiếp theo' => static::offerNextAction($offer?->status),
+            ],
+            $summary['color'],
         );
     }
 
     protected static function finalStepHtml(string $title, string $description, string $color): HtmlString
     {
-        return static::panelHtml($title, $description, [
-            'Trạng thái' => $title,
-        ], $color);
+        return static::panelHtml($title, $description, [], $color);
     }
 
     /**
@@ -216,38 +256,50 @@ class ApplicationInfolist
     protected static function panelHtml(string $title, string $description, array $items, string $color = 'primary'): HtmlString
     {
         $accentClasses = match ($color) {
-            'success' => 'border-success-500',
-            'danger' => 'border-danger-500',
-            'gray' => 'border-gray-500',
-            default => 'border-warning-500',
+            'success' => 'bg-success-500',
+            'danger' => 'bg-danger-500',
+            'gray' => 'bg-gray-500',
+            default => 'bg-warning-500',
         };
 
         $rows = collect($items)
-            ->map(fn (string $value, string $label): string => '<div class="grid gap-1 py-2.5">'
-                .'<div class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">'.e($label).'</div>'
-                .'<div class="break-words text-sm font-normal leading-6 text-gray-950 dark:text-gray-100">'.e($value).'</div>'
+            ->map(fn (string $value, string $label): string => '<div class="min-w-0 rounded-lg border border-gray-200 px-3 py-2.5 dark:border-white/10">'
+                .'<div class="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">'.e($label).'</div>'
+                .'<div class="mt-1 break-words text-sm font-medium leading-5 text-gray-950 dark:text-gray-100">'.e($value).'</div>'
                 .'</div>')
             ->implode('');
 
+        $itemsHtml = $rows !== ''
+            ? '<div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">'.$rows.'</div>'
+            : '';
+
         return new HtmlString(
             '<div class="space-y-3">'
-            .'<div class="border-l-4 py-1 pl-3 '.$accentClasses.'">'
-            .'<div class="text-sm font-semibold leading-5 text-gray-950 dark:text-white">'.e($title).'</div>'
+            .'<div class="flex flex-wrap items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/5">'
+            .'<div class="mt-1 h-10 w-1 rounded-full '.$accentClasses.'"></div>'
+            .'<div class="min-w-0 flex-1">'
+            .'<div class="text-base font-semibold leading-6 text-gray-950 dark:text-white">'.e($title).'</div>'
             .'<div class="mt-1 text-sm font-normal leading-6 text-gray-600 dark:text-gray-300">'.e($description).'</div>'
             .'</div>'
-            .'<div class="divide-y divide-gray-200 dark:divide-gray-800">'.$rows.'</div>'
+            .'</div>'
+            .$itemsHtml
             .'</div>'
         );
     }
 
     protected static function statusLabel(Application $record): string
     {
-        return static::statusEnum($record)?->getLabel() ?? '-';
+        return static::workflowSummary($record)['status_label'];
     }
 
     protected static function statusColor(Application $record): string
     {
-        return static::statusEnum($record)?->getColor() ?? 'gray';
+        return static::workflowSummary($record)['color'];
+    }
+
+    protected static function workflowSummary(Application $record): array
+    {
+        return app(ApplicationWorkflowSummaryService::class)->summarize($record);
     }
 
     protected static function statusEnum(Application $record): ?StatusApplicationEnum
@@ -335,13 +387,13 @@ class ApplicationInfolist
     protected static function offerNextAction(?string $status): string
     {
         return match ($status) {
-            'draft' => 'Đề nghị đang là bản nháp. Bấm gửi duyệt để chuyển cho giám đốc chi nhánh.',
+            'draft' => 'Gửi giám đốc chi nhánh duyệt.',
             'awaiting_approval' => 'Chờ giám đốc duyệt đề nghị.',
             'pending' => 'Chờ ứng viên phản hồi thư mời.',
-            'accepted' => 'Hoàn tất tuyển dụng nếu ứng viên đã xác nhận nhận việc.',
-            'declined' => 'Xem lý do từ chối và kết thúc hoặc tạo đề nghị mới nếu phù hợp.',
-            'expired' => 'Kiểm tra hạn phản hồi và gửi lại nếu cần.',
-            'rejected' => 'Điều chỉnh đề nghị theo lý do từ chối của giám đốc.',
+            'accepted' => 'Hoàn tất tuyển dụng.',
+            'declined' => 'Xem lý do và quyết định tạo đề nghị mới hoặc kết thúc hồ sơ.',
+            'expired' => 'Kiểm tra hạn phản hồi và xử lý tiếp nếu cần.',
+            'rejected' => 'Chỉnh sửa theo góp ý của giám đốc.',
             default => 'Tạo đề nghị tuyển dụng hoặc gửi duyệt.',
         };
     }

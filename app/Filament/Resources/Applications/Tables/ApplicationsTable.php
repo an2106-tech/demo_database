@@ -22,6 +22,8 @@ use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
 use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationPipelineService;
+use App\Services\ApplicationWorkflowGuard;
+use App\Services\ApplicationWorkflowSummaryService;
 use App\Services\OfferApprovalService;
 use App\Services\OfferPdfService;
 use App\Services\RecruitmentInternalNotificationService;
@@ -84,10 +86,15 @@ class ApplicationsTable
                     ->label('Ứng viên')
                     ->formatStateUsing(fn (Application $record): string => $record->snapshotCandidateName())
                     ->description(fn (Application $record): ?string => $record->snapshotCandidateEmail())
+                    ->searchable(query: fn (Builder $query, string $search): Builder => static::applyCandidateSearch($query, $search))
                     ->sortable(),
                 TextColumn::make('job.title')
                     ->label('Vị trí')
                     ->description(fn (Application $record): ?string => static::jobContextDescription($record))
+                    ->searchable(query: fn (Builder $query, string $search): Builder => $query->whereHas(
+                        'job',
+                        fn (Builder $jobQuery): Builder => $jobQuery->where('title', 'like', "%{$search}%")
+                    ))
                     ->sortable(),
                 TextColumn::make('job.branch.name')
                     ->label('Chi nhánh')
@@ -100,7 +107,7 @@ class ApplicationsTable
                     ->openUrlInNewTab()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('apply_method')
-                    ->label('Cách nộp')
+                    ->label('Hình thức nộp')
                     ->badge()
                     ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
@@ -133,24 +140,11 @@ class ApplicationsTable
                         default => 'gray',
                     }),
                 TextColumn::make('status')
-                    ->label('Trạng thái tuyển dụng')
-                    ->state(fn (Application $record): string => $record->status instanceof StatusApplicationEnum
-                        ? $record->status->getPipelineStageLabel()
-                        : (StatusApplicationEnum::tryFrom((string) $record->status)?->getPipelineStageLabel() ?? '-'))
-                    ->description(function (Application $record): ?string {
-                        $status = $record->status instanceof StatusApplicationEnum
-                            ? $record->status
-                            : StatusApplicationEnum::tryFrom((string) $record->status);
-
-                        if (! $status || $status->getLabel() === $status->getPipelineStageLabel()) {
-                            return null;
-                        }
-
-                        return (string) $status->getLabel();
-                    })
-                    ->color(fn (Application $record): string => $record->status instanceof StatusApplicationEnum
-                        ? $record->status->getPipelineStageColor()
-                        : (StatusApplicationEnum::tryFrom((string) $record->status)?->getPipelineStageColor() ?? 'gray'))
+                    ->label('Tiến độ')
+                    ->state(fn (Application $record): string => static::workflowSummary($record)['stage_label'])
+                    ->description(fn (Application $record): string => static::workflowSummary($record)['status_label'])
+                    ->color(fn (Application $record): string => static::workflowSummary($record)['color'])
+                    ->alignCenter()
                     ->badge()
                     ->sortable(),
                 TextColumn::make('offer_response')
@@ -187,7 +181,7 @@ class ApplicationsTable
                         };
                     }),
                 TextColumn::make('applied_at')
-                    ->label('Ngày ứng tuyển')
+                    ->label('Ngày nộp')
                     ->dateTime('d/m/Y H:i')
                     ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                     ->sortable(),
@@ -199,9 +193,24 @@ class ApplicationsTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                SelectFilter::make('work_queue')
+                    ->label('Cần xử lý')
+                    ->options([
+                        'cv_reviewing' => 'Chờ sàng lọc CV',
+                        'interview_schedule_needed' => 'Cần tạo lịch phỏng vấn',
+                        'interview_invite_unsent' => 'Lịch phỏng vấn chưa gửi',
+                        'interview_overdue' => 'Phỏng vấn quá hạn chưa chấm',
+                        'offer_needed' => 'Cần tạo đề nghị tuyển dụng',
+                        'offer_draft' => 'Đề nghị đang nháp/cần gửi lại',
+                        'offer_awaiting_approval' => 'Đề nghị chờ giám đốc duyệt',
+                        'offer_expiring' => 'Đề nghị sắp hết hạn phản hồi',
+                    ])
+                    ->native(false)
+                    ->query(fn (Builder $query, array $data): Builder => static::applyWorkQueueFilter($query, $data['value'] ?? null)),
                 SelectFilter::make('branch_id')
                     ->label('Chi nhánh')
                     ->options(fn () => Branch::query()->orderBy('name')->pluck('name', 'id')->all())
+                    ->native(false)
                     ->query(function (Builder $query, array $data): Builder {
                         if (blank($data['value'] ?? null)) {
                             return $query;
@@ -211,8 +220,9 @@ class ApplicationsTable
                     })
                     ->visible(fn () => (bool) Auth::user()?->hasRole('super_admin')),
                 SelectFilter::make('pipeline_stage')
-                    ->label('Giai đoạn tuyển dụng')
+                    ->label('Giai đoạn')
                     ->options(StatusApplicationEnum::pipelineStageOptions())
+                    ->native(false)
                     ->query(function (Builder $query, array $data): Builder {
                         $stageKey = $data['value'] ?? null;
 
@@ -225,20 +235,22 @@ class ApplicationsTable
                         return $statusValues === [] ? $query : $query->whereIn('status', $statusValues);
                     }),
                 SelectFilter::make('status')
-                    ->label('Trạng thái xử lý')
+                    ->label('Trạng thái chi tiết')
                     ->options($statusOptions)
+                    ->native(false)
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('status', $data['value']) : $query;
                     }),
                 SelectFilter::make('job_id')
                     ->label('Vị trí')
                     ->options(fn () => static::getJobFilterOptions())
+                    ->native(false)
                     ->searchable()
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('job_id', $data['value']) : $query;
                     }),
                 Filter::make('applied_at_range')
-                    ->label('Ngày ứng tuyển')
+                    ->label('Ngày nộp')
                     ->form([
                         DatePicker::make('applied_from')->label('Từ ngày')->native(false)->displayFormat('d/m/Y')->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
                         DatePicker::make('applied_until')->label('Đến ngày')->native(false)->displayFormat('d/m/Y')->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
@@ -254,6 +266,7 @@ class ApplicationsTable
                         'has_cv' => 'Đã có CV',
                         'missing_cv' => 'Chưa có CV',
                     ])
+                    ->native(false)
                     ->query(function (Builder $query, array $data): Builder {
                         return match ($data['value'] ?? null) {
                             'has_cv' => $query->where(function (Builder $q): void {
@@ -271,6 +284,7 @@ class ApplicationsTable
                 SelectFilter::make('candidate_id')
                     ->label('Ứng viên')
                     ->options(fn () => static::getCandidateFilterOptions())
+                    ->native(false)
                     ->searchable()
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('candidate_id', $data['value']) : $query;
@@ -284,6 +298,7 @@ class ApplicationsTable
                         'referral' => 'Giới thiệu',
                         'other' => 'Khác',
                     ])
+                    ->native(false)
                     ->query(function (Builder $query, array $data): Builder {
                         return filled($data['value'] ?? null) ? $query->where('source', $data['value']) : $query;
                     }),
@@ -292,6 +307,8 @@ class ApplicationsTable
             ->filtersFormColumns(3)
             ->recordActions([
                 static::makePipelineAction(),
+                static::makeSendInterviewScheduleAction('primary_send_interview_schedule'),
+                static::makeSendOfferAction('primary_send_offer'),
                     Action::make('evaluate_interview')
                         ->label('Chấm phỏng vấn')
                         ->icon('heroicon-o-clipboard-document-check')
@@ -458,6 +475,7 @@ class ApplicationsTable
                         })
                         ->visible(fn (Application $record): bool => static::canEvaluateInterview($record)),
                 ActionGroup::make([
+                    static::makeSecondaryPipelineAction(),
                     static::makeAnalyzeScreeningAiAction(),
                     Action::make('reject_application')
                         ->label('Từ chối hồ sơ')
@@ -485,8 +503,6 @@ class ApplicationsTable
                                 ->send();
                         })
                         ->visible(fn (Application $record): bool => static::canRejectApplication($record)),
-                    static::makeSendInterviewScheduleAction(),
-                    static::makeSendOfferAction(),
                     Action::make('reopen_offer_response')
                         ->label('Mở lại phản hồi đề nghị')
                         ->icon('heroicon-o-arrow-path')
@@ -557,10 +573,11 @@ class ApplicationsTable
                         ->url(fn ($record): string => ApplicationResource::getUrl('view', ['record' => $record])),
                     EditAction::make()
                         ->label('Chỉnh sửa')
-                        ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record])),
+                        ->url(fn ($record): string => ApplicationResource::getUrl('edit', ['record' => $record]))
+                        ->visible(fn (Application $record): bool => ApplicationResource::canEdit($record)),
                     DeleteAction::make()
                         ->label('Xóa')
-                        ->visible(fn (): bool => Auth::user()?->hasRole('super_admin') === true),
+                        ->visible(fn (Application $record): bool => ApplicationResource::canDelete($record)),
                 ])
                     ->label('Thao tác khác')
                     ->icon('heroicon-o-ellipsis-horizontal')
@@ -571,9 +588,15 @@ class ApplicationsTable
             ->recordActionsAlignment('center')
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make()->label('Xóa đã chọn'),
-                    ForceDeleteBulkAction::make()->label('Xóa vĩnh viễn'),
-                    RestoreBulkAction::make()->label('Khôi phục'),
+                    DeleteBulkAction::make()
+                        ->label('Xóa đã chọn')
+                        ->visible(fn (): bool => ApplicationResource::canDeleteAny()),
+                    ForceDeleteBulkAction::make()
+                        ->label('Xóa vĩnh viễn')
+                        ->visible(fn (): bool => ApplicationResource::canForceDeleteAny()),
+                    RestoreBulkAction::make()
+                        ->label('Khôi phục')
+                        ->visible(fn (): bool => ApplicationResource::canRestoreAny()),
                 ]),
             ]);
     }
@@ -591,6 +614,62 @@ class ApplicationsTable
             $branchName ? 'Chi nhánh: '.$branchName : null,
             $departmentName ? 'Phòng ban: '.$departmentName : null,
         ])->filter()->implode(' · ') ?: null;
+    }
+
+    protected static function applyCandidateSearch(Builder $query, string $search): Builder
+    {
+        return $query->where(function (Builder $candidateQuery) use ($search): void {
+            $candidateQuery
+                ->whereHas('candidate', fn (Builder $query): Builder => $query
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%"))
+                ->orWhere('profile_snapshot', 'like', "%{$search}%");
+        });
+    }
+
+    protected static function applyWorkQueueFilter(Builder $query, mixed $value): Builder
+    {
+        $now = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
+
+        return match ($value) {
+            'cv_reviewing' => $query->where('status', StatusApplicationEnum::CV_REVIEWING->value),
+            'interview_schedule_needed' => $query
+                ->where('status', StatusApplicationEnum::SCREENING->value)
+                ->whereDoesntHave('latestInterview'),
+            'interview_invite_unsent' => $query
+                ->whereIn('status', [
+                    StatusApplicationEnum::SCREENING->value,
+                    StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
+                    StatusApplicationEnum::INTERVIEWING->value,
+                ])
+                ->whereHas('latestInterview', fn (Builder $interviewQuery): Builder => $interviewQuery->whereNull('invite_sent_at')),
+            'interview_overdue' => $query
+                ->whereIn('status', [
+                    StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
+                    StatusApplicationEnum::INTERVIEWING->value,
+                ])
+                ->whereHas('latestInterview', fn (Builder $interviewQuery): Builder => $interviewQuery
+                    ->where('result', 'pending')
+                    ->whereNotNull('scheduled_at')
+                    ->where('scheduled_at', '<=', $now)),
+            'offer_needed' => $query
+                ->where('status', StatusApplicationEnum::OFFERED->value)
+                ->whereDoesntHave('latestOffer'),
+            'offer_draft' => $query
+                ->where('status', StatusApplicationEnum::OFFERED->value)
+                ->whereHas('latestOffer', fn (Builder $offerQuery): Builder => $offerQuery->whereIn('status', ['draft', 'rejected'])),
+            'offer_awaiting_approval' => $query
+                ->where('status', StatusApplicationEnum::OFFERED->value)
+                ->whereHas('latestOffer', fn (Builder $offerQuery): Builder => $offerQuery->where('status', 'awaiting_approval')),
+            'offer_expiring' => $query
+                ->where('status', StatusApplicationEnum::OFFERED->value)
+                ->whereHas('latestOffer', fn (Builder $offerQuery): Builder => $offerQuery
+                    ->where('status', 'pending')
+                    ->whereNotNull('expires_at')
+                    ->whereBetween('expires_at', [$now, $now->copy()->addDays(2)])),
+            default => $query,
+        };
     }
 
     protected static function getJobFilterOptions(): array
@@ -770,165 +849,77 @@ class ApplicationsTable
 
     protected static function currentUserCanOverseeRecruitment(): bool
     {
-        $user = Auth::user();
+        return static::workflowGuard()->canOverseeRecruitment(Auth::user());
+    }
 
-        return (bool) ($user?->isSuperAdmin() || $user?->role === 'admin');
+    protected static function workflowGuard(): ApplicationWorkflowGuard
+    {
+        return app(ApplicationWorkflowGuard::class);
+    }
+
+    protected static function workflowSummary(Application $record): array
+    {
+        return app(ApplicationWorkflowSummaryService::class)->summarize($record);
     }
 
     protected static function currentUserIsHr(): bool
     {
-        $user = Auth::user();
-
-        return (bool) ($user?->role === 'hr' || $user?->hasRole('hr'));
+        return static::workflowGuard()->isHr(Auth::user());
     }
 
     protected static function currentUserCanRunHrPipelineActions(): bool
     {
-        return static::currentUserCanOverseeRecruitment() || static::currentUserIsHr();
+        return static::workflowGuard()->canRunHrPipelineActions(Auth::user());
     }
 
     protected static function applicationBranchId(Application $record): ?int
     {
-        $branchId = $record->branch_id ?: $record->job?->branch_id;
-
-        return $branchId ? (int) $branchId : null;
+        return static::workflowGuard()->applicationBranchId($record);
     }
 
     protected static function currentUserCanAccessApplicationBranch(Application $record): bool
     {
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        if (static::currentUserCanOverseeRecruitment()) {
-            return true;
-        }
-
-        $scopeBranchId = $user->branchScopeId();
-        $applicationBranchId = static::applicationBranchId($record);
-
-        return $scopeBranchId !== null
-            && $applicationBranchId !== null
-            && (int) $scopeBranchId === (int) $applicationBranchId;
+        return static::workflowGuard()->canAccessApplicationBranch(Auth::user(), $record);
     }
 
     protected static function currentUserIsAssignedInterviewer(Application $record): bool
     {
-        $userId = Auth::id();
-
-        if (! $userId) {
-            return false;
-        }
-
-        $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
-
-        return (bool) $interview && (int) $interview->interviewer_id === (int) $userId;
+        return static::workflowGuard()->isAssignedInterviewer(Auth::user(), $record);
     }
 
     protected static function canScreenApplication(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum
-            ? $record->status
-            : StatusApplicationEnum::tryFrom((string) $record->status);
-
-        return $status === StatusApplicationEnum::NEW
-            && static::currentUserCanRunHrPipelineActions()
-            && static::currentUserCanAccessApplicationBranch($record);
+        return static::workflowGuard()->canScreenApplication(Auth::user(), $record);
     }
 
     protected static function canManageInterview(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
-
-        return static::currentUserCanRunHrPipelineActions()
-            && static::currentUserCanAccessApplicationBranch($record)
-            && in_array($status, [
-                StatusApplicationEnum::SCREENING->value,
-                StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
-                StatusApplicationEnum::INTERVIEW->value,
-            ], true);
+        return static::workflowGuard()->canManageInterview(Auth::user(), $record);
     }
 
     protected static function hasInterviewStatus(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
-
-        return in_array($status, [
-            StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
-            StatusApplicationEnum::INTERVIEW->value,
-        ], true);
+        return static::workflowGuard()->hasInterviewStatus($record);
     }
 
     protected static function canEvaluateInterview(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum
-            ? $record->status
-            : StatusApplicationEnum::tryFrom((string) $record->status);
-
-        if (! in_array($status, [StatusApplicationEnum::INTERVIEW_SCHEDULED, StatusApplicationEnum::INTERVIEW], true)) {
-            return false;
-        }
-
-        $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
-
-        if (! $interview || $interview->result !== 'pending') {
-            return false;
-        }
-
-        if (! static::currentUserCanAccessApplicationBranch($record)) {
-            return false;
-        }
-
-        if (! static::currentUserCanOverseeRecruitment()
-            && ! static::currentUserIsAssignedInterviewer($record)
-        ) {
-            return false;
-        }
-
-        if ($status === StatusApplicationEnum::INTERVIEW) {
-            return true;
-        }
-
-        return $interview->scheduled_at?->lte(now()) ?? false;
+        return static::workflowGuard()->canEvaluateInterview(Auth::user(), $record);
     }
 
     protected static function canSendInterviewSchedule(Application $record): bool
     {
-        if (! static::canManageInterview($record)) {
-            return false;
-        }
-
-        $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
-
-        return (bool) $interview && blank($interview->invite_sent_at);
+        return static::workflowGuard()->canSendInterviewSchedule(Auth::user(), $record);
     }
 
     protected static function canRejectApplication(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum
-            ? $record->status
-            : StatusApplicationEnum::tryFrom((string) $record->status);
-
-        return static::currentUserCanRunHrPipelineActions()
-            && static::currentUserCanAccessApplicationBranch($record)
-            && in_array($status, [
-                StatusApplicationEnum::NEW,
-                StatusApplicationEnum::SCREENING,
-                StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                StatusApplicationEnum::INTERVIEW,
-                StatusApplicationEnum::OFFER,
-            ], true);
+        return static::workflowGuard()->canRejectApplication(Auth::user(), $record);
     }
 
     protected static function canReopenOfferResponse(Application $record): bool
     {
-        if (Auth::user()?->hasRole('super_admin') !== true) {
-            return false;
-        }
-
-        return in_array($record->latestOffer?->status, ['accepted', 'declined', 'expired'], true);
+        return static::workflowGuard()->canReopenOfferResponse(Auth::user(), $record);
     }
 
     protected static function getInterviewActionLabel(Application $record): ?string
@@ -999,11 +990,7 @@ class ApplicationsTable
 
     protected static function canManageOffer(Application $record): bool
     {
-        $status = $record->status instanceof StatusApplicationEnum ? $record->status->value : $record->status;
-
-        return $status === StatusApplicationEnum::OFFER->value
-            && static::currentUserCanRunHrPipelineActions()
-            && static::currentUserCanAccessApplicationBranch($record);
+        return static::workflowGuard()->canManageOffer(Auth::user(), $record);
     }
 
     protected static function getLatestOffer(Application $record): ?Offer
@@ -1013,12 +1000,12 @@ class ApplicationsTable
 
     protected static function canEditOffer(?Offer $offer): bool
     {
-        return ! $offer || in_array($offer->status, ['draft', 'rejected'], true);
+        return static::workflowGuard()->canEditOffer($offer);
     }
 
     protected static function shouldCreateReplacementOffer(?Offer $offer): bool
     {
-        return $offer && in_array($offer->status, ['declined', 'expired'], true);
+        return static::workflowGuard()->shouldCreateReplacementOffer($offer);
     }
 
     protected static function lockedOfferMessage(?Offer $offer): string
@@ -1068,6 +1055,35 @@ class ApplicationsTable
 
         // Chỉ gửi khi đề nghị còn là nháp hoặc đã bị giám đốc từ chối và cần gửi duyệt lại.
         return in_array($offer->status, ['draft', 'rejected'], true);
+    }
+
+    protected static function shouldPrioritizeSendInterviewSchedule(Application $record): bool
+    {
+        return static::canSendInterviewSchedule($record)
+            && ! static::canEvaluateInterview($record);
+    }
+
+    protected static function shouldPrioritizeSendOffer(Application $record): bool
+    {
+        return static::canSendOffer($record);
+    }
+
+    protected static function shouldShowPrimaryPipelineAction(Application $record): bool
+    {
+        return static::getPipelineActionLabel($record) !== null
+            && ! static::canEvaluateInterview($record)
+            && ! static::shouldPrioritizeSendInterviewSchedule($record)
+            && ! static::shouldPrioritizeSendOffer($record);
+    }
+
+    protected static function shouldShowSecondaryPipelineAction(Application $record): bool
+    {
+        return static::getPipelineActionLabel($record) !== null
+            && ! static::canEvaluateInterview($record)
+            && (
+                static::shouldPrioritizeSendInterviewSchedule($record)
+                || static::shouldPrioritizeSendOffer($record)
+            );
     }
 
     protected static function getBranchDirectorEmails(Application $record): array
@@ -2503,9 +2519,9 @@ class ApplicationsTable
         return 'Đánh giá phỏng vấn: '.static::interviewConclusionLabel($conclusion).'.'.$scoreText.$recommendationText.$overrideText.$noteText;
     }
 
-    protected static function makeSendOfferAction(): Action
+    protected static function makeSendOfferAction(string $name = 'send_offer'): Action
     {
-        return Action::make('send_offer')
+        return Action::make($name)
             ->label(fn (Application $record): string => match(static::getLatestOffer($record)?->status) {
                 'draft' => 'Gửi duyệt đề nghị',
                 'awaiting_approval' => 'Gửi duyệt đề nghị',
@@ -2557,12 +2573,12 @@ class ApplicationsTable
 
                 static::sendOfferToCandidate($record, $offer, $candidate, $job);
             })
-            ->visible(fn (Application $record): bool => static::canSendOffer($record));
+            ->visible(fn (Application $record): bool => static::shouldPrioritizeSendOffer($record));
     }
 
-    protected static function makeSendInterviewScheduleAction(): Action
+    protected static function makeSendInterviewScheduleAction(string $name = 'send_interview_schedule'): Action
     {
-        return Action::make('send_interview_schedule')
+        return Action::make($name)
             ->label(function (Application $record): string {
                 $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
 
@@ -2588,12 +2604,31 @@ class ApplicationsTable
             ->action(function (Application $record): void {
                 static::sendInterviewSchedule($record);
             })
-            ->visible(fn (Application $record): bool => static::canSendInterviewSchedule($record));
+            ->visible(fn (Application $record): bool => static::shouldPrioritizeSendInterviewSchedule($record));
     }
 
-    protected static function makePipelineAction(): Action
+    protected static function makeSecondaryPipelineAction(): Action
     {
-        return Action::make('pipeline')
+        return static::makePipelineAction('secondary_pipeline')
+            ->label(function (Application $record): string {
+                if (static::shouldPrioritizeSendInterviewSchedule($record)) {
+                    return 'Cập nhật lịch phỏng vấn';
+                }
+
+                if (static::shouldPrioritizeSendOffer($record)) {
+                    return 'Sửa đề nghị tuyển dụng';
+                }
+
+                return static::getPipelineActionLabel($record) ?? 'Cập nhật hồ sơ';
+            })
+            ->icon('heroicon-o-pencil-square')
+            ->color('gray')
+            ->visible(fn (Application $record): bool => static::shouldShowSecondaryPipelineAction($record));
+    }
+
+    protected static function makePipelineAction(string $name = 'pipeline'): Action
+    {
+        return Action::make($name)
             ->label(fn (Application $record): string => static::getPipelineActionLabel($record) ?? 'Xử lý')
             ->icon(fn (Application $record): string => static::getPipelineActionIcon($record))
             ->color(fn (Application $record): string => static::getPipelineActionColor($record))
@@ -2847,7 +2882,7 @@ class ApplicationsTable
                     ->body('Đề nghị tuyển dụng đã được lưu nháp.'.$pdfHint.' Bước tiếp theo: bấm "Gửi duyệt đề nghị" để chuyển cho giám đốc chi nhánh.')
                     ->send();
             })
-            ->visible(fn (Application $record): bool => static::getPipelineActionLabel($record) !== null && ! static::canEvaluateInterview($record))
+            ->visible(fn (Application $record): bool => static::shouldShowPrimaryPipelineAction($record))
             ->disabled(fn (Application $record): bool => static::getPipelineActionLabel($record) === null);
     }
 

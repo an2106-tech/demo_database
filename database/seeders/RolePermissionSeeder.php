@@ -48,63 +48,38 @@ class RolePermissionSeeder extends Seeder
 
         $roles['super_admin']->syncPermissions($allPermissions);
 
-        $roles['director']->syncPermissions($this->permissionsFor($guardName, [
-            'Application',
-            'Candidate',
-            'RecruitmentJob',
-        ], [
-            'ViewAny',
-            'View',
-            'Create',
-            'Update',
-        ], [
+        $directorBasePermissions = [
             'ViewAny:Branch',
             'View:Branch',
             'ViewAny:Department',
             'View:Department',
             'ViewAny:Workplace',
             'View:Workplace',
-        ]));
+        ];
 
-        $roles['pm']->syncPermissions($this->permissionsFor($guardName, [
-            'Application',
-            'Candidate',
-            'RecruitmentJob',
-        ], [
-            'ViewAny',
-            'View',
-            'Create',
-            'Update',
-        ], [
-            'ViewAny:Branch',
-            'View:Branch',
-            'ViewAny:Department',
-            'View:Department',
-            'ViewAny:Workplace',
-            'View:Workplace',
-        ]));
+        $roles['director']->syncPermissions(array_unique(array_merge(
+            $this->permissionsFor($guardName, ['Application'], ['ViewAny', 'View']),
+            $this->permissionsFor($guardName, ['Candidate', 'RecruitmentJob'], ['ViewAny', 'View', 'Create', 'Update'], $directorBasePermissions),
+        )));
 
-        $roles['hr']->syncPermissions($this->permissionsFor($guardName, [
-            'Application',
-            'Candidate',
-            'RecruitmentJob',
-        ], [
-            'ViewAny',
-            'View',
-            'Create',
-            'Update',
-            'Delete',
-            'DeleteAny',
-        ], [
-            'ViewAny:Branch',
-            'View:Branch',
-            'ViewAny:Department',
-            'View:Department',
-            'ViewAny:Workplace',
-            'View:Workplace',
-            'ViewAny:User',
-            'View:User',
-        ]));
+        $roles['pm']->syncPermissions(array_unique(array_merge(
+            $this->permissionsFor($guardName, ['Application'], ['ViewAny', 'View']),
+            $this->permissionsFor($guardName, ['Candidate', 'RecruitmentJob'], ['ViewAny', 'View', 'Create', 'Update'], $directorBasePermissions),
+        )));
+
+        $roles['hr']->syncPermissions(array_unique(array_merge(
+            $this->permissionsFor($guardName, ['Application'], ['ViewAny', 'View', 'Create', 'Update']),
+            $this->permissionsFor($guardName, ['Candidate', 'RecruitmentJob'], ['ViewAny', 'View', 'Create', 'Update', 'Delete', 'DeleteAny'], [
+                'ViewAny:Branch',
+                'View:Branch',
+                'ViewAny:Department',
+                'View:Department',
+                'ViewAny:Workplace',
+                'View:Workplace',
+                'ViewAny:User',
+                'View:User',
+            ]),
+        )));
 
         Role::query()
             ->where('guard_name', $guardName)

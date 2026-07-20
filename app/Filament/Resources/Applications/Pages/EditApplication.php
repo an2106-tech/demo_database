@@ -20,9 +20,12 @@ class EditApplication extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
-            RestoreAction::make(),
+            DeleteAction::make()
+                ->visible(fn (): bool => ApplicationResource::canDelete($this->record)),
+            ForceDeleteAction::make()
+                ->visible(fn (): bool => ApplicationResource::canForceDelete($this->record)),
+            RestoreAction::make()
+                ->visible(fn (): bool => ApplicationResource::canRestore($this->record)),
         ];
     }
 

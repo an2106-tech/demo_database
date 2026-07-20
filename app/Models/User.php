@@ -43,14 +43,6 @@ class User extends Authenticatable implements FilamentUser
         });
     }
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    use HasRoles;
-    use SoftDeletes;
-
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
         if ($panel->getId() !== 'admin' || ! $this->is_active) {
