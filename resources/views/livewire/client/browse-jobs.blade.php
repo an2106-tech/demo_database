@@ -152,33 +152,35 @@
 
         .bj2-page .bj2-card__tags {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow: hidden;
             gap: .45rem;
             margin-bottom: .85rem;
         }
 
         .bj2-page .bj2-card__tag {
-            display: inline-flex;
-            align-items: center;
-            min-height: 2rem;
-            padding: .4rem .75rem;
+            display: block;
+            padding: .35rem .75rem;
             border-radius: 999px;
             font-size: .78rem;
-            line-height: 1;
+            line-height: 1.3;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 0;
             border: 1px solid transparent;
         }
 
         .bj2-page .bj2-card__tag--accent {
-            background: #fff7ed;
-            color: #c2410c;
-            border-color: rgba(251, 146, 60, .18);
+            background: var(--bj2-accent-soft);
+            color: var(--bj2-accent);
+            border-color: rgba(243, 112, 33, .14);
         }
 
         .bj2-page .bj2-card__tag--soft {
             background: #f8fafc;
-            color: #475569;
-            border-color: rgba(226, 232, 240, .95);
+            color: var(--bj2-muted);
+            border-color: var(--bj2-line);
         }
 
         .bj2-page .bj2-card__actions .btn {
@@ -205,6 +207,24 @@
             .bj2-page .bj2-card__info {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Pagination overrides */
+        .bj2-pagination span[aria-current="page"] > span,
+        .bj2-pagination .page-item.active .page-link,
+        .bj2-pagination .active > .page-link {
+            background-color: var(--bj2-accent) !important;
+            border-color: var(--bj2-accent) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        .bj2-pagination button:hover,
+        .bj2-pagination a:hover,
+        .bj2-pagination .page-link:hover {
+            background-color: var(--bj2-accent-soft) !important;
+            border-color: var(--bj2-accent) !important;
+            color: var(--bj2-accent) !important;
         }
     </style>
 
@@ -419,9 +439,9 @@
                                 </div>
 
                                 <div class="bj2-card__info mb-3">
-                                    <div class="bj2-card__location d-flex align-items-center" style="font-size: 0.94rem;">
+                                    <div class="bj2-card__location d-flex align-items-center" style="font-size: 0.94rem; min-width: 0;">
                                         <i class="fa fa-map-marker me-2"></i>
-                                        <span>{{ $cityText }}</span>
+                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $cityText }}</span>
                                     </div>
 
                                     <div class="d-flex align-items-center justify-content-sm-end">
@@ -432,7 +452,7 @@
                                 </div>
 
                                 <div class="bj2-card__tags">
-                                    <span class="bj2-card__tag bj2-card__tag--accent">Nội bộ FPT</span>
+                                    <span class="bj2-card__tag bj2-card__tag--accent" style="flex-shrink: 0;">Nội bộ FPT</span>
                                     <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $departmentName }}">{{ $departmentName }}</span>
                                     <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $workplaceName }}">{{ $workplaceName }}</span>
                                 </div>
@@ -446,8 +466,8 @@
                                 </div>
 
                                 <div class="bj2-card__actions d-flex flex-wrap gap-2 w-100 mt-4">
-                                    <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.72rem 0; background: #f8fafc; color: #334155; border: 1px solid rgba(226, 232, 240, .95); box-shadow: none;">Xem chi tiết</a>
-                                    <a href="{{ $applyUrl }}" class="btn rounded-pill fw-semibold text-white text-center" style="flex: 2; min-width: 150px; padding: 0.72rem 0; background: #111827; border: none; box-shadow: none;">Ứng tuyển ngay</a>
+                                    <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.72rem 0; background: #f8fafc; color: #334155; border: 1px solid var(--bj2-line); box-shadow: none;">Xem chi tiết</a>
+                                    <a href="{{ $applyUrl }}" class="btn rounded-pill fw-semibold text-white text-center" style="flex: 2; min-width: 150px; padding: 0.72rem 0; background: var(--bj2-accent); border: none; box-shadow: 0 4px 12px rgba(243, 112, 33, 0.25);">Ứng tuyển ngay</a>
                                 </div>
                             </div>
                         </article>

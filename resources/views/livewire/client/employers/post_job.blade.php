@@ -1,4 +1,4 @@
-﻿<div>
+<div>
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
 
     @php
@@ -44,23 +44,23 @@
                                     <div class="field-stack">
                                         <div class="field-card">
                                             <label for="ai-brief">JD thô / ghi chú tuyển dụng</label>
-                                            <textarea id="ai-brief" wire:model.defer="ai_brief" rows="5" placeholder="Ví dụ: Cần tuyển 2 Laravel Developer làm hệ thống nội bộ, yêu cầu 2-4 năm kinh nghiệm, ưu tiên có kinh nghiệm REST API và Vue..."></textarea>
+                                            <textarea id="ai-brief" wire:model="ai_brief" rows="5" placeholder="Ví dụ: Cần tuyển 2 Laravel Developer làm hệ thống nội bộ, yêu cầu 2-4 năm kinh nghiệm, ưu tiên có kinh nghiệm REST API và Vue..."></textarea>
                                             @error('ai_brief') <span class="field-error">{{ $message }}</span> @enderror
                                         </div>
 
                                         <div class="rounded-4 border border-opacity-10 p-2 p-md-3" style="background: #f8fafc; border-color: rgba(15, 23, 42, 0.08) !important;">
                                             <div class="d-grid gap-2 gap-md-3" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));">
-                                                <button type="button" wire:click="generateAiDraft" wire:loading.attr="disabled" wire:target="generateAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; color: #fff;">
-                                                    <span wire:loading.remove wire:target="generateAiDraft">Tạo nháp</span>
-                                                    <span wire:loading wire:target="generateAiDraft">Đang tạo...</span>
+                                                <button type="button" wire:click.prevent="generateAiDraft" wire:loading.attr="disabled" wire:target="generateAiDraft" class="jobguru-btn-2 text-white d-flex align-items-center justify-content-center w-100" style="min-height: 48px; color: #ffffff !important;">
+                                                    <span wire:loading.remove wire:target="generateAiDraft" class="text-white" style="color: #ffffff !important;">Tạo nháp</span>
+                                                    <span wire:loading wire:target="generateAiDraft" class="text-white" style="color: #ffffff !important;">Đang tạo...</span>
                                                 </button>
-                                                <button type="button" wire:click="reviewAiDraft" wire:loading.attr="disabled" wire:target="reviewAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #334155; color: #fff; border: 1px solid #334155; box-shadow: none;">
-                                                    <span wire:loading.remove wire:target="reviewAiDraft">Kiểm tra</span>
-                                                    <span wire:loading wire:target="reviewAiDraft">Đang kiểm tra...</span>
+                                                <button type="button" wire:click.prevent="reviewAiDraft" wire:loading.attr="disabled" wire:target="reviewAiDraft" class="jobguru-btn-2 text-white d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #334155; color: #ffffff !important; border: 1px solid #334155; box-shadow: none;">
+                                                    <span wire:loading.remove wire:target="reviewAiDraft" class="text-white" style="color: #ffffff !important;">Kiểm tra</span>
+                                                    <span wire:loading wire:target="reviewAiDraft" class="text-white" style="color: #ffffff !important;">Đang kiểm tra...</span>
                                                 </button>
-                                                <button type="button" wire:click="improveAiDraft" wire:loading.attr="disabled" wire:target="improveAiDraft" class="jobguru-btn-2 d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #111827; color: #fff; border: none; box-shadow: none;">
-                                                    <span wire:loading.remove wire:target="improveAiDraft">Cải thiện</span>
-                                                    <span wire:loading wire:target="improveAiDraft">Đang cải thiện...</span>
+                                                <button type="button" wire:click.prevent="improveAiDraft" wire:loading.attr="disabled" wire:target="improveAiDraft" class="jobguru-btn-2 text-white d-flex align-items-center justify-content-center w-100" style="min-height: 48px; background: #111827; color: #ffffff !important; border: none; box-shadow: none;">
+                                                    <span wire:loading.remove wire:target="improveAiDraft" class="text-white" style="color: #ffffff !important;">Cải thiện</span>
+                                                    <span wire:loading wire:target="improveAiDraft" class="text-white" style="color: #ffffff !important;">Đang cải thiện...</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -79,6 +79,47 @@
                                                     @endif
                                                 </div>
 
+                                                @if (! is_null($ai_quality_score))
+                                                    <div class="row mb-3">
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                                                <span>Độ rõ ràng</span>
+                                                                <span class="fw-bold">{{ $ai_quality_clarity ?? 0 }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $ai_quality_clarity ?? 0 }}%" aria-valuenow="{{ $ai_quality_clarity ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                                                <span>Sức hấp dẫn</span>
+                                                                <span class="fw-bold">{{ $ai_quality_attractiveness ?? 0 }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-info" role="progressbar" style="width: {{ $ai_quality_attractiveness ?? 0 }}%" aria-valuenow="{{ $ai_quality_attractiveness ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                                                <span>Minh bạch lương</span>
+                                                                <span class="fw-bold">{{ $ai_quality_salary_transparency ?? 0 }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-warning" role="progressbar" style="width: {{ $ai_quality_salary_transparency ?? 0 }}%" aria-valuenow="{{ $ai_quality_salary_transparency ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-6 mb-2">
+                                                            <div class="d-flex justify-content-between mb-1" style="font-size: 13px;">
+                                                                <span>Thân thiện ứng viên</span>
+                                                                <span class="fw-bold">{{ $ai_quality_candidate_friendliness ?? 0 }}%</span>
+                                                            </div>
+                                                            <div class="progress" style="height: 6px;">
+                                                                <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $ai_quality_candidate_friendliness ?? 0 }}%" aria-valuenow="{{ $ai_quality_candidate_friendliness ?? 0 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                @endif
+
                                                 @if (filled($ai_quality_note))
                                                     <div class="rounded-4 border border-opacity-10 bg-white p-3 p-md-4 mb-3" style="border-color: rgba(148, 163, 184, 0.16) !important;">
                                                         {{ $ai_quality_note }}
@@ -94,7 +135,7 @@
                                                             </div>
                                                             <div class="d-flex flex-wrap gap-2">
                                                                 @foreach ($ai_quality_issues as $issue)
-                                                                    <span class="badge rounded-pill text-bg-light border">{{ $issue }}</span>
+                                                                    <span class="badge rounded-pill text-bg-light border text-wrap text-start" style="line-height: 1.4;">{{ $issue }}</span>
                                                                 @endforeach
                                                             </div>
                                                         </div>
@@ -108,7 +149,7 @@
                                                             </div>
                                                             <div class="d-flex flex-wrap gap-2">
                                                                 @foreach ($ai_quality_missing_information as $item)
-                                                                    <span class="badge rounded-pill text-bg-light border">{{ $item }}</span>
+                                                                    <span class="badge rounded-pill text-bg-light border text-wrap text-start" style="line-height: 1.4;">{{ $item }}</span>
                                                                 @endforeach
                                                             </div>
                                                         </div>
@@ -138,7 +179,7 @@
                                                 @if (filled($ai_improve_changes))
                                                     <div class="d-flex flex-wrap gap-2">
                                                         @foreach ($ai_improve_changes as $change)
-                                                            <span class="badge rounded-pill text-bg-light border">{{ $change }}</span>
+                                                            <span class="badge rounded-pill text-bg-light border text-wrap text-start" style="line-height: 1.4;">{{ $change }}</span>
                                                         @endforeach
                                                     </div>
                                                 @endif
@@ -162,7 +203,7 @@
                                                             </div>
                                                             <div class="d-flex flex-wrap gap-2">
                                                                 @foreach ($ai_draft_highlights as $highlight)
-                                                                    <span class="badge rounded-pill text-bg-light border">{{ $highlight }}</span>
+                                                                    <span class="badge rounded-pill text-bg-light border text-wrap text-start" style="line-height: 1.4;">{{ $highlight }}</span>
                                                                 @endforeach
                                                             </div>
                                                         </div>
@@ -176,7 +217,7 @@
                                                             </div>
                                                             <div class="d-flex flex-wrap gap-2">
                                                                 @foreach ($ai_draft_missing_information as $item)
-                                                                    <span class="badge rounded-pill text-bg-light border">{{ $item }}</span>
+                                                                    <span class="badge rounded-pill text-bg-light border text-wrap text-start" style="line-height: 1.4;">{{ $item }}</span>
                                                                 @endforeach
                                                             </div>
                                                         </div>
@@ -195,7 +236,7 @@
                                     <div class="field-stack">
                                         <div class="field-card">
                                             <label for="jd-overview">Tổng quan ngắn</label>
-                                            <textarea id="jd-overview" wire:model.defer="overview" rows="3" placeholder="Mô tả ngắn về vị trí, mục tiêu của team và phạm vi công việc."></textarea>
+                                            <textarea id="jd-overview" wire:model="overview" rows="3" placeholder="Mô tả ngắn về vị trí, mục tiêu của team và phạm vi công việc."></textarea>
                                             @error('overview') <span class="field-error">{{ $message }}</span> @enderror
                                         </div>
 
@@ -203,21 +244,21 @@
                                             <div class="col-md-4">
                                                 <div class="field-card h-100">
                                                     <label for="jd-responsibilities">Trách nhiệm chính</label>
-                                                    <textarea id="jd-responsibilities" wire:model.defer="responsibilities" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Xây dựng tính năng mới&#10;- Tối ưu hiệu năng"></textarea>
+                                                    <textarea id="jd-responsibilities" wire:model="responsibilities" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Xây dựng tính năng mới&#10;- Tối ưu hiệu năng"></textarea>
                                                     @error('responsibilities') <span class="field-error">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="field-card h-100">
                                                     <label for="jd-requirements">Yêu cầu</label>
-                                                    <textarea id="jd-requirements" wire:model.defer="requirements" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- 2 năm kinh nghiệm Laravel&#10;- Hiểu REST API"></textarea>
+                                                    <textarea id="jd-requirements" wire:model="requirements" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- 2 năm kinh nghiệm Laravel&#10;- Hiểu REST API"></textarea>
                                                     @error('requirements') <span class="field-error">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="field-card h-100">
                                                     <label for="jd-benefits">Quyền lợi</label>
-                                                    <textarea id="jd-benefits" wire:model.defer="benefits" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Môi trường nội bộ ổn định&#10;- Có lộ trình phát triển rõ"></textarea>
+                                                    <textarea id="jd-benefits" wire:model="benefits" rows="10" placeholder="Mỗi dòng là một ý.&#10;Ví dụ:&#10;- Môi trường nội bộ ổn định&#10;- Có lộ trình phát triển rõ"></textarea>
                                                     @error('benefits') <span class="field-error">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
@@ -236,7 +277,7 @@
                                         <div class="field-stack">
                                             <div class="field-card">
                                                 <label for="job-title">Tiêu đề công việc</label>
-                                                <input id="job-title" type="text" wire:model.defer="title" placeholder="Ví dụ: Senior Laravel Developer">
+                                                <input id="job-title" type="text" wire:model="title" placeholder="Ví dụ: Senior Laravel Developer">
                                                 @error('title') <span class="field-error">{{ $message }}</span> @enderror
                                             </div>
 
@@ -281,7 +322,7 @@
                                                 <div class="col-md-6">
                                                     <div class="field-card">
                                                         <label for="job-workplace">Nơi làm việc</label>
-                                                        <select id="job-workplace" wire:model.defer="workplace_id" @disabled(! $branch_id)>
+                                                        <select id="job-workplace" wire:model="workplace_id" @disabled(! $branch_id)>
                                                             <option value="">{{ $branch_id ? 'Không bắt buộc' : 'Chọn chi nhánh trước' }}</option>
                                                             @foreach ($workplaces as $workplace)
                                                                 <option value="{{ $workplace->id }}">{{ $workplace->name }}</option>
@@ -293,7 +334,7 @@
                                                 <div class="col-md-6">
                                                     <div class="field-card">
                                                         <label for="job-public-url">Link ứng tuyển ngoài</label>
-                                                        <input id="job-public-url" type="url" wire:model.defer="public_url" placeholder="https://example.com/apply">
+                                                        <input id="job-public-url" type="url" wire:model="public_url" placeholder="https://example.com/apply">
                                                         @error('public_url') <span class="field-error">{{ $message }}</span> @enderror
                                                     </div>
                                                 </div>
@@ -303,14 +344,14 @@
                                                 <div class="col-md-6">
                                                     <div class="field-card">
                                                         <label for="job-salary-min">Lương tối thiểu</label>
-                                                        <input id="job-salary-min" type="number" min="0" wire:model.defer="salary_min" placeholder="15000000">
+                                                        <input id="job-salary-min" type="number" min="0" wire:model="salary_min" placeholder="15000000">
                                                         @error('salary_min') <span class="field-error">{{ $message }}</span> @enderror
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6">
                                                     <div class="field-card">
                                                         <label for="job-salary-max">Lương tối đa</label>
-                                                        <input id="job-salary-max" type="number" min="0" wire:model.defer="salary_max" placeholder="25000000">
+                                                        <input id="job-salary-max" type="number" min="0" wire:model="salary_max" placeholder="25000000">
                                                         @error('salary_max') <span class="field-error">{{ $message }}</span> @enderror
                                                     </div>
                                                 </div>
@@ -329,14 +370,14 @@
                                             <div class="col-md-6">
                                                 <div class="field-card">
                                                     <label for="job-deadline">Hạn nộp</label>
-                                                    <input id="job-deadline" type="date" wire:model.defer="deadline">
+                                                    <input id="job-deadline" type="date" wire:model="deadline">
                                                     @error('deadline') <span class="field-error">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="field-card">
                                                     <label for="job-positions">Số lượng cần tuyển</label>
-                                                    <input id="job-positions" type="number" min="1" max="99" wire:model.defer="positions_count">
+                                                    <input id="job-positions" type="number" min="1" max="99" wire:model="positions_count">
                                                     @error('positions_count') <span class="field-error">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
@@ -461,9 +502,9 @@
                                     </div>
 
                                     <div class="job-form-actions">
-                                        <button type="submit" wire:loading.attr="disabled" wire:target="save" class="jobguru-btn-2">
-                                            <span wire:loading.remove wire:target="save">{{ $jobId ? 'Cập nhật tin tuyển dụng' : 'Đăng tin tuyển dụng' }}</span>
-                                            <span wire:loading wire:target="save">Đang xử lý...</span>
+                                        <button type="submit" wire:loading.attr="disabled" wire:target="save" class="jobguru-btn-2 text-white" style="color: #ffffff !important;">
+                                            <span wire:loading.remove wire:target="save" class="text-white" style="color: #ffffff !important;">{{ $jobId ? 'Cập nhật tin tuyển dụng' : 'Đăng tin tuyển dụng' }}</span>
+                                            <span wire:loading wire:target="save" class="text-white" style="color: #ffffff !important;">Đang xử lý...</span>
                                         </button>
                                     </div>
                                 </form>
@@ -520,8 +561,19 @@
 
             if (window.jobDescriptionEditor && typeof window.jobDescriptionEditor.setData === 'function') {
                 window.jobDescriptionEditor.setData(description);
+            } else {
+                console.warn('CKEditor instance (jobDescriptionEditor) not found or not initialized yet.');
+            }
+        });
+
+        window.addEventListener('ai-draft-fields-updated', (event) => {
+            const data = event?.detail?.[0] || event?.detail || {};
+            if (data.skills) {
+                $('#job-skills').val(data.skills).trigger('change.select2');
+            }
+            if (data.categories) {
+                $('#job-categories').val(data.categories).trigger('change.select2');
             }
         });
     });
 </script>
-
