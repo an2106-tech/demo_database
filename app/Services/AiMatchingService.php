@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\CandidateJobSubmission;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class AiMatchingService
 {
@@ -14,9 +15,9 @@ class AiMatchingService
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.key') ?? env('GEMINI_API_KEY');
+        $this->apiKey = config('services.gemini.key');
         $model = config('services.gemini.model', 'gemini-3.1-flash-lite');
-        $this->apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/'.$model.':generateContent';
+        $this->apiUrl = config('services.gemini.url', 'https://generativelanguage.googleapis.com/v1beta/models/' . $model . ':generateContent');
     }
 
     public function calculateMatch(CandidateJobSubmission $submission): bool
@@ -62,6 +63,7 @@ class AiMatchingService
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (isset($data['score'])) {
@@ -116,17 +118,31 @@ class AiMatchingService
         $contextJson = json_encode($payloadContext, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
         $prompt = <<<PROMPT
-Bạn là chuyên gia viết tin tuyển dụng cho hệ thống tuyển dụng nội bộ. Hãy viết lại một bản nháp tin tuyển dụng từ dữ liệu đầu vào dưới đây để HR đọc là hiểu ngay, dễ chỉnh sửa và đăng.
+Bạn là chuyên gia viết tin tuyển dụng cho hệ thống tuyển dụng nội bộ. Hãy viết một bản nháp tin tuyển dụng từ dữ liệu đầu vào dưới đây để HR đọc là hiểu ngay, dễ chỉnh sửa và đăng.
 
 Yêu cầu:
 - Viết bằng tiếng Việt tự nhiên, chuyên nghiệp, gọn gàng.
 - Không dùng câu quảng cáo sáo rỗng.
-- Không bịa thêm thông tin không có trong dữ liệu đầu vào.
-- Nếu thiếu thông tin, giữ chỗ trống hoặc ghi ngắn gọn là "Thỏa thuận" / "Chưa cập nhật".
-- Ưu tiên cấu trúc rõ ràng: giới thiệu ngắn, trách nhiệm, yêu cầu, quyền lợi, thông tin làm việc.
-- Nội dung description trả về phải là HTML hợp lệ, có thể dán vào trình soạn thảo.
+- Không bỊa thêm thông tin không có trong dữ liệu đầu vào.
+- Nếu thiếu thông tin, ghi ngắn gọn là "Thỏa thuận" / "Chưa cập nhật".
 - title nên ngắn gọn, chuẩn chỉnh hơn tiêu đề đầu vào nếu cần, nhưng không thay đổi ý nghĩa chính.
-- Không thêm phần giải thích ngoài JSON.
+- overview: 1-2 câu giới thiệu ngắn về vị trí và team.
+- responsibilities: mỗi đầu dòng là một trách nhiệm, viết dạng bullet (mỗi ý một dòng, bắt đầu bằng gạch "-").
+- requirements: mỗi dòng là một yêu cầu (bullet có gạch "-").
+- benefits: mỗi dòng là một quyền lợi (bullet có gạch "-").
+- Lấy các danh sách có sẵn (skills, categories) trong dữ liệu đầu vào. selected_skills và selected_categories CHỈ ĐƯỢC lấy id tồn tại trong dữ liệu đầu vào, không tự tạo id mới, nếu không có thì trả về mảng rỗng [].
+- salary_min và salary_max: trích xuất mức lương dạng số. Cụ thể:
+  + Nếu có "20 đến 35 triệu" -> salary_min = 20000000, salary_max = 35000000.
+  + Nếu chỉ có mức tối thiểu (VD: "Từ 15 triệu", "20+") -> salary_min = 15000000, salary_max = null.
+  + Nếu chỉ có mức tối đa (VD: "Up to 30 triệu") -> salary_min = null, salary_max = 30000000.
+  + Nếu "Thỏa thuận", "Negotiable" -> salary_min = null, salary_max = null.
+- deadline: định dạng YYYY-MM-DD. (Nếu ngày ở định dạng DD/MM/YYYY thì chuyển thành YYYY-MM-DD). Nếu không rõ thì để null.
+- description trả về phải là HTML hợp lệ. Cấu trúc yêu cầu:
+  <h2>Tổng quan</h2><p>...</p>
+  <h2>Trách nhiệm chính</h2><ul><li>...</li></ul>
+  <h2>Yêu cầu</h2><ul><li>...</li></ul>
+  <h2>Quyền lợi</h2><ul><li>...</li></ul>
+- Chỉ trả về JSON hợp lệ theo đúng cấu trúc. Không được trả về markdown. Không được bao quanh bởi ```json.
 
 Dữ liệu đầu vào:
 $contextJson
@@ -134,7 +150,16 @@ $contextJson
 Trả về duy nhất JSON theo schema:
 {
   "title": "Senior Laravel Developer",
-  "description": "<h3>Mô tả công việc</h3><p>...</p><ul><li>...</li></ul><h3>Yêu cầu</h3><ul><li>...</li></ul><h3>Quyền lợi</h3><ul><li>...</li></ul>",
+  "overview": "Vị trí Senior Laravel Developer thuộc team backend, chịu trách nhiệm phát triển và duy trì hệ thống ERP nội bộ.",
+  "responsibilities": "- Xây dựng tính năng mới\n- Tối ưu hiệu năng\n- Review code",
+  "requirements": "- 3 năm kinh nghiệm Laravel\n- Hiểu REST API\n- Ưu tiên biết VueJS",
+  "benefits": "- Lương 20-35 triệu\n- BHXH đầy đủ\n- Cơ hội thăng tiến",
+  "description": "<h2>Tổng quan</h2><p>...</p><h2>Trách nhiệm chính</h2><ul><li>...</li></ul><h2>Yêu cầu</h2><ul><li>...</li></ul><h2>Quyền lợi</h2><ul><li>...</li></ul>",
+  "salary_min": 20000000,
+  "salary_max": 35000000,
+  "deadline": "2026-08-30",
+  "selected_skills": [1, 5, 12],
+  "selected_categories": [3, 4],
   "highlights": ["Làm việc với Laravel", "Tối ưu hệ thống tuyển dụng"],
   "missing_information": ["Lương", "Hạn nộp"]
 }
@@ -150,12 +175,21 @@ PROMPT;
                 'response_schema' => [
                     'type' => 'OBJECT',
                     'properties' => [
-                        'title' => ['type' => 'STRING'],
-                        'description' => ['type' => 'STRING'],
-                        'highlights' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'title'               => ['type' => 'STRING'],
+                        'overview'            => ['type' => 'STRING'],
+                        'responsibilities'    => ['type' => 'STRING'],
+                        'requirements'        => ['type' => 'STRING'],
+                        'benefits'            => ['type' => 'STRING'],
+                        'description'         => ['type' => 'STRING'],
+                        'salary_min'          => ['type' => 'NUMBER', 'nullable' => true],
+                        'salary_max'          => ['type' => 'NUMBER', 'nullable' => true],
+                        'deadline'            => ['type' => 'STRING', 'nullable' => true],
+                        'selected_skills'     => ['type' => 'ARRAY', 'items' => ['type' => 'INTEGER']],
+                        'selected_categories' => ['type' => 'ARRAY', 'items' => ['type' => 'INTEGER']],
+                        'highlights'          => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
                         'missing_information' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
                     ],
-                    'required' => ['title', 'description', 'highlights', 'missing_information'],
+                    'required' => ['title', 'overview', 'responsibilities', 'requirements', 'benefits', 'description', 'highlights', 'missing_information'],
                 ],
             ],
         ];
@@ -172,6 +206,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (! is_array($data) || ! isset($data['title'], $data['description'])) {
@@ -180,9 +215,18 @@ PROMPT;
             }
 
             return [
-                'title' => trim((string) $data['title']),
-                'description' => trim((string) $data['description']),
-                'highlights' => array_slice((array) ($data['highlights'] ?? []), 0, 6),
+                'title'               => trim((string) $data['title']),
+                'overview'            => trim((string) ($data['overview'] ?? '')),
+                'responsibilities'    => trim((string) ($data['responsibilities'] ?? '')),
+                'requirements'        => trim((string) ($data['requirements'] ?? '')),
+                'benefits'            => trim((string) ($data['benefits'] ?? '')),
+                'description'         => trim((string) $data['description']),
+                'salary_min'          => $data['salary_min'] ?? null,
+                'salary_max'          => $data['salary_max'] ?? null,
+                'deadline'            => $data['deadline'] ?? null,
+                'selected_skills'     => (array) ($data['selected_skills'] ?? []),
+                'selected_categories' => (array) ($data['selected_categories'] ?? []),
+                'highlights'          => array_slice((array) ($data['highlights'] ?? []), 0, 6),
                 'missing_information' => array_slice((array) ($data['missing_information'] ?? []), 0, 6),
             ];
         } catch (\Throwable $e) {
@@ -236,11 +280,14 @@ Hãy đánh giá:
 Yêu cầu:
 - Trả lời bằng tiếng Việt, ngắn gọn, thực tế, ưu tiên theo góc nhìn HR.
 - Không bịa thêm dữ liệu.
-- Nếu thiếu thông tin, nêu rõ trường nào thiếu.
-- score từ 0 đến 100, càng cao càng hoàn chỉnh.
+- Không nhận xét lỗi chính tả nếu dữ liệu đầu vào không có lỗi.
+- Không yêu cầu thêm thông tin (như văn hóa công ty, môi trường) nếu JD đã đủ để ứng viên hiểu công việc.
+- Nếu thiếu thông tin quan trọng, nêu rõ trường nào thiếu.
+- score từ 0 đến 100, càng cao càng hoàn chỉnh. Đánh giá thêm các điểm số chi tiết: clarity (rõ ràng), attractiveness (hấp dẫn), salary_transparency (minh bạch lương), candidate_friendliness (thân thiện với ứng viên).
 - title_suggestion chỉ nên có khi title hiện tại chưa ổn.
 - issues và missing_information mỗi mảng tối đa 5 ý.
 - suggestion_note tối đa 2 câu.
+- Chỉ trả về JSON hợp lệ theo đúng cấu trúc. Không được trả về markdown.
 
 Dữ liệu JD:
 $contextJson
@@ -248,10 +295,14 @@ $contextJson
 Trả về duy nhất JSON theo schema:
 {
   "score": 78,
+  "clarity": 90,
+  "attractiveness": 72,
+  "salary_transparency": 100,
+  "candidate_friendliness": 84,
   "title_suggestion": "Senior Laravel Developer",
   "issues": ["Mô tả còn chung chung", "Chưa nêu rõ quyền lợi"],
   "missing_information": ["Lương", "Hạn nộp"],
-  "suggestion_note": "JD đã có khung cơ bản nhưng cần nêu rõ hơn phạm vi công việc và quyền lợi. Tiêu đề có thể rút gọn để nhìn gọn hơn."
+  "suggestion_note": "JD đã có khung cơ bản nhưng cần nêu rõ hơn phạm vi công việc và quyền lợi."
 }
 PROMPT;
 
@@ -260,7 +311,7 @@ PROMPT;
                 ['parts' => [['text' => $prompt]]],
             ],
             'generationConfig' => [
-                'temperature' => 0.2,
+                'temperature' => 0.1,
                 'response_mime_type' => 'application/json',
                 'response_schema' => [
                     'type' => 'OBJECT',
@@ -288,6 +339,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (! is_array($data) || ! isset($data['score'])) {
@@ -296,11 +348,11 @@ PROMPT;
             }
 
             return [
-                'score' => max(0, min(100, (int) $data['score'])),
-                'title_suggestion' => trim((string) ($data['title_suggestion'] ?? '')),
-                'issues' => array_slice((array) ($data['issues'] ?? []), 0, 5),
-                'missing_information' => array_slice((array) ($data['missing_information'] ?? []), 0, 5),
-                'suggestion_note' => trim((string) ($data['suggestion_note'] ?? '')),
+                'score'              => max(0, min(100, (int) $data['score'])),
+                'title_suggestion'   => (string) ($data['title_suggestion'] ?? ''),
+                'issues'             => array_slice((array) ($data['issues'] ?? []), 0, 5),
+                'missing_information'=> array_slice((array) ($data['missing_information'] ?? []), 0, 5),
+                'suggestion_note'    => (string) ($data['suggestion_note'] ?? ''),
             ];
         } catch (\Throwable $e) {
             $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
@@ -346,11 +398,15 @@ Bạn là chuyên gia biên tập JD cho hệ thống tuyển dụng nội bộ.
 Yêu cầu:
 - Viết bằng tiếng Việt tự nhiên, chuyên nghiệp, không sáo rỗng.
 - Giữ cấu trúc rõ ràng: tổng quan, trách nhiệm, yêu cầu, quyền lợi.
-- Không thêm thông tin bịa đặt.
-- Nếu thấy nội dung nào nên bỏ hoặc gộp lại để gọn hơn, hãy làm.
+- KHÔNG ĐƯỢC thêm thông tin bịa đặt.
+- KHÔNG ĐƯỢC thêm trách nhiệm mới.
+- KHÔNG ĐƯỢC thêm quyền lợi mới.
+- KHÔNG ĐƯỢC thêm yêu cầu mới. 
+- Chỉ được diễn đạt lại, rút gọn hoặc gộp các ý đã có.
 - Nếu tiêu đề hiện tại chưa gọn, đề xuất tiêu đề tốt hơn.
-- description trả về phải là HTML hợp lệ.
-- Không thêm giải thích ngoài JSON.
+- Trả về các phần cấu trúc rõ ràng: overview, responsibilities, requirements, benefits như dạng danh sách (bullet có gạch "-").
+- description trả về phải là HTML hợp lệ tổng hợp từ các phần trên (sử dụng thẻ <h2> thay vì <h3>).
+- Chỉ trả về JSON hợp lệ theo đúng cấu trúc. Không được trả về markdown.
 
 Dữ liệu JD:
 $contextJson
@@ -358,7 +414,11 @@ $contextJson
 Trả về duy nhất JSON theo schema:
 {
   "title": "Senior Laravel Developer",
-  "description": "<h3>Tổng quan</h3><p>...</p><h3>Trách nhiệm chính</h3><ul><li>...</li></ul><h3>Yêu cầu</h3><ul><li>...</li></ul><h3>Quyền lợi</h3><ul><li>...</li></ul>",
+  "overview": "Mô tả ngắn gọn về vị trí",
+  "responsibilities": "- Xây dựng hệ thống...\n- Tối ưu...",
+  "requirements": "- 3 năm kinh nghiệm...\n- Biết...",
+  "benefits": "- Lương...\n- BHXH...",
+  "description": "<h2>Tổng quan</h2><p>...</p><h2>Trách nhiệm chính</h2><ul><li>...</li></ul><h2>Yêu cầu</h2><ul><li>...</li></ul><h2>Quyền lợi</h2><ul><li>...</li></ul>",
   "changes": ["Làm gọn mô tả", "Rút tiêu đề về ngắn hơn"],
   "note": "JD đã được viết lại theo hướng rõ hơn, ngắn hơn và dễ đọc hơn."
 }
@@ -369,17 +429,21 @@ PROMPT;
                 ['parts' => [['text' => $prompt]]],
             ],
             'generationConfig' => [
-                'temperature' => 0.2,
+                'temperature' => 0.1,
                 'response_mime_type' => 'application/json',
                 'response_schema' => [
                     'type' => 'OBJECT',
                     'properties' => [
-                        'title' => ['type' => 'STRING'],
-                        'description' => ['type' => 'STRING'],
-                        'changes' => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
-                        'note' => ['type' => 'STRING'],
+                        'title'            => ['type' => 'STRING'],
+                        'overview'         => ['type' => 'STRING'],
+                        'responsibilities' => ['type' => 'STRING'],
+                        'requirements'     => ['type' => 'STRING'],
+                        'benefits'         => ['type' => 'STRING'],
+                        'description'      => ['type' => 'STRING'],
+                        'changes'          => ['type' => 'ARRAY', 'items' => ['type' => 'STRING']],
+                        'note'             => ['type' => 'STRING'],
                     ],
-                    'required' => ['title', 'description', 'changes', 'note'],
+                    'required' => ['title', 'overview', 'responsibilities', 'requirements', 'benefits', 'description', 'changes', 'note'],
                 ],
             ],
         ];
@@ -396,6 +460,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (! is_array($data) || ! isset($data['title'], $data['description'])) {
@@ -404,10 +469,14 @@ PROMPT;
             }
 
             return [
-                'title' => trim((string) $data['title']),
-                'description' => trim((string) $data['description']),
-                'changes' => array_slice((array) ($data['changes'] ?? []), 0, 6),
-                'note' => trim((string) ($data['note'] ?? '')),
+                'title'            => trim((string) $data['title']),
+                'overview'         => trim((string) ($data['overview'] ?? '')),
+                'responsibilities' => trim((string) ($data['responsibilities'] ?? '')),
+                'requirements'     => trim((string) ($data['requirements'] ?? '')),
+                'benefits'         => trim((string) ($data['benefits'] ?? '')),
+                'description'      => trim((string) $data['description']),
+                'changes'          => array_slice((array) ($data['changes'] ?? []), 0, 6),
+                'note'             => trim((string) ($data['note'] ?? '')),
             ];
         } catch (\Throwable $e) {
             $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
@@ -415,6 +484,63 @@ PROMPT;
                 : 'Không thể kết nối dịch vụ AI. Vui lòng thử lại.';
             Log::error('AI Job Draft Improve Failed: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    public function cleanJobBrief(string $text): string
+    {
+        $this->lastError = null;
+
+        if (empty($this->apiKey) || blank(trim($text))) {
+            return $text;
+        }
+
+        $prompt = <<<PROMPT
+Bạn là AI chuẩn hóa JD.
+Nhiệm vụ: Làm sạch nội dung tuyển dụng gốc trước khi hệ thống phân tích.
+
+Loại bỏ hoàn toàn:
+- Emoji
+- Icon
+- Số điện thoại / Hotline
+- Link mạng xã hội (Facebook, Zalo, LinkedIn, v.v.)
+- Các câu kêu gọi hành động (CTA) như "Inbox ngay", "Apply ngay", "Liên hệ", "Gửi CV về"
+
+Yêu cầu:
+- KHÔNG thay đổi nội dung chuyên môn (lương, vị trí, yêu cầu, trách nhiệm, công ty).
+- KHÔNG viết lại văn phong JD.
+- CHỈ trả về phần văn bản đã được làm sạch dưới dạng plaintext. Không trả về JSON.
+- Không thêm bất kỳ dòng giới thiệu nào.
+
+Văn bản gốc:
+$text
+PROMPT;
+
+        $payload = [
+            'contents' => [
+                ['parts' => [['text' => $prompt]]],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.0,
+                'response_mime_type' => 'text/plain',
+            ],
+        ];
+
+        try {
+            $response = Http::timeout(30)
+                ->withHeaders(['Content-Type' => 'application/json'])
+                ->post($this->apiUrl . '?key=' . $this->apiKey, $payload);
+
+            if ($response->failed()) {
+                return $text;
+            }
+
+            $json = $response->json();
+            $cleaned = $json['candidates'][0]['content']['parts'][0]['text'] ?? $text;
+            
+            return trim($cleaned);
+        } catch (\Throwable $e) {
+            return $text;
         }
     }
 
@@ -483,6 +609,11 @@ PROMPT;
             return null;
         }
 
+        $cacheKey = 'ai_cv_general_' . md5($cvText . ($pdfPath ?? ''));
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         $prompt = $this->buildGeneralPrompt($cvText);
 
         $parts = [
@@ -508,7 +639,7 @@ PROMPT;
                     ]
                 ],
                 'generationConfig' => [
-                    'temperature' => 0.2,
+                    'temperature' => 0.1,
                     'response_mime_type' => 'application/json',
                     'response_schema' => [
                         'type' => 'OBJECT',
@@ -553,6 +684,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (!is_array($data) || !isset($data['score'])) {
@@ -638,6 +770,11 @@ PROMPT;
             return null;
         }
 
+        $cacheKey = 'ai_cv_match_jobs_' . md5($cvText . ($pdfPath ?? '') . json_encode(array_column($jobs, 'id')));
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
         $jobsJson = json_encode($jobs, JSON_UNESCAPED_UNICODE);
         
         $prompt = <<<PROMPT
@@ -683,7 +820,7 @@ PROMPT;
                 ['parts' => [['text' => $prompt]]]
             ],
             'generationConfig' => [
-                'temperature' => 0.2,
+                'temperature' => 0.1,
                 'response_mime_type' => 'application/json',
                 'response_schema' => [
                     'type' => 'ARRAY',
@@ -727,6 +864,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (!is_array($data)) {
@@ -762,7 +900,9 @@ PROMPT;
 
             usort($validated, fn (array $a, array $b) => $b['match_percentage'] <=> $a['match_percentage']);
 
-            return array_slice($validated, 0, 3);
+            $result = array_slice($validated, 0, 3);
+            Cache::put($cacheKey, $result, now()->addDays(14));
+            return $result;
         } catch (\Throwable $e) {
             $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
                 ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
@@ -789,6 +929,11 @@ PROMPT;
         if (empty($job['title']) || empty($job['description'])) {
             $this->lastError = 'Thiếu thông tin công việc để AI đánh giá.';
             return null;
+        }
+
+        $cacheKey = 'ai_cv_job_fit_' . md5($cvText . ($pdfPath ?? '') . ($job['id'] ?? ''));
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
         }
 
         $jobJson = json_encode($job, JSON_UNESCAPED_UNICODE);
@@ -831,7 +976,7 @@ PROMPT;
                 ['parts' => [['text' => $prompt]]]
             ],
             'generationConfig' => [
-                'temperature' => 0.2,
+                'temperature' => 0.1,
                 'response_mime_type' => 'application/json',
                 'response_schema' => [
                     'type' => 'OBJECT',
@@ -867,6 +1012,7 @@ PROMPT;
             }
 
             $content = $response->json('candidates.0.content.parts.0.text');
+            $content = $this->cleanJsonResponse((string) $content);
             $data = json_decode($content, true);
 
             if (!is_array($data) || !isset($data['score'])) {
@@ -874,12 +1020,14 @@ PROMPT;
                 return null;
             }
 
-            return [
+            $result = [
                 'score' => max(0, min(100, (int) $data['score'])),
                 'reason' => (string) ($data['reason'] ?? ''),
                 'matched_requirements' => array_slice((array) ($data['matched_requirements'] ?? []), 0, 5),
                 'missing_requirements' => array_slice((array) ($data['missing_requirements'] ?? []), 0, 5),
             ];
+            Cache::put($cacheKey, $result, now()->addDays(14));
+            return $result;
         } catch (\Throwable $e) {
             $this->lastError = str_contains(strtolower($e->getMessage()), 'timed out')
                 ? 'AI phản hồi quá thời gian. Vui lòng thử lại sau.'
@@ -887,5 +1035,19 @@ PROMPT;
             Log::error('AI Single Job Fit Failed: ' . $e->getMessage());
             return null;
         }
+    }
+
+    protected function cleanJsonResponse(string $content): string
+    {
+        $content = trim($content);
+        if (str_starts_with(strtolower($content), '```json')) {
+            $content = substr($content, 7);
+        } elseif (str_starts_with($content, '```')) {
+            $content = substr($content, 3);
+        }
+        if (str_ends_with($content, '```')) {
+            $content = substr($content, 0, -3);
+        }
+        return trim($content);
     }
 }

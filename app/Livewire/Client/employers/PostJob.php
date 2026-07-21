@@ -48,6 +48,14 @@ class PostJob extends Component
 
     public ?string $ai_quality_note = null;
 
+    public ?int $ai_quality_clarity = null;
+
+    public ?int $ai_quality_attractiveness = null;
+
+    public ?int $ai_quality_salary_transparency = null;
+
+    public ?int $ai_quality_candidate_friendliness = null;
+
     public array $ai_improve_changes = [];
 
     public ?string $ai_improve_note = null;
@@ -141,8 +149,9 @@ class PostJob extends Component
         $this->workplace_id = null;
     }
 
-    public function generateAiDraft(AiMatchingService $aiService): void
+    public function generateAiDraft(): void
     {
+        $aiService = app(AiMatchingService::class);
         $this->resetErrorBag('ai_brief');
         $this->ai_draft_highlights = [];
         $this->ai_draft_missing_information = [];
@@ -151,18 +160,22 @@ class PostJob extends Component
         $this->ai_quality_missing_information = [];
         $this->ai_quality_title_suggestion = null;
         $this->ai_quality_note = null;
+        $this->ai_improve_changes = [];
+        $this->ai_improve_note = null;
 
         if (blank(trim($this->ai_brief)) && blank(trim($this->title))) {
-            $this->addError('ai_brief', 'Nhập JD thô hoặc mô tả ngắn để AI viết bản nháp.');
-
+            $this->addError('ai_brief', 'Vui lòng nhập ghi chú tuyển dụng để AI soạn bản nháp.');
             return;
+        }
+
+        if (filled(trim($this->ai_brief))) {
+            $this->ai_brief = $aiService->cleanJobBrief($this->ai_brief);
         }
 
         $draft = $aiService->draftRecruitmentJob($this->buildAiDraftContext());
 
         if (! $draft) {
             $this->addError('ai_brief', $aiService->getLastError() ?: 'Không thể tạo bản nháp AI.');
-
             return;
         }
 
@@ -170,26 +183,71 @@ class PostJob extends Component
             $this->title = (string) $draft['title'];
         }
 
+        if (filled($draft['overview'] ?? null)) {
+            $this->overview = (string) $draft['overview'];
+        }
+
+        if (filled($draft['responsibilities'] ?? null)) {
+            $this->responsibilities = (string) $draft['responsibilities'];
+        }
+
+        if (filled($draft['requirements'] ?? null)) {
+            $this->requirements = (string) $draft['requirements'];
+        }
+
+        if (filled($draft['benefits'] ?? null)) {
+            $this->benefits = (string) $draft['benefits'];
+        }
+
         if (filled($draft['description'] ?? null)) {
             $this->description = (string) $draft['description'];
+        }
+
+        if (isset($draft['salary_min'])) {
+            $this->salary_min = $draft['salary_min'];
+        }
+
+        if (isset($draft['salary_max'])) {
+            $this->salary_max = $draft['salary_max'];
+        }
+
+        if (filled($draft['deadline'] ?? null)) {
+            $this->deadline = $draft['deadline'];
+        }
+
+        if (! empty($draft['selected_skills'])) {
+            $this->skills = array_unique(array_merge($this->skills, $draft['selected_skills']));
+        }
+
+        if (! empty($draft['selected_categories'])) {
+            $this->selected_categories = array_unique(array_merge($this->selected_categories, $draft['selected_categories']));
         }
 
         $this->ai_draft_highlights = array_values(array_filter((array) ($draft['highlights'] ?? []), fn ($value) => filled($value)));
         $this->ai_draft_missing_information = array_values(array_filter((array) ($draft['missing_information'] ?? []), fn ($value) => filled($value)));
 
         $this->dispatch('job-description-updated', description: $this->description);
+        $this->dispatch('ai-draft-fields-updated', 
+            skills: $this->skills, 
+            categories: $this->selected_categories
+        );
 
-        session()->flash('status', 'Bản nháp AI đã được điền vào form. HR kiểm tra lại rồi hãy đăng.');
+        session()->flash('status', 'Bản nháp AI đã điền vào form. Bạn có thể chỉnh sửa trước khi lưu.');
     }
 
-    public function reviewAiDraft(AiMatchingService $aiService): void
+    public function reviewAiDraft(): void
     {
+        $aiService = app(AiMatchingService::class);
         $this->resetErrorBag('ai_brief');
         $this->ai_quality_score = null;
         $this->ai_quality_issues = [];
         $this->ai_quality_missing_information = [];
         $this->ai_quality_title_suggestion = null;
         $this->ai_quality_note = null;
+        $this->ai_quality_clarity = null;
+        $this->ai_quality_attractiveness = null;
+        $this->ai_quality_salary_transparency = null;
+        $this->ai_quality_candidate_friendliness = null;
 
         $review = $aiService->reviewRecruitmentJobDraft($this->buildAiDraftContext());
 
@@ -200,14 +258,19 @@ class PostJob extends Component
         }
 
         $this->ai_quality_score = (int) ($review['score'] ?? 0);
+        $this->ai_quality_clarity = (int) ($review['clarity'] ?? 0);
+        $this->ai_quality_attractiveness = (int) ($review['attractiveness'] ?? 0);
+        $this->ai_quality_salary_transparency = (int) ($review['salary_transparency'] ?? 0);
+        $this->ai_quality_candidate_friendliness = (int) ($review['candidate_friendliness'] ?? 0);
         $this->ai_quality_issues = array_values(array_filter((array) ($review['issues'] ?? []), fn ($value) => filled($value)));
         $this->ai_quality_missing_information = array_values(array_filter((array) ($review['missing_information'] ?? []), fn ($value) => filled($value)));
         $this->ai_quality_title_suggestion = filled($review['title_suggestion'] ?? null) ? (string) $review['title_suggestion'] : null;
         $this->ai_quality_note = filled($review['suggestion_note'] ?? null) ? (string) $review['suggestion_note'] : null;
     }
 
-    public function improveAiDraft(AiMatchingService $aiService): void
+    public function improveAiDraft(): void
     {
+        $aiService = app(AiMatchingService::class);
         $this->resetErrorBag('ai_brief');
         $this->ai_improve_changes = [];
         $this->ai_improve_note = null;
@@ -222,6 +285,22 @@ class PostJob extends Component
 
         if (filled($improved['title'] ?? null)) {
             $this->title = (string) $improved['title'];
+        }
+
+        if (filled($improved['overview'] ?? null)) {
+            $this->overview = (string) $improved['overview'];
+        }
+
+        if (filled($improved['responsibilities'] ?? null)) {
+            $this->responsibilities = (string) $improved['responsibilities'];
+        }
+
+        if (filled($improved['requirements'] ?? null)) {
+            $this->requirements = (string) $improved['requirements'];
+        }
+
+        if (filled($improved['benefits'] ?? null)) {
+            $this->benefits = (string) $improved['benefits'];
         }
 
         if (filled($improved['description'] ?? null)) {
@@ -494,15 +573,13 @@ class PostJob extends Component
     protected function buildAiDraftContext(): array
     {
         $skills = Skill::query()
-            ->whereIn('id', $this->skills)
             ->orderBy('name')
-            ->pluck('name')
+            ->pluck('name', 'id')
             ->all();
 
         $categories = Category::query()
-            ->whereIn('id', $this->selected_categories)
             ->orderBy('name')
-            ->pluck('name')
+            ->pluck('name', 'id')
             ->all();
 
         return [
