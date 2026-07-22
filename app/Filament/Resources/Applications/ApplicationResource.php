@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Applications;
 
 use App\Filament\Resources\Applications\Pages\EditApplication;
 use App\Filament\Resources\Applications\Pages\CreateApplication;
+use App\Filament\Resources\Applications\Pages\KanbanApplications;
 use App\Filament\Resources\Applications\Pages\ListApplications;
 use App\Filament\Resources\Applications\Pages\ViewApplication;
 use App\Filament\Resources\Applications\Schemas\ApplicationForm;
@@ -67,6 +68,7 @@ class ApplicationResource extends Resource
         return [
             'index' => ListApplications::route('/'),
             'create' => CreateApplication::route('/create'),
+            'kanban' => KanbanApplications::route('/kanban'),
             'view' => ViewApplication::route('/{record}'),
             'edit' => EditApplication::route('/{record}/edit'),
         ];

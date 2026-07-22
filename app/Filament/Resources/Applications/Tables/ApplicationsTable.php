@@ -75,6 +75,13 @@ class ApplicationsTable
         return $table
             ->defaultSort('applied_at', 'desc')
             ->poll('10s')
+            ->headerActions([
+                Action::make('kanbanBoard')
+                    ->label('Kanban')
+                    ->icon('heroicon-o-view-columns')
+                    ->color('gray')
+                    ->url(ApplicationResource::getUrl('kanban')),
+            ])
             ->searchPlaceholder('Tìm theo ứng viên, vị trí, email...')
             ->columns([
                 TextColumn::make('id')
