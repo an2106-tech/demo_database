@@ -726,7 +726,7 @@ class ApplicationsTable
         $interview = $record->interviews()->latest('id')->first();
 
         return [
-            'scheduled_at' => $interview?->scheduled_at,
+            'scheduled_at' => $interview?->scheduled_at?->format('Y-m-d\TH:i'),
             'round_name' => $interview?->round_name ?? 'Phỏng vấn vòng 1',
             'duration_minutes' => $interview?->duration_minutes ?? 60,
             'type' => $interview?->type ?? 'online',
@@ -1721,13 +1721,15 @@ class ApplicationsTable
                                 ->placeholder('Phỏng vấn vòng 1')
                                 ->maxLength(255)
                                 ->required(),
-                            DateTimePicker::make('scheduled_at')
+                            TextInput::make('scheduled_at')
                                 ->label('Thời gian phỏng vấn')
-                                ->native(false)
-                                ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
-                                ->seconds(false)
-                                ->helperText('Thời gian theo múi giờ Việt Nam.')
-                                ->minDate(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))
+                                ->type('datetime-local')
+                                ->placeholder('2026-07-26T13:10')
+                                ->extraInputAttributes(fn (): array => [
+                                    'min' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('Y-m-d\TH:i'),
+                                    'step' => 60,
+                                ])
+                                ->helperText('Chọn giờ hiện tại hoặc tương lai, theo múi giờ Việt Nam.')
                                 ->required(),
                             Select::make('duration_minutes')
                                 ->label('Thời lượng')
@@ -2806,10 +2808,6 @@ class ApplicationsTable
                     $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
                     app(InterviewCalendarService::class)->store($interview);
 
-                    if ($existingInterview) {
-                        $interview->forceFill(['invite_sent_at' => null])->save();
-                    }
-
                     if ($status === StatusApplicationEnum::SCREENING
                         && ! static::transitionApplication($record, StatusApplicationEnum::INTERVIEW_SCHEDULED, static::buildInterviewScheduleComment($interview, false))
                     ) {
@@ -2999,10 +2997,11 @@ class ApplicationsTable
         $recipients = static::getInterviewRecipients($record->fresh(['job.branch', 'candidate']));
         $sentCount = 0;
         $failedCount = 0;
+        $isUpdateMail = filled($interview->invite_sent_at);
 
         foreach ($recipients as $email => $recipientLabel) {
             try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel));
+                Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel, $isUpdateMail));
                 $sentCount++;
             } catch (\Throwable $exception) {
                 $failedCount++;
@@ -3021,18 +3020,24 @@ class ApplicationsTable
             $record->recordStatusHistory(
                 $record->status instanceof StatusApplicationEnum ? $record->status->value : (string) $record->status,
                 $record->status instanceof StatusApplicationEnum ? $record->status->value : (string) $record->status,
-                "Đã gửi lịch phỏng vấn tới {$sentCount} email."
+                $isUpdateMail
+                    ? "Đã gửi cập nhật lịch phỏng vấn tới {$sentCount} email."
+                    : "Đã gửi lịch phỏng vấn tới {$sentCount} email."
             );
         }
 
-        $notification = Notification::make()->title('Đã gửi lịch phỏng vấn');
+        $notification = Notification::make()->title($isUpdateMail ? 'Đã gửi cập nhật lịch phỏng vấn' : 'Đã gửi lịch phỏng vấn');
 
         if ($failedCount > 0) {
-            $notification->warning()->body("Gửi email thành công {$sentCount}, thất bại {$failedCount}. Vui lòng kiểm tra lại log/mail cấu hình.");
+            $notification->warning()->body($isUpdateMail
+                ? "Gửi cập nhật thành công {$sentCount}, thất bại {$failedCount}. Vui lòng kiểm tra lại log/mail cấu hình."
+                : "Gửi email thành công {$sentCount}, thất bại {$failedCount}. Vui lòng kiểm tra lại log/mail cấu hình.");
         } elseif ($sentCount === 0) {
             $notification->warning()->body('Không tìm thấy email ứng viên hoặc người liên quan để gửi lịch phỏng vấn.');
         } else {
-            $notification->success()->body("Đã gửi {$sentCount} email kèm file lịch phỏng vấn.");
+            $notification->success()->body($isUpdateMail
+                ? "Đã gửi {$sentCount} email cập nhật kèm file lịch phỏng vấn."
+                : "Đã gửi {$sentCount} email kèm file lịch phỏng vấn.");
         }
 
         $notification->send();

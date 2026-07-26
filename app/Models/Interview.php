@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,12 +31,39 @@ class Interview extends Model
     ];
 
     protected $casts = [
-        'scheduled_at' => 'datetime',
         'invite_sent_at' => 'datetime',
         'invite_confirmed_at' => 'datetime',
         'duration_minutes' => 'integer',
         'round_number' => 'integer',
     ];
+
+    protected function scheduledAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): ?CarbonInterface => $value
+                ? Carbon::parse((string) $value, $this->interviewTimezone())
+                : null,
+            set: fn ($value): ?string => $value
+                ? $this->asInterviewDateTime($value)->format('Y-m-d H:i:s')
+                : null,
+        );
+    }
+
+    private function asInterviewDateTime(mixed $value): CarbonInterface
+    {
+        $timezone = $this->interviewTimezone();
+
+        if ($value instanceof CarbonInterface) {
+            return $value->copy()->setTimezone($timezone);
+        }
+
+        return Carbon::parse((string) $value, $timezone);
+    }
+
+    private function interviewTimezone(): string
+    {
+        return config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
+    }
 
     public function application(): BelongsTo
     {

@@ -23,6 +23,7 @@ class InterviewScheduledMail extends Mailable
     public function __construct(
         public Interview $interview,
         public string $recipientLabel = 'recipient',
+        public bool $isUpdate = false,
     ) {
         [$this->subjectLine, $this->htmlBody] = $this->resolveTemplate();
     }
@@ -66,11 +67,15 @@ class InterviewScheduledMail extends Mailable
         $locationText = app(InterviewCalendarService::class)->resolveLocation($this->interview);
 
         // 1. Cập nhật mẫu Interview Invitation chuyên nghiệp
-        $fallbackSubject = 'Thư mời phỏng vấn vị trí {{job_title}} - {{app_name}}';
+        $fallbackSubject = $this->isUpdate
+            ? 'Cập nhật lịch phỏng vấn vị trí {{job_title}} - {{app_name}}'
+            : 'Thư mời phỏng vấn vị trí {{job_title}} - {{app_name}}';
         
         $fallbackBody = implode("\n", [
             '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
-            '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ! Sau khi xem xét các kỹ năng và kinh nghiệm của bạn, chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn để trao đổi chi tiết hơn về sự phù hợp của bạn với đội ngũ <strong>{{app_name}}</strong>.</p>',
+            $this->isUpdate
+                ? '<p>Chúng tôi xin gửi đến bạn thông tin <strong>cập nhật lịch phỏng vấn</strong> sau khi điều chỉnh từ bộ phận tuyển dụng.</p>'
+                : '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ! Sau khi xem xét các kỹ năng và kinh nghiệm của bạn, chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn để trao đổi chi tiết hơn về sự phù hợp của bạn với đội ngũ <strong>{{app_name}}</strong>.</p>',
             '<p><strong>Thông tin chi tiết về buổi phỏng vấn:</strong></p>',
             '<ul style="line-height: 1.6;">',
             '<li><strong>Vị trí ứng tuyển:</strong> {{job_title}}</li>',
@@ -81,13 +86,16 @@ class InterviewScheduledMail extends Mailable
             '<li><strong>Người phỏng vấn:</strong> {{interviewer_name}}</li>',
             '</ul>',
             '<p><strong>Ghi chú từ bộ phận tuyển dụng:</strong> {{interview_notes}}</p>',
-            '<p>Vui lòng phản hồi email này để xác nhận sự tham gia của bạn. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>',
+            $this->isUpdate
+                ? '<p>Lịch phỏng vấn đã được điều chỉnh. Vui lòng cập nhật lại thời gian tham gia của bạn theo thông tin bên dưới. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>'
+                : '<p>Vui lòng phản hồi email này để xác nhận sự tham gia của bạn. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>',
             '<p>Mong sớm được gặp bạn!</p>',
             '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;
         $body = $fallbackBody;
+        $usesStoredTemplate = false;
 
         if (Schema::hasTable('email_templates')) {
             $template = EmailTemplate::query()
@@ -99,6 +107,7 @@ class InterviewScheduledMail extends Mailable
             if ($template) {
                 $subject = $template->subject ?: $fallbackSubject;
                 $body = $template->body ?: $fallbackBody;
+                $usesStoredTemplate = true;
             }
         }
 
@@ -116,10 +125,16 @@ class InterviewScheduledMail extends Mailable
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
-        return [
-            strtr($subject, $replacements),
-            strtr($body, $replacements),
-        ];
+        $resolvedSubject = strtr($subject, $replacements);
+        $resolvedBody = strtr($body, $replacements);
+
+        if ($this->isUpdate && $usesStoredTemplate) {
+            $resolvedSubject = 'Cập nhật - '.$resolvedSubject;
+            $resolvedBody = '<p>Chúng tôi xin gửi thông tin <strong>cập nhật lịch phỏng vấn</strong>. Vui lòng theo dõi lịch mới bên dưới.</p>'
+                .$resolvedBody;
+        }
+
+        return [$resolvedSubject, $resolvedBody];
     }
 
     protected function formatDisplayDate($date): string

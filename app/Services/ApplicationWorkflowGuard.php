@@ -70,13 +70,27 @@ class ApplicationWorkflowGuard
 
     public function canManageInterview(?User $user, Application $application): bool
     {
-        return $this->canRunHrPipelineActions($user)
-            && $this->canAccessApplicationBranch($user, $application)
-            && in_array($this->statusValue($application), [
-                StatusApplicationEnum::SCREENING->value,
-                StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
-                StatusApplicationEnum::INTERVIEW->value,
-            ], true);
+        if (! $this->canRunHrPipelineActions($user) || ! $this->canAccessApplicationBranch($user, $application)) {
+            return false;
+        }
+
+        $status = $this->status($application);
+
+        if ($status === StatusApplicationEnum::SCREENING) {
+            return true;
+        }
+
+        if (! in_array($status, [StatusApplicationEnum::INTERVIEW_SCHEDULED, StatusApplicationEnum::INTERVIEW], true)) {
+            return false;
+        }
+
+        $interview = $this->latestInterview($application);
+
+        if (! $interview || $interview->result !== 'pending' || $interview->scorecards()->exists()) {
+            return false;
+        }
+
+        return ! $interview->scheduled_at || $interview->scheduled_at->gt(now());
     }
 
     public function hasInterviewStatus(Application $application): bool
@@ -124,7 +138,16 @@ class ApplicationWorkflowGuard
 
         $interview = $this->latestInterview($application);
 
-        return (bool) $interview && blank($interview->invite_sent_at);
+        if (! $interview) {
+            return false;
+        }
+
+        return blank($interview->invite_sent_at)
+            || (
+                $interview->updated_at
+                && $interview->invite_sent_at
+                && $interview->updated_at->gt($interview->invite_sent_at)
+            );
     }
 
     public function canRejectApplication(?User $user, Application $application): bool
