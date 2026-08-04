@@ -20,6 +20,7 @@ class Interview extends Model
         'round_number',
         'round_name',
         'scheduled_at',
+        'actual_ended_at',
         'duration_minutes',
         'type',
         'meeting_link',
@@ -33,6 +34,7 @@ class Interview extends Model
     protected $casts = [
         'invite_sent_at' => 'datetime',
         'invite_confirmed_at' => 'datetime',
+        'actual_ended_at' => 'datetime',
         'duration_minutes' => 'integer',
         'round_number' => 'integer',
     ];

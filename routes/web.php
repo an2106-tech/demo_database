@@ -70,6 +70,8 @@ Route::get('/preview/public-file/{path}', function (string $path) {
 Route::prefix('offers')->name('offers.')->group(function () {
     Route::get('/{offer}/respond/accept', [OfferResponseController::class, 'accept'])
         ->name('respond.accept');
+    Route::post('/{offer}/respond/accept', [OfferResponseController::class, 'accept'])
+        ->name('respond.accept.submit');
     Route::get('/{offer}/respond/decline', [OfferResponseController::class, 'decline'])
         ->name('respond.decline');
     Route::post('/{offer}/respond/decline', [OfferResponseController::class, 'submitDecline'])

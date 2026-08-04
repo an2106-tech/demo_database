@@ -12,6 +12,7 @@ use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class CandidateOfferMailTest extends TestCase
@@ -40,6 +41,19 @@ class CandidateOfferMailTest extends TestCase
         $this->assertStringContainsString('Phản hồi thư mời', $html);
         $this->assertStringNotContainsString('Truy cập Dashboard', $html);
         $this->assertStringNotContainsString(route('candidates.candidate_dashboard'), $html);
+    }
+
+    public function test_offer_mail_attaches_pdf_when_the_generated_file_exists(): void
+    {
+        Storage::fake('local');
+        [$candidate, $application, $job, $offer] = $this->makeOffer();
+
+        $offer->forceFill(['pdf_path' => 'offers/'.$offer->id.'/offer-letter.pdf'])->save();
+        Storage::disk('local')->put($offer->pdf_path, '%PDF-1.4 test');
+
+        $attachments = (new CandidateOfferMail($candidate, $application, $job, $offer->fresh()))->attachments();
+
+        $this->assertCount(1, $attachments);
     }
 
     private function makeOffer(): array

@@ -41,9 +41,12 @@ class OfferApprovalRequestMail extends Mailable
                 'job' => $this->job,
                 'recipientName' => $this->recipient->name,
                 'approvalUrl' => $this->buildApprovalUrl(),
-                'candidateName' => $this->application->candidate?->name ?? 'Ung vien',
+                'candidateName' => $this->application->snapshotCandidateName() ?: 'Ứng viên',
                 'jobTitle' => $this->job->title ?? 'Vi tri',
                 'salaryOffered' => number_format((float) $this->offer->salary_offered, 0, ',', '.') . ' VND',
+                'startDate' => $this->offer->start_date?->format('d/m/Y') ?? 'Chưa xác định',
+                'probationMonths' => $this->offer->probation_months,
+                'responseDeadline' => $this->offer->expires_at?->format('d/m/Y H:i') ?? 'Chưa xác định',
             ],
         );
     }

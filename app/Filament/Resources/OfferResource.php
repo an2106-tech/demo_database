@@ -3,16 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Models\Offer;
-use App\Services\OfferApprovalService;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Forms\Components\Textarea;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -44,7 +40,6 @@ class OfferResource extends Resource
         }
 
         return $user->hasRole('super_admin')
-            || $user->role === 'admin'
             || $user->hasRole('director')
             || $user->role === 'director';
     }
@@ -141,99 +136,12 @@ class OfferResource extends Resource
                     ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                     ->sortable(),
             ])
-            ->filters([
-                SelectFilter::make('status')
-                    ->label('Trạng thái')
-                    ->options([
-                        'awaiting_approval' => 'Chờ duyệt',
-                        'pending' => 'Chờ phản hồi',
-                        'accepted' => 'Đã chấp nhận',
-                        'rejected' => 'Đã từ chối',
-                    ]),
-            ])
             ->actions([
                 Action::make('view_details')
-                    ->label('Xem chi tiết')
+                    ->label('Xem và duyệt')
                     ->icon('heroicon-o-eye')
                     ->color('primary')
-                    ->url(fn ($record) => static::getUrl('edit', ['record' => $record]))
-                    ->openUrlInNewTab(),
-                
-                Action::make('approve')
-                    ->label('Duyệt')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn ($record) => $record->status === 'awaiting_approval')
-                    ->requiresConfirmation()
-                    ->modalHeading('Duyệt đề nghị tuyển dụng')
-                    ->modalDescription(fn ($record) => 'Đề nghị tuyển dụng cho ' . ($record->application?->snapshotCandidateName() ?? 'ứng viên') . ' sẽ được gửi thành thư mời nhận việc tới ứng viên.')
-                    ->action(function ($record) {
-                        $user = Auth::user();
-                        if (!$user) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Lỗi')
-                                ->body('Không tìm thấy thông tin người dùng.')
-                                ->send();
-                            return;
-                        }
-
-                        $service = app(OfferApprovalService::class);
-                        if ($service->approve($record, $user)) {
-                            Notification::make()
-                                ->success()
-                                ->title('Đã duyệt đề nghị tuyển dụng')
-                                ->body('Thư mời nhận việc đã được gửi tới ứng viên và thông báo đã được gửi tới nhóm.')
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->danger()
-                                ->title('Lỗi khi duyệt đề nghị')
-                                ->body('Có lỗi xảy ra khi duyệt đề nghị tuyển dụng. Vui lòng thử lại.')
-                                ->send();
-                        }
-                    }),
-                
-                Action::make('reject')
-                    ->label('Từ chối')
-                    ->icon('heroicon-o-x-circle')
-                    ->color('danger')
-                    ->visible(fn ($record) => $record->status === 'awaiting_approval')
-                    ->requiresConfirmation()
-                    ->modalHeading('Từ chối đề nghị tuyển dụng')
-                    ->modalDescription('HR sẽ cần xem xét lại và điều chỉnh đề nghị tuyển dụng trước khi gửi duyệt lại.')
-                    ->form([
-                        Textarea::make('approval_notes')
-                            ->label('Lý do từ chối')
-                            ->rows(4)
-                            ->required(),
-                    ])
-                    ->action(function ($record, array $data) {
-                        $user = Auth::user();
-                        if (!$user) {
-                            Notification::make()
-                                ->danger()
-                                ->title('Lỗi')
-                                ->body('Không tìm thấy thông tin người dùng.')
-                                ->send();
-                            return;
-                        }
-
-                        $service = app(OfferApprovalService::class);
-                        if ($service->reject($record, $user, trim((string) ($data['approval_notes'] ?? '')))) {
-                            Notification::make()
-                                ->warning()
-                                ->title('Đã từ chối đề nghị tuyển dụng')
-                                ->body('Đề nghị tuyển dụng đã bị từ chối. HR sẽ cần điều chỉnh và gửi lại.')
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->danger()
-                                ->title('Lỗi khi từ chối đề nghị')
-                                ->body('Có lỗi xảy ra. Vui lòng thử lại.')
-                                ->send();
-                        }
-                    }),
+                    ->url(fn ($record) => static::getUrl('edit', ['record' => $record])),
             ])
             ->defaultSort('created_at', 'desc');
     }

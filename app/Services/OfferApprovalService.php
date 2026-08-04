@@ -21,6 +21,8 @@ class OfferApprovalService
      */
     public function approve(Offer $offer, User $approver): bool
     {
+        $invitationHandedOff = false;
+
         try {
             $offer->loadMissing(['application.candidate', 'application.job.branch']);
 
@@ -44,10 +46,6 @@ class OfferApprovalService
                 $offer->refresh();
             }
 
-            // Ensure PDF is fresh
-            $this->pdfService->refreshForOffer($offer);
-            $offer->refresh();
-
             // Send to candidate
             $candidate = $offer->application?->candidate;
             if (!$candidate?->email) {
@@ -57,13 +55,34 @@ class OfferApprovalService
 
             $sentAt = now();
 
-            $offer->forceFill([
-                'status' => 'pending',
-                'approved_by_user_id' => $approver->id,
-                'approved_at' => $sentAt,
-                'sent_at' => $sentAt,
-                'expires_at' => $responseDeadline,
-            ])->save();
+            // Regenerate immediately before delivery so the attachment always
+            // carries the approved issuance date and actual approver details.
+            $this->pdfService->refreshForOffer(
+                $offer,
+                issuedAt: $sentAt,
+                responseDeadline: $responseDeadline,
+                approver: $approver,
+            );
+            $offer->refresh();
+
+            // Claim the approval atomically. A second director click must not send
+            // another invitation while the first request is handing off the email.
+            $claimed = Offer::query()
+                ->whereKey($offer->id)
+                ->where('status', 'awaiting_approval')
+                ->update([
+                    'status' => 'pending',
+                    'sent_at' => $sentAt,
+                    'expires_at' => $responseDeadline,
+                    'approved_by_user_id' => $approver->id,
+                    'approved_at' => $sentAt,
+                    'updated_at' => $sentAt,
+                ]);
+
+            if ($claimed !== 1) {
+                return false;
+            }
+
             $offer->refresh();
 
             Mail::to($candidate->email)->send(
@@ -74,9 +93,21 @@ class OfferApprovalService
                     $offer
                 )
             );
+            $invitationHandedOff = true;
 
-            // Notify team members (HR, PM, Director)
-            $this->notifyTeam($offer, $approver);
+            // Internal email must not keep the director waiting after the
+            // candidate invitation has been handed off successfully.
+            $offerId = $offer->id;
+            $approverId = $approver->id;
+
+            defer(function () use ($offerId, $approverId): void {
+                $queuedOffer = Offer::query()->find($offerId);
+                $queuedApprover = User::query()->find($approverId);
+
+                if ($queuedOffer && $queuedApprover) {
+                    $this->notifyTeam($queuedOffer, $queuedApprover);
+                }
+            });
 
             Log::info('Offer approved successfully', [
                 'offer_id' => $offer->id,
@@ -85,6 +116,20 @@ class OfferApprovalService
 
             return true;
         } catch (\Throwable $exception) {
+            if (! $invitationHandedOff) {
+                Offer::query()
+                    ->whereKey($offer->id)
+                    ->where('status', 'pending')
+                    ->whereNull('response_at')
+                    ->update([
+                        'status' => 'awaiting_approval',
+                        'sent_at' => null,
+                        'approved_by_user_id' => null,
+                        'approved_at' => null,
+                        'updated_at' => now(),
+                    ]);
+            }
+
             Log::error('Error approving offer', [
                 'offer_id' => $offer->id,
                 'error' => $exception->getMessage(),
@@ -104,6 +149,15 @@ class OfferApprovalService
 
             if (! $this->canReviewOffer($offer, $rejector)) {
                 Log::warning('Unauthorized offer rejection attempt.', [
+                    'offer_id' => $offer->id,
+                    'user_id' => $rejector->id,
+                ]);
+
+                return false;
+            }
+
+            if (mb_strlen(trim($notes)) < 10) {
+                Log::warning('Offer adjustment request rejected because notes are too short.', [
                     'offer_id' => $offer->id,
                     'user_id' => $rejector->id,
                 ]);

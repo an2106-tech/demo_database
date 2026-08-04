@@ -140,6 +140,40 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         $this->assertFalse(app(ApplicationWorkflowGuard::class)->canManageInterview($hr, $application));
     }
 
+    public function test_branch_hr_can_record_draft_after_start_but_can_only_finalize_after_interview_ends(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+        $interviewer = User::factory()->create([
+            'role' => 'director',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $interviewer->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn vòng 1',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subMinutes(10),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $guard = app(ApplicationWorkflowGuard::class);
+
+        $this->assertTrue($guard->canEvaluateInterview($hr, $application));
+        $this->assertFalse($guard->canFinalizeInterviewEvaluation($hr, $application));
+
+        $interview->update([
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subHours(2),
+        ]);
+        $application->unsetRelation('latestInterview');
+
+        $this->assertTrue($guard->canFinalizeInterviewEvaluation($hr, $application));
+    }
+
     /**
      * @return array{0: User, 1: Application}
      */

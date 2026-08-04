@@ -3,140 +3,107 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <style>
-        body {
-            font-family: DejaVu Sans, sans-serif;
-            font-size: 12px;
-            color: #111;
-            line-height: 1.45;
-        }
-        .brand {
-            border-bottom: 2px solid #f97316;
-            margin-bottom: 18px;
-            padding-bottom: 10px;
-        }
-        .brand-name {
-            color: #f97316;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 0;
-        }
-        .brand-meta {
-            color: #555;
-            font-size: 10px;
-            margin-top: 4px;
-        }
-        h1 {
-            font-size: 17px;
-            text-align: center;
-            margin: 0 0 18px;
-            letter-spacing: 0.5px;
-        }
-        .summary-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 0 0 18px;
-        }
-        .summary-table td {
-            border: 1px solid #ddd;
-            padding: 7px 8px;
-            vertical-align: top;
-        }
-        .summary-label {
-            width: 30%;
-            color: #555;
-            background: #f8fafc;
-            font-weight: bold;
-        }
-        .letter-body {
-            text-align: justify;
-        }
-        .letter-body p {
-            margin: 0 0 10px;
-        }
-        .footer-note {
-            font-size: 9px;
-            color: #555;
-            margin-top: 20px;
-        }
-        .sig-table {
-            width: 100%;
-            margin-top: 36px;
-            border-collapse: collapse;
-        }
-        .sig-table td {
-            width: 50%;
-            vertical-align: top;
-            padding: 10px 8px 0 0;
-        }
-        .sig-line {
-            border-top: 1px solid #000;
-            margin-top: 56px;
-            padding-top: 6px;
-        }
-        .stamp {
-            border: 2px solid #b91c1c;
-            color: #b91c1c;
-            display: inline-block;
-            padding: 10px 18px;
-            font-weight: bold;
-            font-size: 11px;
-            margin: 8px 0 16px;
-            opacity: 0.9;
-        }
+        @page { margin: 42px 46px 40px; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 11px; color: #1f2937; line-height: 1.55; }
+        .header-table, .terms-table, .signature-table { width: 100%; border-collapse: collapse; }
+        .brand { color: #d95d08; font-size: 19px; font-weight: bold; margin: 0; }
+        .brand-subtitle { color: #64748b; font-size: 9px; margin-top: 2px; }
+        .document-meta { text-align: right; font-size: 9px; color: #64748b; line-height: 1.7; }
+        .document-meta strong { color: #334155; }
+        .rule { border: 0; border-top: 2px solid #f97316; margin: 14px 0 18px; }
+        h1 { color: #172033; font-size: 18px; letter-spacing: .4px; text-align: center; margin: 0 0 6px; }
+        .document-caption { color: #64748b; font-size: 9px; text-align: center; margin: 0 0 18px; }
+        .intro { margin: 0 0 14px; }
+        .section-title { color: #172033; font-size: 12px; font-weight: bold; margin: 18px 0 7px; }
+        .terms-table { table-layout: fixed; margin-bottom: 16px; }
+        .terms-table td { border: 1px solid #dbe3ed; padding: 7px 9px; vertical-align: top; }
+        .terms-label { width: 22%; background: #f8fafc; color: #64748b; font-size: 9px; font-weight: bold; text-transform: uppercase; }
+        .terms-value { width: 28%; color: #172033; font-weight: bold; }
+        .letter-body { margin-top: 8px; }
+        .letter-body p { margin: 0 0 9px; }
+        .letter-body ul { margin: 5px 0 10px 18px; padding: 0; }
+        .response-note { background: #fff7ed; border-left: 3px solid #f97316; color: #4b5563; margin-top: 16px; padding: 9px 11px; }
+        .signature-table { margin-top: 30px; table-layout: fixed; }
+        .signature-table td { width: 50%; vertical-align: top; padding: 0 24px 0 0; }
+        .signature-table td:last-child { padding: 0 0 0 24px; text-align: right; }
+        .signature-role { color: #475569; font-size: 9px; font-weight: bold; text-transform: uppercase; }
+        .signature-space { height: 52px; }
+        .signature-name { border-top: 1px solid #475569; color: #172033; font-weight: bold; padding-top: 6px; }
+        .signature-caption { color: #64748b; font-size: 8.5px; margin-top: 3px; }
+        .footer { border-top: 1px solid #dbe3ed; color: #64748b; font-size: 8.5px; margin-top: 22px; padding-top: 8px; }
     </style>
 </head>
 <body>
-<div class="brand">
-    <p class="brand-name">FPT Career</p>
-    <div class="brand-meta">Hệ thống quản lý tuyển dụng và kết nối ứng viên</div>
-</div>
+    <table class="header-table">
+        <tr>
+            <td>
+                <p class="brand">FPT Career</p>
+                <div class="brand-subtitle">Hệ thống tuyển dụng FPT Education</div>
+            </td>
+            <td class="document-meta">
+                <div>Số: <strong>{{ $offerReference }}</strong></div>
+                <div>Ngày phát hành: <strong>{{ $issuedAt->format('d/m/Y') }}</strong></div>
+            </td>
+        </tr>
+    </table>
 
-<h1>ĐỀ NGHỊ TUYỂN DỤNG</h1>
+    <hr class="rule">
 
-<table class="summary-table">
-    <tr>
-        <td class="summary-label">Mã đề nghị</td>
-        <td>#{{ $offer->id }}</td>
-        <td class="summary-label">Ngày phát hành</td>
-        <td>{{ $offer->created_at?->format('d/m/Y') ?? now()->format('d/m/Y') }}</td>
-    </tr>
-    <tr>
-        <td class="summary-label">Ứng viên</td>
-        <td>{{ $candidateName ?: '-' }}</td>
-        <td class="summary-label">Vị trí</td>
-        <td>{{ $offer->application?->job?->title ?? '-' }}</td>
-    </tr>
-    <tr>
-        <td class="summary-label">Chi nhánh/đơn vị</td>
-        <td>{{ $offer->application?->job?->branch?->name ?? '-' }}</td>
-        <td class="summary-label">Hạn phản hồi</td>
-        <td>{{ $offer->expires_at?->format('d/m/Y H:i') ?? '-' }}</td>
-    </tr>
-</table>
+    <h1>THƯ MỜI NHẬN VIỆC</h1>
+    <p class="document-caption">Đề nghị tuyển dụng được phê duyệt trên hệ thống</p>
 
-<div class="letter-body">{!! $letterInnerHtml !!}</div>
+    <p class="intro">Kính gửi <strong>{{ $candidateName ?: 'Ứng viên' }}</strong>,</p>
+    <p class="intro">FPT Career trân trọng gửi đến bạn thư mời nhận việc với các điều khoản được tóm tắt dưới đây.</p>
 
-<table class="sig-table">
-    <tr>
-        <td>
-            <div class="sig-line">
-                Ứng viên<br>
-                <strong>{{ $candidateName }}</strong><br>
-                <span class="footer-note">Ký và ghi rõ họ tên</span>
-            </div>
-        </td>
-        <td style="text-align: right; padding-right: 0; padding-left: 8px;">
-            <div class="stamp">XÁC NHẬN HỆ THỐNG</div>
-            <div class="sig-line" style="text-align: right;">
-                Đại diện tuyển dụng<br>
-                <strong>FPT Career</strong><br>
-                <span class="footer-note">Xác nhận trên hệ thống</span>
-            </div>
-        </td>
-    </tr>
-</table>
-<p class="footer-note">
-    Văn bản này là đề nghị tuyển dụng được tạo từ hệ thống FPT Career và không thay thế hợp đồng lao động chính thức.
-</p>
+    <div class="section-title">Thông tin đề nghị</div>
+    <table class="terms-table">
+        <tr>
+            <td class="terms-label">Ứng viên</td>
+            <td class="terms-value">{{ $candidateName ?: '-' }}</td>
+            <td class="terms-label">Vị trí</td>
+            <td class="terms-value">{{ $offer->application?->job?->title ?? '-' }}</td>
+        </tr>
+        <tr>
+            <td class="terms-label">Đơn vị tuyển dụng</td>
+            <td class="terms-value">{{ $offer->application?->job?->branch?->name ?? '-' }}</td>
+            <td class="terms-label">Mức lương đề nghị</td>
+            <td class="terms-value">{{ number_format((float) $offer->salary_offered, 0, ',', '.') }} VND</td>
+        </tr>
+        <tr>
+            <td class="terms-label">Ngày nhận việc dự kiến</td>
+            <td class="terms-value">{{ $offer->start_date?->format('d/m/Y') ?? '-' }}</td>
+            <td class="terms-label">Thời gian thử việc</td>
+            <td class="terms-value">{{ (int) $offer->probation_months === 0 ? 'Không áp dụng' : $offer->probation_months.' tháng' }}</td>
+        </tr>
+        <tr>
+            <td class="terms-label">Hạn phản hồi</td>
+            <td class="terms-value" colspan="3">{{ $responseDeadline?->format('H:i, d/m/Y') ?? '-' }}</td>
+        </tr>
+    </table>
+
+    <div class="letter-body">{!! $letterInnerHtml !!}</div>
+
+    <div class="response-note">
+        Vui lòng phản hồi thư mời trước thời hạn nêu trên bằng liên kết trong email. Bộ phận tuyển dụng sẽ liên hệ để hướng dẫn thủ tục nhận việc sau khi bạn xác nhận.
+    </div>
+
+    <table class="signature-table">
+        <tr>
+            <td>
+                <div class="signature-role">Ứng viên</div>
+                <div class="signature-space"></div>
+                <div class="signature-name">{{ $candidateName ?: 'Ứng viên' }}</div>
+                <div class="signature-caption">Ký xác nhận khi được yêu cầu lưu bản ký</div>
+            </td>
+            <td>
+                <div class="signature-role">Đại diện đơn vị tuyển dụng</div>
+                <div class="signature-space"></div>
+                <div class="signature-name">{{ $approverName }}</div>
+                <div class="signature-caption">{{ $approverTitle }} · Đã phê duyệt trên hệ thống</div>
+            </td>
+        </tr>
+    </table>
+
+    <p class="footer">Thư mời này không thay thế hợp đồng lao động chính thức.</p>
 </body>
 </html>

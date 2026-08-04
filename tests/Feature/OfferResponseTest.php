@@ -17,12 +17,30 @@ class OfferResponseTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_candidate_accepts_offer_from_signed_link(): void
+    public function test_candidate_confirms_acceptance_after_opening_signed_link(): void
     {
         [$application, $offer] = $this->makeOffer();
 
         $response = $this->get(URL::temporarySignedRoute(
             'offers.respond.accept',
+            now()->addDays(3),
+            [
+                'offer' => $offer->id,
+                'sent' => $offer->sent_at->getTimestamp(),
+            ],
+            absolute: false,
+        ));
+
+        $response->assertOk();
+
+        $offer->refresh();
+        $application->refresh();
+
+        $this->assertSame('pending', $offer->status);
+        $this->assertSame(StatusApplicationEnum::OFFER, $application->status);
+
+        $response = $this->post(URL::temporarySignedRoute(
+            'offers.respond.accept.submit',
             now()->addDays(3),
             [
                 'offer' => $offer->id,

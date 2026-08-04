@@ -10,6 +10,9 @@
         <span class="info-item"><strong>Ứng viên:</strong> <span class="info-value">{{ $candidateName }}</span></span>
         <span class="info-item"><strong>Vị trí:</strong> <span class="info-value">{{ $jobTitle }}</span></span>
         <span class="info-item"><strong>Mức lương:</strong> <span class="info-value">{{ $salaryOffered }}</span></span>
+        <span class="info-item"><strong>Ngày bắt đầu:</strong> <span class="info-value">{{ $startDate }}</span></span>
+        <span class="info-item"><strong>Thử việc:</strong> <span class="info-value">{{ $probationMonths }} tháng</span></span>
+        <span class="info-item"><strong>Hạn phản hồi:</strong> <span class="info-value">{{ $responseDeadline }}</span></span>
     </div>
 
     <div class="mail-actions">

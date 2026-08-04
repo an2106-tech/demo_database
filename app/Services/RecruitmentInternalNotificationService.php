@@ -20,10 +20,11 @@ class RecruitmentInternalNotificationService
         $this->notifyUsers(
             $this->branchUsers($this->branchId($offer), ['director']),
             'offer_approval_requested',
-            'Có đề nghị tuyển dụng chờ duyệt',
-            $this->offerMessage($offer, 'HR đã gửi đề nghị tuyển dụng cần giám đốc chi nhánh xem xét.'),
+            'Cần duyệt đề nghị tuyển dụng',
+            '',
             OfferResource::getUrl('edit', ['record' => $offer]),
             $offer,
+            $this->offerNotificationContext($offer, 'Mở đề nghị'),
         );
     }
 
@@ -31,18 +32,19 @@ class RecruitmentInternalNotificationService
     {
         $offer->loadMissing(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']);
 
-        $actor = $rejector?->name ? ' bởi '.$rejector->name : '';
         $notes = trim((string) $offer->approval_notes);
-        $message = $this->offerMessage($offer, 'Đề nghị tuyển dụng đã bị từ chối'.$actor.'.')
-            .($notes !== '' ? ' Lý do: '.$notes : '');
+        $message = $notes !== ''
+            ? 'Giám đốc ghi chú: '.$notes
+            : 'Giám đốc đã gửi đề nghị lại để HR chỉnh sửa.';
 
         $this->notifyUsers(
             $this->offerOperators($offer)->reject(fn (User $user): bool => $rejector && $user->is($rejector)),
             'offer_rejected_by_director',
-            'Đề nghị tuyển dụng cần điều chỉnh',
+            'Đề nghị cần chỉnh sửa',
             $message,
             ApplicationResource::getUrl('view', ['record' => $offer->application]),
             $offer,
+            $this->offerNotificationContext($offer, 'Xem ghi chú'),
         );
     }
 
@@ -54,9 +56,10 @@ class RecruitmentInternalNotificationService
             $this->offerTeam($offer),
             'offer_accepted_by_candidate',
             'Ứng viên đã đồng ý đề nghị',
-            $this->offerMessage($offer, 'Ứng viên đã xác nhận đồng ý đề nghị tuyển dụng.'),
+            '',
             ApplicationResource::getUrl('view', ['record' => $offer->application]),
             $offer,
+            $this->offerNotificationContext($offer, 'Xem hồ sơ'),
         );
     }
 
@@ -65,8 +68,9 @@ class RecruitmentInternalNotificationService
         $offer->loadMissing(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']);
 
         $reason = trim((string) $offer->declined_reason);
-        $message = $this->offerMessage($offer, 'Ứng viên đã từ chối đề nghị tuyển dụng.')
-            .($reason !== '' ? ' Lý do: '.$reason : '');
+        $message = $reason !== ''
+            ? 'Lý do phản hồi: '.$reason
+            : 'Cần trao đổi hướng xử lý tiếp theo với ứng viên.';
 
         $this->notifyUsers(
             $this->offerTeam($offer),
@@ -75,30 +79,47 @@ class RecruitmentInternalNotificationService
             $message,
             ApplicationResource::getUrl('view', ['record' => $offer->application]),
             $offer,
+            $this->offerNotificationContext($offer, 'Xem phản hồi'),
+        );
+    }
+
+    public function notifyOfferExpired(Offer $offer): void
+    {
+        $offer->loadMissing(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']);
+
+        $this->notifyUsers(
+            $this->offerTeam($offer),
+            'offer_expired',
+            'Đề nghị đã hết hạn phản hồi',
+            'Ứng viên chưa phản hồi trước hạn. HR cần xem lại hướng xử lý hồ sơ.',
+            ApplicationResource::getUrl('view', ['record' => $offer->application]),
+            $offer,
+            $this->offerNotificationContext($offer, 'Xem hồ sơ'),
         );
     }
 
     /**
      * @param  Collection<int, User>  $users
      */
-    private function notifyUsers(Collection $users, string $type, string $title, string $message, string $url, Offer $offer): void
+    private function notifyUsers(Collection $users, string $type, string $title, string $message, string $url, Offer $offer, array $context = []): void
     {
         $application = $offer->application;
 
         $users
             ->filter(fn (User $user): bool => (bool) $user->id)
             ->unique('id')
-            ->each(function (User $user) use ($type, $title, $message, $url, $offer, $application): void {
+            ->each(function (User $user) use ($type, $title, $message, $url, $offer, $application, $context): void {
                 UserNotification::create([
                     'user_id' => $user->id,
                     'type' => $type,
-                    'data' => [
+                    'data' => array_filter([
                         'title' => $title,
                         'message' => $message,
                         'url' => $url,
                         'offer_id' => $offer->id,
                         'application_id' => $application?->id,
-                    ],
+                        ...$context,
+                    ], fn (mixed $value): bool => $value !== null && $value !== ''),
                 ]);
             });
     }
@@ -126,12 +147,12 @@ class RecruitmentInternalNotificationService
             $application?->job?->creator,
         ])
             ->filter()
+            ->merge($this->branchUsers($this->branchId($offer), ['hr']))
+            ->filter(fn (User $user): bool => (bool) $user->is_active)
             ->unique('id')
             ->values();
 
-        return $operators->isNotEmpty()
-            ? $operators
-            : $this->branchUsers($this->branchId($offer), ['hr']);
+        return $operators;
     }
 
     /**
@@ -160,13 +181,18 @@ class RecruitmentInternalNotificationService
             ?? $offer->application?->branch_id;
     }
 
-    private function offerMessage(Offer $offer, string $prefix): string
+    /** @return array<string, string> */
+    private function offerNotificationContext(Offer $offer, string $actionLabel): array
     {
         $application = $offer->application;
         $candidateName = $application?->snapshotCandidateName() ?: 'Ứng viên';
         $jobTitle = $application?->job?->title ?: 'vị trí tuyển dụng';
         $branchName = $application?->job?->branch?->name ?: $application?->branch?->name;
 
-        return trim($prefix.' '.$candidateName.' - '.$jobTitle.($branchName ? ' tại '.$branchName : '').'.');
+        return [
+            'subject' => $candidateName,
+            'context' => trim($jobTitle.($branchName ? ' · '.$branchName : '')),
+            'action_label' => $actionLabel,
+        ];
     }
 }

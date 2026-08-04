@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusApplicationEnum;
 use App\Models\Offer;
-use App\Services\RecruitmentInternalNotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 
@@ -20,37 +20,51 @@ class OfferResponseController extends Controller
             return $context;
         }
 
-        $application = $context['application'];
-        $candidateName = $application->candidate?->name ?? 'ứng viên';
-        $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
-        $fromStatus = $this->statusValue($application->status);
+        if ($request->isMethod('get')) {
+            return view('offers.accept-confirm', [
+                'offer' => $offer,
+                'application' => $context['application'],
+            ]);
+        }
 
-        $offer->forceFill([
-            'status' => 'accepted',
-            'response_at' => now(),
-            'accepted_at' => now(),
-        ])->save();
+        return DB::transaction(function () use ($request, $offer): View {
+            $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
+            $lockedContext = $this->resolveActionableOffer($request, $offer);
 
-        $application->forceFill([
-            'status' => StatusApplicationEnum::HIRED,
-            'rejected_reason' => null,
-        ])->save();
+            if ($lockedContext instanceof View) {
+                return $lockedContext;
+            }
 
-        $application->recordStatusHistory(
-            $fromStatus,
-            StatusApplicationEnum::HIRED->value,
-            'Ứng viên đã đồng ý đề nghị tuyển dụng qua email.',
-        );
+            $application = $lockedContext['application'];
+            $candidateName = $application->candidate?->name ?? 'ứng viên';
+            $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
+            $fromStatus = $this->statusValue($application->status);
 
-        app(RecruitmentInternalNotificationService::class)->notifyOfferAcceptedByCandidate($offer->fresh());
+            $offer->forceFill([
+                'status' => 'accepted',
+                'response_at' => now(),
+                'accepted_at' => now(),
+            ])->save();
 
-        return $this->resultView(
-            title: 'Đã xác nhận đồng ý đề nghị tuyển dụng',
-            message: "Cảm ơn {$candidateName}. Bạn đã đồng ý đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ liên hệ để hướng dẫn thủ tục nhận việc tiếp theo.",
-            status: 'success',
-            offer: $offer,
-            application: $application->fresh(['candidate', 'job.branch']) ?? $application,
-        );
+            $application->forceFill([
+                'status' => StatusApplicationEnum::HIRED,
+                'rejected_reason' => null,
+            ])->save();
+
+            $application->recordStatusHistory(
+                $fromStatus,
+                StatusApplicationEnum::HIRED->value,
+                'Ứng viên đã đồng ý đề nghị tuyển dụng qua email.',
+            );
+
+            return $this->resultView(
+                title: 'Đã xác nhận đồng ý đề nghị tuyển dụng',
+                message: "Cảm ơn {$candidateName}. Bạn đã đồng ý đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ liên hệ để hướng dẫn thủ tục nhận việc tiếp theo.",
+                status: 'success',
+                offer: $offer,
+                application: $application->fresh(['candidate', 'job.branch']) ?? $application,
+            );
+        });
     }
 
     public function decline(Request $request, Offer $offer): View
@@ -108,9 +122,6 @@ class OfferResponseController extends Controller
             'decline_note.max' => 'Ghi chú không được vượt quá 1000 ký tự.',
         ]);
 
-        $application = $context['application'];
-        $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
-        $fromStatus = $this->statusValue($application->status);
         $reasonText = $this->formatDeclineReason(
             $validated['decline_reason'],
             $validated['expected_compensation'] ?? null,
@@ -118,32 +129,43 @@ class OfferResponseController extends Controller
             $validated['decline_note'] ?? null,
         );
 
-        $offer->forceFill([
-            'status' => 'declined',
-            'response_at' => now(),
-            'accepted_at' => null,
-            'declined_reason' => $reasonText,
-        ])->save();
+        return DB::transaction(function () use ($request, $offer, $reasonText): View {
+            $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
+            $lockedContext = $this->resolveActionableOffer($request, $offer);
 
-        app(RecruitmentInternalNotificationService::class)->notifyOfferDeclinedByCandidate($offer->fresh());
+            if ($lockedContext instanceof View) {
+                return $lockedContext;
+            }
 
-        $application->forceFill([
-            'status' => StatusApplicationEnum::OFFER,
-        ])->save();
+            $application = $lockedContext['application'];
+            $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
+            $fromStatus = $this->statusValue($application->status);
 
-        $application->recordStatusHistory(
-            $fromStatus,
-            StatusApplicationEnum::OFFER->value,
-            'Ứng viên đã từ chối đề nghị tuyển dụng. Lý do: '.$reasonText,
-        );
+            $offer->forceFill([
+                'status' => 'declined',
+                'response_at' => now(),
+                'accepted_at' => null,
+                'declined_reason' => $reasonText,
+            ])->save();
 
-        return $this->resultView(
-            title: 'Đã ghi nhận phản hồi từ chối',
-            message: "Cảm ơn bạn đã phản hồi đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ xem xét thông tin và liên hệ lại nếu cần.",
-            status: 'warning',
-            offer: $offer,
-            application: $application->fresh(['candidate', 'job.branch']) ?? $application,
-        );
+            $application->forceFill([
+                'status' => StatusApplicationEnum::OFFER,
+            ])->save();
+
+            $application->recordStatusHistory(
+                $fromStatus,
+                StatusApplicationEnum::OFFER->value,
+                'Ứng viên đã từ chối đề nghị tuyển dụng. Lý do: '.$reasonText,
+            );
+
+            return $this->resultView(
+                title: 'Đã ghi nhận phản hồi từ chối',
+                message: "Cảm ơn bạn đã phản hồi đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ xem xét thông tin và liên hệ lại nếu cần.",
+                status: 'warning',
+                offer: $offer,
+                application: $application->fresh(['candidate', 'job.branch']) ?? $application,
+            );
+        });
     }
 
     protected function resolveActionableOffer(Request $request, Offer $offer): array|View

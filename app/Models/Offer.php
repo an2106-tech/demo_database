@@ -51,7 +51,8 @@ class Offer extends Model
     ];
 
     protected $casts = [
-        'salary_offered' => 'decimal:2',
+        // VND is stored in a decimal column for compatibility, but offers do not use fractional amounts.
+        'salary_offered' => 'decimal:0',
         'start_date' => 'date',
         'expires_at' => 'datetime',
         'response_at' => 'datetime',

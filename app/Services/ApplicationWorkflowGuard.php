@@ -119,15 +119,36 @@ class ApplicationWorkflowGuard
             return false;
         }
 
-        if (! $this->canOverseeRecruitment($user) && ! $this->isAssignedInterviewer($user, $application)) {
+        if (! $this->canOverseeRecruitment($user)
+            && ! $this->isHr($user)
+            && ! $this->isAssignedInterviewer($user, $application)) {
             return false;
         }
 
-        if ($status === StatusApplicationEnum::INTERVIEW) {
+        return $interview->scheduled_at?->lte(now()) ?? false;
+    }
+
+    public function canFinalizeInterviewEvaluation(?User $user, Application $application, bool $confirmedEarlyCompletion = false): bool
+    {
+        if (! $this->canEvaluateInterview($user, $application)) {
+            return false;
+        }
+
+        $interview = $this->latestInterview($application);
+        if (! $interview?->scheduled_at) {
+            return false;
+        }
+
+        if ($interview->actual_ended_at) {
             return true;
         }
 
-        return $interview->scheduled_at?->lte(now()) ?? false;
+        $scheduledEnd = $interview->scheduled_at
+            ->copy()
+            ->addMinutes(max(1, (int) $interview->duration_minutes));
+
+        return $scheduledEnd->lte(now($interview->scheduled_at->getTimezone()))
+            || $confirmedEarlyCompletion;
     }
 
     public function canSendInterviewSchedule(?User $user, Application $application): bool

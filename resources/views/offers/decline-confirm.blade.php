@@ -230,7 +230,7 @@
                 </div>
             </div>
 
-            <form class="form" method="POST" action="{{ request()->fullUrl() }}">
+            <form id="decline-offer-form" class="form" method="POST" action="{{ request()->fullUrl() }}">
                 @csrf
 
                 <div class="field">
@@ -291,7 +291,7 @@
 
                 <div class="actions">
                     <a class="button secondary" href="{{ config('app.url') }}">Quay lại</a>
-                    <button class="button primary" type="submit">Xác nhận từ chối</button>
+                    <button id="decline-offer-button" class="button primary" type="submit">Xác nhận từ chối</button>
                 </div>
             </form>
         </div>
@@ -315,6 +315,12 @@
 
         reasonInputs.forEach((input) => input.addEventListener('change', syncReasonFields));
         syncReasonFields();
+
+        document.getElementById('decline-offer-form')?.addEventListener('submit', function () {
+            const button = document.getElementById('decline-offer-button');
+            button.disabled = true;
+            button.textContent = 'Đang gửi phản hồi...';
+        });
     </script>
 </body>
 </html>

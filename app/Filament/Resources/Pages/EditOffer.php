@@ -9,9 +9,9 @@ use App\Models\Scorecard;
 use App\Services\OfferApprovalService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -30,92 +30,42 @@ class EditOffer extends EditRecord
     {
         return $schema
             ->schema([
-                Section::make('Đề nghị cần duyệt')
-                    ->columns(3)
-                    ->schema([
-                        TextInput::make('candidate_name')
-                            ->label('Ứng viên')
-                            ->disabled(),
-                        TextInput::make('job_title')
-                            ->label('Vị trí ứng tuyển')
-                            ->disabled(),
-                        TextInput::make('status_display')
-                            ->label('Trạng thái đề nghị')
-                            ->disabled(),
-                        TextInput::make('branch_name')
-                            ->label('Chi nhánh')
-                            ->disabled(),
-                        TextInput::make('department_name')
-                            ->label('Phòng ban')
-                            ->disabled(),
-                        TextInput::make('request_owner_name')
-                            ->label('HR gửi đề nghị')
-                            ->disabled(),
-                        TextInput::make('approval_requested_at_display')
-                            ->label('Gửi duyệt lúc')
-                            ->disabled(),
-                        TextInput::make('offer_code')
-                            ->label('Mã đề nghị')
-                            ->disabled(),
-                    ]),
-
-                Section::make('Điều khoản đề nghị')
-                    ->columns(4)
-                    ->schema([
-                        TextInput::make('salary_display')
-                            ->label('Mức lương đề nghị')
-                            ->disabled(),
-                        TextInput::make('start_date_display')
-                            ->label('Ngày bắt đầu')
-                            ->disabled(),
-                        TextInput::make('probation_display')
-                            ->label('Thời gian thử việc')
-                            ->disabled(),
-                        TextInput::make('expires_at_display')
-                            ->label('Hạn phản hồi')
-                            ->disabled(),
-                        TextInput::make('template_name')
-                            ->label('Mẫu thư')
-                            ->disabled(),
-                        TextInput::make('pdf_status')
-                            ->label('PDF đề nghị')
-                            ->disabled(),
-                    ]),
-
-                Section::make('Căn cứ đánh giá')
+                Section::make('Đề nghị tuyển dụng chờ duyệt')
                     ->compact()
                     ->schema([
-                        Html::make(fn (): HtmlString => $this->renderDecisionEvidence()),
-                    ]),
-
-                Section::make('CV ứng viên')
-                    ->schema([
-                        Html::make(fn (): HtmlString => $this->renderCvPanel()),
-                    ]),
-
-                Section::make('Thông tin bổ sung')
-                    ->collapsed()
-                    ->hidden()
-                    ->columns(2)
-                    ->schema([
-                        TextInput::make('candidate_email')
-                            ->label('Email liên hệ')
-                            ->disabled(),
-                        TextInput::make('candidate_phone')
-                            ->label('Số điện thoại')
-                            ->disabled(),
-                        TextInput::make('workplace_name')
-                            ->label('Nơi làm việc')
-                            ->disabled(),
-                        TextInput::make('created_at_display')
-                            ->label('Ngày tạo đề nghị')
-                            ->disabled(),
-                        Textarea::make('content_preview')
-                            ->label('Nội dung thư mời / ghi chú đề nghị')
-                            ->disabled()
-                            ->rows(4)
+                        Html::make(fn (): HtmlString => $this->renderOfferOverview())
                             ->columnSpanFull(),
-                    ]),
+                    ])
+                    ->columnSpanFull(),
+
+                Grid::make(['default' => 1, 'xl' => 12])
+                    ->schema([
+                        Section::make('Thông tin đánh giá')
+                            ->schema([
+                                Html::make(fn (): HtmlString => $this->renderInterviewEvidence())
+                                    ->columnSpanFull(),
+                                Html::make(fn (): HtmlString => $this->renderCandidateSummary())
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(['default' => 'full', 'xl' => 4]),
+                        Section::make('CV ứng tuyển')
+                            ->description(fn (): string => $this->record->application?->submittedCvName() ?: 'Không có CV đính kèm')
+                            ->headerActions([
+                                Action::make('open_candidate_cv')
+                                    ->label('Mở CV')
+                                    ->icon('heroicon-o-arrow-top-right-on-square')
+                                    ->color('gray')
+                                    ->url(fn (): ?string => $this->record->application?->submittedCvUrl())
+                                    ->openUrlInNewTab()
+                                    ->visible(fn (): bool => filled($this->record->application?->submittedCvUrl())),
+                            ])
+                            ->schema([
+                                Html::make(fn (): HtmlString => $this->renderCvPanel())
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(['default' => 'full', 'xl' => 8]),
+                    ])
+                    ->columnSpanFull(),
             ]);
     }
 
@@ -182,7 +132,7 @@ class EditOffer extends EditRecord
 
         return [
             Action::make('download_pdf')
-                ->label('Tải PDF đề nghị')
+                ->label('Tải PDF')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('gray')
                 ->visible(fn () => filled($offer->pdf_path) && Storage::disk('local')->exists($offer->pdf_path))
@@ -192,13 +142,17 @@ class EditOffer extends EditRecord
                 )),
 
             Action::make('approve')
-                ->label('Duyệt đề nghị')
+                ->label('Duyệt')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Xác nhận duyệt đề nghị tuyển dụng')
-                ->modalDescription('Thư mời nhận việc sẽ được gửi tới ứng viên sau khi duyệt.')
+                ->modalHeading('Gửi thư mời nhận việc?')
+                ->modalDescription(fn () => sprintf(
+                    'Thư mời sẽ được gửi đến %s ngay sau khi xác nhận. Hạn phản hồi: %s.',
+                    $this->record->application?->snapshotCandidateName() ?: 'ứng viên',
+                    $this->formatDateTime($this->record->expires_at, 'chưa đặt')
+                ))
                 ->action(function () use ($offer) {
                     $user = Auth::user();
 
@@ -232,17 +186,19 @@ class EditOffer extends EditRecord
                 }),
 
             Action::make('reject')
-                ->label('Từ chối')
+                ->label('Yêu cầu chỉnh sửa')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
                 ->visible(fn () => $offer->status === 'awaiting_approval')
                 ->requiresConfirmation()
-                ->modalHeading('Từ chối đề nghị tuyển dụng')
-                ->modalDescription('HR cần điều chỉnh đề nghị tuyển dụng trước khi gửi lại.')
+                ->modalHeading('Yêu cầu chỉnh sửa đề nghị')
+                ->modalDescription('Ghi rõ nội dung HR cần cập nhật trước khi gửi duyệt lại.')
                 ->form([
                     Textarea::make('approval_notes')
-                        ->label('Lý do từ chối')
+                        ->label('Nội dung cần chỉnh sửa')
+                        ->helperText('Tối thiểu 10 ký tự.')
                         ->rows(4)
+                        ->minLength(10)
                         ->required(),
                 ])
                 ->action(function (array $data) use ($offer) {
@@ -263,8 +219,8 @@ class EditOffer extends EditRecord
                     if ($service->reject($offer, $user, trim((string) ($data['approval_notes'] ?? '')))) {
                         Notification::make()
                             ->warning()
-                            ->title('Đã từ chối đề nghị tuyển dụng')
-                            ->body('Đề nghị tuyển dụng đã bị từ chối.')
+                            ->title('Đã gửi lại cho HR')
+                            ->body('HR sẽ xem ghi chú và cập nhật đề nghị.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));
@@ -296,26 +252,58 @@ class EditOffer extends EditRecord
             'awaiting_approval' => 'Chờ giám đốc duyệt',
             'pending' => 'Đã duyệt, chờ ứng viên phản hồi',
             'accepted' => 'Ứng viên đã đồng ý',
-            'rejected' => 'Ứng viên đã từ chối',
+            'rejected' => 'Cần chỉnh sửa',
+            'declined' => 'Ứng viên đã từ chối',
             'draft' => 'Bản nháp',
             default => $status,
         };
     }
 
-    private function renderDecisionEvidence(): HtmlString
+    private function renderOfferOverview(): HtmlString
     {
-        $interviewSummary = $this->record->application
-            ? $this->renderDirectorScorecardSummary($this->record->application)
-            : new HtmlString('<span class="text-sm text-gray-500 dark:text-gray-400">Chưa có hồ sơ ứng tuyển để đối chiếu.</span>');
-
-        $aiSummary = $this->renderCandidateSummary();
+        $application = $this->record->application;
+        $job = $application?->job;
+        $candidateName = e($application?->snapshotCandidateName() ?: 'Ứng viên');
+        $jobTitle = e($job?->title ?: 'Chưa xác định vị trí');
+        $branchName = e($job?->branch?->name ?: $application?->branch?->name ?: 'Chưa xác định chi nhánh');
+        $ownerName = e($application?->assignedHr?->name ?? $job?->creator?->name ?? 'Chưa xác định');
+        $offerCode = e($this->formatOfferCode((int) $this->record->id));
+        $submittedAt = e($this->formatDateTime($this->record->approval_requested_at, 'Chưa gửi duyệt'));
+        $content = trim((string) $this->record->content);
+        $contentPanel = $content !== ''
+            ? '<details style="margin-top:14px;"><summary style="cursor:pointer;font-size:13px;font-weight:700;color:#475569;">Xem nội dung thư mời</summary><div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:10px;font-size:13px;line-height:1.6;color:#374151;">'.nl2br(e($content)).'</div></details>'
+            : '';
 
         return new HtmlString(<<<HTML
-            <div style="display:grid;gap:14px;">
-                {$aiSummary}
-                {$interviewSummary}
+            <div style="display:grid;gap:16px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:18px;">
+                    <div style="min-width:0;">
+                        <div style="font-size:18px;font-weight:800;color:#111827;">{$candidateName}</div>
+                        <div style="margin-top:3px;font-size:14px;line-height:1.5;color:#475569;">{$jobTitle} · {$branchName}</div>
+                    </div>
+                    <div style="flex:0 0 auto;border-radius:999px;background:#fff7ed;padding:6px 10px;font-size:12px;font-weight:800;color:#c2410c;white-space:nowrap;">Chờ duyệt</div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
+                    <div style="border-radius:10px;background:#f8fafc;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#64748b;">Mức lương đề xuất</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#111827;">{$this->formatMoney($this->record->salary_offered)}</div></div>
+                    <div style="border-radius:10px;background:#f8fafc;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#64748b;">Ngày bắt đầu</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#111827;">{$this->formatDate($this->record->start_date)}</div></div>
+                    <div style="border-radius:10px;background:#f8fafc;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#64748b;">Thử việc</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#111827;">{$this->record->probation_months} tháng</div></div>
+                    <div style="border-radius:10px;background:#fff7ed;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#9a3412;">Hạn phản hồi</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#9a3412;">{$this->formatDateTime($this->record->expires_at, 'Chưa đặt')}</div></div>
+                </div>
+
+                <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:#64748b;">
+                    <span>HR gửi đề nghị: <strong style="color:#334155;">{$ownerName}</strong></span><span>·</span><span>Gửi duyệt: {$submittedAt}</span><span>·</span><span>{$offerCode}</span>
+                </div>
+                {$contentPanel}
             </div>
         HTML);
+    }
+
+    private function renderInterviewEvidence(): HtmlString
+    {
+        return $this->record->application
+            ? $this->renderDirectorScorecardSummary($this->record->application)
+            : new HtmlString('<span style="font-size:14px;color:#6b7280;">Chưa có đánh giá phỏng vấn để đối chiếu.</span>');
     }
 
     private function renderCvPanel(): HtmlString
@@ -327,33 +315,22 @@ class EditOffer extends EditRecord
             return new HtmlString('<div class="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-500 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-400">Chưa có file CV để đối chiếu.</div>');
         }
 
-        $cvName = e($application?->submittedCvName() ?: 'CV ứng viên');
         $safeUrl = e($url);
         $isPdf = str_ends_with(strtolower((string) $application?->submittedCvName()), '.pdf')
             || str_contains(strtolower($safeUrl), '.pdf');
 
         $preview = $isPdf
-            ? '<iframe src="'.$safeUrl.'#toolbar=1&navpanes=0&view=FitH" style="width:100%;height:720px;border:0;background:#f3f4f6;"></iframe>'
-            : '<div style="height:220px;display:flex;align-items:center;justify-content:center;background:#f9fafb;padding:24px;text-align:center;font-size:14px;line-height:1.6;color:#6b7280;">Định dạng CV này không hỗ trợ xem trước trực tiếp. Vui lòng mở CV gốc để đối chiếu.</div>';
+            ? '<iframe src="'.$safeUrl.'#toolbar=1&navpanes=0&view=FitH" style="display:block;width:100%;height:620px;border:0;background:#f3f4f6;"></iframe>'
+            : '<div style="height:220px;display:flex;align-items:center;justify-content:center;background:#f9fafb;padding:24px;text-align:center;font-size:14px;line-height:1.6;color:#6b7280;">Định dạng này không hỗ trợ xem trước trực tiếp. Vui lòng mở CV để đối chiếu.</div>';
 
-        return new HtmlString(<<<HTML
-            <div style="overflow:hidden;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;box-shadow:0 1px 2px rgba(15,23,42,.04);">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #e5e7eb;padding:10px 12px;background:#ffffff;">
-                    <div style="min-width:0;">
-                        <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:#6b7280;">CV gốc để đối chiếu</div>
-                        <div style="margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:800;color:#111827;">{$cvName}</div>
-                    </div>
-                    <a href="{$safeUrl}" target="_blank" rel="noopener noreferrer" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#f97316;color:#ffffff;padding:8px 13px;font-size:13px;font-weight:800;text-decoration:none;">Mở CV</a>
-                </div>
-                {$preview}
-            </div>
-        HTML);
+        return new HtmlString($preview);
     }
 
     private function renderDirectorScorecardSummary(Application $application): HtmlString
     {
         $scorecards = $application->scorecards()
             ->with(['evaluator', 'interview', 'template'])
+            ->whereNotNull('conclusion')
             ->latest('updated_at')
             ->get();
 
@@ -390,18 +367,18 @@ class EditOffer extends EditRecord
 
                         <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:10px;">
                             <div style="border-radius:10px;background:#f9fafb;padding:9px 10px;">
-                                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7280;">Khuyến nghị</div>
+                                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7280;">Đề xuất người phỏng vấn</div>
                                 <div style="margin-top:3px;font-size:13px;font-weight:800;color:#111827;">{$recommendation}</div>
                             </div>
                             <div style="border-radius:10px;background:#f9fafb;padding:9px 10px;">
-                                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7280;">Kết luận</div>
+                                <div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7280;">Kết quả đánh giá</div>
                                 <div style="margin-top:3px;font-size:13px;font-weight:800;color:#111827;">{$conclusion}</div>
                             </div>
                         </div>
 
                         {$notes}
+                        {$criteria}
                     </div>
-                    {$criteria}
                 </div>
             HTML;
         })->implode('');
@@ -439,8 +416,8 @@ class EditOffer extends EditRecord
         }
 
         return <<<HTML
-            <details style="display:block;margin:0;">
-                <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;list-style:none;">Xem điểm theo tiêu chí</summary>
+            <details style="display:block;margin-top:12px;">
+                <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;list-style:none;">Xem chi tiết đánh giá</summary>
                 <div style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:2px;">{$rows}</div>
             </details>
         HTML;
@@ -492,20 +469,18 @@ class EditOffer extends EditRecord
             : '<div style="font-size:13px;line-height:1.55;color:#6b7280;text-align:justify;">Chưa có phân tích sàng lọc AI. Giám đốc có thể đối chiếu scorecard phỏng vấn và CV gốc.</div>';
 
         return new HtmlString(<<<HTML
-            <div style="position:relative;border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:13px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04);">
-                <div style="display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:16px;align-items:start;">
-                    <div style="min-width:0;">
-                        <div style="margin-bottom:5px;font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;">Tóm tắt hỗ trợ duyệt</div>
-                        {$summaryHtml}
-                    </div>
-                    <div style="display:grid;gap:10px;justify-items:end;">
-                        <div style="display:flex;flex-wrap:nowrap;justify-content:flex-end;gap:6px;">{$scoreBadge}{$recommendationBadge}</div>
-                        <details>
-                        <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;white-space:nowrap;">Xem căn cứ AI</summary>
-                        <div style="position:absolute;z-index:20;margin-top:8px;right:14px;width:min(520px,calc(100vw - 80px));border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:12px;box-shadow:0 10px 24px rgba(15,23,42,.16);">
+            <div style="border:1px solid #e5e7eb;border-radius:12px;background:#ffffff;padding:13px 14px;box-shadow:0 1px 2px rgba(15,23,42,.04);">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="font-size:12px;font-weight:800;text-transform:uppercase;color:#6b7280;">Tóm tắt mức độ phù hợp</div>
+                    <div style="display:flex;align-items:center;gap:6px;">{$scoreBadge}{$recommendationBadge}</div>
+                </div>
+                <div style="margin-top:10px;min-width:0;">{$summaryHtml}</div>
+                <details style="margin-top:12px;">
+                    <summary style="cursor:pointer;display:inline-flex;align-items:center;border-radius:8px;border:1px solid #e5e7eb;background:#ffffff;padding:6px 10px;font-size:13px;font-weight:700;color:#374151;">Xem nhận định từ AI</summary>
+                    <div style="margin-top:10px;border-top:1px solid #e5e7eb;padding-top:10px;">
                             <div style="display:grid;gap:10px;">
                                 <div>
-                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#15803d;">Căn cứ duyệt</div>
+                                    <div style="margin-bottom:5px;font-size:12px;font-weight:800;color:#15803d;">Điểm phù hợp</div>
                                     {$strengths}
                                 </div>
                                 <div>
@@ -513,10 +488,8 @@ class EditOffer extends EditRecord
                                     {$gaps}
                                 </div>
                             </div>
-                        </div>
-                        </details>
                     </div>
-                </div>
+                </details>
             </div>
         HTML);
     }
@@ -607,6 +580,11 @@ class EditOffer extends EditRecord
         } catch (\Throwable) {
             return (string) $value;
         }
+    }
+
+    private function formatMoney(mixed $value): string
+    {
+        return number_format((float) $value, 0, ',', '.').' VND';
     }
 
     private function formatDateTime(mixed $value, string $empty = '-'): string

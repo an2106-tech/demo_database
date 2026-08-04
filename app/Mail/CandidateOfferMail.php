@@ -124,7 +124,7 @@ class CandidateOfferMail extends Mailable
             '{{salary_offered}}' => e(number_format((float) $this->offer->salary_offered, 0, ',', '.').' VND'),
             '{{start_date}}' => e(optional($this->offer->start_date)->format('d/m/Y') ?? 'Chưa cập nhật'),
             '{{probation_months}}' => e((string) $this->offer->probation_months.' tháng'),
-            '{{expiration_date}}' => e(optional($this->offer->expires_at)->format('d/m/Y') ?? 'hết hạn sau 3 ngày'),
+            '{{expiration_date}}' => e(optional($this->offer->expires_at)->format('d/m/Y H:i') ?? 'hết hạn sau 3 ngày'),
             '{{offer_content}}' => $this->resolveOfferContentHtml(),
             '{{offer_response_actions}}' => $this->buildOfferResponseActionsHtml(),
             '{{app_name}}' => e((string) config('app.name')),

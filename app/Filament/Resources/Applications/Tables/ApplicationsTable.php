@@ -4,10 +4,7 @@ namespace App\Filament\Resources\Applications\Tables;
 
 use App\Enums\StatusApplicationEnum;
 use App\Filament\Resources\Applications\ApplicationResource;
-use App\Mail\CandidateOfferMail;
-use App\Mail\InterviewScheduledMail;
 use App\Mail\OfferApprovalRequestMail;
-use App\Mail\OfferApprovedNotificationMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
@@ -20,12 +17,15 @@ use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
+use App\Services\InterviewEvaluationService;
+use App\Services\InterviewMeetingLinkValidator;
+use App\Services\InterviewScheduleDeliveryService;
 use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationPipelineService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\ApplicationWorkflowSummaryService;
 use App\Services\OfferApprovalService;
-use App\Services\OfferPdfService;
+use App\Services\OfferWorkflowService;
 use App\Services\RecruitmentInternalNotificationService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -38,6 +38,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -59,7 +60,6 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
@@ -75,13 +75,6 @@ class ApplicationsTable
         return $table
             ->defaultSort('applied_at', 'desc')
             ->poll('10s')
-            ->headerActions([
-                Action::make('kanbanBoard')
-                    ->label('Kanban')
-                    ->icon('heroicon-o-view-columns')
-                    ->color('gray')
-                    ->url(ApplicationResource::getUrl('kanban')),
-            ])
             ->searchPlaceholder('Tìm theo ứng viên, vị trí, email...')
             ->columns([
                 TextColumn::make('id')
@@ -321,163 +314,51 @@ class ApplicationsTable
                         ->icon('heroicon-o-clipboard-document-check')
                         ->color('info')
                         ->modalWidth('6xl')
-                        ->modalHeading('Đánh giá phỏng vấn')
+                        ->modalHeading('Ghi nhận đánh giá phỏng vấn')
                         ->modalDescription(fn (Application $record): string => 'Hồ sơ #'.$record->id.' - '.$record->snapshotCandidateName())
-                        ->modalSubmitActionLabel('Lưu đánh giá phỏng vấn')
+                        ->modalSubmitActionLabel('Lưu đánh giá')
                         ->fillForm(function (Application $record): array {
                             $interview = $record->interviews()->latest('id')->first();
                             $scorecard = $interview
                                 ? static::getCurrentEvaluatorScorecard($record, $interview)
                                 : null;
 
-                            $defaultTemplate = ScorecardTemplate::query()
-                                ->where('is_default', true)
-                                ->latest('id')
-                                ->first();
-
                             $criteria = $scorecard?->criteria;
-                            if (! is_array($criteria) || $criteria === []) {
-                                $criteria = $defaultTemplate?->criteria;
-                            }
-
-                            if (! is_array($criteria) || $criteria === []) {
-                                $criteria = static::defaultInterviewCriteria();
-                            }
 
                             return [
                                 'interview_id' => $interview?->id,
-                                'template_id' => $scorecard?->template_id ?? $defaultTemplate?->id,
-                                'criteria' => $criteria,
+                                'template_id' => $scorecard?->template_id,
+                                'criteria' => is_array($criteria) ? $criteria : [],
                                 'average_score' => $scorecard?->average_score,
                                 'recommended_conclusion' => $scorecard?->recommended_conclusion,
                                 'conclusion' => $scorecard?->conclusion ?? ($interview?->result !== 'pending' ? $interview?->result : null),
                                 'notes' => $scorecard?->notes,
                                 'override_reason' => $scorecard?->override_reason,
                                 'rejected_reason' => $record->rejected_reason,
+                                'confirm_early_completion' => false,
                             ];
                         })
                         ->form(fn (): array => static::getInterviewEvaluationFormSchema())
                         ->action(function (Application $record, array $data): void {
-                            $interview = $record->interviews()->latest('id')->first();
-                            if (! $interview) {
-                                Notification::make()
-                                    ->warning()
-                                    ->title('Chưa có lịch phỏng vấn')
-                                    ->body('Vui lòng tạo lịch phỏng vấn trước khi chấm điểm.')
-                                    ->send();
-
-                                return;
-                            }
-
-                            $criteria = static::validateInterviewCriteria($data['criteria'] ?? []);
-                            $average = static::calculateInterviewAverage($criteria);
-                            $recommendedConclusion = static::recommendedInterviewConclusion($average);
-                            $conclusion = static::validateInterviewConclusion($data['conclusion'] ?? null);
-                            $overrideReason = trim((string) ($data['override_reason'] ?? ''));
-
-                            if (static::isInterviewConclusionOverride($conclusion, $recommendedConclusion)
-                                && $overrideReason === ''
-                            ) {
-                                throw ValidationException::withMessages([
-                                    'override_reason' => 'Vui lòng nhập lý do khi kết luận cuối khác khuyến nghị từ điểm số.',
-                                ]);
-                            }
-
-                            if ($conclusion === 'fail' && blank($data['rejected_reason'] ?? null)) {
-                                throw ValidationException::withMessages([
-                                    'rejected_reason' => 'Vui lòng nhập lý do từ chối khi kết luận không đạt.',
-                                ]);
-                            }
-
-                            $scorecard = Scorecard::withTrashed()->firstOrNew([
-                                'interview_id' => $interview->id,
-                                'evaluator_id' => (int) Auth::id(),
-                            ]);
-
-                            if ($scorecard->trashed()) {
-                                $scorecard->restore();
-                            }
-
-                            $scorecard->fill([
-                                'application_id' => $record->id,
-                                'interview_id' => $interview->id,
-                                'template_id' => $data['template_id'] ?? null,
-                                'evaluator_id' => (int) Auth::id(),
-                                'criteria' => $criteria,
-                                'average_score' => $average,
-                                'recommended_conclusion' => $recommendedConclusion,
-                                'notes' => $data['notes'] ?? null,
-                                'override_reason' => static::isInterviewConclusionOverride($conclusion, $recommendedConclusion)
-                                    ? $overrideReason
-                                    : null,
-                                'conclusion' => $conclusion,
-                            ]);
-                            $scorecard->save();
-
-                            $interviewResult = $conclusion === 'hold' ? 'pending' : $conclusion;
-                            $interview->forceFill(['result' => $interviewResult])->save();
-
-                            $currentStatus = $record->status instanceof StatusApplicationEnum
-                                ? $record->status
-                                : StatusApplicationEnum::tryFrom((string) $record->status);
-
-                            $evaluationComment = static::buildInterviewEvaluationComment(
-                                $conclusion,
-                                $average,
-                                $data['notes'] ?? null,
-                                $recommendedConclusion,
-                                $overrideReason
+                            $canFinalize = static::workflowGuard()->canFinalizeInterviewEvaluation(
+                                Auth::user(),
+                                $record,
+                                (bool) ($data['confirm_early_completion'] ?? false),
                             );
-                            $alreadyRecordedEvaluation = false;
-
-                            if ($currentStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED) {
-                                $comment = $conclusion === 'hold'
-                                    ? $evaluationComment
-                                    : 'Đã ghi nhận đánh giá phỏng vấn trước khi chuyển bước tiếp theo.';
-
-                                if (! static::transitionApplication($record, StatusApplicationEnum::INTERVIEW, $comment)) {
-                                    return;
-                                }
-
-                                $record->refresh();
-                                $alreadyRecordedEvaluation = $conclusion === 'hold';
-                            }
-
-                            if ($conclusion === 'pass') {
-                                $record->forceFill([
-                                    'rejected_reason' => null,
-                                ])->save();
-                                if (! static::transitionApplication($record, StatusApplicationEnum::OFFER, $evaluationComment)) {
-                                    return;
-                                }
-                            } elseif ($conclusion === 'fail') {
-                                $rejectedReason = trim((string) ($data['rejected_reason'] ?? $record->rejected_reason ?? ''));
-                                $rejectedComment = $evaluationComment.($rejectedReason !== '' ? ' Lý do từ chối: '.$rejectedReason : '');
-
-                                $record->forceFill([
-                                    'rejected_reason' => $rejectedReason !== '' ? $rejectedReason : $record->rejected_reason,
-                                ])->save();
-                                if (! static::transitionApplication($record, StatusApplicationEnum::REJECTED, $rejectedComment)) {
-                                    return;
-                                }
-                            } else {
-                                if (! $alreadyRecordedEvaluation) {
-                                    $record->recordStatusHistory(
-                                        StatusApplicationEnum::INTERVIEW->value,
-                                        StatusApplicationEnum::INTERVIEW->value,
-                                        $evaluationComment
-                                    );
-                                }
-                            }
+                            $result = $canFinalize
+                                ? app(InterviewEvaluationService::class)->complete($record, $data, Auth::user())
+                                : app(InterviewEvaluationService::class)->saveDraft($record, $data, Auth::user());
 
                             Notification::make()
                                 ->success()
-                                ->title('Đã lưu đánh giá phỏng vấn')
-                                ->body($conclusion === 'pass'
-                                    ? 'Ứng viên đạt - hồ sơ đã chuyển sang bước đề nghị tuyển dụng.'
-                                    : ($conclusion === 'fail'
-                                        ? 'Ứng viên không đạt — hồ sơ đã chuyển sang Từ chối.'
-                                        : 'Đã lưu đánh giá — hồ sơ giữ ở Phỏng vấn.'))
+                                ->title($canFinalize ? 'Đã hoàn tất đánh giá phỏng vấn' : 'Đã lưu đánh giá tạm')
+                                ->body($canFinalize
+                                    ? ($result['conclusion'] === 'pass'
+                                        ? 'Ứng viên đạt - hồ sơ đã chuyển sang bước đề nghị tuyển dụng.'
+                                        : ($result['conclusion'] === 'fail'
+                                            ? 'Ứng viên không đạt — hồ sơ đã chuyển sang Từ chối.'
+                                            : 'Đánh giá đã hoàn tất — hồ sơ giữ ở Phỏng vấn để xem xét thêm.'))
+                                    : 'Điểm và nhận xét đang nhập đã được lưu. Hồ sơ chưa chuyển giai đoạn.')
                                 ->send();
                         })
                         ->visible(fn (Application $record): bool => static::canEvaluateInterview($record)),
@@ -1758,6 +1639,13 @@ class ApplicationsTable
                                 ->placeholder('https://meet.google.com/...')
                                 ->helperText('Dán link Google Meet, Zoom, Teams hoặc nền tảng họp trực tuyến hợp lệ. Link này sẽ được gửi cho ứng viên.')
                                 ->url()
+                                ->rules([
+                                    function (string $attribute, mixed $value, $fail): void {
+                                        if (filled($value) && ! app(InterviewMeetingLinkValidator::class)->isValid((string) $value)) {
+                                            $fail('Dùng link họp https hợp lệ, ví dụ Google Meet/Zoom/Teams.');
+                                        }
+                                    },
+                                ])
                                 ->maxLength(500)
                                 ->visible(fn (callable $get): bool => $get('type') === 'online')
                                 ->required(fn (callable $get): bool => $get('type') === 'online'),
@@ -1908,7 +1796,8 @@ class ApplicationsTable
                                 ->searchable()
                                 ->preload()
                                 ->live()
-                                ->helperText('Chọn mẫu phù hợp vị trí; có thể bổ sung tiêu chí nếu cần.')
+                                ->required()
+                                ->helperText('Chọn mẫu để hiển thị bộ tiêu chí thống nhất cho buổi phỏng vấn.')
                                 ->afterStateUpdated(function ($state, callable $set): void {
                                     if (blank($state)) {
                                         return;
@@ -1926,22 +1815,27 @@ class ApplicationsTable
                                 ->schema([
                                     TextInput::make('name')
                                         ->label('Tiêu chí')
-                                        ->required()
-                                        ->maxLength(120),
+                                        ->disabled()
+                                        ->dehydrated(),
                                     Select::make('score')
                                         ->label('Điểm')
                                         ->options(static::interviewScoreOptions())
                                         ->native(false)
-                                        ->searchable(false)
-                                        ->required(),
+                                        ->searchable(false),
                                     Textarea::make('note')
                                         ->label('Nhận xét tiêu chí')
                                         ->rows(2)
                                         ->columnSpanFull(),
                                 ])
-                                ->minItems(1)
-                                ->defaultItems(5)
+                                ->addable(false)
+                                ->deletable(false)
+                                ->reorderable(false)
                                 ->columns(2)
+                                ->columnSpanFull(),
+                            Checkbox::make('confirm_early_completion')
+                                ->label('Xác nhận buổi phỏng vấn đã kết thúc để hoàn tất đánh giá sớm')
+                                ->live()
+                                ->visible(fn (Application $record): bool => ! static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record))
                                 ->columnSpanFull(),
                             Placeholder::make('score_recommendation_display')
                                 ->label('Khuyến nghị từ điểm số')
@@ -1962,7 +1856,8 @@ class ApplicationsTable
                                         .'/10 - Khuyến nghị: '
                                         .static::interviewConclusionLabel($recommendedConclusion);
                                 })
-                                ->columnSpanFull(),
+                                ->columnSpanFull()
+                                ->visible(fn (Application $record, callable $get): bool => static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion'))),
                             Select::make('conclusion')
                                 ->label('Kết luận phỏng vấn')
                                 ->options([
@@ -1971,19 +1866,28 @@ class ApplicationsTable
                                     'fail' => 'Không đạt - từ chối',
                                 ])
                                 ->live()
-                                ->required(),
+                                ->required()
+                                ->visible(fn (Application $record, callable $get): bool => static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion'))),
                             Textarea::make('override_reason')
                                 ->label('Lý do quyết định khác khuyến nghị')
                                 ->helperText('Bắt buộc khi kết luận cuối khác khuyến nghị từ điểm trung bình.')
                                 ->rows(3)
-                                ->visible(function (callable $get): bool {
+                                ->visible(function (Application $record, callable $get): bool {
+                                    if (! static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion'))) {
+                                        return false;
+                                    }
+
                                     $recommendedConclusion = static::recommendedInterviewConclusion(
                                         static::calculateInterviewAverage($get('criteria') ?? [])
                                     );
 
                                     return static::isInterviewConclusionOverride($get('conclusion'), $recommendedConclusion);
                                 })
-                                ->required(function (callable $get): bool {
+                                ->required(function (Application $record, callable $get): bool {
+                                    if (! static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion'))) {
+                                        return false;
+                                    }
+
                                     $recommendedConclusion = static::recommendedInterviewConclusion(
                                         static::calculateInterviewAverage($get('criteria') ?? [])
                                     );
@@ -1992,16 +1896,16 @@ class ApplicationsTable
                                 })
                                 ->columnSpanFull(),
                             Textarea::make('notes')
-                                ->label('Nhận xét tổng quan')
-                                ->helperText('Tóm tắt điểm mạnh, điểm cần cân nhắc và khuyến nghị của người phỏng vấn.')
+                                ->label('Nhận xét nội bộ sau phỏng vấn')
+                                ->helperText('Chỉ phục vụ HR và người quản lý trong quá trình xem xét hồ sơ.')
                                 ->rows(5)
                                 ->columnSpanFull(),
                             Textarea::make('rejected_reason')
-                                ->label('Lý do từ chối')
-                                ->helperText('Bắt buộc khi kết luận không đạt. Nội dung này dùng làm căn cứ từ chối hồ sơ.')
+                                ->label('Thông tin phản hồi ứng viên khi từ chối')
+                                ->helperText('Bắt buộc khi không đạt; nội dung này được dùng để phản hồi ứng viên.')
                                 ->rows(3)
-                                ->visible(fn (callable $get): bool => $get('conclusion') === 'fail')
-                                ->required(fn (callable $get): bool => $get('conclusion') === 'fail')
+                                ->visible(fn (Application $record, callable $get): bool => static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion')) && $get('conclusion') === 'fail')
+                                ->required(fn (Application $record, callable $get): bool => static::workflowGuard()->canFinalizeInterviewEvaluation(Auth::user(), $record, (bool) $get('confirm_early_completion')) && $get('conclusion') === 'fail')
                                 ->columnSpanFull(),
                         ])
                         ->columnSpan(['default' => 'full', 'xl' => 8]),
@@ -2167,7 +2071,7 @@ class ApplicationsTable
                         ->columns(2)
                         ->schema([
                             Select::make('offer_letter_template_id')
-                                ->label('Mẫu đề nghị tuyển dụng')
+                                ->label('Mẫu thư mời đính kèm (PDF)')
                                 ->placeholder('Không dùng mẫu - soạn toàn bộ trong nội dung bổ sung')
                                 ->options(fn (): array => OfferLetterTemplate::query()
                                     ->where('is_active', true)
@@ -2178,26 +2082,33 @@ class ApplicationsTable
                                 ->searchable()
                                 ->preload()
                                 ->live()
-                                ->helperText('Chọn mẫu để hệ thống sinh PDF đề nghị tuyển dụng chuyên nghiệp.')
+                                ->helperText('Mẫu này dùng để tạo PDF đính kèm email gửi ứng viên.')
                                 ->columnSpanFull(),
                             TextInput::make('salary_offered')
                                 ->label('Mức lương đề nghị')
                                 ->numeric()
+                                ->step(1000)
                                 ->minValue(1)
-                                ->rules(['numeric', 'min:1'])
+                                ->rules(['integer', 'min:1'])
                                 ->required()
                                 ->suffix('VND'),
-                            TextInput::make('probation_months')
+                            Select::make('probation_months')
+                                ->options([
+                                    0 => 'Không thử việc',
+                                    1 => '1 tháng',
+                                    2 => '2 tháng',
+                                    3 => '3 tháng',
+                                    4 => '4 tháng',
+                                    5 => '5 tháng',
+                                    6 => '6 tháng',
+                                ])
+                                ->native(false)
                                 ->label('Thời gian thử việc')
-                                ->numeric()
-                                ->minValue(0)
-                                ->maxValue(6)
-                                ->rules(['integer', 'min:0', 'max:6'])
                                 ->default(2)
                                 ->required()
-                                ->suffix('tháng'),
+                                ->helperText('Chọn theo chính sách áp dụng cho vị trí này.'),
                             Select::make('start_date_preset')
-                                ->label('Chọn nhanh ngày bắt đầu')
+                                ->label('Gợi ý ngày nhận việc')
                                 ->placeholder('Không dùng chọn nhanh')
                                 ->options([
                                     '7_days' => 'Sau 7 ngày',
@@ -2220,7 +2131,7 @@ class ApplicationsTable
                                     }
                                 }),
                             DatePicker::make('start_date')
-                                ->label('Ngày bắt đầu dự kiến')
+                                ->label('Ngày nhận việc dự kiến')
                                 ->helperText('Đây là ngày sẽ lưu vào đề nghị. Có thể chọn nhanh bên cạnh hoặc chọn trực tiếp tại đây.')
                                 ->native(false)
                                 ->displayFormat('d/m/Y')
@@ -2228,7 +2139,7 @@ class ApplicationsTable
                                 ->minDate(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->startOfDay())
                                 ->required(),
                             Select::make('expires_at_preset')
-                                ->label('Chọn nhanh hạn phản hồi')
+                                ->label('Gợi ý hạn phản hồi')
                                 ->placeholder('Không dùng chọn nhanh')
                                 ->options([
                                     '24_hours' => '24 giờ',
@@ -2253,7 +2164,7 @@ class ApplicationsTable
                                     }
                                 }),
                             DateTimePicker::make('expires_at')
-                                ->label('Hạn phản hồi')
+                                ->label('Hạn ứng viên phản hồi')
                                 ->helperText('Đây là hạn phản hồi chính thức dùng cho link đồng ý/từ chối trong email.')
                                 ->native(false)
                                 ->seconds(false)
@@ -2288,73 +2199,6 @@ class ApplicationsTable
                 <div style="margin-top:6px;font-size:13px;line-height:1.5;color:#fde68a;">{$reason}</div>
             </div>
         HTML);
-    }
-
-    protected static function validateOfferData(array $data): array
-    {
-        $timezone = config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
-        $salary = $data['salary_offered'] ?? null;
-        $probationMonths = $data['probation_months'] ?? null;
-        $startDate = $data['start_date'] ?? null;
-        $expiresAt = $data['expires_at'] ?? null;
-
-        if (! is_numeric($salary) || (float) $salary <= 0) {
-            throw ValidationException::withMessages([
-                'salary_offered' => 'Mức lương đề nghị phải lớn hơn 0.',
-            ]);
-        }
-
-        if (filter_var($probationMonths, FILTER_VALIDATE_INT) === false
-            || (int) $probationMonths < 0
-            || (int) $probationMonths > 6
-        ) {
-            throw ValidationException::withMessages([
-                'probation_months' => 'Thời gian thử việc phải nằm trong khoảng 0-6 tháng.',
-            ]);
-        }
-
-        try {
-            $parsedStartDate = \Carbon\Carbon::parse($startDate, $timezone)->startOfDay();
-        } catch (\Throwable) {
-            throw ValidationException::withMessages([
-                'start_date' => 'Ngày bắt đầu dự kiến không hợp lệ.',
-            ]);
-        }
-
-        if ($parsedStartDate->lt(now($timezone)->startOfDay())) {
-            throw ValidationException::withMessages([
-                'start_date' => 'Ngày bắt đầu dự kiến không được ở quá khứ.',
-            ]);
-        }
-
-        try {
-            $parsedExpiresAt = $expiresAt instanceof \Carbon\CarbonInterface
-                ? $expiresAt->copy()->setTimezone($timezone)
-                : \Carbon\Carbon::parse($expiresAt, $timezone);
-        } catch (\Throwable) {
-            throw ValidationException::withMessages([
-                'expires_at' => 'Hạn phản hồi đề nghị không hợp lệ.',
-            ]);
-        }
-
-        if ($parsedExpiresAt->lte(now($timezone))) {
-            throw ValidationException::withMessages([
-                'expires_at' => 'Hạn phản hồi đề nghị phải ở tương lai.',
-            ]);
-        }
-
-        if (blank($data['offer_letter_template_id'] ?? null) && blank($data['content'] ?? null)) {
-            throw ValidationException::withMessages([
-                'content' => 'Vui lòng chọn mẫu đề nghị hoặc nhập nội dung bổ sung.',
-            ]);
-        }
-
-        $data['salary_offered'] = (float) $salary;
-        $data['probation_months'] = (int) $probationMonths;
-        $data['start_date'] = $parsedStartDate->toDateString();
-        $data['expires_at'] = $parsedExpiresAt;
-
-        return $data;
     }
 
     protected static function defaultInterviewCriteria(): array
@@ -2580,7 +2424,11 @@ class ApplicationsTable
                     return;
                 }
 
-                static::sendOfferToCandidate($record, $offer, $candidate, $job);
+                Notification::make()
+                    ->warning()
+                    ->title('Đề nghị chưa thể gửi')
+                    ->body('Đề nghị này không còn ở trạng thái cho phép gửi duyệt. Vui lòng tải lại hồ sơ để kiểm tra trạng thái mới nhất.')
+                    ->send();
             })
             ->visible(fn (Application $record): bool => static::shouldPrioritizeSendOffer($record));
     }
@@ -2603,7 +2451,7 @@ class ApplicationsTable
             })
             ->modalDescription(function (Application $record): string {
                 $interview = $record->latestInterview ?? $record->interviews()->latest('id')->first();
-                $recipientCount = count(static::getInterviewRecipients($record->fresh(['job.branch', 'candidate'])));
+                $recipientCount = count(app(InterviewScheduleDeliveryService::class)->recipients($record->fresh(['job.branch', 'candidate'])));
 
                 return ($interview?->invite_sent_at
                     ? 'Email cập nhật lịch sẽ được gửi lại cho ứng viên và người liên quan.'
@@ -2833,45 +2681,8 @@ class ApplicationsTable
                     return;
                 }
 
-                $data = static::validateOfferData($data);
                 $existingOffer = $record->offers()->latest('id')->first();
-                $shouldCreateReplacementOffer = static::shouldCreateReplacementOffer($existingOffer);
-
-                if (! $shouldCreateReplacementOffer && ! static::canEditOffer($existingOffer)) {
-                    throw ValidationException::withMessages([
-                        'offer' => static::lockedOfferMessage($existingOffer),
-                    ]);
-                }
-
-                $offer = $shouldCreateReplacementOffer || ! $existingOffer ? new Offer([
-                    'application_id' => $record->id,
-                    'status' => 'draft',
-                ]) : $existingOffer;
-
-                $offer->fill([
-                    'application_id' => $record->id,
-                    'offer_letter_template_id' => $data['offer_letter_template_id'] ?? null,
-                    'salary_offered' => $data['salary_offered'],
-                    'start_date' => $data['start_date'],
-                    'probation_months' => $data['probation_months'],
-                    'expires_at' => $data['expires_at'] ?? now()->addDays(3),
-                    'content' => $data['content'] ?? '',
-                ]);
-                $offer->forceFill([
-                    'status' => 'draft',
-                    'approval_requested_at' => null,
-                    'approved_by_user_id' => null,
-                    'approved_at' => null,
-                    'approval_notes' => null,
-                    'sent_at' => null,
-                    'response_at' => null,
-                    'accepted_at' => null,
-                    'declined_reason' => null,
-                ]);
-                $offer->save();
-
-                app(OfferPdfService::class)->refreshForOffer($offer);
-                $offer->refresh();
+                $offer = app(OfferWorkflowService::class)->saveDraft($record, $data, Auth::user());
 
                 if (! static::transitionApplication($record, StatusApplicationEnum::OFFER, 'Đã tạo đề nghị tuyển dụng cho ứng viên.')) {
                     return;
@@ -2894,64 +2705,16 @@ class ApplicationsTable
     protected static function sendOfferForApproval(Application $record, Offer $offer): void
     {
         try {
-            $wasRequestedBefore = filled($offer->approval_requested_at);
-            $directors = static::getBranchDirectorEmails($record);
-
-            if (empty($directors)) {
-                Notification::make()
-                    ->warning()
-                    ->title('Không có giám đốc chi nhánh')
-                    ->body('Không tìm thấy giám đốc chi nhánh để gửi đề nghị tuyển dụng cho duyệt.')
-                    ->send();
-
-                return;
-            }
-
-            app(OfferPdfService::class)->refreshForOffer($offer);
-            $offer->refresh();
-
-            $offer->forceFill([
-                'status' => 'awaiting_approval',
-                'approval_requested_at' => now(),
-            ])->save();
-            $offer->refresh();
-
-            app(RecruitmentInternalNotificationService::class)->notifyOfferSubmittedForApproval($offer);
-
-            $sentCount = 0;
-            $failedCount = 0;
-
-            foreach ($directors as $email) {
-                $director = User::where('email', $email)->where('is_active', true)->first();
-
-                if (! $director) {
-                    continue;
-                }
-
-                try {
-                    Mail::to($email)->send(new OfferApprovalRequestMail($offer, $record, $record->job, $director));
-                    $sentCount++;
-                } catch (\Throwable $mailException) {
-                    $failedCount++;
-
-                    Log::warning('Failed to send offer approval request mail.', [
-                        'application_id' => $record->id,
-                        'offer_id' => $offer->id,
-                        'recipient' => $email,
-                        'error' => $mailException->getMessage(),
-                    ]);
-                }
-            }
-
-            $actionText = $wasRequestedBefore ? 'gửi lại' : 'gửi';
+            $result = app(OfferWorkflowService::class)->submitForApproval($record, Auth::user());
+            $actionText = $result['resubmitted'] ? 'gửi lại' : 'gửi';
             $notification = Notification::make()
                 ->title('Đã '.$actionText.' đề nghị tuyển dụng');
 
-            if ($sentCount === 0) {
+            if ($result['sent'] === 0) {
                 $notification
                     ->warning()
                     ->body('Đề nghị đã chuyển sang chờ duyệt. Email thông báo chưa gửi được, giám đốc vẫn có thể xem trong màn Duyệt đề nghị.');
-            } elseif ($failedCount > 0) {
+            } elseif ($result['failed'] > 0) {
                 $notification
                     ->success()
                     ->body('Đề nghị đã chuyển sang chờ giám đốc duyệt. Một số email thông báo chưa gửi được.');
@@ -2962,6 +2725,12 @@ class ApplicationsTable
             }
 
             $notification->send();
+        } catch (ValidationException $exception) {
+            Notification::make()
+                ->warning()
+                ->title('Chưa thể gửi đề nghị')
+                ->body((string) collect($exception->errors())->flatten()->first())
+                ->send();
         } catch (\Throwable $exception) {
             Log::warning('Failed to prepare offer for approval.', [
                 'application_id' => $record->id,
@@ -2979,9 +2748,9 @@ class ApplicationsTable
 
     protected static function sendInterviewSchedule(Application $record): void
     {
-        $interview = $record->interviews()->latest('id')->first();
+        $result = app(InterviewScheduleDeliveryService::class)->deliver($record);
 
-        if (! $interview) {
+        if (! $result['has_interview']) {
             Notification::make()
                 ->warning()
                 ->title('Chưa có lịch phỏng vấn')
@@ -2990,90 +2759,21 @@ class ApplicationsTable
 
             return;
         }
+        $notification = Notification::make()->title($result['is_update'] ? 'Đã gửi cập nhật lịch phỏng vấn' : 'Đã gửi lịch phỏng vấn');
 
-        $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
-        app(InterviewCalendarService::class)->store($interview);
-
-        $recipients = static::getInterviewRecipients($record->fresh(['job.branch', 'candidate']));
-        $sentCount = 0;
-        $failedCount = 0;
-        $isUpdateMail = filled($interview->invite_sent_at);
-
-        foreach ($recipients as $email => $recipientLabel) {
-            try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel, $isUpdateMail));
-                $sentCount++;
-            } catch (\Throwable $exception) {
-                $failedCount++;
-                Log::warning('Failed to send interview schedule mail.', [
-                    'application_id' => $record->id,
-                    'interview_id' => $interview->id,
-                    'recipient' => $email,
-                    'error' => $exception->getMessage(),
-                ]);
-            }
-        }
-
-        if ($sentCount > 0) {
-            $interview->forceFill(['invite_sent_at' => now()])->save();
-
-            $record->recordStatusHistory(
-                $record->status instanceof StatusApplicationEnum ? $record->status->value : (string) $record->status,
-                $record->status instanceof StatusApplicationEnum ? $record->status->value : (string) $record->status,
-                $isUpdateMail
-                    ? "Đã gửi cập nhật lịch phỏng vấn tới {$sentCount} email."
-                    : "Đã gửi lịch phỏng vấn tới {$sentCount} email."
-            );
-        }
-
-        $notification = Notification::make()->title($isUpdateMail ? 'Đã gửi cập nhật lịch phỏng vấn' : 'Đã gửi lịch phỏng vấn');
-
-        if ($failedCount > 0) {
-            $notification->warning()->body($isUpdateMail
-                ? "Gửi cập nhật thành công {$sentCount}, thất bại {$failedCount}. Vui lòng kiểm tra lại log/mail cấu hình."
-                : "Gửi email thành công {$sentCount}, thất bại {$failedCount}. Vui lòng kiểm tra lại log/mail cấu hình.");
-        } elseif ($sentCount === 0) {
+        if ($result['failed'] > 0) {
+            $notification->warning()->body($result['is_update']
+                ? "Gửi cập nhật thành công {$result['sent']}, một số email chưa gửi được."
+                : "Đã gửi lịch, một số email chưa gửi được.");
+        } elseif ($result['sent'] === 0) {
             $notification->warning()->body('Không tìm thấy email ứng viên hoặc người liên quan để gửi lịch phỏng vấn.');
         } else {
-            $notification->success()->body($isUpdateMail
-                ? "Đã gửi {$sentCount} email cập nhật kèm file lịch phỏng vấn."
-                : "Đã gửi {$sentCount} email kèm file lịch phỏng vấn.");
+            $notification->success()->body($result['is_update']
+                ? 'Đã gửi cập nhật lịch kèm file lịch phỏng vấn.'
+                : 'Đã gửi lịch phỏng vấn kèm file lịch.');
         }
 
         $notification->send();
     }
 
-    protected static function sendOfferToCandidate(Application $record, Offer $offer, Candidate $candidate, RecruitmentJob $job): void
-    {
-        try {
-            app(OfferPdfService::class)->refreshForOffer($offer);
-            $offer->refresh();
-
-            $offer->forceFill([
-                'sent_at' => now(),
-            ])->save();
-            $offer->refresh();
-
-            Mail::to($record->snapshotCandidateEmail())->send(new CandidateOfferMail($candidate, $record, $job, $offer));
-
-            Notification::make()
-                ->success()
-                ->title('Đã gửi thư mời nhận việc')
-                ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
-                ->send();
-        } catch (\Throwable $exception) {
-            Log::warning('Failed to send offer mail.', [
-                'application_id' => $record->id,
-                'offer_id' => $offer->id,
-                'recipient' => $record->snapshotCandidateEmail(),
-                'error' => $exception->getMessage(),
-            ]);
-
-            Notification::make()
-                ->warning()
-                ->title('Gửi thư mời thất bại')
-                ->body('Đề nghị tuyển dụng đã được lưu nhưng chưa gửi được email. Vui lòng kiểm tra và gửi lại.')
-                ->send();
-        }
-    }
 }

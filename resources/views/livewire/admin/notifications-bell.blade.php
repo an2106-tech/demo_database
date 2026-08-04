@@ -1,115 +1,321 @@
-<div wire:poll.30s class="relative">
+<div wire:poll.10s class="relative">
     <style>
-        @keyframes admin-notification-bell-ring {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(12deg); }
-            30% { transform: rotate(-10deg); }
-            45% { transform: rotate(7deg); }
-            60% { transform: rotate(-5deg); }
-            75% { transform: rotate(2deg); }
+        .admin-notification-trigger {
+            position: relative;
+            display: inline-flex;
+            height: 2.25rem;
+            width: 2.25rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            color: #6b7280;
+            transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
         }
 
-        .admin-notification-bell-ring {
-            animation: admin-notification-bell-ring .9s ease-in-out 1;
-            transform-origin: 50% 10%;
+        .admin-notification-trigger:hover {
+            background: #f3f4f6;
+            color: #374151;
         }
+
+        .admin-notification-trigger.has-unread {
+            background: #fff7ed;
+            color: #ea580c;
+            box-shadow: 0 0 0 1px #fed7aa;
+        }
+
+        .dark .admin-notification-trigger {
+            color: #9ca3af;
+        }
+
+        .dark .admin-notification-trigger:hover {
+            background: rgb(255 255 255 / 0.08);
+            color: #f3f4f6;
+        }
+
+        .dark .admin-notification-trigger.has-unread {
+            background: rgb(234 88 12 / 0.18);
+            color: #fdba74;
+            box-shadow: 0 0 0 1px rgb(251 146 60 / 0.35);
+        }
+
+        .admin-notification-badge {
+            position: absolute;
+            z-index: 2;
+            top: -0.3rem;
+            right: -0.38rem;
+            display: inline-flex;
+            min-width: 1.15rem;
+            height: 1.15rem;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #ea580c;
+            padding: 0 0.3rem;
+            color: #fff;
+            font-size: 0.625rem;
+            font-weight: 800;
+            line-height: 1;
+            box-shadow: 0 0 0 2px #fff;
+        }
+
+        .dark .admin-notification-badge {
+            box-shadow: 0 0 0 2px #111827;
+        }
+
+        .admin-notifications-tabs {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 42px;
+        }
+
+        .admin-notifications-tab {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            min-height: 42px;
+            border: 0 !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1;
+            padding: 0 2px;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .admin-notifications-tab:hover {
+            color: #111827;
+        }
+
+        .admin-notifications-tab.is-active {
+            color: #c2410c;
+        }
+
+        .admin-notifications-tab.is-active::after {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            height: 2px;
+            border-radius: 999px;
+            background: #ea580c;
+            content: '';
+        }
+
+        .dark .admin-notifications-tab {
+            color: #9ca3af;
+        }
+
+        .dark .admin-notifications-tab:hover {
+            color: #f3f4f6;
+        }
+
+        .dark .admin-notifications-tab.is-active {
+            color: #fdba74;
+        }
+
+        .admin-notification-item {
+            position: relative;
+            display: flex;
+            width: 100%;
+            gap: 11px;
+            border: 1px solid transparent !important;
+            border-radius: 10px !important;
+            background: transparent;
+            cursor: pointer;
+            outline: none !important;
+            box-shadow: none !important;
+            padding: 11px 12px;
+            text-align: left;
+            transition: background 140ms ease, transform 140ms ease;
+        }
+
+        .admin-notification-item:hover {
+            background: #f8fafc;
+            transform: translateY(-1px);
+        }
+
+        .admin-notification-item.is-unread {
+            background: #fff8f1;
+            box-shadow: inset 3px 0 0 #f97316 !important;
+        }
+
+        .admin-notification-item.is-unread::after {
+            position: absolute;
+            top: 14px;
+            right: 13px;
+            width: 0.42rem;
+            height: 0.42rem;
+            border-radius: 999px;
+            background: #f97316;
+            content: '';
+        }
+
+        .admin-notification-item.is-unread > span:last-child {
+            padding-right: 0.8rem;
+        }
+
+        .admin-notification-item:focus,
+        .admin-notification-item:focus-visible {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .dark .admin-notification-item:hover {
+            background: rgb(255 255 255 / 0.05);
+        }
+
+        .dark .admin-notification-item.is-unread {
+            background: rgb(234 88 12 / 0.12);
+            box-shadow: inset 3px 0 0 #fb923c !important;
+        }
+
+        .admin-notification-item__message {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+        }
+
+        .admin-notification-item__meta {
+            display: -webkit-box;
+            overflow: hidden;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+        }
+
     </style>
 
-    <x-filament::dropdown placement="bottom-end" teleport width="md">
+    <x-filament::dropdown placement="bottom-end" teleport width="sm">
         <x-slot name="trigger">
             <button
                 type="button"
-                class="relative inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                class="admin-notification-trigger {{ $unreadCount > 0 ? 'has-unread' : '' }} focus:outline-none focus:ring-2 focus:ring-primary-500"
                 aria-label="Mở thông báo"
             >
-                <x-filament::icon icon="heroicon-o-bell" class="h-5 w-5 {{ $unreadCount > 0 ? 'admin-notification-bell-ring' : '' }}" />
+                <x-filament::icon icon="heroicon-o-bell" class="h-5 w-5" />
 
                 @if ($unreadCount > 0)
-                    <span class="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-danger-600 px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white dark:ring-gray-900">
+                    <span class="admin-notification-badge">
                         {{ $unreadCount > 9 ? '9+' : $unreadCount }}
                     </span>
                 @endif
             </button>
         </x-slot>
 
-        <div class="w-80 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
-            <div class="flex items-center justify-between gap-3 border-b border-gray-200 px-4 py-3 dark:border-white/10">
-                <div>
-                    <div class="text-base font-bold text-gray-950 dark:text-white">Thông báo</div>
+        <div class="w-[23rem] max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
+            <div class="flex items-center justify-between gap-3 px-4 py-3 dark:border-white/10">
+                <div class="min-w-0">
+                    <div class="text-base font-bold leading-5 text-gray-950 dark:text-white">Thông báo</div>
                 </div>
 
                 @if ($unreadCount > 0)
                     <button
                         type="button"
                         wire:click="markAllAsRead"
-                        class="text-xs font-semibold text-primary-600 hover:text-primary-500 dark:text-primary-400"
+                        class="shrink-0 text-xs font-semibold text-primary-600 transition hover:text-primary-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 dark:text-primary-400"
                     >
-                        Đánh dấu đã xử lý
+                        Đánh dấu đã xem
                     </button>
                 @endif
             </div>
 
-            <div style="display:flex;justify-content:center;border-bottom:1px solid #e5e7eb;padding:0 16px;">
-                <div style="display:inline-flex;align-items:center;gap:10px;">
-                <button
-                    type="button"
-                    wire:click="setTab('pending')"
-                    style="display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-bottom:2px solid {{ $tab === 'pending' ? '#ea580c' : 'transparent' }};background:transparent;padding:12px 2px 10px;font-size:14px;font-weight:700;color:{{ $tab === 'pending' ? '#c2410c' : '#6b7280' }};cursor:pointer;"
-                >
-                    Cần xử lý
-                    @if ($unreadCount > 0)
-                        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:999px;background:#ea580c;color:#ffffff;padding:0 5px;font-size:10px;font-weight:800;line-height:1;">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
-                    @endif
-                </button>
-
-                <span style="color:#d1d5db;font-size:14px;font-weight:600;">|</span>
-
-                <button
-                    type="button"
-                    wire:click="setTab('done')"
-                    style="display:inline-flex;align-items:center;justify-content:center;border:0;border-bottom:2px solid {{ $tab === 'done' ? '#ea580c' : 'transparent' }};background:transparent;padding:12px 2px 10px;font-size:14px;font-weight:700;color:{{ $tab === 'done' ? '#c2410c' : '#6b7280' }};cursor:pointer;"
-                >
-                    Đã xử lý
-                </button>
+            <div class="flex justify-center border-y border-gray-200 px-4 dark:border-white/10">
+                <div class="admin-notifications-tabs">
+                    <button
+                        type="button"
+                        wire:click="setTab('pending')"
+                        class="admin-notifications-tab {{ $tab === 'pending' ? 'is-active' : '' }}"
+                    >
+                        Mới
+                        @if ($unreadCount > 0)
+                            <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-primary-600 px-1.5 py-0.5 text-[10px] font-bold leading-none text-white">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</span>
+                        @endif
+                    </button>
+                    <span class="text-sm font-medium text-gray-300 dark:text-gray-600" aria-hidden="true">|</span>
+                    <button
+                        type="button"
+                        wire:click="setTab('done')"
+                        class="admin-notifications-tab {{ $tab === 'done' ? 'is-active' : '' }}"
+                    >
+                        Đã xem
+                    </button>
                 </div>
             </div>
 
-            <div class="max-h-96 overflow-y-auto p-2">
+            <div class="max-h-80 overflow-y-auto p-2">
                 @forelse ($notifications as $notification)
+                    @php
+                        $data = $notification->data ?? [];
+                        $icon = match ($notification->type) {
+                            'offer_approval_requested' => 'heroicon-o-document-text',
+                            'offer_rejected_by_director' => 'heroicon-o-arrow-path',
+                            'offer_accepted_by_candidate' => 'heroicon-o-check-circle',
+                            'offer_declined_by_candidate' => 'heroicon-o-x-circle',
+                            default => 'heroicon-o-bell',
+                        };
+                        $iconTone = match ($notification->type) {
+                            'offer_approval_requested' => 'bg-amber-50 text-amber-700 dark:bg-amber-400/10 dark:text-amber-300',
+                            'offer_rejected_by_director', 'offer_declined_by_candidate' => 'bg-rose-50 text-rose-700 dark:bg-rose-400/10 dark:text-rose-300',
+                            'offer_accepted_by_candidate' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300',
+                            default => 'bg-primary-50 text-primary-700 dark:bg-primary-400/10 dark:text-primary-300',
+                        };
+                    @endphp
                     <button
                         type="button"
                         wire:click="openNotification({{ $notification->id }})"
-                        class="group flex w-full gap-3 rounded-lg px-3 py-2.5 text-left transition {{ $notification->read_at ? 'hover:bg-gray-50 dark:hover:bg-white/5' : 'bg-primary-50/80 hover:bg-primary-50 dark:bg-primary-500/10 dark:hover:bg-primary-500/15' }}"
+                        class="admin-notification-item group {{ $notification->read_at ? '' : 'is-unread' }}"
                     >
-                        <span class="mt-1 flex h-2 w-2 flex-none rounded-full {{ $notification->read_at ? 'bg-gray-300 dark:bg-gray-600' : 'bg-primary-500' }}"></span>
+                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg {{ $iconTone }}">
+                            <x-filament::icon :icon="$icon" class="h-4 w-4" />
+                        </span>
 
                         <span class="min-w-0 flex-1">
-                            <span class="block truncate text-sm font-semibold text-gray-950 dark:text-white">
+                            <span class="block text-sm font-semibold leading-5 text-gray-950 dark:text-white">
                                 {{ $notification->title }}
                             </span>
 
-                            @if ($notification->message)
-                                <span class="mt-1 block line-clamp-2 text-xs leading-5 text-gray-600 dark:text-gray-400">
+                            @if (filled(data_get($data, 'subject')) || filled(data_get($data, 'context')))
+                                <span class="admin-notification-item__meta mt-1 block text-xs leading-5 text-gray-600 dark:text-gray-300">
+                                    @if (filled(data_get($data, 'subject')))
+                                        <strong class="font-semibold text-gray-800 dark:text-gray-100">{{ data_get($data, 'subject') }}</strong>
+                                    @endif
+                                    @if (filled(data_get($data, 'subject')) && filled(data_get($data, 'context')))
+                                        <span class="px-1 text-gray-300 dark:text-gray-600">·</span>
+                                    @endif
+                                    {{ data_get($data, 'context') }}
+                                </span>
+                            @endif
+
+                            @if (filled($notification->message))
+                                <span class="admin-notification-item__message mt-1.5 text-xs leading-5 text-gray-600 dark:text-gray-400">
                                     {{ $notification->message }}
                                 </span>
                             @endif
 
-                            <span class="mt-1 block text-[11px] text-gray-400 dark:text-gray-500">
-                                {{ $notification->created_at?->diffForHumans() }}
+                            <span class="mt-2 flex items-center justify-between gap-3 text-[11px] text-gray-400 dark:text-gray-500">
+                                <span>{{ $notification->created_at?->diffForHumans() }}</span>
+                                @if (filled(data_get($data, 'action_label')))
+                                    <span class="font-semibold text-primary-600 group-hover:text-primary-700 dark:text-primary-400">{{ data_get($data, 'action_label') }}</span>
+                                @endif
                             </span>
                         </span>
                     </button>
                 @empty
-                    <div style="padding:34px 24px;text-align:center;">
-                        <div style="width:46px;height:46px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;">
-                            <x-filament::icon icon="heroicon-o-bell-slash" style="width:20px;height:20px;" />
+                    <div style="padding:24px 20px 26px;text-align:center;">
+                        <div style="width:36px;height:36px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;">
+                            <x-filament::icon icon="heroicon-o-bell-slash" style="width:18px;height:18px;" />
                         </div>
                         @if ($tab === 'pending')
-                            <div style="font-size:14px;font-weight:700;color:#111827;">Không có việc cần xử lý</div>
-                            <div style="max-width:260px;margin:6px auto 0;font-size:13px;line-height:1.55;color:#6b7280;">Các cập nhật mới trong quy trình tuyển dụng sẽ hiển thị tại đây.</div>
+                            <div style="font-size:14px;font-weight:700;color:#111827;">Không có thông báo mới</div>
                         @else
-                            <div style="font-size:14px;font-weight:700;color:#111827;">Chưa có thông báo đã xử lý</div>
-                            <div style="max-width:260px;margin:6px auto 0;font-size:13px;line-height:1.55;color:#6b7280;">Các thông báo đã mở gần đây sẽ hiển thị tại đây.</div>
+                            <div style="font-size:14px;font-weight:700;color:#111827;">Chưa có thông báo đã xem</div>
                         @endif
                     </div>
                 @endforelse
