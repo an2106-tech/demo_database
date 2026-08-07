@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Enums\StatusApplicationEnum;
 use App\Models\Offer;
+use App\Services\ApplicationPipelineService;
+use App\Services\RecruitmentInternalNotificationService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +40,6 @@ class OfferResponseController extends Controller
             $application = $lockedContext['application'];
             $candidateName = $application->candidate?->name ?? 'ứng viên';
             $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
-            $fromStatus = $this->statusValue($application->status);
 
             $offer->forceFill([
                 'status' => 'accepted',
@@ -46,16 +47,21 @@ class OfferResponseController extends Controller
                 'accepted_at' => now(),
             ])->save();
 
-            $application->forceFill([
-                'status' => StatusApplicationEnum::HIRED,
-                'rejected_reason' => null,
-            ])->save();
+            $application->forceFill(['rejected_reason' => null])->save();
 
-            $application->recordStatusHistory(
-                $fromStatus,
-                StatusApplicationEnum::HIRED->value,
+            app(ApplicationPipelineService::class)->transition(
+                $application,
+                StatusApplicationEnum::HIRED,
+                null,
                 'Ứng viên đã đồng ý đề nghị tuyển dụng qua email.',
             );
+
+            $offer->forceFill([
+                'status' => 'accepted',
+                'response_at' => now(),
+                'accepted_at' => now(),
+            ])->save();
+
 
             return $this->resultView(
                 title: 'Đã xác nhận đồng ý đề nghị tuyển dụng',

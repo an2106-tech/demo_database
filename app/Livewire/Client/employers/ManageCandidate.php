@@ -29,17 +29,6 @@ class ManageCandidate extends Component
         }
     }
 
-    public function deleteCandidate($candidateId)
-    {
-        $candidate = Candidate::with(['applications.job', 'submissions.job'])->findOrFail($candidateId);
-
-        abort_unless($this->canManageCandidate(Auth::user(), $candidate), 403);
-
-        $candidate->delete();
-
-        session()->flash('message', 'Da xoa ung vien thanh cong.');
-    }
-
     public function render()
     {
         /** @var User|null $user */
@@ -100,27 +89,5 @@ class ManageCandidate extends Component
         }
 
         return (int) $submission->job?->branch_id === $branchId;
-    }
-
-    private function canManageCandidate(?User $user, Candidate $candidate): bool
-    {
-        if (! $user) {
-            return false;
-        }
-
-        if ($user->isSuperAdmin() || $user->role === 'admin') {
-            return true;
-        }
-
-        $branchId = $user->branchScopeId();
-
-        if (! $branchId) {
-            return false;
-        }
-
-        return $candidate->applications
-            ->contains(fn ($application) => (int) $application->job?->branch_id === $branchId)
-            || $candidate->submissions
-                ->contains(fn ($submission) => (int) $submission->job?->branch_id === $branchId);
     }
 }

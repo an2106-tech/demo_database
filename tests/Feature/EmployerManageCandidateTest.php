@@ -86,7 +86,8 @@ class EmployerManageCandidateTest extends TestCase
         Livewire::test(ManageCandidate::class)
             ->assertOk()
             ->assertSee('Quản lý ứng viên')
-            ->assertSee('Manage Candidate');
+            ->assertSee('Manage Candidate')
+            ->assertDontSee('Xóa hồ sơ');
     }
 
     public function test_manage_candidates_scopes_displayed_applications_to_hr_branch(): void

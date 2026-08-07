@@ -161,16 +161,6 @@
                                             @endif
                                         </div>
 
-                                        <button
-                                            type="button"
-                                            wire:click="deleteCandidate({{ $candidate->id }})"
-                                            wire:loading.attr="disabled"
-                                            onclick="return confirm('Bạn có chắc chắn muốn xóa ứng viên này?')"
-                                            class="candidate-card__danger"
-                                        >
-                                            <i class="fa fa-trash-o"></i>
-                                            Xóa hồ sơ
-                                        </button>
                                     </div>
                                 </article>
                             @empty

@@ -6,6 +6,7 @@ use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
+use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Services\ApplicationPipelineService;
@@ -71,6 +72,37 @@ class ApplicationPipelineServiceTest extends TestCase
         $this->expectException(ValidationException::class);
 
         $service->transition($application, StatusApplicationEnum::HIRED);
+    }
+
+    public function test_hired_transition_requires_an_accepted_offer(): void
+    {
+        $application = $this->makeApplication(StatusApplicationEnum::OFFER);
+        $service = app(ApplicationPipelineService::class);
+
+        try {
+            $service->transition($application, StatusApplicationEnum::HIRED);
+            $this->fail('Expected hired transition without accepted offer to fail.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Chỉ có thể chuyển sang Đã tuyển sau khi ứng viên chấp nhận đề nghị tuyển dụng.',
+                $exception->errors()['status'][0],
+            );
+        }
+
+        $this->assertSame(StatusApplicationEnum::OFFER, $application->fresh()->status);
+
+        Offer::query()->create([
+            'application_id' => $application->id,
+            'content' => 'Offer accepted by candidate.',
+            'salary_offered' => 20000000,
+            'status' => 'accepted',
+            'accepted_at' => now(),
+            'response_at' => now(),
+        ]);
+
+        $service->transition($application->fresh(), StatusApplicationEnum::HIRED);
+
+        $this->assertSame(StatusApplicationEnum::HIRED, $application->fresh()->status);
     }
 
     public function test_terminal_statuses_cannot_move_forward(): void

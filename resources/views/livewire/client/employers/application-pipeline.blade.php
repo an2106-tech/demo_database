@@ -1,4 +1,4 @@
-﻿<div>
+<div>
     <style>
         .pipeline-container {
             display: flex;
@@ -526,19 +526,18 @@
                                                     ? $app->status
                                                     : \App\Enums\StatusApplicationEnum::tryFrom((string) $app->status);
                                                 $nextAction = $nextActionStatusesByApplicationId[$app->id] ?? null;
+                                                $actionPermissions = $pipelineActionPermissions[$app->id] ?? [
+                                                    'manage' => false,
+                                                    'schedule' => false,
+                                                    'evaluate' => false,
+                                                    'reject' => false,
+                                                ];
                                                 $cvUrl = $app->submittedCvUrl();
                                                 $advancedUrl = \Illuminate\Support\Facades\Route::has('filament.admin.resources.applications.edit')
                                                     ? route('filament.admin.resources.applications.edit', ['record' => $app->id])
                                                     : null;
-                                                $canScheduleInterview = in_array($status, [
-                                                    \App\Enums\StatusApplicationEnum::SCREENING,
-                                                    \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                                                    \App\Enums\StatusApplicationEnum::INTERVIEWING,
-                                                ], true);
-                                                $canEvaluateInterview = in_array($status, [
-                                                    \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                                                    \App\Enums\StatusApplicationEnum::INTERVIEWING,
-                                                ], true) && $app->latestInterview;
+                                                $canScheduleInterview = $actionPermissions['schedule'];
+                                                $canEvaluateInterview = $actionPermissions['evaluate'];
                                                 $warnings = [];
                                                 if (! $app->is_viewed) {
                                                     $warnings[] = ['label' => 'Chưa xem', 'class' => 'pipeline-alert--warning'];
@@ -621,13 +620,13 @@
                                                         </a>
                                                     @endif
 
-                                                    @if(! $app->is_viewed)
+                                                    @if(! $app->is_viewed && $actionPermissions['manage'])
                                                         <button type="button" wire:click="markAsViewed({{ $app->id }})" wire:loading.attr="disabled" class="pipeline-action">
                                                             <i class="fa fa-eye"></i> Đã xem
                                                         </button>
                                                     @endif
 
-                                                    @if($nextAction)
+                                                    @if($nextAction && $actionPermissions['manage'])
                                                         <form method="POST" action="{{ route('employers.application_pipeline.advance', ['application' => $app->id]) }}" class="m-0">
                                                             @csrf
                                                             <button
@@ -661,13 +660,12 @@
                                                         </a>
                                                     @endif
 
-                                                    @if($status && ! in_array($status, [\App\Enums\StatusApplicationEnum::REJECTED, \App\Enums\StatusApplicationEnum::HIRED], true))
+                                                    @if($actionPermissions['reject'])
                                                         <button
                                                             type="button"
-                                                            wire:click="rejectApplication({{ $app->id }})"
+                                                            wire:click="openRejectionModal({{ $app->id }})"
                                                             wire:loading.attr="disabled"
-                                                            wire:target="rejectApplication"
-                                                            onclick="return confirm('Từ chối nhanh hồ sơ này?')"
+                                                            wire:target="openRejectionModal"
                                                             class="pipeline-action pipeline-action--danger"
                                                         >
                                                             <i class="fa fa-times"></i> Từ chối
@@ -691,6 +689,39 @@
             </div>
         </div>
     </section>
+
+    @if($showRejectModal)
+        <div class="interview-modal-backdrop" wire:keydown.escape.window="closeRejectionModal">
+            <div class="interview-modal">
+                <div class="interview-modal__head">
+                    <div>
+                        <h3>Từ chối hồ sơ ứng viên</h3>
+                        <p>Lý do sẽ được lưu vào lịch sử tuyển dụng và dùng khi cần đối soát.</p>
+                    </div>
+                    <button type="button" wire:click="closeRejectionModal" class="pipeline-action" style="width: auto;">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <form wire:submit="rejectApplication">
+                    <div class="interview-form-grid">
+                        <div class="interview-field interview-field--full">
+                            <label for="rejection-reason">Lý do từ chối</label>
+                            <textarea id="rejection-reason" wire:model="rejectionReason" rows="5" placeholder="Nêu rõ lý do hồ sơ chưa phù hợp ở vòng hiện tại..."></textarea>
+                            @error('rejectionReason') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="interview-modal__actions">
+                        <button type="button" wire:click="closeRejectionModal" class="interview-modal__button">Hủy</button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="rejectApplication" class="interview-modal__button interview-modal__button--primary">
+                            Xác nhận từ chối
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 
     @if($showInterviewModal)
         <div class="interview-modal-backdrop" wire:keydown.escape.window="closeInterviewScheduler">
@@ -823,6 +854,7 @@
                 'culture_score' => old('culture_score', data_get($evaluationCriteria->get('Phu hop van hoa FPT Education'), 'score', '')),
                 'conclusion' => old('conclusion', $evaluationScorecard?->conclusion ?: 'hold'),
                 'notes' => old('notes', $evaluationScorecard?->notes ?: ''),
+                'rejected_reason' => old('rejected_reason', $selectedEvaluationApplication->rejected_reason ?: ''),
             ];
         @endphp
 
@@ -884,6 +916,12 @@
                             <label for="evaluation-notes">Nhận xét phỏng vấn</label>
                             <textarea id="evaluation-notes" name="notes" placeholder="Ví dụ: chuyên môn tốt, cần đào tạo thêm về quy trình nội bộ...">{{ $evaluationValues['notes'] }}</textarea>
                             @error('notes') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="interview-field interview-field--full">
+                            <label for="evaluation-rejected-reason">Lý do từ chối nếu kết luận không đạt</label>
+                            <textarea id="evaluation-rejected-reason" name="rejected_reason" placeholder="Bắt buộc khi chọn Không đạt">{{ $evaluationValues['rejected_reason'] }}</textarea>
+                            @error('rejected_reason') <span class="interview-error">{{ $message }}</span> @enderror
                         </div>
                     </div>
 

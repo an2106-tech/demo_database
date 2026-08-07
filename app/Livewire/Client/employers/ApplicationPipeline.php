@@ -3,22 +3,16 @@
 namespace App\Livewire\Client\Employers;
 
 use App\Enums\StatusApplicationEnum;
-use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\CandidateJobSubmission;
-use App\Models\Interview;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\ApplicationPipelineService;
-use App\Services\InterviewCalendarService;
-use Carbon\Carbon;
+use App\Services\ApplicationWorkflowGuard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -34,6 +28,12 @@ class ApplicationPipeline extends Component
     public bool $showEvaluationModal = false;
 
     public ?int $evaluationApplicationId = null;
+
+    public bool $showRejectModal = false;
+
+    public ?int $rejectionApplicationId = null;
+
+    public string $rejectionReason = '';
 
     public array $interviewForm = [
         'round_name' => '',
@@ -63,7 +63,9 @@ class ApplicationPipeline extends Component
 
     public function openInterviewEvaluation(int $applicationId): void
     {
-        $application = $this->findManageableApplication($applicationId);
+        $application = Application::query()
+            ->with(['job', 'latestInterview'])
+            ->findOrFail($applicationId);
 
         abort_unless($this->canEvaluateInterview($application), 403);
 
@@ -101,82 +103,6 @@ class ApplicationPipeline extends Component
         $this->showInterviewModal = false;
         $this->interviewApplicationId = null;
         $this->resetValidation();
-    }
-
-    public function saveInterviewSchedule(): void
-    {
-        $pipelineService = app(ApplicationPipelineService::class);
-        $calendarService = app(InterviewCalendarService::class);
-        $application = $this->findManageableApplication((int) $this->interviewApplicationId);
-
-        abort_unless($this->canScheduleInterview($application), 403);
-
-        $this->validate($this->interviewRules($application), [], [
-            'interviewForm.round_name' => 'tên vòng phỏng vấn',
-            'interviewForm.scheduled_at' => 'thời gian phỏng vấn',
-            'interviewForm.duration_minutes' => 'thời lượng',
-            'interviewForm.type' => 'hình thức',
-            'interviewForm.meeting_link' => 'link phỏng vấn',
-            'interviewForm.workplace_id' => 'địa điểm phỏng vấn',
-            'interviewForm.interviewer_id' => 'người phỏng vấn',
-            'interviewForm.notes' => 'ghi chú',
-        ]);
-
-        $scheduledAt = Carbon::parse($this->interviewForm['scheduled_at'], config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
-
-        if ($scheduledAt->lt(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))) {
-            throw ValidationException::withMessages([
-                'interviewForm.scheduled_at' => 'Thời gian phỏng vấn không được ở quá khứ.',
-            ]);
-        }
-
-        $existingInterview = $application->interviews()->latest('id')->first();
-        $roundNumber = (int) ($existingInterview?->round_number ?: 1);
-        $interview = $existingInterview ?? new Interview([
-            'application_id' => $application->id,
-            'round_number' => $roundNumber,
-            'result' => 'pending',
-        ]);
-
-        $interview->fill([
-            'application_id' => $application->id,
-            'interviewer_id' => (int) $this->interviewForm['interviewer_id'],
-            'round_name' => trim((string) $this->interviewForm['round_name']) ?: 'Phỏng vấn vòng '.$roundNumber,
-            'duration_minutes' => (int) $this->interviewForm['duration_minutes'],
-            'scheduled_at' => $scheduledAt,
-            'type' => $this->interviewForm['type'],
-            'meeting_link' => $this->interviewForm['type'] === 'online' ? trim((string) $this->interviewForm['meeting_link']) : null,
-            'workplace_id' => $this->interviewForm['type'] === 'offline' ? (int) $this->interviewForm['workplace_id'] : null,
-            'notes' => trim((string) $this->interviewForm['notes']) ?: null,
-        ]);
-        $interview->save();
-
-        $interview->loadMissing(['application.candidate', 'application.job.branch', 'interviewer', 'workplace']);
-        $calendarService->store($interview);
-
-        $status = $application->status instanceof StatusApplicationEnum
-            ? $application->status
-            : StatusApplicationEnum::tryFrom((string) $application->status);
-
-        if ($status === StatusApplicationEnum::SCREENING) {
-            $pipelineService->transition(
-                $application,
-                StatusApplicationEnum::INTERVIEW_SCHEDULED,
-                Auth::user(),
-                $this->interviewScheduleComment($interview, false),
-            );
-        } else {
-            $application->recordStatusHistory(
-                $status?->value,
-                $status?->value ?? StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
-                $this->interviewScheduleComment($interview, (bool) $existingInterview),
-            );
-        }
-
-        $this->sendInterviewNotifications($interview);
-        $this->closeInterviewScheduler();
-
-        $this->dispatch('app-notify', message: $existingInterview ? 'Đã cập nhật lịch phỏng vấn.' : 'Đã tạo lịch phỏng vấn.');
     }
 
     public function markAsViewed(int $applicationId): void
@@ -227,30 +153,63 @@ class ApplicationPipeline extends Component
         $this->dispatch('app-notify', message: 'Đã chuyển hồ sơ sang: '.$this->statusLabel($nextStatus).'.');
     }
 
-    public function rejectApplication(int $applicationId): void
+    public function openRejectionModal(int $applicationId): void
     {
-        $pipelineService = app(ApplicationPipelineService::class);
         $application = $this->findManageableApplication($applicationId);
+
+        abort_unless(app(ApplicationWorkflowGuard::class)->canRejectApplication(Auth::user(), $application), 403);
+
+        $this->rejectionApplicationId = $application->id;
+        $this->rejectionReason = '';
+        $this->showRejectModal = true;
+        $this->resetValidation('rejectionReason');
+    }
+
+    public function closeRejectionModal(): void
+    {
+        $this->showRejectModal = false;
+        $this->rejectionApplicationId = null;
+        $this->rejectionReason = '';
+        $this->resetValidation('rejectionReason');
+    }
+
+    public function rejectApplication(): void
+    {
+        $this->validate([
+            'rejectionReason' => ['required', 'string', 'min:5', 'max:1000'],
+        ], [], [
+            'rejectionReason' => 'lý do từ chối',
+        ]);
+
+        $pipelineService = app(ApplicationPipelineService::class);
+        $application = $this->findManageableApplication((int) $this->rejectionApplicationId);
+
+        abort_unless(app(ApplicationWorkflowGuard::class)->canRejectApplication(Auth::user(), $application), 403);
+
+        $reason = trim($this->rejectionReason);
+        $application->forceFill(['rejected_reason' => $reason])->save();
 
         try {
             $pipelineService->transition(
                 $application,
                 StatusApplicationEnum::REJECTED,
                 Auth::user(),
-                'HR từ chối nhanh từ Pipeline.'
+                'Từ chối ứng viên. Lý do: '.$reason,
             );
         } catch (ValidationException $exception) {
-            $this->dispatch('app-notify', message: $exception->getMessage(), type: 'error');
+            $this->dispatch('app-notify', message: $exception->errors()['status'][0] ?? $exception->getMessage(), type: 'error');
 
             return;
         }
 
-        $this->dispatch('app-notify', message: 'Đã chuyển hồ sơ sang trạng thái Từ chối.', type: 'warning');
+        $this->closeRejectionModal();
+        $this->dispatch('app-notify', message: 'Đã từ chối hồ sơ và ghi nhận lý do.', type: 'warning');
     }
+
     #[Layout('layouts.employer')]
     public function render()
     {
-        /** @var \App\Models\User $user */
+        /** @var User $user */
         $user = Auth::user();
 
         $jobs = RecruitmentJob::query()
@@ -282,6 +241,16 @@ class ApplicationPipeline extends Component
         $nextActionStatusesByApplicationId = $this->nextActionStatusesByApplicationId($applications);
         $selectedInterviewApplication = $this->selectedInterviewApplication();
         $selectedEvaluationApplication = $this->selectedEvaluationApplication();
+        $workflowGuard = app(ApplicationWorkflowGuard::class);
+        $pipelineActionPermissions = $applications->mapWithKeys(fn (Application $application): array => [
+            $application->id => [
+                'manage' => $workflowGuard->canRunHrPipelineActions($user)
+                    && $workflowGuard->canAccessApplicationBranch($user, $application),
+                'schedule' => $workflowGuard->canManageInterview($user, $application),
+                'evaluate' => $workflowGuard->canEvaluateInterview($user, $application),
+                'reject' => $workflowGuard->canRejectApplication($user, $application),
+            ],
+        ])->all();
 
         $applicationsByStage = [];
         foreach ($stages as $stageKey => $stage) {
@@ -302,6 +271,7 @@ class ApplicationPipeline extends Component
             'selectedEvaluationApplication' => $selectedEvaluationApplication,
             'interviewerOptions' => $this->interviewerOptions($selectedInterviewApplication),
             'workplaceOptions' => $this->workplaceOptions($selectedInterviewApplication),
+            'pipelineActionPermissions' => $pipelineActionPermissions,
         ]);
     }
 
@@ -318,128 +288,20 @@ class ApplicationPipeline extends Component
 
     private function canManageApplication(?User $user, Application $application): bool
     {
-        if (! $user) {
-            return false;
-        }
+        $workflowGuard = app(ApplicationWorkflowGuard::class);
 
-        if ($user->isSuperAdmin() || in_array($user->role, ['admin', 'director'], true)) {
-            $branchId = $user->branchScopeId();
-
-            return ! $branchId || (int) ($application->branch_id ?: $application->job?->branch_id) === (int) $branchId;
-        }
-
-        $branchId = $user->branchScopeId();
-
-        if ($branchId) {
-            return (int) ($application->branch_id ?: $application->job?->branch_id) === (int) $branchId;
-        }
-
-        return (int) $application->job?->created_by === (int) $user->id;
+        return $workflowGuard->canRunHrPipelineActions($user)
+            && $workflowGuard->canAccessApplicationBranch($user, $application);
     }
 
     private function canScheduleInterview(Application $application): bool
     {
-        $status = $application->status instanceof StatusApplicationEnum
-            ? $application->status
-            : StatusApplicationEnum::tryFrom((string) $application->status);
-
-        return in_array($status, [
-            StatusApplicationEnum::SCREENING,
-            StatusApplicationEnum::INTERVIEW_SCHEDULED,
-            StatusApplicationEnum::INTERVIEWING,
-        ], true);
+        return app(ApplicationWorkflowGuard::class)->canManageInterview(Auth::user(), $application);
     }
 
     private function canEvaluateInterview(Application $application): bool
     {
-        $status = $application->status instanceof StatusApplicationEnum
-            ? $application->status
-            : StatusApplicationEnum::tryFrom((string) $application->status);
-
-        return in_array($status, [
-            StatusApplicationEnum::INTERVIEW_SCHEDULED,
-            StatusApplicationEnum::INTERVIEWING,
-        ], true) && $application->interviews()->exists();
-    }
-
-    private function interviewRules(Application $application): array
-    {
-        $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
-
-        return [
-            'interviewForm.round_name' => ['required', 'string', 'max:100'],
-            'interviewForm.scheduled_at' => ['required', 'date'],
-            'interviewForm.duration_minutes' => ['required', 'integer', Rule::in([30, 45, 60, 90])],
-            'interviewForm.type' => ['required', Rule::in(['online', 'offline'])],
-            'interviewForm.meeting_link' => [
-                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'online'),
-                'nullable',
-                'url',
-                'max:500',
-            ],
-            'interviewForm.workplace_id' => [
-                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'offline'),
-                'nullable',
-                Rule::exists('workplaces', 'id')->where(fn ($query) => $query
-                    ->where('branch_id', $branchId)
-                    ->where('is_interview_room', true)
-                    ->where('is_active', true)),
-            ],
-            'interviewForm.interviewer_id' => [
-                'required',
-                Rule::exists('users', 'id')->where(fn ($query) => $query
-                    ->where('branch_id', $branchId)
-                    ->where('is_active', true)
-                    ->whereIn('role', ['hr', 'pm', 'director'])),
-            ],
-            'interviewForm.notes' => ['nullable', 'string', 'max:1000'],
-        ];
-    }
-
-    private function interviewScheduleComment(Interview $interview, bool $isUpdate): string
-    {
-        $scheduledAt = $interview->scheduled_at
-            ? $interview->scheduled_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y')
-            : '-';
-        $type = $interview->type === 'offline' ? 'Offline' : 'Online';
-        $location = app(InterviewCalendarService::class)->resolveLocation($interview);
-        $prefix = $isUpdate ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn';
-
-        return sprintf('%s: %s, %s, %d phút, %s.', $prefix, $scheduledAt, $type, (int) ($interview->duration_minutes ?: 60), $location);
-    }
-
-    private function sendInterviewNotifications(Interview $interview): void
-    {
-        $recipients = [];
-        $candidateEmail = $interview->application?->snapshotCandidateEmail();
-        $interviewerEmail = $interview->interviewer?->email;
-
-        if (filled($candidateEmail)) {
-            $recipients[$candidateEmail] = 'candidate';
-        }
-
-        if (filled($interviewerEmail)) {
-            $recipients[$interviewerEmail] = 'interviewer';
-        }
-
-        $sentCount = 0;
-
-        foreach ($recipients as $email => $label) {
-            try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $label));
-                $sentCount++;
-            } catch (\Throwable $exception) {
-                Log::warning('Failed to send HR portal interview schedule mail.', [
-                    'interview_id' => $interview->id,
-                    'recipient' => $email,
-                    'error' => $exception->getMessage(),
-                ]);
-            }
-        }
-
-        if ($sentCount > 0) {
-            $interview->forceFill(['invite_sent_at' => now()])->save();
-        }
+        return app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application);
     }
 
     private function selectedInterviewApplication(): ?Application
@@ -526,6 +388,12 @@ class ApplicationPipeline extends Component
             }
         }
 
+        if ($currentStatus === StatusApplicationEnum::OFFERED
+            && ($application->latestOffer?->status !== 'accepted' || ! $application->latestOffer?->accepted_at)
+        ) {
+            return null;
+        }
+
         return collect($pipelineService->allowedTransitions($application->status))
             ->first(fn (StatusApplicationEnum $status): bool => $status !== StatusApplicationEnum::REJECTED);
     }
@@ -592,5 +460,3 @@ class ApplicationPipeline extends Component
         return $candidateId.':'.$jobId;
     }
 }
-
-

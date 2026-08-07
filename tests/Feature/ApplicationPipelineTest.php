@@ -153,46 +153,19 @@ class ApplicationPipelineTest extends TestCase
         $this->assertSame(StatusApplicationEnum::SCREENING, $application->status);
     }
 
-    public function test_hr_can_schedule_interview_from_pipeline(): void
+    public function test_hr_can_open_interview_scheduler_from_pipeline(): void
     {
-        Mail::fake();
-        Storage::fake('local');
-
         [$hr, $application] = $this->createPipelineApplication([
             'status' => StatusApplicationEnum::SCREENING,
         ]);
-
-        $scheduledAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
-            ->addDays(2)
-            ->setTime(10, 30)
-            ->format('Y-m-d\TH:i');
 
         $this->actingAs($hr);
 
         Livewire::test(ApplicationPipeline::class)
             ->call('openInterviewScheduler', $application->id)
             ->assertSet('showInterviewModal', true)
-            ->set('interviewForm.round_name', 'Phỏng vấn chuyên môn')
-            ->set('interviewForm.scheduled_at', $scheduledAt)
-            ->set('interviewForm.duration_minutes', 60)
-            ->set('interviewForm.type', 'online')
-            ->set('interviewForm.meeting_link', 'https://meet.google.com/fpt-demo')
-            ->set('interviewForm.interviewer_id', (string) $hr->id)
-            ->set('interviewForm.notes', 'Chuẩn bị portfolio.')
-            ->call('saveInterviewSchedule')
-            ->assertSet('showInterviewModal', false);
-
-        $application->refresh();
-        $interview = $application->interviews()->first();
-
-        $this->assertNotNull($interview);
-        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED, $application->status);
-        $this->assertSame($hr->id, $interview->interviewer_id);
-        $this->assertSame('online', $interview->type);
-        $this->assertSame('https://meet.google.com/fpt-demo', $interview->meeting_link);
-
-        Storage::disk('local')->assertExists("interviews/interview-{$interview->id}.ics");
-        Mail::assertSent(InterviewScheduledMail::class);
+            ->assertSet('interviewApplicationId', $application->id)
+            ->assertSet('interviewForm.interviewer_id', (string) $hr->id);
     }
 
     public function test_hr_can_schedule_interview_with_pipeline_post_fallback(): void
@@ -347,17 +320,24 @@ class ApplicationPipelineTest extends TestCase
         $this->actingAs($hr);
 
         Livewire::test(ApplicationPipeline::class)
-            ->call('rejectApplication', $application->id);
+            ->call('openRejectionModal', $application->id)
+            ->assertSet('showRejectModal', true)
+            ->call('rejectApplication')
+            ->assertHasErrors(['rejectionReason' => 'required'])
+            ->set('rejectionReason', 'Chưa đáp ứng yêu cầu kinh nghiệm tối thiểu.')
+            ->call('rejectApplication')
+            ->assertSet('showRejectModal', false);
 
         $application->refresh();
 
         $this->assertSame(StatusApplicationEnum::REJECTED, $application->status);
+        $this->assertSame('Chưa đáp ứng yêu cầu kinh nghiệm tối thiểu.', $application->rejected_reason);
         $this->assertDatabaseHas('application_status_histories', [
             'application_id' => $application->id,
             'from_status' => StatusApplicationEnum::CV_REVIEWING->value,
             'to_status' => StatusApplicationEnum::REJECTED->value,
             'changed_by_id' => $hr->id,
-            'comment' => 'HR từ chối nhanh từ Pipeline.',
+            'comment' => 'Từ chối ứng viên. Lý do: Chưa đáp ứng yêu cầu kinh nghiệm tối thiểu.',
         ]);
     }
 
@@ -376,6 +356,98 @@ class ApplicationPipelineTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_pm_cannot_run_hr_pipeline_actions(): void
+    {
+        [$pm, $application] = $this->createPipelineApplication(
+            userAttributes: ['role' => 'pm'],
+        );
+
+        $this->actingAs($pm);
+
+        Livewire::test(ApplicationPipeline::class)
+            ->call('advanceApplication', $application->id)
+            ->assertForbidden();
+    }
+
+    public function test_assigned_pm_can_open_and_submit_interview_evaluation(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::INTERVIEWING,
+        ]);
+        $pm = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $application->branch_id,
+            'metadata' => ['account_types' => ['employer'], 'account_type' => 'employer'],
+        ]);
+
+        Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $pm->id,
+            'round_number' => 1,
+            'round_name' => 'Phong van voi quan ly',
+            'scheduled_at' => now()->subHour(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-pm',
+            'result' => 'pending',
+        ]);
+
+        $this->actingAs($pm);
+
+        Livewire::test(ApplicationPipeline::class)
+            ->call('openInterviewEvaluation', $application->id)
+            ->assertSet('showEvaluationModal', true);
+
+        $this->post(route('employers.application_pipeline.evaluate_interview', ['application' => $application->id]), [
+            'technical_score' => 7,
+            'problem_solving_score' => 7,
+            'communication_score' => 7,
+            'culture_score' => 7,
+            'conclusion' => 'hold',
+            'notes' => 'Cần thêm một vòng đánh giá.',
+        ])->assertRedirect(route('employers.application_pipeline'));
+
+        $this->assertDatabaseHas('scorecards', [
+            'application_id' => $application->id,
+            'evaluator_id' => $pm->id,
+            'conclusion' => 'hold',
+        ]);
+    }
+
+    public function test_interview_fail_requires_rejection_reason(): void
+    {
+        [$hr, $application] = $this->createPipelineApplication([
+            'status' => StatusApplicationEnum::INTERVIEWING,
+        ]);
+
+        Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phong van chuyen mon',
+            'scheduled_at' => now()->subDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $this->actingAs($hr)
+            ->from(route('employers.application_pipeline', ['evaluate_interview' => $application->id]))
+            ->post(route('employers.application_pipeline.evaluate_interview', ['application' => $application->id]), [
+                'technical_score' => 4,
+                'problem_solving_score' => 4,
+                'communication_score' => 5,
+                'culture_score' => 5,
+                'conclusion' => 'fail',
+                'notes' => 'Chưa đạt yêu cầu.',
+            ])
+            ->assertSessionHasErrors('rejected_reason');
+
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
+    }
+
     /**
      * @return array{0: User, 1: Application}
      */
@@ -386,7 +458,7 @@ class ApplicationPipelineTest extends TestCase
     ): array {
         $branch = Branch::query()->create(array_merge([
             'name' => 'FPT Pipeline Branch',
-            'code' => 'PB' . fake()->unique()->numberBetween(100, 999),
+            'code' => 'PB'.fake()->unique()->numberBetween(100, 999),
             'city' => 'ho_chi_minh',
             'is_active' => true,
         ], $branchAttributes));
@@ -400,14 +472,14 @@ class ApplicationPipelineTest extends TestCase
 
         $candidate = Candidate::query()->create([
             'name' => 'Pipeline Candidate',
-            'email' => 'pipeline-candidate-' . fake()->unique()->numberBetween(1000, 9999) . '@example.com',
+            'email' => 'pipeline-candidate-'.fake()->unique()->numberBetween(1000, 9999).'@example.com',
             'phone' => '0901234567',
             'cv_file' => 'candidates/current/cv.pdf',
         ]);
 
         $job = RecruitmentJob::query()->create([
-            'title' => 'Pipeline Developer ' . fake()->unique()->numberBetween(100, 999),
-            'slug' => 'pipeline-developer-' . fake()->unique()->numberBetween(100, 999),
+            'title' => 'Pipeline Developer '.fake()->unique()->numberBetween(100, 999),
+            'slug' => 'pipeline-developer-'.fake()->unique()->numberBetween(100, 999),
             'description' => 'Build pipeline.',
             'status' => 'published',
             'branch_id' => $branch->id,

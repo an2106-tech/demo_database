@@ -80,6 +80,20 @@ class ApplicationPipelineService
             ]);
         }
 
+        if ($targetStatus === StatusApplicationEnum::HIRED) {
+            $acceptedOffer = $application->offers()
+                ->where('status', 'accepted')
+                ->whereNotNull('accepted_at')
+                ->latest('id')
+                ->first();
+
+            if (! $acceptedOffer) {
+                throw ValidationException::withMessages([
+                    'status' => 'Chỉ có thể chuyển sang Đã tuyển sau khi ứng viên chấp nhận đề nghị tuyển dụng.',
+                ]);
+            }
+        }
+
         $application->forceFill([
             'status' => $targetStatus,
         ])->save();
