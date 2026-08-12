@@ -57,14 +57,29 @@
     $skillCount = $skills->count();
     $aiScore = $jobFitAiResult['score'] ?? null;
     $aiScoreLabel = null;
+    $aiScoreClass = '';
     $aiMatchedRequirements = $jobFitAiResult['matched_requirements'] ?? [];
     $aiMissingRequirements = $jobFitAiResult['missing_requirements'] ?? [];
     $aiReason = $jobFitAiResult['reason'] ?? null;
+    $aiAdvice = $jobFitAiResult['advice'] ?? null;
 
     if ($aiScore !== null) {
-        $aiScoreLabel = $aiScore <= 0
-            ? 'Chưa đủ dữ liệu để đánh giá'
-            : $aiScore . '% phù hợp';
+        if ($aiScore <= 0) {
+            $aiScoreLabel = 'Chưa đủ dữ liệu';
+            $aiScoreClass = 'jd-ai-section__score--soft';
+        } elseif ($aiScore < 31) {
+            $aiScoreLabel = $aiScore . '% — Ít phù hợp';
+            $aiScoreClass = 'jd-ai-section__score--low';
+        } elseif ($aiScore < 56) {
+            $aiScoreLabel = $aiScore . '% — Khá phù hợp';
+            $aiScoreClass = 'jd-ai-section__score--mid';
+        } elseif ($aiScore < 75) {
+            $aiScoreLabel = $aiScore . '% — Tốt';
+            $aiScoreClass = 'jd-ai-section__score--good';
+        } else {
+            $aiScoreLabel = $aiScore . '% — Rất phù hợp';
+            $aiScoreClass = 'jd-ai-section__score--high';
+        }
     }
 @endphp
 
@@ -391,12 +406,12 @@
         }
 
         .jd-ai-section {
-            background: #fff;
-            border: 1px solid rgba(243, 112, 33, 0.16);
-            border-radius: 28px;
-            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.06);
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
             margin-top: 24px;
-            padding: 24px;
+            padding: 28px;
         }
 
         .jd-ai-section__head {
@@ -404,91 +419,180 @@
             display: flex;
             gap: 16px;
             justify-content: space-between;
-            margin-bottom: 18px;
+            margin-bottom: 16px;
         }
 
         .jd-ai-section__title {
-            color: var(--jd-ink);
-            font-size: 24px;
-            font-weight: 900;
-            margin: 0 0 6px;
+            color: #0f172a;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 4px;
+        }
+
+        .jd-ai-section__sub {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 500;
+            margin: 0;
         }
 
         .jd-ai-section__score {
             align-items: center;
-            background: #fff7ed;
-            border: 1px solid rgba(243, 112, 33, 0.18);
-            border-radius: 18px;
-            color: #c2410c;
+            border-radius: 9999px;
             display: inline-flex;
-            font-size: 22px;
-            font-weight: 900;
-            line-height: 1.25;
-            min-height: 60px;
-            padding: 0 18px;
+            font-size: 14.5px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            padding: 8px 18px;
             white-space: nowrap;
         }
 
-        .jd-ai-section__score--soft {
-            background: #fffaf4;
-            color: #9a3412;
-            font-size: 17px;
-            font-weight: 800;
-            text-align: center;
-            white-space: normal;
+        .jd-ai-section__score--low {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
         }
 
+        .jd-ai-section__score--mid {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #d97706;
+        }
+
+        .jd-ai-section__score--good {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #059669;
+        }
+
+        .jd-ai-section__score--high {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #2563eb;
+        }
+
+        .jd-ai-section__score--soft {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            font-size: 13.5px;
+            font-weight: 600;
+        }
+
+        .jd-ai-progress {
+            background: #f1f5f9;
+            border-radius: 9999px;
+            height: 6px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .jd-ai-progress__bar {
+            border-radius: 9999px;
+            height: 100%;
+            transition: width 0.6s ease;
+        }
+
+        .jd-ai-progress__bar.jd-ai-section__score--low { background: #ef4444; border: none; }
+        .jd-ai-progress__bar.jd-ai-section__score--mid { background: #f59e0b; border: none; }
+        .jd-ai-progress__bar.jd-ai-section__score--good { background: #10b981; border: none; }
+        .jd-ai-progress__bar.jd-ai-section__score--high { background: #3b82f6; border: none; }
+
         .jd-ai-section__reason {
-            background: #fff7ed;
-            border: 1px solid rgba(243, 112, 33, 0.16);
-            border-radius: 18px;
-            color: #9a3412;
-            font-size: 14px;
-            line-height: 1.8;
-            padding: 16px 18px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid #f37021;
+            border-radius: 12px;
+            color: #334155;
+            font-size: 14.5px;
+            line-height: 1.7;
+            padding: 16px 20px;
         }
 
         .jd-ai-section__grid {
             display: grid;
-            gap: 16px;
+            gap: 20px;
             grid-template-columns: 1fr 1fr;
-            margin-top: 16px;
+            margin-top: 20px;
         }
 
         .jd-ai-section__box {
-            background: #f8fafc;
+            background: #ffffff;
             border: 1px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 18px;
+            border-radius: 16px;
+            padding: 20px;
         }
 
         .jd-ai-section__box span {
-            color: #64748b;
             display: block;
-            font-size: 12px;
+            font-size: 11.5px;
             font-weight: 800;
-            letter-spacing: 0.08em;
-            margin-bottom: 12px;
+            letter-spacing: 0.05em;
+            margin-bottom: 14px;
             text-transform: uppercase;
+        }
+
+        .jd-ai-section__box--match span {
+            color: #059669;
+        }
+
+        .jd-ai-section__box--missing span {
+            color: #dc2626;
         }
 
         .jd-ai-chip-list {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
 
         .jd-ai-chip {
             align-items: center;
-            background: #fff;
-            border: 1px solid #dbe4ee;
-            border-radius: 999px;
-            color: #334155;
+            border-radius: 8px;
             display: inline-flex;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 600;
             line-height: 1.4;
-            padding: 8px 12px;
+            padding: 6px 14px;
+        }
+
+        .jd-ai-chip--match {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+        }
+
+        .jd-ai-chip--missing {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+        }
+
+        .jd-ai-section__advice {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 16px;
+            margin-top: 20px;
+            padding: 18px 22px;
+        }
+
+        .jd-ai-section__advice strong {
+            color: #0369a1;
+            display: block;
+            font-size: 12.5px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .jd-ai-section__advice p {
+            color: #0c4a6e;
+            font-size: 14px;
+            line-height: 1.65;
+            margin: 0;
         }
 
         .jd-layout {
@@ -902,6 +1006,14 @@
                             </a>
                         @endif
 
+                        @if($hasCandidateAccess)
+                            <button wire:click="startAiMockInterview" class="jd-secondary-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(124,58,237,.25); cursor:pointer;">
+                                <i wire:loading.remove wire:target="startAiMockInterview" class="fa fa-microphone"></i>
+                                <i wire:loading wire:target="startAiMockInterview" class="fa fa-spinner fa-spin"></i>
+                                Phỏng vấn thử với AI
+                            </button>
+                        @endif
+
                         <a href="{{ route('candidates.browse_job') }}" class="jd-secondary-btn">
                             <i class="fa fa-th-large"></i>
                             Xem thêm việc làm
@@ -914,14 +1026,21 @@
                 <section class="jd-ai-section">
                     <div class="jd-ai-section__head">
                         <div>
-                            <h3 class="jd-ai-section__title">Kết quả AI</h3>
+                            <h3 class="jd-ai-section__title">Kết quả phân tích AI</h3>
+                            <p class="jd-ai-section__sub">Đánh giá độ tương thích giữa CV ứng viên và yêu cầu công việc</p>
                         </div>
                         @if ($aiScoreLabel !== null)
-                            <div class="jd-ai-section__score {{ $aiScore <= 0 ? 'jd-ai-section__score--soft' : '' }}">
+                            <div class="jd-ai-section__score {{ $aiScoreClass }}">
                                 {{ $aiScoreLabel }}
                             </div>
                         @endif
                     </div>
+
+                    @if ($aiScore !== null && $aiScore > 0)
+                        <div class="jd-ai-progress">
+                            <div class="jd-ai-progress__bar {{ $aiScoreClass }}" style="width: {{ $aiScore }}%"></div>
+                        </div>
+                    @endif
 
                     @if (filled($aiReason))
                         <div class="jd-ai-section__reason">
@@ -930,12 +1049,12 @@
                     @endif
 
                     <div class="jd-ai-section__grid">
-                        <div class="jd-ai-section__box">
+                        <div class="jd-ai-section__box jd-ai-section__box--match">
                             <span>Điểm phù hợp</span>
                             @if (!empty($aiMatchedRequirements))
                                 <div class="jd-ai-chip-list">
                                     @foreach ($aiMatchedRequirements as $item)
-                                        <div class="jd-ai-chip">{{ $item }}</div>
+                                        <div class="jd-ai-chip jd-ai-chip--match">{{ $item }}</div>
                                     @endforeach
                                 </div>
                             @else
@@ -943,12 +1062,12 @@
                             @endif
                         </div>
 
-                        <div class="jd-ai-section__box">
+                        <div class="jd-ai-section__box jd-ai-section__box--missing">
                             <span>Cần bổ sung / xác minh</span>
                             @if (!empty($aiMissingRequirements))
                                 <div class="jd-ai-chip-list">
                                     @foreach ($aiMissingRequirements as $item)
-                                        <div class="jd-ai-chip">{{ $item }}</div>
+                                        <div class="jd-ai-chip jd-ai-chip--missing">{{ $item }}</div>
                                     @endforeach
                                 </div>
                             @else
@@ -956,6 +1075,15 @@
                             @endif
                         </div>
                     </div>
+
+                    @if (filled($aiAdvice))
+                        <div class="jd-ai-section__advice">
+                            <div>
+                                <strong>Lời khuyên từ AI</strong>
+                                <p>{{ $aiAdvice }}</p>
+                            </div>
+                        </div>
+                    @endif
                 </section>
             @endif
 

@@ -660,6 +660,14 @@
                                                         </a>
                                                     @endif
 
+                                                    <button
+                                                        type="button"
+                                                        wire:click="openMessageModal({{ $app->id }})"
+                                                        class="pipeline-action pipeline-action--primary"
+                                                    >
+                                                        <i class="fa fa-commenting-o"></i> Nhắn tin
+                                                    </button>
+
                                                     @if($actionPermissions['reject'])
                                                         <button
                                                             type="button"
@@ -929,6 +937,37 @@
                         <a href="{{ route('employers.application_pipeline') }}" class="interview-modal__button">Hủy</a>
                         <button type="submit" class="interview-modal__button interview-modal__button--primary">
                             Lưu đánh giá PV
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- Message Modal -->
+    @if($showMessageModal)
+        <div class="interview-modal-backdrop" wire:click.self="closeMessageModal">
+            <div class="interview-modal">
+                <div class="interview-modal__header">
+                    <h3 class="interview-modal__title">Nhắn tin cho ứng viên</h3>
+                    <button type="button" class="interview-modal__close" wire:click="closeMessageModal">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="sendMessage" class="interview-modal__body">
+                    <div class="interview-form-grid" style="grid-template-columns: 1fr;">
+                        <div class="interview-field interview-field--full">
+                            <label>Nội dung tin nhắn</label>
+                            <textarea wire:model="messageContent" rows="5" placeholder="Nhập tin nhắn để thông báo cho ứng viên..."></textarea>
+                            @error('messageContent') <span class="interview-error">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="interview-modal__actions">
+                        <button type="button" wire:click="closeMessageModal" class="interview-modal__button">Hủy</button>
+                        <button type="submit" class="interview-modal__button interview-modal__button--primary">
+                            Gửi tin nhắn
                         </button>
                     </div>
                 </form>

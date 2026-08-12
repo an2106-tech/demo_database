@@ -46,6 +46,10 @@ class ApplicationPipeline extends Component
         'notes' => '',
     ];
 
+    public bool $showMessageModal = false;
+    public ?int $messageApplicationId = null;
+    public string $messageContent = '';
+
     public function mount(): void
     {
         $scheduleInterviewApplicationId = request()->integer('schedule_interview');
@@ -105,6 +109,42 @@ class ApplicationPipeline extends Component
         $this->resetValidation();
     }
 
+    public function openMessageModal($applicationId)
+    {
+        $this->messageApplicationId = $applicationId;
+        $this->messageContent = '';
+        $this->showMessageModal = true;
+    }
+
+    public function closeMessageModal()
+    {
+        $this->showMessageModal = false;
+        $this->messageApplicationId = null;
+        $this->messageContent = '';
+    }
+
+    public function sendMessage()
+    {
+        $this->validate(['messageContent' => 'required|string|max:1000'], [], ['messageContent' => 'Nội dung tin nhắn']);
+        $application = $this->findManageableApplication((int)$this->messageApplicationId);
+        
+        $chat = \App\Models\Chat::firstOrCreate([
+            'employer_id' => Auth::id(),
+            'candidate_id' => $application->candidate_id,
+            'job_id' => $application->recruitment_job_id,
+            'type' => 'employer_candidate',
+        ], ['status' => 'active']);
+
+        \App\Models\ChatMessage::create([
+            'chat_id' => $chat->id,
+            'sender_type' => 'employer',
+            'sender_id' => Auth::id(),
+            'content' => $this->messageContent,
+        ]);
+
+        $this->closeMessageModal();
+        $this->dispatch('app-notify', message: 'Tin nhắn đã được gửi đến ứng viên.');
+    }
     public function markAsViewed(int $applicationId): void
     {
         $application = $this->findManageableApplication($applicationId);
