@@ -3,8 +3,8 @@
         .client-logout-btn{
             appearance: none;
             width: 100%;
-            border: 1px solid rgba(14, 116, 144, .16);
-            background: linear-gradient(135deg, #ffffff 0%, #ecfeff 100%);
+            border: 1px solid rgba(243, 112, 33, .16);
+            background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
             color: #0f172a;
             padding: .9rem 1rem;
             border-radius: 16px;
@@ -15,26 +15,26 @@
             gap: .65rem;
             line-height: 1.2;
             letter-spacing: .01em;
-            box-shadow: 0 12px 28px rgba(14, 116, 144, .10);
+            box-shadow: 0 12px 28px rgba(243, 112, 33, .08);
             transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
         }
 
         .client-logout-btn:hover{
             transform: translateY(-1px);
-            background: linear-gradient(135deg, #0891b2 0%, #0ea5e9 100%);
-            border-color: rgba(8, 145, 178, .35);
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
+            border-color: rgba(243, 112, 33, .35);
             color: #ffffff;
-            box-shadow: 0 16px 34px rgba(14, 116, 144, .20);
+            box-shadow: 0 16px 34px rgba(243, 112, 33, .20);
         }
 
         .client-logout-btn:active{
             transform: translateY(0);
-            box-shadow: 0 10px 20px rgba(14, 116, 144, .18);
+            box-shadow: 0 10px 20px rgba(243, 112, 33, .18);
         }
 
         .client-logout-btn:focus-visible{
             outline: none;
-            box-shadow: 0 0 0 4px rgba(34, 211, 238, .22), 0 12px 28px rgba(14, 116, 144, .12);
+            box-shadow: 0 0 0 4px rgba(243, 112, 33, .22), 0 12px 28px rgba(243, 112, 33, .12);
         }
 
         .client-logout-btn:disabled{

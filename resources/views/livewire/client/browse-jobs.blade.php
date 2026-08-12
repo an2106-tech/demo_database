@@ -17,16 +17,18 @@
 
         .bj2-page .bj2-card {
             position: relative;
-            border: 1px solid var(--bj2-line) !important;
-            background: #fff;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, .05);
-            transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 20px !important;
+            background: #ffffff;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
         }
 
         .bj2-page .bj2-card:hover {
-            transform: translateY(-3px);
-            border-color: rgba(148, 163, 184, .55) !important;
-            box-shadow: 0 20px 44px rgba(15, 23, 42, .08);
+            transform: translateY(-4px);
+            border-color: rgba(243, 112, 33, 0.35) !important;
+            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.09);
         }
 
         .bj2-page .bj2-card__inner {
@@ -34,178 +36,237 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            padding: 1rem;
+            padding: 1.25rem;
         }
 
         .bj2-page .bj2-card--list .bj2-card__inner {
-            padding: 1rem;
+            padding: 1.25rem;
         }
 
         .bj2-page .bj2-card__top {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 14px;
-            margin-bottom: 1rem;
+            gap: 12px;
+            margin-bottom: 0.85rem;
         }
 
         .bj2-page .bj2-card__logo {
-            width: 72px;
-            height: 72px;
+            width: 60px;
+            height: 60px;
             flex-shrink: 0;
-            border-radius: 16px;
-            border: 1px solid var(--bj2-line);
-            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #f1f5f9;
+            background: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease;
+        }
+
+        .bj2-page .bj2-card:hover .bj2-card__logo {
+            transform: scale(1.04);
         }
 
         .bj2-page .bj2-card__logo img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            padding: 12px;
+            padding: 8px;
         }
 
         .bj2-page .bj2-card__badges {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            gap: 8px;
+            gap: 6px;
         }
 
         .bj2-page .bj2-card__label {
             font-size: .72rem;
             font-weight: 700;
-            letter-spacing: .04em;
-            padding: .42rem .75rem;
+            letter-spacing: .02em;
+            padding: .35rem .75rem;
             border-radius: 999px;
             white-space: nowrap;
             line-height: 1;
         }
 
         .bj2-page .bj2-card__deadline {
-            font-size: .76rem;
-            font-weight: 600;
-            letter-spacing: .02em;
-            padding: .46rem .82rem;
+            font-size: .75rem;
+            font-weight: 500;
+            letter-spacing: .01em;
+            padding: .35rem .75rem;
             border-radius: 999px;
             white-space: nowrap;
-            background: #111827;
-            color: #fff;
+            background: #f8fafc;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
             box-shadow: none;
         }
 
         .bj2-page .bj2-card__title {
-            font-size: 1.08rem;
+            font-size: 1.12rem;
+            font-weight: 700;
             line-height: 1.35;
-            letter-spacing: -.02em;
+            letter-spacing: -.01em;
             margin-bottom: .45rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            height: 2.7em;
         }
 
-        .bj2-page .bj2-card__company,
-        .bj2-page .bj2-card__location {
-            color: var(--bj2-muted);
+        .bj2-page .bj2-card__title a {
+            color: #0f172a;
+            transition: color 0.2s ease;
+        }
+
+        .bj2-page .bj2-card:hover .bj2-card__title a {
+            color: var(--bj2-accent);
         }
 
         .bj2-page .bj2-card__company {
-            font-size: .9rem;
+            font-size: .88rem;
+            color: #64748b;
+            margin-bottom: .85rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .bj2-page .bj2-card__company .fa,
-        .bj2-page .bj2-card__location .fa {
-            color: rgba(100, 116, 139, .9);
-        }
-
-        .bj2-page .bj2-card__chips .badge {
-            border-radius: 10px !important;
-            font-weight: 600;
+        .bj2-page .bj2-card__company .fa {
+            color: #94a3b8;
         }
 
         .bj2-page .bj2-card__info {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: .75rem 1rem;
-            align-items: center;
-        }
-
-        .bj2-page .bj2-card__salary {
-            padding: .45rem .85rem;
-            border-radius: 999px;
-            background: rgba(243, 112, 33, .08);
-            color: var(--bj2-accent);
-            border: 1px solid rgba(243, 112, 33, .14);
-            font-weight: 700;
-            white-space: nowrap;
-            box-shadow: none;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .bj2-page .bj2-card__excerpt {
-            color: #475569;
-            line-height: 1.7;
-            min-height: 4.2em;
-            margin-bottom: .9rem;
-        }
-
-        .bj2-page .bj2-card__tags {
             display: flex;
-            flex-wrap: nowrap;
-            overflow: hidden;
-            gap: .45rem;
+            align-items: center;
+            justify-content: space-between;
+            gap: .5rem;
             margin-bottom: .85rem;
         }
 
-        .bj2-page .bj2-card__tag {
-            display: block;
-            padding: .35rem .75rem;
-            border-radius: 999px;
-            font-size: .78rem;
-            line-height: 1.3;
+        .bj2-page .bj2-card__location {
+            font-size: .88rem;
+            color: #64748b;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             min-width: 0;
+        }
+
+        .bj2-page .bj2-card__location .fa {
+            color: var(--bj2-accent);
+        }
+
+        .bj2-page .bj2-card__salary {
+            padding: .35rem .75rem;
+            border-radius: 999px;
+            background: rgba(243, 112, 33, .08);
+            color: var(--bj2-accent);
+            border: 1px solid rgba(243, 112, 33, .16);
+            font-weight: 700;
+            font-size: .88rem;
+            white-space: nowrap;
+            box-shadow: none;
+            font-variant-numeric: tabular-nums;
+            flex-shrink: 0;
+        }
+
+        .bj2-page .bj2-card__tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+            margin-bottom: .85rem;
+        }
+
+        .bj2-page .bj2-card__tag {
+            display: inline-flex;
+            align-items: center;
+            padding: .3rem .7rem;
+            border-radius: 999px;
+            font-size: .76rem;
+            font-weight: 500;
+            line-height: 1.2;
+            white-space: nowrap;
             border: 1px solid transparent;
         }
 
         .bj2-page .bj2-card__tag--accent {
-            background: var(--bj2-accent-soft);
+            background: rgba(243, 112, 33, .08);
             color: var(--bj2-accent);
             border-color: rgba(243, 112, 33, .14);
+            font-weight: 600;
         }
 
         .bj2-page .bj2-card__tag--soft {
             background: #f8fafc;
-            color: var(--bj2-muted);
-            border-color: var(--bj2-line);
+            color: #64748b;
+            border-color: #e2e8f0;
         }
 
-        .bj2-page .bj2-card__actions .btn {
-            transition: transform .2s ease, background-color .2s ease, border-color .2s ease;
+        .bj2-page .bj2-card__actions {
+            margin-top: auto;
+            padding-top: .85rem;
+            border-top: 1px solid #f1f5f9;
         }
 
-        .bj2-page .bj2-card__actions .btn:hover {
+        .bj2-page .bj2-card__actions .btn-detail {
+            flex: 1;
+            padding: .6rem .8rem;
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .88rem;
+            text-align: center;
+            text-decoration: none;
+            transition: all .2s ease;
+        }
+
+        .bj2-page .bj2-card__actions .btn-detail:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #cbd5e1;
+        }
+
+        .bj2-page .bj2-card__actions .btn-apply {
+            flex: 1.5;
+            padding: .6rem 1rem;
+            background: linear-gradient(135deg, #f37021 0%, #ff8c42 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: .88rem;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.28);
+            transition: all .2s ease;
+        }
+
+        .bj2-page .bj2-card__actions .btn-apply:hover {
             transform: translateY(-1px);
-        }
-
-        .bj2-page .bj2-card__actions .btn:active {
-            transform: translateY(0);
+            box-shadow: 0 6px 18px rgba(243, 112, 33, 0.38);
+            color: #ffffff;
         }
 
         @media (max-width: 575.98px) {
             .bj2-page .bj2-card__top {
-                flex-direction: column;
+                flex-direction: row;
             }
 
             .bj2-page .bj2-card__badges {
-                align-items: flex-start;
+                align-items: flex-end;
             }
 
             .bj2-page .bj2-card__info {
-                grid-template-columns: 1fr;
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -393,13 +454,10 @@
 
                     <div class="col-12 {{ $isListView ? '' : 'col-md-6 col-lg-4' }}">
                         @php
-                            $excerpt = trim(strip_tags($job->description ?? ''));
-                            $excerpt = \Illuminate\Support\Str::limit($excerpt, 120, '...');
-                            $departmentName = $job->department?->name ?? 'Chưa có phòng ban';
-                            $workplaceName = $job->workplace?->name ?? 'Không rõ';
+                            $departmentName = $job->department?->name;
                         @endphp
 
-                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100 p-2 rounded-5">
+                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100">
                             <div class="bj2-card__inner">
                                 <div class="bj2-card__top">
                                     <a href="{{ $detailUrl }}" class="bj2-card__logo" aria-label="{{ $job->title }}">
@@ -423,51 +481,35 @@
                                             </span>
                                         @endif
 
-                                        <span class="bj2-card__deadline d-flex align-items-center">
-                                            Hạn nộp · {{ $deadlineText }}
+                                        <span class="bj2-card__deadline d-inline-flex align-items-center">
+                                            <i class="fa fa-clock-o me-1"></i> Hạn nộp: {{ $deadlineText }}
                                         </span>
                                     </div>
                                 </div>
 
-                                <h3 class="bj2-card__title mt-0 fw-bold">
-                                    <a href="{{ $detailUrl }}" class="text-dark text-decoration-none">{{ $job->title }}</a>
+                                <h3 class="bj2-card__title">
+                                    <a href="{{ $detailUrl }}">{{ $job->title }}</a>
                                 </h3>
 
-                                <div class="bj2-card__company mb-2 d-flex align-items-center">
-                                    <i class="fa fa-building-o me-2" style="width: 16px; text-align: center;"></i>
+                                <div class="bj2-card__company d-flex align-items-center" title="{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}">
+                                    <i class="fa fa-building-o me-2"></i>
                                     <span>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</span>
                                 </div>
 
-                                <div class="bj2-card__info mb-3">
-                                    <div class="bj2-card__location d-flex align-items-center" style="font-size: 0.94rem; min-width: 0;">
+                                <div class="bj2-card__info">
+                                    <div class="bj2-card__location d-flex align-items-center" title="{{ $cityText }}">
                                         <i class="fa fa-map-marker me-2"></i>
-                                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ $cityText }}</span>
+                                        <span>{{ $cityText }}</span>
                                     </div>
 
-                                    <div class="d-flex align-items-center justify-content-sm-end">
-                                        <span class="bj2-card__salary d-inline-flex align-items-center">
-                                            <i class="fa fa-money me-1"></i> {{ $salaryText }}
-                                        </span>
-                                    </div>
+                                    <span class="bj2-card__salary d-inline-flex align-items-center">
+                                        <i class="fa fa-money me-1"></i> {{ $salaryText }}
+                                    </span>
                                 </div>
 
-                                <div class="bj2-card__tags">
-                                    <span class="bj2-card__tag bj2-card__tag--accent" style="flex-shrink: 0;">Nội bộ FPT</span>
-                                    <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $departmentName }}">{{ $departmentName }}</span>
-                                    <span class="bj2-card__tag bj2-card__tag--soft" title="{{ $workplaceName }}">{{ $workplaceName }}</span>
-                                </div>
-
-                                <div class="flex-grow-1">
-                                    @if ($excerpt !== '')
-                                        <p class="bj2-card__excerpt mb-0" style="font-size: 0.95rem; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis;">
-                                            {{ $excerpt }}
-                                        </p>
-                                    @endif
-                                </div>
-
-                                <div class="bj2-card__actions d-flex flex-wrap gap-2 w-100 mt-4">
-                                    <a href="{{ $detailUrl }}" class="btn rounded-pill fw-medium text-center" style="flex: 1; min-width: 120px; padding: 0.72rem 0; background: #f8fafc; color: #334155; border: 1px solid var(--bj2-line); box-shadow: none;">Xem chi tiết</a>
-                                    <a href="{{ $applyUrl }}" class="btn rounded-pill fw-semibold text-white text-center" style="flex: 2; min-width: 150px; padding: 0.72rem 0; background: var(--bj2-accent); border: none; box-shadow: 0 4px 12px rgba(243, 112, 33, 0.25);">Ứng tuyển ngay</a>
+                                <div class="bj2-card__actions d-flex gap-2 w-100">
+                                    <a href="{{ $detailUrl }}" class="btn-detail">Xem chi tiết</a>
+                                    <a href="{{ $applyUrl }}" class="btn-apply">Ứng tuyển ngay</a>
                                 </div>
                             </div>
                         </article>

@@ -1,4 +1,4 @@
-﻿<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-candidate" role="banner" x-data="{ openUserMenu: false }">
+<header class="jobguru-header-area stick-top forsticky page-header client-app-header app-header-candidate" role="banner" x-data="{ openUserMenu: false }">
     <style>
         @media (min-width: 992px) {
             .app-header-candidate .row {
@@ -91,28 +91,44 @@
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
-            width: 220px;
+            width: 240px;
             padding: 10px;
             border-radius: 14px;
             border: 1px solid rgba(148, 163, 184, .25);
             background: #fff;
             box-shadow: 0 16px 30px rgba(15, 23, 42, .15);
             z-index: 1000;
+            text-align: left;
         }
 
         .candidate-user-dropdown a,
         .candidate-user-dropdown a:visited,
         .candidate-user-dropdown a:focus {
-            display: block;
-            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
             border-radius: 10px;
             color: #1e293b !important;
             font-weight: 600;
+            text-align: left;
+        }
+        
+        .candidate-user-dropdown a i {
+            color: #64748b;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            transition: color 0.2s ease;
         }
 
         .candidate-user-dropdown a:hover {
             background: #f8fafc;
-            color: #1e293b !important;
+            color: var(--fpt-orange) !important;
+        }
+        
+        .candidate-user-dropdown a:hover i {
+            color: var(--fpt-orange);
         }
 
         .candidate-user-dropdown .client-logout-btn {
@@ -250,15 +266,18 @@
                                     </button>
 
                                     <div class="candidate-user-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('candidates.candidate_dashboard') }}">Tổng quan hồ sơ</a>
-                                        <a href="{{ route('candidates.candidate_profile') }}">Cập nhật hồ sơ</a>
-                                        <a href="{{ route('candidates.manage_jobs') }}">Đơn đã ứng tuyển</a>
+                                        <a href="{{ route('candidates.candidate_dashboard') }}"><i class="fa fa-tachometer"></i> Tổng quan hồ sơ</a>
+                                        <a href="{{ route('candidates.candidate_profile') }}"><i class="fa fa-user-o"></i> Cập nhật hồ sơ</a>
+                                        <a href="{{ route('candidates.manage_jobs') }}"><i class="fa fa-paper-plane-o"></i> Đơn đã ứng tuyển</a>
+                                        <hr style="margin: 8px 0; border-color: #f1f5f9;">
                                         @if(!($canEmployerAccess ?? false))
-                                            <a href="{{ route('employers.register') }}">Đăng ký nhà tuyển dụng</a>
+                                            <a href="{{ route('employers.register') }}"><i class="fa fa-briefcase"></i> Đăng ký nhà tuyển dụng</a>
                                         @else
-                                            <a href="{{ route('employers.dashboard') }}">Khu nhà tuyển dụng</a>
+                                            <a href="{{ route('employers.dashboard') }}"><i class="fa fa-building-o"></i> Khu nhà tuyển dụng</a>
                                         @endif
-                                        <livewire:client.logout-button />
+                                        <div style="margin-top: 8px;">
+                                            <livewire:client.logout-button />
+                                        </div>
                                     </div>
                                 </li>
                             @else

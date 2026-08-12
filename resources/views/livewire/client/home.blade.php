@@ -618,6 +618,79 @@
         .home-ecosystem a.stretched-link::after {
             z-index: 1;
         }
+
+        .home-premium-job-card__actions {
+            display: flex !important;
+            gap: 10px !important;
+            margin-top: 20px !important;
+        }
+
+        .btn-detail-spotlight {
+            flex: 1 !important;
+            padding: 0.6rem 0.8rem !important;
+            background: #f8fafc !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 999px !important;
+            font-weight: 600 !important;
+            font-size: 0.88rem !important;
+            text-align: center !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease !important;
+            display: inline-block !important;
+        }
+
+        .btn-detail-spotlight:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #cbd5e1 !important;
+        }
+
+        .btn-apply-spotlight {
+            flex: 1.5 !important;
+            padding: 0.6rem 1rem !important;
+            background: linear-gradient(135deg, #f37021 0%, #ff8c42 100%) !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 999px !important;
+            font-weight: 600 !important;
+            font-size: 0.88rem !important;
+            text-align: center !important;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.28) !important;
+            transition: all 0.2s ease !important;
+            display: inline-block !important;
+        }
+
+        .btn-apply-spotlight:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 18px rgba(243, 112, 33, 0.38) !important;
+            color: #ffffff !important;
+        }
+
+        .btn-view-all-spotlight {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0.5rem 1.25rem !important;
+            border-radius: 999px !important;
+            background: #ffffff !important;
+            color: #f37021 !important;
+            border: 1.5px solid #f37021 !important;
+            font-weight: 700 !important;
+            font-size: 0.9rem !important;
+            text-decoration: none !important;
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.1) !important;
+            transition: all 0.2s ease !important;
+            line-height: 1.4 !important;
+        }
+
+        .btn-view-all-spotlight:hover {
+            background: #f37021 !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.3) !important;
+            transform: translateY(-1px) !important;
+        }
     </style>
 
     <section class="home-premium-spotlight section_70">
@@ -627,7 +700,7 @@
                     <h2 class="fw-bold mb-1">Việc làm <span class="text-primary">nổi bật</span></h2>
                     <p class="text-muted mb-0">Tuyển gấp, lương cạnh tranh — cập nhật liên tục.</p>
                 </div>
-                <a href="{{ route('candidates.browse_job') }}" class="jobguru-btn">Xem tất cả</a>
+                <a href="{{ route('candidates.browse_job') }}" class="btn-view-all-spotlight">Xem tất cả <i class="fa fa-angle-right ms-1"></i></a>
             </div>
             <div class="row g-4">
                 @php
@@ -674,9 +747,9 @@
                                 </ul>
                                 <div class="home-premium-job-card__actions">
                                     <a href="{{ route('jobs.public', ['slug' => $spotlight->slug]) }}"
-                                        class="btn btn-outline-secondary">Chi tiết</a>
+                                        class="btn-detail-spotlight">Chi tiết</a>
                                     <a href="{{ route('candidates.apply_job', ['job' => $spotlight->id]) }}"
-                                        class="btn btn-primary home-premium-btn-apply">Ứng tuyển</a>
+                                        class="btn-apply-spotlight">Ứng tuyển</a>
                                 </div>
                             </article>
                         </div>

@@ -95,28 +95,44 @@
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
-            width: 220px;
+            width: 250px;
             padding: 10px;
             border-radius: 14px;
             border: 1px solid rgba(148, 163, 184, .25);
             background: #fff;
             box-shadow: 0 16px 30px rgba(15, 23, 42, .15);
             z-index: 1000;
+            text-align: left;
         }
 
         .employer-user-dropdown a,
         .employer-user-dropdown a:visited,
         .employer-user-dropdown a:focus {
-            display: block;
-            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
             border-radius: 10px;
             color: #1e293b !important;
             font-weight: 600;
+            text-align: left;
+        }
+        
+        .employer-user-dropdown a i {
+            color: #64748b;
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            transition: color 0.2s ease;
         }
 
         .employer-user-dropdown a:hover {
             background: #f8fafc;
-            color: #1e293b !important;
+            color: #ff8a1d !important;
+        }
+        
+        .employer-user-dropdown a:hover i {
+            color: #ff8a1d;
         }
 
         .employer-user-dropdown .client-logout-btn {
@@ -248,14 +264,17 @@
                                     </button>
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('employers.company_profile') }}">Hồ sơ chi nhánh</a>
+                                        <a href="{{ route('employers.company_profile') }}"><i class="fa fa-building-o"></i> Hồ sơ chi nhánh</a>
                                         @if(!($canCandidateAccess ?? false))
-                                            <a href="{{ route('candidates.register') }}">Kích hoạt hồ sơ ứng viên</a>
+                                            <a href="{{ route('candidates.register') }}"><i class="fa fa-user-plus"></i> Kích hoạt hồ sơ ứng viên</a>
                                         @else
-                                            <a href="{{ route('candidates.candidate_dashboard') }}">Khu ứng viên</a>
+                                            <a href="{{ route('candidates.candidate_dashboard') }}"><i class="fa fa-user-o"></i> Khu ứng viên</a>
                                         @endif
-                                        <a href="{{ route('director.approve_jobs') }}">Duyệt tin</a>
-                                        <livewire:client.logout-button />
+                                        <a href="{{ route('director.approve_jobs') }}"><i class="fa fa-check-square-o"></i> Duyệt tin</a>
+                                        <hr style="margin: 8px 0; border-color: #f1f5f9;">
+                                        <div style="margin-top: 8px;">
+                                            <livewire:client.logout-button />
+                                        </div>
                                     </div>
                                 </li>
                                 @else
