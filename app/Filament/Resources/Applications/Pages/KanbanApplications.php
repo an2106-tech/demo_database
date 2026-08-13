@@ -6,6 +6,7 @@ use App\Enums\StatusApplicationEnum;
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Models\Application;
 use App\Models\Interview;
+use App\Models\Offer;
 use App\Models\OfferLetterTemplate;
 use App\Models\ScorecardTemplate;
 use App\Models\User;
@@ -16,10 +17,13 @@ use App\Services\InterviewEvaluationService;
 use App\Services\InterviewMeetingLinkValidator;
 use App\Services\ApplicationKanbanTransitionService;
 use App\Services\ApplicationPipelineService;
+use App\Services\ApplicationPreScreeningService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\ApplicationWorkflowSummaryService;
 use App\Services\InterviewScheduleDeliveryService;
+use App\Services\InterviewScorecardTemplateService;
 use App\Services\OfferWorkflowService;
+use App\Services\OfferLetterMergeService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Filament\Actions\Action;
@@ -69,6 +73,18 @@ class KanbanApplications extends Page
 
     public string $kanbanScreeningRejectedReason = '';
 
+    /** @var array{contact_channel: string, contact_channel_detail: string, contacted_at: string, outcome: string, follow_up_at: string, note: string, rejection_reason_code: string, rejection_reason: string} */
+    public array $kanbanPreScreeningForm = [
+        'contact_channel' => '',
+        'contact_channel_detail' => '',
+        'contacted_at' => '',
+        'outcome' => '',
+        'follow_up_at' => '',
+        'note' => '',
+        'rejection_reason_code' => '',
+        'rejection_reason' => '',
+    ];
+
     public string $kanbanInterviewAvailabilityNotice = '';
 
     /**
@@ -92,11 +108,12 @@ class KanbanApplications extends Page
         'meeting_link' => '',
         'workplace_id' => '',
         'interviewer_id' => '',
+        'scorecard_template_id' => '',
         'notes' => '',
     ];
 
     /**
-     * @var array{template_id: string, criteria: array<int, array{name: string, score: string|int|float|null, note: string|null}>, conclusion: string, notes: string, override_reason: string, rejected_reason: string, confirm_early_completion: bool}
+     * @var array{template_id: string, criteria: array<int, array{name: string, score: string|int|float|null, note: string|null}>, conclusion: string, notes: string, override_reason: string, rejected_reason: string, confirm_early_completion: bool, confirm_completion: bool}
      */
     public array $kanbanEvaluationForm = [
         'template_id' => '',
@@ -106,21 +123,27 @@ class KanbanApplications extends Page
         'override_reason' => '',
         'rejected_reason' => '',
         'confirm_early_completion' => false,
+        'confirm_completion' => false,
     ];
 
     public ?string $kanbanEvaluationDraftSavedAt = null;
 
     public ?string $kanbanEvaluationDraftStatus = null;
 
+    public bool $kanbanInterviewQuestionsConfirmation = false;
+
     /** @var array<string, mixed> */
     public array $kanbanOfferForm = [
         'offer_letter_template_id' => '',
         'salary_offered' => '',
+        'salary_adjustment_reason' => '',
         'probation_months' => 2,
         'start_date' => '',
         'expires_at' => '',
         'content' => '',
     ];
+
+    public ?string $kanbanOfferTemplatePreview = null;
 
     protected function getHeaderActions(): array
     {
@@ -278,6 +301,12 @@ class KanbanApplications extends Page
 
     public function screenApplicationFromKanban(): void
     {
+        $this->resetErrorBag([
+            'kanbanScreeningDecision',
+            'kanbanScreeningNote',
+            'kanbanScreeningRejectedReason',
+        ]);
+
         $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
         $decision = $this->kanbanScreeningDecision;
 
@@ -288,7 +317,7 @@ class KanbanApplications extends Page
         }
 
         if (! in_array($decision, ['pass', 'reject'], true)) {
-            $this->setKanbanModalError('Vui lòng chọn kết quả sàng lọc.');
+            $this->addError('kanbanScreeningDecision', 'Chọn kết quả sàng lọc để tiếp tục.');
 
             return;
         }
@@ -314,7 +343,7 @@ class KanbanApplications extends Page
             $reason = trim($this->kanbanScreeningRejectedReason);
 
             if ($reason === '') {
-                $this->setKanbanModalError('Vui lòng nhập lý do từ chối.');
+                $this->addError('kanbanScreeningRejectedReason', 'Nhập lý do từ chối để lưu kết quả xử lý.');
 
                 return;
             }
@@ -365,7 +394,7 @@ class KanbanApplications extends Page
         $note = trim($this->kanbanScreeningNote);
 
         if ($note === '') {
-            $this->setKanbanModalError('Vui lòng nhập ghi chú sàng lọc.');
+            $this->addError('kanbanScreeningNote', 'Ghi ngắn gọn căn cứ đánh giá trước khi xác nhận.');
 
             return;
         }
@@ -379,7 +408,7 @@ class KanbanApplications extends Page
             $application,
             StatusApplicationEnum::SCREENING,
             Auth::user(),
-            'Sàng lọc CV: Đạt sơ tuyển. Ghi chú: '.$note,
+            'Sàng lọc CV: Đạt. Ghi chú: '.$note,
         );
 
         $this->dismissKanbanDropAction();
@@ -389,6 +418,169 @@ class KanbanApplications extends Page
             ->title('Đã ghi nhận sàng lọc')
             ->body('Hồ sơ đã được chuyển sang giai đoạn sơ tuyển.')
             ->send();
+    }
+
+    public function openPreScreeningFromKanban(int $applicationId): void
+    {
+        $application = ApplicationResource::getEloquentQuery()->whereKey($applicationId)->first();
+        $workflowGuard = app(ApplicationWorkflowGuard::class);
+
+        if (! $application || ! $workflowGuard->canRecordPreScreening(Auth::user(), $application)) {
+            Notification::make()->warning()->title('Không thể ghi nhận sơ tuyển')->body('Hồ sơ đã được xử lý hoặc không còn thuộc phạm vi thao tác của bạn.')->send();
+
+            return;
+        }
+
+        $this->showKanbanDropAction($this->preScreeningPayload($application));
+    }
+
+    public function savePreScreeningFromKanban(): void
+    {
+        $this->resetErrorBag([
+            'kanbanPreScreeningForm.contact_channel',
+            'kanbanPreScreeningForm.contact_channel_detail',
+            'kanbanPreScreeningForm.contacted_at',
+            'kanbanPreScreeningForm.outcome',
+            'kanbanPreScreeningForm.follow_up_at',
+            'kanbanPreScreeningForm.note',
+            'kanbanPreScreeningForm.rejection_reason_code',
+            'kanbanPreScreeningForm.rejection_reason',
+        ]);
+
+        $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
+        $application = $applicationId > 0
+            ? ApplicationResource::getEloquentQuery()->whereKey($applicationId)->first()
+            : null;
+
+        if (! $application || $this->statusValue($application) !== StatusApplicationEnum::SCREENING->value) {
+            $this->dismissKanbanDropAction();
+
+            return;
+        }
+
+        $actor = Auth::user();
+        if (! $actor || ! app(ApplicationWorkflowGuard::class)->canRecordPreScreening($actor, $application)) {
+            $this->dismissKanbanDropAction();
+            Notification::make()
+                ->warning()
+                ->title('Hồ sơ đã được cập nhật')
+                ->body('Không thể lưu lại kết quả sơ tuyển cho hồ sơ này.')
+                ->send();
+
+            return;
+        }
+
+        $channel = (string) ($this->kanbanPreScreeningForm['contact_channel'] ?? '');
+        $channelDetail = trim((string) ($this->kanbanPreScreeningForm['contact_channel_detail'] ?? ''));
+        $outcome = (string) ($this->kanbanPreScreeningForm['outcome'] ?? '');
+        $reasonCode = (string) ($this->kanbanPreScreeningForm['rejection_reason_code'] ?? '');
+        $note = trim((string) ($this->kanbanPreScreeningForm['note'] ?? ''));
+        $reason = trim((string) ($this->kanbanPreScreeningForm['rejection_reason'] ?? ''));
+        $contactedAt = $this->parseKanbanDateTime($this->kanbanPreScreeningForm['contacted_at'] ?? null);
+        $followUpAt = $this->parseKanbanDateTime($this->kanbanPreScreeningForm['follow_up_at'] ?? null);
+
+        $preScreeningService = app(ApplicationPreScreeningService::class);
+        if (! array_key_exists($channel, $preScreeningService->contactMethodOptions())) {
+            $this->addError('kanbanPreScreeningForm.contact_channel', 'Vui lòng chọn hình thức liên hệ.');
+
+            return;
+        }
+
+        if ($channel === 'other' && $channelDetail === '') {
+            $this->addError('kanbanPreScreeningForm.contact_channel_detail', 'Vui lòng ghi rõ hình thức liên hệ.');
+
+            return;
+        }
+
+        if (! $contactedAt) {
+            $this->addError('kanbanPreScreeningForm.contacted_at', 'Vui lòng chọn thời điểm liên hệ.');
+
+            return;
+        }
+
+        if ($contactedAt->gt(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))) {
+            $this->addError('kanbanPreScreeningForm.contacted_at', 'Chọn thời điểm liên hệ là hiện tại hoặc trước đó.');
+
+            return;
+        }
+
+        if (! in_array($outcome, ['passed', 'follow_up', 'rejected'], true)) {
+            $this->addError('kanbanPreScreeningForm.outcome', 'Chọn kết quả của lần liên hệ này.');
+
+            return;
+        }
+
+        if ($outcome === 'follow_up' && (! $followUpAt || $followUpAt->lte($contactedAt) || $followUpAt->lte(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))))) {
+            $this->addError('kanbanPreScreeningForm.follow_up_at', 'Hẹn liên hệ lại phải sau lần liên hệ này và ở thời điểm tương lai.');
+
+            return;
+        }
+
+        if ($outcome === 'rejected' && $reasonCode === '') {
+            $this->addError('kanbanPreScreeningForm.rejection_reason', 'Nhập lý do trước khi từ chối hồ sơ.');
+
+            return;
+        }
+
+        if (in_array($outcome, ['passed', 'follow_up'], true) && $note === '') {
+            $this->addError('kanbanPreScreeningForm.note', 'Ghi ngắn gọn kết quả lần liên hệ này.');
+
+            return;
+        }
+
+        if ($outcome === 'rejected' && $reasonCode === 'other' && $reason === '') {
+            $this->addError('kanbanPreScreeningForm.rejection_reason', 'Vui lòng mô tả lý do từ chối.');
+
+            return;
+        }
+
+        if ($outcome === 'rejected' && $reason === '') {
+            $reason = $preScreeningService->rejectionReasonLabel($reasonCode);
+        }
+
+        $preScreeningService->record(
+            $application,
+            $actor,
+            $channel,
+            $contactedAt,
+            $outcome,
+            $outcome === 'follow_up' ? $followUpAt : null,
+            $note !== '' ? $note : null,
+            $reason !== '' ? $reason : null,
+            $channel === 'other' ? $channelDetail : null,
+            $outcome === 'rejected' ? $reasonCode : null,
+        );
+
+        if ($outcome === 'rejected') {
+            $application->forceFill([
+                'rejected_stage' => 'pre_screening',
+                'rejected_reason' => $reason,
+            ])->save();
+
+            app(ApplicationPipelineService::class)->transition(
+                $application,
+                StatusApplicationEnum::REJECTED,
+                $actor,
+                'Sơ tuyển: Từ chối hồ sơ. Lý do: '.$reason,
+            );
+
+            $title = 'Đã từ chối hồ sơ';
+            $body = 'Hồ sơ đã được chuyển sang Từ chối sau sơ tuyển.';
+        } else {
+            $label = $outcome === 'passed' ? 'Đạt sơ tuyển' : 'Hẹn liên hệ lại';
+            $comment = 'Sơ tuyển: '.$label.'. Ghi chú: '.$note;
+            if ($followUpAt) {
+                $comment .= ' Hẹn lại: '.$followUpAt->format('H:i, d/m/Y').'.';
+            }
+            $application->recordStatusHistory(StatusApplicationEnum::SCREENING->value, StatusApplicationEnum::SCREENING->value, $comment);
+            $title = $outcome === 'passed' ? 'Đã ghi nhận sơ tuyển' : 'Đã lưu lịch liên hệ lại';
+            $body = $outcome === 'passed'
+                ? 'Hồ sơ đã sẵn sàng để tạo lịch phỏng vấn.'
+                : 'Hồ sơ được giữ ở sơ tuyển để theo dõi lần liên hệ tiếp theo.';
+        }
+
+        $this->dismissKanbanDropAction();
+        Notification::make()->success()->title($title)->body($body)->send();
     }
 
     public function scheduleInterviewFromKanban(): void
@@ -465,6 +657,9 @@ class KanbanApplications extends Page
         $interview->fill([
             'application_id' => $application->id,
             'interviewer_id' => (int) $this->kanbanInterviewForm['interviewer_id'],
+            'scorecard_template_id' => (int) $this->kanbanInterviewForm['scorecard_template_id'],
+            'scorecard_template_snapshot' => app(InterviewScorecardTemplateService::class)
+                ->snapshot((int) $this->kanbanInterviewForm['scorecard_template_id']),
             'round_name' => trim((string) $this->kanbanInterviewForm['round_name']) ?: 'Phỏng vấn vòng '.$roundNumber,
             'duration_minutes' => (int) $this->kanbanInterviewForm['duration_minutes'],
             'scheduled_at' => $scheduledAt,
@@ -685,6 +880,12 @@ class KanbanApplications extends Page
 
     public function completeInterviewEvaluationFromKanban(): void
     {
+        if (! (bool) ($this->kanbanEvaluationForm['confirm_completion'] ?? false)) {
+            $this->addError('kanbanEvaluationForm.confirm_completion', 'Vui lòng xác nhận trước khi hoàn tất đánh giá.');
+
+            return;
+        }
+
         $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
         $application = ApplicationResource::getEloquentQuery()
             ->whereKey($applicationId)
@@ -697,9 +898,14 @@ class KanbanApplications extends Page
         }
 
         try {
+            $evaluationData = $this->kanbanEvaluationForm;
+            // The single final confirmation also confirms an interview that
+            // finishes before its scheduled end time.
+            $evaluationData['confirm_early_completion'] = (bool) ($evaluationData['confirm_completion'] ?? false);
+
             $result = app(InterviewEvaluationService::class)->complete(
                 $application,
-                $this->kanbanEvaluationForm,
+                $evaluationData,
                 Auth::user(),
             );
         } catch (ValidationException $exception) {
@@ -733,7 +939,16 @@ class KanbanApplications extends Page
     {
         $this->resetValidation('kanbanEvaluationForm.'.$key);
 
+        if ($key !== 'confirm_completion' && $key !== 'confirm_early_completion') {
+            $this->kanbanEvaluationForm['confirm_completion'] = false;
+            $this->resetValidation('kanbanEvaluationForm.confirm_completion');
+        }
+
         if ($key !== 'template_id' || blank($value)) {
+            return;
+        }
+
+        if ((bool) data_get($this->kanbanDropAction, 'template_locked')) {
             return;
         }
 
@@ -742,6 +957,64 @@ class KanbanApplications extends Page
             $this->kanbanEvaluationForm['criteria'] = $criteria;
             $this->resetValidation('kanbanEvaluationForm.criteria');
         }
+    }
+
+    public function requestInterviewQuestionsFromKanban(): void
+    {
+        if (data_get($this->kanbanDropAction, 'type') !== 'interview_evaluation') {
+            return;
+        }
+
+        $this->kanbanInterviewQuestionsConfirmation = true;
+    }
+
+    public function cancelInterviewQuestionsFromKanban(): void
+    {
+        $this->kanbanInterviewQuestionsConfirmation = false;
+    }
+
+    public function generateInterviewQuestionsFromKanban(): void
+    {
+        $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
+        $application = $applicationId > 0
+            ? ApplicationResource::getEloquentQuery()->whereKey($applicationId)->first()
+            : null;
+
+        if (! $application || ! app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application)) {
+            $this->setKanbanModalError('Chưa thể tạo câu hỏi cho hồ sơ này.');
+
+            return;
+        }
+
+        $existing = $application->aiAnalyses()
+            ->where('analysis_type', 'interview_questions')
+            ->where('status', 'completed')
+            ->latest('id')
+            ->first();
+        $analysis = app(ApplicationAiAnalysisService::class)->generateInterviewQuestions(
+            $application,
+            (array) ($this->kanbanEvaluationForm['criteria'] ?? []),
+            Auth::user(),
+            'admin-kanban',
+            (bool) $existing,
+        );
+
+        $this->kanbanInterviewQuestionsConfirmation = false;
+
+        if ($analysis->status !== 'completed') {
+            $this->setKanbanModalError($analysis->error_message ?: 'Chưa thể tạo câu hỏi gợi ý. Vui lòng thử lại sau.');
+
+            return;
+        }
+
+        $application->refresh();
+        $this->kanbanDropAction['interview_questions'] = $this->interviewQuestionsContext($application);
+
+        Notification::make()
+            ->success()
+            ->title($existing ? 'Đã tạo lại câu hỏi gợi ý' : 'Đã tạo câu hỏi gợi ý')
+            ->body('Câu hỏi được lưu để dùng lại trong buổi phỏng vấn này.')
+            ->send();
     }
 
     public function requestInterviewScheduleDeliveryFromKanban(int $applicationId): void
@@ -802,7 +1075,7 @@ class KanbanApplications extends Page
 
         $notification = Notification::make()->title($result['is_update'] ? 'Đã gửi cập nhật lịch' : 'Đã gửi lịch phỏng vấn');
 
-        if (! $result['has_interview'] || $result['sent'] === 0) {
+        if (! $result['has_interview'] || ! $result['candidate_sent']) {
             $notification->warning()->body('Chưa gửi được email. Vui lòng kiểm tra thông tin người nhận và cấu hình mail.');
         } elseif ($result['failed'] > 0) {
             $notification->warning()->body('Lịch đã được gửi, nhưng một số người nhận chưa nhận được email.');
@@ -857,6 +1130,10 @@ class KanbanApplications extends Page
     public function updatedKanbanOfferForm(mixed $value, string $key): void
     {
         $this->resetValidation('kanbanOfferForm.'.$key);
+
+        if (in_array($key, ['offer_letter_template_id', 'salary_offered', 'probation_months', 'start_date', 'expires_at'], true)) {
+            $this->refreshOfferTemplatePreview();
+        }
     }
 
     public function analyzeScreeningAiFromKanban(): void
@@ -944,6 +1221,10 @@ class KanbanApplications extends Page
             return $this->interviewSchedulePayload($application, false, $result['message'], $targetStage);
         }
 
+        if ($result['requires'] === 'pre_screening') {
+            return $this->preScreeningPayload($application, $result['message']);
+        }
+
         if ($result['requires'] === 'interview_evaluation') {
             if (app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application)) {
                 return $this->interviewEvaluationPayload($application);
@@ -985,6 +1266,8 @@ class KanbanApplications extends Page
         ?string $message = null,
         ?string $targetStage = null,
     ): array {
+        $scorecardTemplates = app(InterviewScorecardTemplateService::class)->selectionData();
+
         return [
             'type' => 'interview_schedule',
             'title' => $isUpdate ? 'Cập nhật lịch phỏng vấn' : 'Tạo lịch phỏng vấn',
@@ -998,7 +1281,60 @@ class KanbanApplications extends Page
             'interview_context' => $this->interviewScheduleContext($application),
             'form' => $this->interviewFormDefaults($application),
             'interviewer_options' => $this->interviewerOptions($application),
+            'scorecard_template_options' => $scorecardTemplates['options'],
+            'scorecard_template_criteria' => $scorecardTemplates['criteria'],
             'workplace_options' => $this->workplaceOptions($application),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function preScreeningPayload(Application $application, ?string $message = null): array
+    {
+        $preScreeningService = app(ApplicationPreScreeningService::class);
+        $latest = $preScreeningService->latest($application);
+        $history = $application->preScreenings()
+            ->with('handledBy:id,name')
+            ->orderByDesc('contacted_at')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn ($record): array => [
+                'contacted_at' => $record->contacted_at?->format('H:i, d/m/Y'),
+                'method' => $preScreeningService->contactMethodLabel($record->contact_channel, $record->contact_channel_detail),
+                'outcome' => match ($record->outcome) {
+                    'passed' => 'Đạt sơ tuyển',
+                    'follow_up' => 'Hẹn liên hệ lại',
+                    'rejected' => 'Từ chối hồ sơ',
+                    default => 'Chưa xác định',
+                },
+                'note' => $record->note ?: $record->rejection_reason,
+                'handled_by' => $record->handledBy?->name,
+            ])
+            ->all();
+
+        return [
+            'type' => 'pre_screening',
+            'title' => 'Cập nhật sơ tuyển',
+            'message' => $message ?? 'Ghi nhận kết quả liên hệ với ứng viên trước khi tạo lịch phỏng vấn.',
+            'application_id' => $application->id,
+            'candidate' => $application->snapshotCandidateName(),
+            'job' => $application->job?->title,
+            'pre_screening_context' => [
+                'email' => $application->snapshotCandidateEmail() ?: '-',
+                'phone' => $application->snapshotCandidatePhone() ?: '-',
+                'cv_name' => $application->submittedCvName() ?: 'CV ứng tuyển',
+                'cv_url' => $application->submittedCvUrl(),
+                'screening_note' => $this->latestScreeningNote($application),
+                'latest_outcome' => $latest?->outcome,
+                'latest_contact_channel' => $latest
+                    ? $preScreeningService->contactMethodLabel($latest->contact_channel, $latest->contact_channel_detail)
+                    : null,
+                'latest_contacted_at' => $latest?->contacted_at?->format('H:i, d/m/Y'),
+                'latest_follow_up_at' => $latest?->follow_up_at?->format('H:i, d/m/Y'),
+                'latest_note' => $latest?->note,
+                'history' => $history,
+            ],
         ];
     }
 
@@ -1015,7 +1351,10 @@ class KanbanApplications extends Page
                 ->latest('id')
                 ->first()
             : null;
-        $criteria = $scorecard?->criteria;
+        $snapshot = is_array($interview?->scorecard_template_snapshot)
+            ? $interview->scorecard_template_snapshot
+            : [];
+        $criteria = $scorecard?->criteria ?: ($snapshot['criteria'] ?? []);
         $canFinalize = app(ApplicationWorkflowGuard::class)->canFinalizeInterviewEvaluation(Auth::user(), $application);
 
         return [
@@ -1033,19 +1372,25 @@ class KanbanApplications extends Page
                 'interviewer' => $interview?->interviewer?->name ?: '-',
                 'type' => $interview?->type === 'online' ? 'Trực tuyến' : 'Trực tiếp',
             ],
-            'template_options' => ScorecardTemplate::query()
-                ->orderByDesc('is_default')
-                ->orderBy('name')
-                ->pluck('name', 'id')
-                ->all(),
+            'template_options' => app(InterviewScorecardTemplateService::class)->options(),
+            'template_locked' => filled($interview?->scorecard_template_id),
+            'template_name' => $snapshot['name'] ?? $interview?->scorecardTemplate?->name,
+            'interview_questions' => $this->interviewQuestionsContext($application),
+            'draft_saved_at' => $scorecard?->updated_at
+                ? $scorecard->updated_at->copy()->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i')
+                : null,
+            'draft_status' => $scorecard?->conclusion === 'hold'
+                ? 'Đã lưu kết quả cần đánh giá bổ sung.'
+                : ($scorecard ? 'Bản nháp đã lưu.' : null),
             'form' => [
-                'template_id' => (string) ($scorecard?->template_id ?? ''),
+                'template_id' => (string) ($scorecard?->template_id ?? $interview?->scorecard_template_id ?? ''),
                 'criteria' => is_array($criteria) ? $criteria : [],
                 'conclusion' => (string) ($scorecard?->conclusion ?? ''),
                 'notes' => (string) ($scorecard?->notes ?? ''),
                 'override_reason' => (string) ($scorecard?->override_reason ?? ''),
                 'rejected_reason' => (string) ($application->rejected_reason ?? ''),
                 'confirm_early_completion' => false,
+                'confirm_completion' => false,
             ],
             'can_finalize' => $canFinalize,
         ];
@@ -1059,6 +1404,11 @@ class KanbanApplications extends Page
     {
         $offer = $application->offers()->latest('id')->first();
         $isReplacement = in_array($offer?->status, ['declined', 'expired'], true);
+        $templates = OfferLetterTemplate::query()
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return [
             'type' => 'offer_draft',
@@ -1069,17 +1419,13 @@ class KanbanApplications extends Page
             'application_id' => $application->id,
             'candidate' => $application->snapshotCandidateName(),
             'job' => $application->job?->title,
-            'approval_note' => $offer?->status === 'rejected' ? $offer->approval_notes : null,
+            'approval_note' => filled($offer?->approval_notes) ? $offer->approval_notes : null,
             'offer_context' => $this->offerDraftContext($application),
-            'template_options' => OfferLetterTemplate::query()
-                ->where('is_active', true)
-                ->orderBy('sort_order')
-                ->orderBy('name')
-                ->pluck('name', 'id')
-                ->all(),
+            'template_options' => $templates->pluck('name', 'id')->all(),
             'form' => [
                 'offer_letter_template_id' => (string) ($offer?->offer_letter_template_id ?? ''),
                 'salary_offered' => (string) ($offer?->salary_offered ?? ''),
+                'salary_adjustment_reason' => (string) ($offer?->salary_adjustment_reason ?? ''),
                 'probation_months' => (int) ($offer?->probation_months ?? 2),
                 'start_date' => $offer?->start_date?->format('Y-m-d') ?? '',
                 'expires_at' => $offer?->expires_at?->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('Y-m-d\\TH:i')
@@ -1099,6 +1445,16 @@ class KanbanApplications extends Page
             ->latest('id')
             ->first();
         $analysis = $this->screeningAiContext($this->screeningAiAnalysisForDisplay($application));
+        $salaryRange = $application->job?->salary_range;
+        $salaryMin = is_array($salaryRange) && isset($salaryRange['min']) && is_numeric($salaryRange['min'])
+            ? (int) $salaryRange['min']
+            : null;
+        $salaryMax = is_array($salaryRange) && isset($salaryRange['max']) && is_numeric($salaryRange['max'])
+            ? (int) $salaryRange['max']
+            : null;
+        $salaryCurrency = is_array($salaryRange) && filled($salaryRange['currency'] ?? null)
+            ? strtoupper((string) $salaryRange['currency'])
+            : 'VND';
 
         return [
             'candidate_name' => $application->snapshotCandidateName() ?: 'Ứng viên',
@@ -1115,7 +1471,63 @@ class KanbanApplications extends Page
                 : null,
             'cv_name' => $application->submittedCvName() ?: 'CV ứng tuyển',
             'cv_url' => $application->submittedCvUrl(),
+            'published_salary_min' => $salaryMin,
+            'published_salary_max' => $salaryMax,
+            'published_salary_currency' => $salaryCurrency,
+            'published_salary_label' => $this->publishedSalaryLabel($salaryMin, $salaryMax, $salaryCurrency),
         ];
+    }
+
+    private function refreshOfferTemplatePreview(): void
+    {
+        $this->kanbanOfferTemplatePreview = null;
+
+        $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
+        $templateId = $this->kanbanOfferForm['offer_letter_template_id'] ?? null;
+        if ($applicationId <= 0 || blank($templateId)) {
+            return;
+        }
+
+        $application = ApplicationResource::getEloquentQuery()
+            ->whereKey($applicationId)
+            ->first();
+        $template = OfferLetterTemplate::query()
+            ->whereKey($templateId)
+            ->where('is_active', true)
+            ->first();
+
+        if (! $application || ! $template) {
+            return;
+        }
+
+        $previewOffer = new Offer([
+            'salary_offered' => (int) ($this->kanbanOfferForm['salary_offered'] ?: 0),
+            'start_date' => $this->kanbanOfferForm['start_date'] ?: null,
+            'probation_months' => (int) ($this->kanbanOfferForm['probation_months'] ?? 0),
+            'expires_at' => $this->kanbanOfferForm['expires_at'] ?: null,
+        ]);
+        $previewOffer->setRelation('application', $application);
+
+        $html = app(OfferLetterMergeService::class)->mergeTemplateBody(
+            (string) $template->body_html,
+            $previewOffer,
+            ['{{offer_id}}' => e('Sẽ cấp khi gửi')],
+        );
+
+        $text = strip_tags(str_ireplace(['</p>', '</div>', '<br>', '<br/>', '<br />'], "\n", $html));
+        $this->kanbanOfferTemplatePreview = trim((string) preg_replace('/\n{3,}/', "\n\n", $text));
+    }
+
+    private function publishedSalaryLabel(?int $min, ?int $max, string $currency = 'VND'): string
+    {
+        $format = fn (int $amount): string => number_format($amount, 0, ',', '.').' '.$currency;
+
+        return match (true) {
+            $min !== null && $max !== null => $format($min).' - '.$format($max),
+            $min !== null => 'Từ '.$format($min),
+            $max !== null => 'Đến '.$format($max),
+            default => 'Thỏa thuận',
+        };
     }
 
     private function showKanbanDropAction(array $payload): void
@@ -1127,6 +1539,7 @@ class KanbanApplications extends Page
         $this->kanbanScreeningDecision = '';
         $this->kanbanScreeningNote = '';
         $this->kanbanScreeningRejectedReason = '';
+        $this->resetKanbanPreScreeningForm();
         $this->kanbanInterviewAvailabilityNotice = '';
         $this->kanbanInterviewSchedulePreview = $this->emptyInterviewSchedulePreview();
         $this->resetKanbanInterviewForm();
@@ -1150,10 +1563,17 @@ class KanbanApplications extends Page
 
         if (($payload['type'] ?? null) === 'interview_evaluation' && is_array($payload['form'] ?? null)) {
             $this->kanbanEvaluationForm = array_merge($this->kanbanEvaluationForm, $payload['form']);
+            $this->kanbanEvaluationDraftSavedAt = filled($payload['draft_saved_at'] ?? null)
+                ? (string) $payload['draft_saved_at']
+                : null;
+            $this->kanbanEvaluationDraftStatus = filled($payload['draft_status'] ?? null)
+                ? (string) $payload['draft_status']
+                : null;
         }
 
         if (($payload['type'] ?? null) === 'offer_draft' && is_array($payload['form'] ?? null)) {
             $this->kanbanOfferForm = array_merge($this->kanbanOfferForm, $payload['form']);
+            $this->refreshOfferTemplatePreview();
         }
     }
 
@@ -1167,7 +1587,22 @@ class KanbanApplications extends Page
             'meeting_link' => '',
             'workplace_id' => '',
             'interviewer_id' => '',
+            'scorecard_template_id' => '',
             'notes' => '',
+        ];
+    }
+
+    private function resetKanbanPreScreeningForm(): void
+    {
+        $this->kanbanPreScreeningForm = [
+            'contact_channel' => '',
+            'contact_channel_detail' => '',
+            'contacted_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('Y-m-d\TH:i'),
+            'outcome' => '',
+            'follow_up_at' => '',
+            'note' => '',
+            'rejection_reason_code' => '',
+            'rejection_reason' => '',
         ];
     }
 
@@ -1175,6 +1610,7 @@ class KanbanApplications extends Page
     {
         $this->kanbanEvaluationDraftSavedAt = null;
         $this->kanbanEvaluationDraftStatus = null;
+        $this->kanbanInterviewQuestionsConfirmation = false;
         $this->kanbanEvaluationForm = [
             'template_id' => '',
             'criteria' => [],
@@ -1183,14 +1619,17 @@ class KanbanApplications extends Page
             'override_reason' => '',
             'rejected_reason' => '',
             'confirm_early_completion' => false,
+            'confirm_completion' => false,
         ];
     }
 
     private function resetKanbanOfferForm(): void
     {
+        $this->kanbanOfferTemplatePreview = null;
         $this->kanbanOfferForm = [
             'offer_letter_template_id' => '',
             'salary_offered' => '',
+            'salary_adjustment_reason' => '',
             'probation_months' => 2,
             'start_date' => '',
             'expires_at' => '',
@@ -1236,6 +1675,16 @@ class KanbanApplications extends Page
             'cv_url' => $application->submittedCvUrl(),
             'ai' => $this->screeningAiContext($analysis),
         ];
+    }
+
+    private function latestScreeningNote(Application $application): string
+    {
+        $history = $application->statusHistories()
+            ->where('to_status', StatusApplicationEnum::SCREENING->value)
+            ->latest('id')
+            ->first();
+
+        return $this->compactAiText((string) ($history?->comment ?: 'Chưa có ghi chú sàng lọc.'), 230);
     }
 
     /**
@@ -1287,6 +1736,35 @@ class KanbanApplications extends Page
             ->where('status', 'completed')
             ->latest('id')
             ->first() ?: $latest;
+    }
+
+    /**
+     * @return array{available: bool, questions: array<int, array{question: string, criterion: string, purpose: string}>}
+     */
+    private function interviewQuestionsContext(Application $application): array
+    {
+        $analysis = $application->latestInterviewQuestionAiAnalysis
+            ?? $application->aiAnalyses()
+                ->where('analysis_type', 'interview_questions')
+                ->where('status', 'completed')
+                ->latest('id')
+                ->first();
+
+        $questions = collect((array) data_get($analysis?->result_json, 'questions', []))
+            ->filter(fn ($question): bool => is_array($question) && filled($question['question'] ?? null))
+            ->take(4)
+            ->map(fn (array $question): array => [
+                'question' => $this->compactAiText((string) $question['question'], 210),
+                'criterion' => $this->compactAiText((string) ($question['criterion'] ?? ''), 60),
+                'purpose' => $this->compactAiText((string) ($question['purpose'] ?? ''), 110),
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'available' => $questions !== [],
+            'questions' => $questions,
+        ];
     }
 
     /**
@@ -1407,6 +1885,7 @@ class KanbanApplications extends Page
             'meeting_link' => (string) ($interview?->meeting_link ?: ''),
             'workplace_id' => $interview?->workplace_id ? (string) $interview->workplace_id : '',
             'interviewer_id' => $interview?->interviewer_id ? (string) $interview->interviewer_id : '',
+            'scorecard_template_id' => $interview?->scorecard_template_id ? (string) $interview->scorecard_template_id : '',
             'notes' => (string) ($interview?->notes ?: ''),
         ];
     }
@@ -1491,6 +1970,13 @@ class KanbanApplications extends Page
             return ['interviewer_id' => 'Vui lòng chọn người phỏng vấn thuộc chi nhánh.'];
         }
 
+        try {
+            app(InterviewScorecardTemplateService::class)
+                ->snapshot((int) ($this->kanbanInterviewForm['scorecard_template_id'] ?? 0));
+        } catch (ValidationException) {
+            return ['scorecard_template_id' => 'Vui lòng chọn mẫu đánh giá cho buổi phỏng vấn.'];
+        }
+
         if (! in_array($type, ['online', 'offline'], true)) {
             return ['type' => 'Vui lòng chọn hình thức phỏng vấn.'];
         }
@@ -1513,6 +1999,10 @@ class KanbanApplications extends Page
 
         if ($availabilityNotice === 'Người phỏng vấn đang bận khung giờ này.') {
             return ['interviewer_id' => $availabilityNotice];
+        }
+
+        if ($availabilityNotice === 'Ứng viên đã có lịch phỏng vấn khác trong khung giờ này.') {
+            return ['scheduled_at' => $availabilityNotice];
         }
 
         if ($availabilityNotice === 'Phòng đã có lịch trong khung giờ này.') {
@@ -1700,12 +2190,24 @@ class KanbanApplications extends Page
             }
 
             $endAt = $cursor->copy()->addMinutes(max(15, $duration));
-            $busy = $this->hasInterviewOverlap(
+            $busy = (bool) $application->candidate_id && $this->hasInterviewOverlap(
                 $cursor,
                 $endAt,
                 $existingInterview?->id,
-                fn (Builder $query): Builder => $query->where('interviewer_id', $interviewerId),
+                fn (Builder $query): Builder => $query->whereHas(
+                    'application',
+                    fn (Builder $applicationQuery): Builder => $applicationQuery->where('candidate_id', $application->candidate_id),
+                ),
             );
+
+            if (! $busy) {
+                $busy = $this->hasInterviewOverlap(
+                    $cursor,
+                    $endAt,
+                    $existingInterview?->id,
+                    fn (Builder $query): Builder => $query->where('interviewer_id', $interviewerId),
+                );
+            }
 
             if (! $busy && $type === 'offline') {
                 $busy = $this->hasInterviewOverlap(
@@ -1760,6 +2262,18 @@ class KanbanApplications extends Page
         $existingInterview = $application->interviews()->latest('id')->first();
         $endAt = $scheduledAt->copy()->addMinutes(max(15, $duration));
 
+        if ($application->candidate_id && $this->hasInterviewOverlap(
+            $scheduledAt,
+            $endAt,
+            $existingInterview?->id,
+            fn (Builder $query): Builder => $query->whereHas(
+                'application',
+                fn (Builder $applicationQuery): Builder => $applicationQuery->where('candidate_id', $application->candidate_id),
+            ),
+        )) {
+            return 'Ứng viên đã có lịch phỏng vấn khác trong khung giờ này.';
+        }
+
         if ($this->hasInterviewOverlap(
             $scheduledAt,
             $endAt,
@@ -1799,6 +2313,19 @@ class KanbanApplications extends Page
         }
 
         return Carbon::parse((string) $value, $timezone);
+    }
+
+    private function parseKanbanDateTime(mixed $value): ?CarbonInterface
+    {
+        if (blank($value)) {
+            return null;
+        }
+
+        try {
+            return $this->resolveKanbanInterviewScheduledAt($value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     private function hasInterviewOverlap(
@@ -1895,6 +2422,7 @@ class KanbanApplications extends Page
     {
         $summaryService = app(ApplicationWorkflowSummaryService::class);
         $applications = ApplicationResource::getEloquentQuery()
+            ->with('latestPreScreening')
             ->latest('updated_at')
             ->get();
 
@@ -2011,10 +2539,15 @@ class KanbanApplications extends Page
         $status = $this->statusValue($application);
         $interview = $application->latestInterview;
         $offer = $application->latestOffer;
+        $preScreening = $application->latestPreScreening;
 
         return match ($queue) {
             'cv_reviewing' => $status === StatusApplicationEnum::CV_REVIEWING->value,
-            'interview_schedule_needed' => $status === StatusApplicationEnum::SCREENING->value && ! $interview,
+            'pre_screening_needed' => $status === StatusApplicationEnum::SCREENING->value
+                && (! $preScreening || ($preScreening->outcome === 'follow_up' && $preScreening->follow_up_at?->lte(now()))),
+            'interview_schedule_needed' => $status === StatusApplicationEnum::SCREENING->value
+                && $preScreening?->outcome === 'passed'
+                && ! $interview,
             'interview_invite_unsent' => in_array($status, [
                 StatusApplicationEnum::SCREENING->value,
                 StatusApplicationEnum::INTERVIEW_SCHEDULED->value,
@@ -2054,9 +2587,13 @@ class KanbanApplications extends Page
                 'label' => 'Chờ sàng lọc',
                 'description' => 'Hồ sơ mới cần xem CV và quyết định bước tiếp theo.',
             ],
+            'pre_screening_needed' => [
+                'label' => 'Cần sơ tuyển',
+                'description' => 'Hồ sơ đã qua sàng lọc CV, cần liên hệ và ghi nhận kết quả trao đổi.',
+            ],
             'interview_schedule_needed' => [
                 'label' => 'Cần lên lịch',
-                'description' => 'Ứng viên đã qua sơ tuyển nhưng chưa có lịch phỏng vấn.',
+                'description' => 'Ứng viên đã đạt sơ tuyển nhưng chưa có lịch phỏng vấn.',
             ],
             'interview_invite_unsent' => [
                 'label' => 'Chưa gửi thư mời',
@@ -2102,14 +2639,26 @@ class KanbanApplications extends Page
         $summary = $summaryService->summarize($application);
         $analysis = $this->screeningAiAnalysisForDisplay($application);
 
+        $preScreening = app(ApplicationPreScreeningService::class)->latest($application);
+        $isPreScreening = $this->statusValue($application) === StatusApplicationEnum::SCREENING->value;
+        $preScreeningStatus = match ($preScreening?->outcome) {
+            'passed' => 'Đã xác nhận sơ tuyển',
+            'follow_up' => 'Cần liên hệ lại',
+            default => 'Cần liên hệ sơ tuyển',
+        };
+
         return [
             'id' => $application->id,
             'candidate' => $application->snapshotCandidateName() ?: 'Hồ sơ #'.$application->id,
             'job' => $application->job?->title ?? 'Chưa có vị trí',
             'branch' => $application->job?->branch?->name ?? $application->branch?->name,
             'department' => $application->job?->department?->name,
-            'status' => $summary['status_label'] ?? $this->statusLabel($application),
-            'description' => $summary['description'] ?? null,
+            'status' => $isPreScreening
+                ? ($preScreening?->outcome === 'follow_up' && $preScreening->follow_up_at?->isPast() ? 'Quá hạn liên hệ lại' : $preScreeningStatus)
+                : ($summary['status_label'] ?? $this->statusLabel($application)),
+            'description' => $isPreScreening && $preScreening?->note
+                ? $this->compactAiText($preScreening->note, 120)
+                : ($summary['description'] ?? null),
             'color' => $summary['color'] ?? 'gray',
             'applied_at' => $application->applied_at?->format('d/m/Y H:i'),
             'ai_score' => $analysis?->status === 'completed' ? $analysis->score : null,
@@ -2132,6 +2681,21 @@ class KanbanApplications extends Page
         $status = $this->statusValue($application);
         $interview = $application->latestInterview;
         $workflowGuard = app(ApplicationWorkflowGuard::class);
+
+        if ($status === StatusApplicationEnum::SCREENING->value) {
+            $preScreening = app(ApplicationPreScreeningService::class)->latest($application);
+
+            if ($preScreening?->outcome === 'passed') {
+                return [];
+            }
+
+            return [[
+                'key' => 'record_pre_screening',
+                'label' => 'Cập nhật sơ tuyển',
+                'hint' => 'Ghi nhận kết quả liên hệ trước khi tạo lịch phỏng vấn.',
+                'primary' => true,
+            ]];
+        }
 
         if ($status === StatusApplicationEnum::OFFERED->value) {
             if (! $workflowGuard->canManageOffer(Auth::user(), $application)) {
@@ -2194,8 +2758,12 @@ class KanbanApplications extends Page
         if ($workflowGuard->canManageInterview(Auth::user(), $application)) {
             $actions[] = [
                 'key' => 'update_interview_schedule',
-                'label' => 'Cập nhật lịch',
-                'hint' => 'Điều chỉnh lịch trước thời điểm phỏng vấn.',
+                'label' => blank($interview?->invite_sent_at) && $interview?->scheduled_at?->isPast()
+                    ? 'Đặt lại lịch phỏng vấn'
+                    : 'Cập nhật lịch phỏng vấn',
+                'hint' => blank($interview?->invite_sent_at) && $interview?->scheduled_at?->isPast()
+                    ? 'Lịch cũ chưa được gửi. Chọn thời gian mới trước khi gửi thư mời.'
+                    : 'Điều chỉnh lịch trước thời điểm phỏng vấn.',
                 'primary' => false,
             ];
         }

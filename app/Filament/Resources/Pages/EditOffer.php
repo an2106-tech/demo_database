@@ -273,6 +273,31 @@ class EditOffer extends EditRecord
         $contentPanel = $content !== ''
             ? '<details style="margin-top:14px;"><summary style="cursor:pointer;font-size:13px;font-weight:700;color:#475569;">Xem nội dung thư mời</summary><div style="margin-top:8px;border-top:1px solid #e5e7eb;padding-top:10px;font-size:13px;line-height:1.6;color:#374151;">'.nl2br(e($content)).'</div></details>'
             : '';
+        $salaryRange = $job?->salary_range;
+        $salaryMin = is_array($salaryRange) && isset($salaryRange['min']) && is_numeric($salaryRange['min'])
+            ? (int) $salaryRange['min']
+            : null;
+        $salaryMax = is_array($salaryRange) && isset($salaryRange['max']) && is_numeric($salaryRange['max'])
+            ? (int) $salaryRange['max']
+            : null;
+        $salaryCurrency = is_array($salaryRange) && filled($salaryRange['currency'] ?? null)
+            ? strtoupper((string) $salaryRange['currency'])
+            : 'VND';
+        $outsidePublishedRange = $salaryCurrency === 'VND'
+            && (($salaryMin !== null && $this->record->salary_offered < $salaryMin)
+                || ($salaryMax !== null && $this->record->salary_offered > $salaryMax));
+        $publishedSalary = match (true) {
+            $salaryMin !== null && $salaryMax !== null => number_format($salaryMin, 0, ',', '.').' '.$salaryCurrency.' - '.number_format($salaryMax, 0, ',', '.').' '.$salaryCurrency,
+            $salaryMin !== null => 'Từ '.number_format($salaryMin, 0, ',', '.').' '.$salaryCurrency,
+            $salaryMax !== null => 'Đến '.number_format($salaryMax, 0, ',', '.').' '.$salaryCurrency,
+            default => 'Thỏa thuận',
+        };
+        $adjustmentReason = trim((string) $this->record->salary_adjustment_reason);
+        $salaryContextPanel = '<div style="border:1px solid '.($outsidePublishedRange ? '#fed7aa' : '#e5e7eb').';border-radius:10px;background:'.($outsidePublishedRange ? '#fff7ed' : '#f8fafc').';padding:10px 12px;font-size:13px;line-height:1.5;color:#475569;"><strong style="color:#334155;">Khung lương tin tuyển dụng:</strong> '.e($publishedSalary)
+            .($outsidePublishedRange
+                ? '<div style="margin-top:6px;"><strong style="color:#9a3412;">Lý do điều chỉnh:</strong> '.e($adjustmentReason !== '' ? $adjustmentReason : 'Chưa ghi nhận.').'</div>'
+                : '')
+            .'</div>';
 
         return new HtmlString(<<<HTML
             <div style="display:grid;gap:16px;">
@@ -290,6 +315,8 @@ class EditOffer extends EditRecord
                     <div style="border-radius:10px;background:#f8fafc;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#64748b;">Thử việc</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#111827;">{$this->record->probation_months} tháng</div></div>
                     <div style="border-radius:10px;background:#fff7ed;padding:10px 12px;"><div style="font-size:11px;font-weight:800;text-transform:uppercase;color:#9a3412;">Hạn phản hồi</div><div style="margin-top:4px;font-size:15px;font-weight:800;color:#9a3412;">{$this->formatDateTime($this->record->expires_at, 'Chưa đặt')}</div></div>
                 </div>
+
+                {$salaryContextPanel}
 
                 <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:#64748b;">
                     <span>HR gửi đề nghị: <strong style="color:#334155;">{$ownerName}</strong></span><span>·</span><span>Gửi duyệt: {$submittedAt}</span><span>·</span><span>{$offerCode}</span>

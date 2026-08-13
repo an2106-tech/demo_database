@@ -48,5 +48,50 @@ class ScorecardTemplateSeeder extends Seeder
                 ],
             ]
         );
+
+        ScorecardTemplate::query()->updateOrCreate(
+            ['name' => 'Giảng viên / Trợ giảng FPT Education'],
+            [
+                'created_by' => $creator->id,
+                'is_default' => false,
+                'criteria' => [
+                    ['name' => 'Nền tảng chuyên môn theo môn học', 'score' => null, 'note' => null],
+                    ['name' => 'Năng lực truyền đạt và tương tác với người học', 'score' => null, 'note' => null],
+                    ['name' => 'Thiết kế bài giảng, học liệu hoặc hoạt động thực hành', 'score' => null, 'note' => null],
+                    ['name' => 'Xử lý tình huống lớp học và đồng hành người học', 'score' => null, 'note' => null],
+                    ['name' => 'Phối hợp chuyên môn và phù hợp môi trường giáo dục', 'score' => null, 'note' => null],
+                ],
+            ]
+        );
+
+        ScorecardTemplate::query()->updateOrCreate(
+            ['name' => 'Tuyển sinh / Tư vấn học viên FPT Education'],
+            [
+                'created_by' => $creator->id,
+                'is_default' => false,
+                'criteria' => [
+                    ['name' => 'Giao tiếp, lắng nghe và xây dựng tin cậy', 'score' => null, 'note' => null],
+                    ['name' => 'Khai thác nhu cầu và tư vấn lộ trình phù hợp', 'score' => null, 'note' => null],
+                    ['name' => 'Hiểu biết về chương trình đào tạo và dịch vụ người học', 'score' => null, 'note' => null],
+                    ['name' => 'Xử lý tình huống với phụ huynh, người học hoặc khách hàng', 'score' => null, 'note' => null],
+                    ['name' => 'Tính chủ động, kỷ luật và phối hợp theo mục tiêu tuyển sinh', 'score' => null, 'note' => null],
+                ],
+            ]
+        );
+
+        ScorecardTemplate::query()->updateOrCreate(
+            ['name' => 'Khối vận hành / Chuyên môn FPT Education'],
+            [
+                'created_by' => $creator->id,
+                'is_default' => false,
+                'criteria' => [
+                    ['name' => 'Năng lực chuyên môn theo vị trí', 'score' => null, 'note' => null],
+                    ['name' => 'Tư duy giải quyết vấn đề và cải tiến quy trình', 'score' => null, 'note' => null],
+                    ['name' => 'Khả năng phối hợp liên phòng ban', 'score' => null, 'note' => null],
+                    ['name' => 'Tinh thần chủ động, trách nhiệm và kỷ luật', 'score' => null, 'note' => null],
+                    ['name' => 'Phù hợp văn hóa và môi trường giáo dục', 'score' => null, 'note' => null],
+                ],
+            ]
+        );
     }
 }

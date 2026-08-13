@@ -105,6 +105,7 @@ class OfferApprovalService
                 $queuedApprover = User::query()->find($approverId);
 
                 if ($queuedOffer && $queuedApprover) {
+                    $this->internalNotifications->notifyOfferSentToCandidate($queuedOffer);
                     $this->notifyTeam($queuedOffer, $queuedApprover);
                 }
             });
@@ -172,6 +173,18 @@ class OfferApprovalService
                 'approval_notes' => $notes,
             ])->save();
             $offer->refresh();
+
+            $application = $offer->application;
+            if ($application) {
+                $status = $application->status instanceof \App\Enums\StatusApplicationEnum
+                    ? $application->status->value
+                    : (string) $application->status;
+                $application->recordStatusHistory(
+                    $status,
+                    $status,
+                    'Giám đốc yêu cầu chỉnh sửa đề nghị tuyển dụng. Ghi chú: '.trim($notes),
+                );
+            }
 
             $this->internalNotifications->notifyOfferRejectedByDirector($offer, $rejector);
 

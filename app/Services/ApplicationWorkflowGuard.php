@@ -77,7 +77,7 @@ class ApplicationWorkflowGuard
         $status = $this->status($application);
 
         if ($status === StatusApplicationEnum::SCREENING) {
-            return true;
+            return $this->hasPassedPreScreening($application);
         }
 
         if (! in_array($status, [StatusApplicationEnum::INTERVIEW_SCHEDULED, StatusApplicationEnum::INTERVIEW], true)) {
@@ -90,7 +90,24 @@ class ApplicationWorkflowGuard
             return false;
         }
 
-        return ! $interview->scheduled_at || $interview->scheduled_at->gt(now());
+        if (! $interview->invite_sent_at) {
+            return true;
+        }
+
+        return ! $interview->scheduled_at || $interview->scheduled_at->gt(now($interview->scheduled_at->getTimezone()));
+    }
+
+    public function canRecordPreScreening(?User $user, Application $application): bool
+    {
+        return $this->status($application) === StatusApplicationEnum::SCREENING
+            && $this->canRunHrPipelineActions($user)
+            && $this->canAccessApplicationBranch($user, $application)
+            && ! $this->hasPassedPreScreening($application);
+    }
+
+    public function hasPassedPreScreening(Application $application): bool
+    {
+        return app(ApplicationPreScreeningService::class)->hasPassed($application);
     }
 
     public function hasInterviewStatus(Application $application): bool
@@ -115,6 +132,10 @@ class ApplicationWorkflowGuard
             return false;
         }
 
+        if (! $interview->invite_sent_at || ! $interview->scheduled_at) {
+            return false;
+        }
+
         if (! $this->canAccessApplicationBranch($user, $application)) {
             return false;
         }
@@ -125,7 +146,7 @@ class ApplicationWorkflowGuard
             return false;
         }
 
-        return $interview->scheduled_at?->lte(now()) ?? false;
+        return $interview->scheduled_at->lte(now($interview->scheduled_at->getTimezone()));
     }
 
     public function canFinalizeInterviewEvaluation(?User $user, Application $application, bool $confirmedEarlyCompletion = false): bool
@@ -160,6 +181,10 @@ class ApplicationWorkflowGuard
         $interview = $this->latestInterview($application);
 
         if (! $interview) {
+            return false;
+        }
+
+        if ($interview->scheduled_at && ! $interview->scheduled_at->gt(now($interview->scheduled_at->getTimezone()))) {
             return false;
         }
 

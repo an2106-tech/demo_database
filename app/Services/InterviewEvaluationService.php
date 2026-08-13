@@ -163,7 +163,7 @@ class InterviewEvaluationService
             ]);
         }
 
-        [$template, $criteria] = $this->templateCriteria($data, false);
+        [$template, $criteria] = $this->templateCriteria($interview, $data, false);
         $average = $this->calculateAverage($criteria);
         $notes = filled($data['notes'] ?? null) ? trim((string) $data['notes']) : null;
         $existingScorecard = Scorecard::withTrashed()
@@ -171,12 +171,25 @@ class InterviewEvaluationService
             ->where('evaluator_id', (int) $actor?->id)
             ->first();
 
+        // A completed "hold" outcome must not become an unfinished draft just
+        // because the evaluator adds a note or adjusts a criterion later.
+        $preserveHoldConclusion = $existingScorecard
+            && ! $existingScorecard->trashed()
+            && $existingScorecard->conclusion === 'hold';
+        $recommendedConclusion = $preserveHoldConclusion
+            ? $existingScorecard->recommended_conclusion
+            : null;
+        $conclusion = $preserveHoldConclusion ? 'hold' : null;
+        $overrideReason = $preserveHoldConclusion ? $existingScorecard->override_reason : null;
+
         $unchanged = $existingScorecard
             && ! $existingScorecard->trashed()
-            && $existingScorecard->conclusion === null
+            && $existingScorecard->conclusion === $conclusion
             && (int) $existingScorecard->template_id === (int) $template->id
             && json_encode($existingScorecard->criteria) === json_encode($criteria)
-            && trim((string) $existingScorecard->notes) === (string) $notes;
+            && trim((string) $existingScorecard->notes) === (string) $notes
+            && $existingScorecard->recommended_conclusion === $recommendedConclusion
+            && $existingScorecard->override_reason === $overrideReason;
 
         $scorecard = $unchanged
             ? $existingScorecard
@@ -187,9 +200,9 @@ class InterviewEvaluationService
                 $template,
                 $criteria,
                 $average,
-                null,
-                null,
-                null,
+                $recommendedConclusion,
+                $conclusion,
+                $overrideReason,
                 $notes,
             );
 
@@ -230,7 +243,7 @@ class InterviewEvaluationService
             && ! $interview->actual_ended_at
             && $scheduledEnd?->gt(now($interview->scheduled_at?->getTimezone()));
 
-        [$template, $criteria] = $this->templateCriteria($data, true);
+        [$template, $criteria] = $this->templateCriteria($interview, $data, true);
         $average = $this->calculateAverage($criteria);
         $recommendedConclusion = $this->recommendedConclusion($average);
         $conclusion = (string) ($data['conclusion'] ?? '');
@@ -337,16 +350,33 @@ class InterviewEvaluationService
      * @param  array{template_id?: mixed, criteria?: mixed}  $data
      * @return array{0: ScorecardTemplate, 1: array<int, array{name: string, score: float|null, note: string|null}>}
      */
-    private function templateCriteria(array $data, bool $requireAllScores): array
+    private function templateCriteria(Interview $interview, array $data, bool $requireAllScores): array
     {
-        $templateId = $data['template_id'] ?? null;
-        if (! filled($templateId) || ! ($template = ScorecardTemplate::query()->find($templateId))) {
+        $lockedTemplateId = $interview->scorecard_template_id;
+        $templateId = $lockedTemplateId ?: ($data['template_id'] ?? null);
+
+        if ($lockedTemplateId && filled($data['template_id'] ?? null) && (int) $data['template_id'] !== (int) $lockedTemplateId) {
+            throw ValidationException::withMessages([
+                'template_id' => 'Mẫu đánh giá đã được gắn với lịch phỏng vấn và không thể thay đổi ở bước chấm.',
+            ]);
+        }
+
+        $template = filled($templateId)
+            ? ScorecardTemplate::withTrashed()->find($templateId)
+            : null;
+
+        if (! $template) {
             throw ValidationException::withMessages([
                 'template_id' => 'Vui lòng chọn mẫu scorecard hợp lệ trước khi đánh giá.',
             ]);
         }
 
-        $templateCriteria = array_values((array) $template->criteria);
+        $snapshot = is_array($interview->scorecard_template_snapshot)
+            ? $interview->scorecard_template_snapshot
+            : [];
+        $templateCriteria = array_values((array) ($lockedTemplateId
+            ? ($snapshot['criteria'] ?? $template->criteria)
+            : $template->criteria));
         if ($templateCriteria === []) {
             throw ValidationException::withMessages([
                 'template_id' => 'Mẫu scorecard này chưa có tiêu chí đánh giá.',

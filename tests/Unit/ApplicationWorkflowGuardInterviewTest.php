@@ -11,6 +11,7 @@ use App\Models\RecruitmentJob;
 use App\Models\Scorecard;
 use App\Models\User;
 use App\Services\ApplicationWorkflowGuard;
+use App\Services\InterviewScheduleDeliveryService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -18,11 +19,27 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_hr_can_create_interview_schedule_after_screening(): void
+    public function test_hr_must_complete_pre_screening_before_creating_interview_schedule(): void
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::SCREENING);
 
-        $this->assertTrue(app(ApplicationWorkflowGuard::class)->canManageInterview($hr, $application));
+        $guard = app(ApplicationWorkflowGuard::class);
+
+        $this->assertFalse($guard->canManageInterview($hr, $application));
+        $this->assertTrue($guard->canRecordPreScreening($hr, $application));
+
+        $application->preScreenings()->create([
+            'handled_by_user_id' => $hr->id,
+            'contact_channel' => 'phone',
+            'contacted_at' => now(),
+            'outcome' => 'passed',
+            'note' => 'Ứng viên xác nhận tham gia phỏng vấn.',
+        ]);
+
+        $application->unsetRelation('latestPreScreening');
+
+        $this->assertTrue($guard->canManageInterview($hr, $application));
+        $this->assertFalse($guard->canRecordPreScreening($hr, $application));
     }
 
     public function test_hr_can_update_sent_interview_schedule_before_interview_time(): void
@@ -140,6 +157,75 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         $this->assertFalse(app(ApplicationWorkflowGuard::class)->canManageInterview($hr, $application));
     }
 
+    public function test_hr_cannot_evaluate_interview_before_schedule_is_sent(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+
+        Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn vòng 1',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subMinutes(10),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $this->assertFalse(app(ApplicationWorkflowGuard::class)->canEvaluateInterview($hr, $application));
+    }
+
+    public function test_hr_can_reschedule_overdue_draft_interview_before_sending(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+
+        Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn vòng 1',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $guard = app(ApplicationWorkflowGuard::class);
+
+        $this->assertTrue($guard->canManageInterview($hr, $application));
+        $this->assertFalse($guard->canSendInterviewSchedule($hr, $application));
+        $this->assertFalse($guard->canEvaluateInterview($hr, $application));
+    }
+
+    public function test_interview_delivery_recipients_include_candidate_and_assigned_interviewer(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+        $interviewer = User::factory()->create([
+            'email' => 'interviewer-workflow@example.com',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+
+        Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $interviewer->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn vòng 1',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->addDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'result' => 'pending',
+        ]);
+
+        $recipients = app(InterviewScheduleDeliveryService::class)->recipients($application);
+
+        $this->assertSame('candidate', $recipients['candidate-workflow@example.com']);
+        $this->assertSame('interviewer', $recipients['interviewer-workflow@example.com']);
+    }
+
     public function test_branch_hr_can_record_draft_after_start_but_can_only_finalize_after_interview_ends(): void
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
@@ -158,6 +244,7 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'invite_sent_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subHour(),
             'result' => 'pending',
         ]);
 

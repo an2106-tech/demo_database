@@ -21,7 +21,7 @@ class OfferLetterMergeService
         $base = [
             '{{offer_id}}' => e((string) $offer->id),
             '{{issued_date}}' => e(optional($offer->approved_at ?? $offer->sent_at ?? $offer->created_at)->format('d/m/Y') ?? now()->format('d/m/Y')),
-            '{{candidate_name}}' => e($candidate?->name ?? ''),
+            '{{candidate_name}}' => e($application?->snapshotCandidateName() ?? $candidate?->name ?? ''),
             '{{candidate_email}}' => e($application?->snapshotCandidateEmail() ?? $candidate?->email ?? ''),
             '{{job_title}}' => e($job?->title ?? ''),
             '{{branch_name}}' => e($branch?->name ?? ''),

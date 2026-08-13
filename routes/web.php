@@ -205,14 +205,323 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');
         Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
         Route::get('/application-pipeline', \App\Livewire\Client\Employers\ApplicationPipeline::class)->name('application_pipeline');
-        Route::post('/application-pipeline/{application}/advance', [EmployerApplicationPipelineController::class, 'advance'])
-            ->name('application_pipeline.advance');
-        Route::post('/application-pipeline/{application}/schedule-interview', [EmployerApplicationPipelineController::class, 'scheduleInterview'])
-            ->name('application_pipeline.schedule_interview');
-        Route::post('/application-pipeline/{application}/evaluate-interview', [EmployerApplicationPipelineController::class, 'evaluateInterview'])
-            ->name('application_pipeline.evaluate_interview');
-        Route::post('/applications/{application}/advance', [EmployerApplicationPipelineController::class, 'advance'])
-            ->name('applications.advance');
+        Route::post('/application-pipeline/{application}/advance', function (\App\Models\Application $application) {
+            $user = auth()->user();
+            $branchId = $user?->branchScopeId();
+            $application->loadMissing('job');
+
+            abort_unless($user, 403);
+
+            if ($branchId) {
+                abort_unless((int) ($application->branch_id ?: $application->job?->branch_id) === (int) $branchId, 403);
+            } elseif (! $user->isSuperAdmin() && ! in_array($user->role, ['admin', 'director'], true)) {
+                abort_unless((int) $application->job?->created_by === (int) $user->id, 403);
+            }
+
+            $pipelineService = app(\App\Services\ApplicationPipelineService::class);
+            $currentStatus = $application->status instanceof \App\Enums\StatusApplicationEnum
+                ? $application->status
+                : \App\Enums\StatusApplicationEnum::tryFrom((string) $application->status);
+
+            if ($currentStatus === \App\Enums\StatusApplicationEnum::SCREENING) {
+                return back()->with('warning', 'Vui lòng dùng nút Lên lịch PV để chuyển hồ sơ sang vòng phỏng vấn.');
+            }
+
+            $nextStatus = collect($pipelineService->allowedTransitions($application->status))
+                ->first(fn (\App\Enums\StatusApplicationEnum $status): bool => $status !== \App\Enums\StatusApplicationEnum::REJECTED);
+
+            if (! $nextStatus) {
+                return back()->with('warning', 'Hồ sơ này chưa có bước kế tiếp phù hợp.');
+            }
+
+            try {
+                $pipelineService->transition($application, $nextStatus, $user, 'HR chuyển nhanh từ Pipeline.');
+            } catch (\Illuminate\Validation\ValidationException $exception) {
+                return back()->with('error', $exception->errors()['status'][0] ?? 'Không thể chuyển trạng thái hồ sơ.');
+            }
+
+            $statusLabels = [
+                \App\Enums\StatusApplicationEnum::CV_REVIEWING->value => 'Chờ sàng lọc CV',
+                \App\Enums\StatusApplicationEnum::SCREENING->value => 'Sơ tuyển',
+                \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED->value => 'Đã lên lịch phỏng vấn',
+                \App\Enums\StatusApplicationEnum::INTERVIEWING->value => 'Chờ đánh giá phỏng vấn',
+                \App\Enums\StatusApplicationEnum::OFFERED->value => 'Đề nghị tuyển dụng',
+                \App\Enums\StatusApplicationEnum::HIRED->value => 'Đã tuyển',
+                \App\Enums\StatusApplicationEnum::REJECTED->value => 'Từ chối',
+            ];
+
+            return back()->with('message', 'Đã chuyển hồ sơ sang: '.($statusLabels[$nextStatus->value] ?? $nextStatus->value).'.');
+        })->name('application_pipeline.advance');
+        Route::post('/application-pipeline/{application}/schedule-interview', function (\App\Models\Application $application) {
+            $user = auth()->user();
+            $application->loadMissing(['candidate', 'job.branch']);
+            $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+            abort_unless($user, 403);
+
+            if ($user->branchScopeId()) {
+                abort_unless((int) $user->branchScopeId() === $branchId, 403);
+            } elseif (! $user->isSuperAdmin() && ! in_array($user->role, ['admin', 'director'], true)) {
+                abort_unless((int) $application->job?->created_by === (int) $user->id, 403);
+            }
+
+            $status = $application->status instanceof \App\Enums\StatusApplicationEnum
+                ? $application->status
+                : \App\Enums\StatusApplicationEnum::tryFrom((string) $application->status);
+
+            abort_unless(in_array($status, [
+                \App\Enums\StatusApplicationEnum::SCREENING,
+                \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                \App\Enums\StatusApplicationEnum::INTERVIEWING,
+            ], true), 403);
+
+            $validated = request()->validate([
+                'round_name' => ['required', 'string', 'max:100'],
+                'scheduled_at' => ['required', 'date'],
+                'duration_minutes' => ['required', 'integer', \Illuminate\Validation\Rule::in([30, 45, 60, 90])],
+                'type' => ['required', \Illuminate\Validation\Rule::in(['online', 'offline'])],
+                'meeting_link' => [
+                    \Illuminate\Validation\Rule::requiredIf(request('type') === 'online'),
+                    'nullable',
+                    'url',
+                    'max:500',
+                ],
+                'workplace_id' => [
+                    \Illuminate\Validation\Rule::requiredIf(request('type') === 'offline'),
+                    'nullable',
+                    \Illuminate\Validation\Rule::exists('workplaces', 'id')->where(fn ($query) => $query
+                        ->where('branch_id', $branchId)
+                        ->where('is_interview_room', true)
+                        ->where('is_active', true)),
+                ],
+                'interviewer_id' => [
+                    'required',
+                    \Illuminate\Validation\Rule::exists('users', 'id')->where(fn ($query) => $query
+                        ->where('branch_id', $branchId)
+                        ->where('is_active', true)
+                        ->whereIn('role', ['hr', 'pm', 'director'])),
+                ],
+                'notes' => ['nullable', 'string', 'max:1000'],
+            ]);
+
+            $scheduledAt = \Carbon\Carbon::parse($validated['scheduled_at'], config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
+
+            if ($scheduledAt->lt(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Thời gian phỏng vấn không được ở quá khứ.');
+            }
+
+            $existingInterview = $application->interviews()->latest('id')->first();
+            $roundNumber = (int) ($existingInterview?->round_number ?: 1);
+            $interview = $existingInterview ?? new \App\Models\Interview([
+                'application_id' => $application->id,
+                'round_number' => $roundNumber,
+                'result' => 'pending',
+            ]);
+
+            $interview->fill([
+                'application_id' => $application->id,
+                'interviewer_id' => (int) $validated['interviewer_id'],
+                'round_name' => trim((string) $validated['round_name']) ?: 'Phỏng vấn vòng '.$roundNumber,
+                'duration_minutes' => (int) $validated['duration_minutes'],
+                'scheduled_at' => $scheduledAt,
+                'type' => $validated['type'],
+                'meeting_link' => $validated['type'] === 'online' ? trim((string) ($validated['meeting_link'] ?? '')) : null,
+                'workplace_id' => $validated['type'] === 'offline' ? (int) $validated['workplace_id'] : null,
+                'notes' => trim((string) ($validated['notes'] ?? '')) ?: null,
+            ]);
+            $interview->save();
+
+            $interview->loadMissing(['application.candidate', 'application.job.branch', 'interviewer', 'workplace']);
+            app(\App\Services\InterviewCalendarService::class)->store($interview);
+
+            $comment = sprintf(
+                '%s: %s, %s, %d phút, %s.',
+                $existingInterview ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn',
+                $interview->scheduled_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y'),
+                $interview->type === 'offline' ? 'Offline' : 'Online',
+                (int) ($interview->duration_minutes ?: 60),
+                app(\App\Services\InterviewCalendarService::class)->resolveLocation($interview),
+            );
+
+            if ($status === \App\Enums\StatusApplicationEnum::SCREENING) {
+                app(\App\Services\ApplicationPipelineService::class)->transition(
+                    $application,
+                    \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                    $user,
+                    $comment,
+                );
+            } else {
+                $application->recordStatusHistory($status?->value, $status?->value, $comment);
+            }
+
+            $recipients = [];
+            if (filled($application->snapshotCandidateEmail())) {
+                $recipients[$application->snapshotCandidateEmail()] = 'candidate';
+            }
+            if (filled($interview->interviewer?->email)) {
+                $recipients[$interview->interviewer->email] = 'interviewer';
+            }
+
+            $sentCount = 0;
+            foreach ($recipients as $email => $label) {
+                try {
+                    \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\InterviewScheduledMail($interview, $label));
+                    $sentCount++;
+                } catch (\Throwable $exception) {
+                    \Illuminate\Support\Facades\Log::warning('Failed to send HR portal interview schedule mail.', [
+                        'interview_id' => $interview->id,
+                        'recipient' => $email,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            if ($sentCount > 0) {
+                $interview->forceFill(['invite_sent_at' => now()])->save();
+            }
+
+            return redirect()
+                ->route('employers.application_pipeline')
+                ->with('message', $existingInterview ? 'Đã cập nhật lịch phỏng vấn.' : 'Đã tạo lịch phỏng vấn.');
+        })->name('application_pipeline.schedule_interview');
+        Route::post('/application-pipeline/{application}/evaluate-interview', function (\App\Models\Application $application) {
+            $user = auth()->user();
+            $application->loadMissing(['job.branch']);
+            $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+            abort_unless($user, 403);
+
+            if ($user->branchScopeId()) {
+                abort_unless((int) $user->branchScopeId() === $branchId, 403);
+            } elseif (! $user->isSuperAdmin() && ! in_array($user->role, ['admin', 'director'], true)) {
+                abort_unless((int) $application->job?->created_by === (int) $user->id, 403);
+            }
+
+            $status = $application->status instanceof \App\Enums\StatusApplicationEnum
+                ? $application->status
+                : \App\Enums\StatusApplicationEnum::tryFrom((string) $application->status);
+
+            abort_unless(in_array($status, [
+                \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                \App\Enums\StatusApplicationEnum::INTERVIEWING,
+            ], true), 403);
+
+            $interview = $application->interviews()->latest('id')->first();
+
+            if (! $interview) {
+                return back()->with('error', 'Ho so chua co lich phong van de danh gia.');
+            }
+
+            if (! app(\App\Services\ApplicationWorkflowGuard::class)->canFinalizeInterviewEvaluation($user, $application)) {
+                return back()->with('error', 'Chi co the hoan tat danh gia sau khi lich da duoc gui va buoi phong van da ket thuc.');
+            }
+
+            $validated = request()->validate([
+                'technical_score' => ['required', 'numeric', 'min:0', 'max:10'],
+                'problem_solving_score' => ['required', 'numeric', 'min:0', 'max:10'],
+                'communication_score' => ['required', 'numeric', 'min:0', 'max:10'],
+                'culture_score' => ['required', 'numeric', 'min:0', 'max:10'],
+                'conclusion' => ['required', \Illuminate\Validation\Rule::in(['pass', 'hold', 'fail'])],
+                'notes' => ['nullable', 'string', 'max:1500'],
+            ]);
+
+            $criteria = [
+                [
+                    'name' => 'Kinh nghiem va chuyen mon',
+                    'score' => (float) $validated['technical_score'],
+                    'note' => null,
+                ],
+                [
+                    'name' => 'Tu duy giai quyet van de',
+                    'score' => (float) $validated['problem_solving_score'],
+                    'note' => null,
+                ],
+                [
+                    'name' => 'Giao tiep va phoi hop',
+                    'score' => (float) $validated['communication_score'],
+                    'note' => null,
+                ],
+                [
+                    'name' => 'Phu hop van hoa FPT Education',
+                    'score' => (float) $validated['culture_score'],
+                    'note' => null,
+                ],
+            ];
+            $average = round(collect($criteria)->avg('score'), 2);
+            $conclusion = $validated['conclusion'];
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($application, $interview, $user, $status, $criteria, $average, $conclusion, $validated): void {
+                $scorecard = \App\Models\Scorecard::withTrashed()->firstOrNew([
+                    'interview_id' => $interview->id,
+                    'evaluator_id' => $user->id,
+                ]);
+
+                if (method_exists($scorecard, 'trashed') && $scorecard->trashed()) {
+                    $scorecard->restore();
+                }
+
+                $scorecardData = [
+                    'application_id' => $application->id,
+                    'interview_id' => $interview->id,
+                    'evaluator_id' => $user->id,
+                    'criteria' => $criteria,
+                    'average_score' => $average,
+                    'conclusion' => $conclusion,
+                    'notes' => trim((string) ($validated['notes'] ?? '')) ?: null,
+                ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('scorecards', 'recommended_conclusion')) {
+                    $scorecardData['recommended_conclusion'] = $conclusion;
+                }
+
+                $scorecard->fill($scorecardData);
+                $scorecard->save();
+
+                $interview->forceFill([
+                    'result' => $conclusion === 'fail' ? 'fail' : ($conclusion === 'pass' ? 'pass' : 'pending'),
+                ])->save();
+
+                $comment = 'Danh gia phong van: '.match ($conclusion) {
+                    'pass' => 'Dat',
+                    'fail' => 'Khong dat',
+                    default => 'Can theo doi/phong van them',
+                }.'. Diem TB: '.number_format($average, 2).'/10.'
+                    .(filled($validated['notes'] ?? null) ? ' Nhan xet: '.trim((string) $validated['notes']) : '');
+
+                $pipelineService = app(\App\Services\ApplicationPipelineService::class);
+
+                if ($conclusion === 'pass') {
+                    if ($status === \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED) {
+                        $pipelineService->transition($application, \App\Enums\StatusApplicationEnum::INTERVIEWING, $user, $comment);
+                        $application->refresh();
+                    }
+
+                    $pipelineService->transition($application, \App\Enums\StatusApplicationEnum::OFFERED, $user, $comment);
+
+                    return;
+                }
+
+                if ($conclusion === 'fail') {
+                    $pipelineService->transition($application, \App\Enums\StatusApplicationEnum::REJECTED, $user, $comment);
+
+                    return;
+                }
+
+                if ($status === \App\Enums\StatusApplicationEnum::INTERVIEW_SCHEDULED) {
+                    $pipelineService->transition($application, \App\Enums\StatusApplicationEnum::INTERVIEWING, $user, $comment);
+                } else {
+                    $application->recordStatusHistory($status?->value, $status?->value, $comment);
+                }
+            });
+
+            return redirect()
+                ->route('employers.application_pipeline')
+                ->with('message', 'Da luu danh gia phong van.');
+        })->name('application_pipeline.evaluate_interview');
+
+        Route::post('/applications/{application}/advance', [EmployerApplicationPipelineController::class, 'advance'])->name('applications.advance');
     });
 });
 

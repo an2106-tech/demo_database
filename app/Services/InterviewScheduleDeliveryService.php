@@ -27,6 +27,15 @@ class InterviewScheduleDeliveryService
             $recipients[$application->snapshotCandidateEmail()] = 'candidate';
         }
 
+        $interviewer = $application->interviews()
+            ->latest('id')
+            ->first()?->interviewer;
+
+        // Keep the candidate mail type when the interviewer happens to share an address.
+        if (filled($interviewer?->email) && ! isset($recipients[$interviewer->email])) {
+            $recipients[$interviewer->email] = 'interviewer';
+        }
+
         $branchId = $application->job?->branch_id;
 
         if (! $branchId) {
@@ -48,7 +57,7 @@ class InterviewScheduleDeliveryService
     }
 
     /**
-     * @return array{sent: int, failed: int, is_update: bool, has_interview: bool}
+     * @return array{sent: int, failed: int, candidate_sent: bool, is_update: bool, has_interview: bool}
      */
     public function deliver(Application $application): array
     {
@@ -58,6 +67,7 @@ class InterviewScheduleDeliveryService
             return [
                 'sent' => 0,
                 'failed' => 0,
+                'candidate_sent' => false,
                 'is_update' => false,
                 'has_interview' => false,
             ];
@@ -68,14 +78,33 @@ class InterviewScheduleDeliveryService
 
         $freshApplication = $application->fresh(['job.branch', 'candidate']) ?? $application;
         $recipients = $this->recipients($freshApplication);
+
+        if (! array_key_exists((string) $freshApplication->snapshotCandidateEmail(), $recipients)) {
+            return [
+                'sent' => 0,
+                'failed' => 0,
+                'candidate_sent' => false,
+                'is_update' => filled($interview->invite_sent_at),
+                'has_interview' => true,
+            ];
+        }
+
+        // Send the candidate first. Internal recipients should not receive a schedule
+        // that the candidate did not receive, and retries must not create duplicate mail.
+        $candidateEmail = (string) $freshApplication->snapshotCandidateEmail();
+        $candidateRecipient = [$candidateEmail => $recipients[$candidateEmail]];
+        unset($recipients[$candidateEmail]);
+        $recipients = $candidateRecipient + $recipients;
         $sentCount = 0;
         $failedCount = 0;
+        $candidateSent = false;
         $isUpdate = filled($interview->invite_sent_at);
 
         foreach ($recipients as $email => $recipientLabel) {
             try {
                 Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel, $isUpdate));
                 $sentCount++;
+                $candidateSent = $candidateSent || $recipientLabel === 'candidate';
             } catch (\Throwable $exception) {
                 $failedCount++;
 
@@ -85,10 +114,15 @@ class InterviewScheduleDeliveryService
                     'recipient' => $email,
                     'error' => $exception->getMessage(),
                 ]);
+
+                if ($recipientLabel === 'candidate') {
+                    break;
+                }
             }
         }
 
-        if ($sentCount > 0) {
+        // A schedule is only considered delivered when the candidate received it.
+        if ($candidateSent) {
             $interview->forceFill(['invite_sent_at' => now()])->save();
 
             $status = $application->status instanceof StatusApplicationEnum
@@ -107,6 +141,7 @@ class InterviewScheduleDeliveryService
         return [
             'sent' => $sentCount,
             'failed' => $failedCount,
+            'candidate_sent' => $candidateSent,
             'is_update' => $isUpdate,
             'has_interview' => true,
         ];

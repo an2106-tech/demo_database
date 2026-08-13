@@ -162,6 +162,7 @@ class ApplicationResource extends Resource
                 'latestOffer.letterTemplate',
                 'latestScorecard.evaluator',
                 'latestScorecard.template',
+                'latestPreScreening',
                 'latestScreeningAiAnalysis',
                 'latestInterviewQuestionAiAnalysis',
             ]);

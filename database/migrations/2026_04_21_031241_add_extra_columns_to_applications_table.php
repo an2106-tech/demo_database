@@ -15,7 +15,7 @@ return new class extends Migration
             $table->foreignId('assigned_hr_id')->nullable()->after('referral_user_id')->constrained('users')->nullOnDelete();
             $table->foreignId('branch_id')->nullable()->after('assigned_hr_id')->constrained('branches')->nullOnDelete();
             
-            $table->enum('rejected_stage', ['screening', 'interview', 'offer'])->nullable()->after('status');
+            $table->enum('rejected_stage', ['screening', 'pre_screening', 'interview', 'offer'])->nullable()->after('status');
             
             $table->boolean('is_viewed')->default(false)->after('rejected_stage');
             $table->timestamp('viewed_at')->nullable()->after('is_viewed');

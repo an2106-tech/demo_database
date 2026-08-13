@@ -67,6 +67,36 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
         $this->assertStringContainsString('đánh giá phỏng vấn', $result['message']);
     }
 
+    public function test_it_requires_pre_screening_before_moving_to_interview_stage(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::SCREENING);
+
+        $result = app(ApplicationKanbanTransitionService::class)
+            ->evaluateStageMove($application, 'interview', $hr);
+
+        $this->assertFalse($result['allowed']);
+        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED->value, $result['target_status']);
+        $this->assertSame('pre_screening', $result['requires']);
+    }
+
+    public function test_it_allows_interview_schedule_requirement_after_passing_pre_screening(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::SCREENING);
+        $application->preScreenings()->create([
+            'handled_by_user_id' => $hr->id,
+            'contact_channel' => 'phone',
+            'contacted_at' => now(),
+            'outcome' => 'passed',
+            'note' => 'Ứng viên xác nhận sẵn sàng tham gia phỏng vấn.',
+        ]);
+
+        $result = app(ApplicationKanbanTransitionService::class)
+            ->evaluateStageMove($application->fresh(), 'interview', $hr);
+
+        $this->assertFalse($result['allowed']);
+        $this->assertSame('interview_schedule', $result['requires']);
+    }
+
     public function test_it_only_allows_hired_stage_after_candidate_accepts_offer(): void
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::OFFER);

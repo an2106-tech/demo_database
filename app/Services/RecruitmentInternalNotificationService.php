@@ -63,6 +63,21 @@ class RecruitmentInternalNotificationService
         );
     }
 
+    public function notifyOfferSentToCandidate(Offer $offer): void
+    {
+        $offer->loadMissing(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']);
+
+        $this->notifyUsers(
+            $this->offerTeam($offer),
+            'offer_sent_to_candidate',
+            'Đề nghị đã gửi ứng viên',
+            '',
+            ApplicationResource::getUrl('view', ['record' => $offer->application]),
+            $offer,
+            $this->offerNotificationContext($offer, 'Xem hồ sơ'),
+        );
+    }
+
     public function notifyOfferDeclinedByCandidate(Offer $offer): void
     {
         $offer->loadMissing(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']);

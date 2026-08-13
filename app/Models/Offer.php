@@ -33,8 +33,10 @@ class Offer extends Model
     protected $fillable = [
         'application_id',
         'offer_letter_template_id',
+        'letter_template_snapshot',
         'content',
         'salary_offered',
+        'salary_adjustment_reason',
         'start_date',
         'probation_months',
         'expires_at',
@@ -53,6 +55,7 @@ class Offer extends Model
     protected $casts = [
         // VND is stored in a decimal column for compatibility, but offers do not use fractional amounts.
         'salary_offered' => 'decimal:0',
+        'letter_template_snapshot' => 'array',
         'start_date' => 'date',
         'expires_at' => 'datetime',
         'response_at' => 'datetime',

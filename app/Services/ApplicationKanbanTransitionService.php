@@ -11,6 +11,7 @@ class ApplicationKanbanTransitionService
     public function __construct(
         private readonly ApplicationPipelineService $pipelineService,
         private readonly ApplicationWorkflowGuard $workflowGuard,
+        private readonly ApplicationPreScreeningService $preScreeningService,
     ) {}
 
     /**
@@ -71,6 +72,14 @@ class ApplicationKanbanTransitionService
 
         if (! $this->pipelineService->canTransition($currentStatus, $targetStatus)) {
             return $this->blocked('Không thể chuyển hồ sơ sang giai đoạn này theo quy trình hiện tại.');
+        }
+
+        if ($targetStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED && ! $this->preScreeningService->hasPassed($application)) {
+            return $this->requires(
+                $targetStatus,
+                'pre_screening',
+                'Cần ghi nhận kết quả sơ tuyển trước khi tạo lịch phỏng vấn.',
+            );
         }
 
         return match ($targetStatus) {

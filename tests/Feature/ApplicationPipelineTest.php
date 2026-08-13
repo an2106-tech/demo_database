@@ -240,6 +240,7 @@ class ApplicationPipelineTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'invite_sent_at' => now()->subDay(),
             'result' => 'pending',
         ]);
 
@@ -282,6 +283,7 @@ class ApplicationPipelineTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'invite_sent_at' => now()->subDay(),
             'result' => 'pending',
         ]);
 

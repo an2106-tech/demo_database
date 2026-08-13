@@ -605,6 +605,17 @@
             color: #ffffff;
         }
 
+        .kanban-card__button.is-icon {
+            width: 28px;
+            min-width: 28px;
+            padding: 0;
+        }
+
+        .kanban-card__button.is-icon svg {
+            width: 15px;
+            height: 15px;
+        }
+
         .kanban-card__button.is-danger {
             color: rgb(185 28 28);
         }
@@ -699,6 +710,24 @@
             width: min(1120px, calc(100vw - 40px));
         }
 
+        .kanban-modal.is-pre-screening {
+            width: min(820px, calc(100vw - 40px));
+        }
+
+        .kanban-pre-screening-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+            gap: 14px;
+            align-items: start;
+        }
+
+        .kanban-pre-screening-context,
+        .kanban-pre-screening-form {
+            display: grid;
+            gap: 12px;
+            min-width: 0;
+        }
+
         .kanban-modal.is-interview-schedule {
             width: min(980px, calc(100vw - 40px));
         }
@@ -778,9 +807,11 @@
 
         .kanban-interview-layout {
             display: grid;
-            grid-template-columns: minmax(300px, 0.9fr) minmax(360px, 1.1fr);
+            grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
             gap: 14px;
             align-items: start;
+            width: 100%;
+            min-width: 0;
         }
 
         .kanban-offer-layout {
@@ -806,6 +837,40 @@
             min-width: 0;
             max-width: 100%;
             box-sizing: border-box;
+        }
+
+        .kanban-offer-preview {
+            border: 1px solid var(--kanban-border);
+            border-radius: 12px;
+            background: var(--kanban-soft);
+            overflow: hidden;
+        }
+
+        .kanban-offer-preview summary {
+            cursor: pointer;
+            padding: 11px 12px;
+            color: var(--kanban-text);
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .kanban-offer-preview > p {
+            margin: 0;
+            padding: 0 12px 9px;
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+            line-height: 1.4;
+        }
+
+        .kanban-offer-preview__body {
+            max-height: 220px;
+            overflow: auto;
+            border-top: 1px solid var(--kanban-border);
+            padding: 12px;
+            color: var(--kanban-text);
+            font-size: 12.5px;
+            line-height: 1.6;
+            white-space: pre-line;
         }
 
         .kanban-offer-brief {
@@ -874,6 +939,38 @@
             min-width: 0;
             display: grid;
             gap: 12px;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .kanban-interview-context > *,
+        .kanban-interview-form > * {
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .kanban-interview-form__grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .kanban-interview-ai summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .kanban-interview-ai summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-interview-ai summary .kanban-modal__ai-head {
+            margin-bottom: 0;
+        }
+
+        .kanban-interview-ai[open] summary .kanban-modal__ai-head {
+            margin-bottom: 7px;
         }
 
         .kanban-evaluation {
@@ -947,6 +1044,40 @@
             min-height: 56px;
         }
 
+        .kanban-evaluation__criterion-note {
+            grid-column: 1 / -1;
+        }
+
+        .kanban-evaluation__criterion-note summary {
+            cursor: pointer;
+            color: var(--kanban-muted);
+            font-size: 12px;
+            font-weight: 700;
+            list-style: none;
+        }
+
+        .kanban-evaluation__criterion-note summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-evaluation__criterion-note summary::before {
+            content: '+';
+            display: inline-block;
+            margin-right: 6px;
+            color: var(--kanban-accent);
+            font-size: 15px;
+            font-weight: 800;
+            line-height: .8;
+        }
+
+        .kanban-evaluation__criterion-note[open] summary::before {
+            content: '−';
+        }
+
+        .kanban-evaluation__criterion-note .kanban-modal__textarea {
+            margin-top: 8px;
+        }
+
         .kanban-evaluation__empty {
             border: 1px dashed var(--kanban-border);
             border-radius: 13px;
@@ -962,6 +1093,80 @@
             color: var(--kanban-muted);
             font-size: 12px;
             line-height: 1.45;
+        }
+
+        .kanban-evaluation__questions {
+            border: 1px solid color-mix(in srgb, #60a5fa 38%, var(--kanban-border));
+            border-radius: 12px;
+            background: color-mix(in srgb, #eff6ff 62%, var(--kanban-soft));
+            padding: 10px 12px;
+        }
+
+        .kanban-evaluation__questions summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            cursor: pointer;
+            color: var(--kanban-text);
+            font-size: 13px;
+            font-weight: 800;
+            list-style: none;
+        }
+
+        .kanban-evaluation__questions summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-evaluation__questions-count {
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .kanban-evaluation__questions-help {
+            margin: 8px 0 0;
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+            line-height: 1.4;
+        }
+
+        .kanban-evaluation__questions-list {
+            display: grid;
+            gap: 8px;
+            margin: 10px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .kanban-evaluation__question {
+            padding: 9px 10px;
+            border-radius: 9px;
+            background: rgb(255 255 255 / .78);
+            color: var(--kanban-text);
+            font-size: 12.5px;
+            line-height: 1.45;
+        }
+
+        .kanban-evaluation__question-meta {
+            display: block;
+            margin-top: 4px;
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+        }
+
+        .kanban-evaluation__question-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .kanban-evaluation__question-actions p {
+            margin: 0;
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+            line-height: 1.35;
         }
 
         .kanban-evaluation__early-completion {
@@ -982,7 +1187,7 @@
         }
 
         .kanban-evaluation__summary {
-            grid-template-columns: auto auto auto minmax(0, 1fr);
+            grid-template-columns: minmax(86px, 1fr) auto auto minmax(78px, 1fr) auto;
             align-items: center;
         }
 
@@ -1020,6 +1225,23 @@
             padding: 11px 12px;
         }
 
+        .kanban-interview-note summary {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 9px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .kanban-interview-note summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-interview-note summary > span:first-child {
+            min-width: 0;
+        }
+
         .kanban-interview-note__label {
             display: block;
             color: var(--kanban-muted);
@@ -1034,6 +1256,75 @@
             color: var(--kanban-text);
             font-size: 12.75px;
             line-height: 1.5;
+        }
+
+        .kanban-interview-note__excerpt {
+            display: block;
+            overflow: hidden;
+            color: var(--kanban-text);
+            font-size: 12.5px;
+            line-height: 1.4;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .kanban-interview-note__toggle {
+            flex: 0 0 auto;
+            color: var(--kanban-accent);
+            font-size: 11.5px;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .kanban-interview-note[open] .kanban-interview-note__toggle::after {
+            content: 'Thu gọn';
+        }
+
+        .kanban-interview-note[open] .kanban-interview-note__excerpt {
+            display: none;
+        }
+
+        .kanban-interview-note:not([open]) .kanban-interview-note__toggle::after {
+            content: 'Xem';
+        }
+
+        .kanban-scorecard-preview {
+            margin-top: 8px;
+            border: 1px solid var(--kanban-border);
+            border-radius: 11px;
+            background: color-mix(in srgb, var(--kanban-card) 92%, var(--kanban-accent) 8%);
+            padding: 9px 10px;
+        }
+
+        .kanban-scorecard-preview__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            color: var(--kanban-text);
+            font-size: 11.5px;
+            font-weight: 800;
+        }
+
+        .kanban-scorecard-preview__count {
+            color: var(--kanban-muted);
+            font-weight: 700;
+        }
+
+        .kanban-scorecard-preview__list {
+            display: grid;
+            gap: 4px;
+            max-height: 92px;
+            margin: 7px 0 0;
+            overflow-y: auto;
+            padding-left: 17px;
+            color: var(--kanban-muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .kanban-scorecard-preview__list li {
+            overflow-wrap: anywhere;
         }
 
         .kanban-screening-cv {
@@ -1123,6 +1414,27 @@
             border-color: rgb(127 29 29);
             background: rgb(69 10 10 / 0.32);
             color: rgb(254 202 202);
+        }
+
+        .kanban-modal__history {
+            display: grid;
+            gap: 8px;
+            margin-top: 9px;
+        }
+
+        .kanban-modal__history-item {
+            display: grid;
+            gap: 3px;
+            padding: 9px 10px;
+            border-left: 2px solid rgb(203 213 225);
+            color: var(--kanban-muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .kanban-modal__history-item strong {
+            color: var(--kanban-text);
+            font-size: 12.5px;
         }
 
         .kanban-modal__field {
@@ -1521,6 +1833,16 @@
             gap: 8px;
         }
 
+        .kanban-evaluation > .kanban-modal__actions {
+            position: sticky;
+            bottom: -18px;
+            z-index: 2;
+            margin: 0 -18px -18px;
+            padding: 12px 18px 18px;
+            border-top: 1px solid var(--kanban-border);
+            background: color-mix(in srgb, var(--kanban-card) 94%, transparent);
+        }
+
         .kanban-screening-main > .kanban-modal__actions {
             margin-top: -2px;
         }
@@ -1657,6 +1979,7 @@
             }
 
             .kanban-screening-layout,
+            .kanban-pre-screening-layout,
             .kanban-interview-layout,
             .kanban-offer-layout {
                 grid-template-columns: 1fr;
@@ -1683,6 +2006,7 @@
         @media (max-width: 768px) {
             .kanban-modal__facts,
             .kanban-modal__ai-grid,
+            .kanban-interview-form__grid,
             .kanban-evaluation__brief,
             .kanban-evaluation__summary {
                 grid-template-columns: 1fr;
@@ -1941,20 +2265,30 @@
                                             @foreach ($card['stage_actions'] as $action)
                                                 <button
                                                     type="button"
-                                                    class="kanban-card__button {{ $action['primary'] ? 'is-primary' : '' }}"
+                                                    class="kanban-card__button {{ $action['primary'] ? 'is-primary' : '' }} {{ $action['key'] === 'update_interview_schedule' ? 'is-icon' : '' }}"
+                                                    @if ($action['key'] === 'update_interview_schedule')
+                                                        aria-label="{{ $action['label'] }}"
+                                                        title="{{ $action['label'] }}"
+                                                    @endif
                                                     @if ($action['key'] === 'send_interview_schedule')
                                                         wire:click="requestInterviewScheduleDeliveryFromKanban({{ $card['id'] }})"
                                                     @elseif ($action['key'] === 'update_interview_schedule')
                                                         wire:click="openInterviewScheduleFromKanban({{ $card['id'] }})"
                                                     @elseif ($action['key'] === 'evaluate_interview')
                                                         wire:click="openInterviewEvaluationFromKanban({{ $card['id'] }})"
+                                                    @elseif ($action['key'] === 'record_pre_screening')
+                                                        wire:click="openPreScreeningFromKanban({{ $card['id'] }})"
                                                     @elseif ($action['key'] === 'edit_offer_draft')
                                                         wire:click="openOfferDraftFromKanban({{ $card['id'] }})"
                                                     @elseif ($action['key'] === 'submit_offer_approval')
                                                         wire:click="requestOfferApprovalFromKanban({{ $card['id'] }})"
                                                     @endif
                                                 >
-                                                    {{ $action['label'] }}
+                                                    @if ($action['key'] === 'update_interview_schedule')
+                                                        <x-filament::icon icon="heroicon-m-pencil-square" />
+                                                    @else
+                                                        {{ $action['label'] }}
+                                                    @endif
                                                 </button>
                                             @endforeach
 
@@ -2029,7 +2363,7 @@
                     </div>
                 @endif
 
-                <section class="kanban-modal {{ ($kanbanDropAction['type'] ?? null) === 'screening' ? 'is-screening' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'interview_schedule' ? 'is-interview-schedule' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'interview_evaluation' ? 'is-interview-evaluation' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'offer_draft' ? 'is-offer-draft' : '' }}" role="dialog" aria-modal="true" aria-labelledby="kanban-drop-action-title">
+                <section class="kanban-modal {{ ($kanbanDropAction['type'] ?? null) === 'screening' ? 'is-screening' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'pre_screening' ? 'is-pre-screening' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'interview_schedule' ? 'is-interview-schedule' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'interview_evaluation' ? 'is-interview-evaluation' : '' }} {{ ($kanbanDropAction['type'] ?? null) === 'offer_draft' ? 'is-offer-draft' : '' }}" role="dialog" aria-modal="true" aria-labelledby="kanban-drop-action-title">
                     <header class="kanban-modal__header">
                         <div>
                             <h3 class="kanban-modal__title" id="kanban-drop-action-title">
@@ -2218,6 +2552,9 @@
                                             <option value="pass">Đạt sơ tuyển</option>
                                             <option value="reject">Từ chối hồ sơ</option>
                                         </select>
+                                        @error('kanbanScreeningDecision')
+                                            <span class="kanban-modal__field-error">{{ $message }}</span>
+                                        @enderror
                                     </label>
 
                                     <template x-if="screeningDecision === 'reject'">
@@ -2228,6 +2565,9 @@
                                                 wire:model.defer="kanbanScreeningRejectedReason"
                                                 placeholder="Nhập lý do từ chối để lưu căn cứ xử lý..."
                                             ></textarea>
+                                            @error('kanbanScreeningRejectedReason')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
                                         </label>
                                     </template>
 
@@ -2239,6 +2579,9 @@
                                                 wire:model.defer="kanbanScreeningNote"
                                                 placeholder="Ghi rõ căn cứ đạt sơ tuyển, ví dụ kinh nghiệm/kỹ năng phù hợp hoặc điểm cần xác minh ở vòng sau..."
                                             ></textarea>
+                                            @error('kanbanScreeningNote')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
                                         </label>
                                     </template>
 
@@ -2288,6 +2631,76 @@
                                 </aside>
                             </div>
                         </form>
+                    @elseif (($kanbanDropAction['type'] ?? null) === 'pre_screening')
+                        @php
+                            $preScreening = $kanbanDropAction['pre_screening_context'] ?? [];
+                        @endphp
+                        <form class="kanban-modal__body" wire:submit.prevent="savePreScreeningFromKanban" x-data="{ outcome: @entangle('kanbanPreScreeningForm.outcome'), contactMethod: @entangle('kanbanPreScreeningForm.contact_channel'), reasonCode: @entangle('kanbanPreScreeningForm.rejection_reason_code') }">
+                            <div class="kanban-pre-screening-layout">
+                                <aside class="kanban-pre-screening-context">
+                                    <div class="kanban-modal__facts">
+                                        <div class="kanban-modal__fact"><span class="kanban-modal__fact-label">Email</span><span class="kanban-modal__fact-value">{{ $preScreening['email'] ?? '-' }}</span></div>
+                                        <div class="kanban-modal__fact"><span class="kanban-modal__fact-label">Số điện thoại</span><span class="kanban-modal__fact-value">{{ $preScreening['phone'] ?? '-' }}</span></div>
+                                    </div>
+                                    <div class="kanban-modal__notice"><strong>Kết quả sàng lọc CV</strong><br>{{ $preScreening['screening_note'] ?? 'Chưa có ghi chú sàng lọc.' }}</div>
+                                    @if (filled($preScreening['latest_contacted_at'] ?? null))
+                                        <div class="kanban-modal__notice">
+                                            <strong>Lần liên hệ gần nhất</strong><br>
+                                            {{ $preScreening['latest_contact_channel'] ?? 'Đã liên hệ' }} lúc {{ $preScreening['latest_contacted_at'] }}.
+                                            @if (filled($preScreening['latest_note'] ?? null))
+                                                <br>{{ $preScreening['latest_note'] }}
+                                            @endif
+                                        </div>
+                                    @endif
+                                    @if (filled($preScreening['latest_follow_up_at'] ?? null))
+                                        <div class="kanban-modal__notice is-warning"><strong>Lịch liên hệ tiếp theo</strong><br>{{ $preScreening['latest_follow_up_at'] }}.</div>
+                                    @endif
+                                    @if (count($preScreening['history'] ?? []) > 1)
+                                        <details class="kanban-modal__ai-more">
+                                            <summary>Lịch sử liên hệ ({{ count($preScreening['history']) }})</summary>
+                                            <div class="kanban-modal__history">
+                                                @foreach (array_slice($preScreening['history'], 1) as $item)
+                                                    <div class="kanban-modal__history-item">
+                                                        <strong>{{ $item['outcome'] }}</strong>
+                                                        <span>{{ $item['method'] }} · {{ $item['contacted_at'] }}</span>
+                                                        @if (filled($item['note'] ?? null))<span>{{ $item['note'] }}</span>@endif
+                                                        @if (filled($item['handled_by'] ?? null))<span>{{ $item['handled_by'] }}</span>@endif
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </details>
+                                    @endif
+                                    @if (filled($preScreening['cv_url'] ?? null))
+                                        <a href="{{ $preScreening['cv_url'] }}" target="_blank" rel="noopener" class="kanban-modal__button">Xem CV ứng tuyển</a>
+                                    @endif
+                                </aside>
+                                <div class="kanban-pre-screening-form">
+                                    <label class="kanban-modal__field" x-show="outcome === 'rejected'" x-cloak>
+                                        <span class="kanban-modal__label">Phân loại lý do</span>
+                                        <select class="kanban-modal__select" wire:model="kanbanPreScreeningForm.rejection_reason_code">
+                                            <option value="">Chọn lý do</option>
+                                            <option value="unreachable">Không liên hệ được</option>
+                                            <option value="candidate_withdrew">Ứng viên không còn quan tâm</option>
+                                            <option value="availability_mismatch">Không phù hợp thời gian hoặc địa điểm</option>
+                                            <option value="expectation_mismatch">Kỳ vọng chưa phù hợp</option>
+                                            <option value="not_qualified">Thông tin chưa đáp ứng yêu cầu</option>
+                                            <option value="other">Lý do khác</option>
+                                        </select>
+                                        @error('kanbanPreScreeningForm.rejection_reason_code')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror
+                                    </label>
+                                    <div class="kanban-modal__grid">
+                                        <label class="kanban-modal__field"><span class="kanban-modal__label">Hình thức liên hệ</span><select class="kanban-modal__select" wire:model.live="kanbanPreScreeningForm.contact_channel"><option value="">Chọn hình thức</option><option value="phone">Điện thoại</option><option value="email">Email</option><option value="zalo">Zalo</option><option value="in_person">Trực tiếp</option><option value="other">Khác</option></select>@error('kanbanPreScreeningForm.contact_channel')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label>
+                                        <label class="kanban-modal__field"><span class="kanban-modal__label">Thời điểm liên hệ</span><input type="datetime-local" max="{{ now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('Y-m-d\\TH:i') }}" class="kanban-modal__input" wire:model="kanbanPreScreeningForm.contacted_at">@error('kanbanPreScreeningForm.contacted_at')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label>
+                                    </div>
+                                    <template x-if="contactMethod === 'other'"><label class="kanban-modal__field"><span class="kanban-modal__label">Hình thức liên hệ khác</span><input type="text" maxlength="120" class="kanban-modal__input" wire:model.defer="kanbanPreScreeningForm.contact_channel_detail" placeholder="Ví dụ: LinkedIn, ngày hội tuyển dụng">@error('kanbanPreScreeningForm.contact_channel_detail')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label></template>
+                                    <label class="kanban-modal__field"><span class="kanban-modal__label">Kết quả sơ tuyển</span><select class="kanban-modal__select" x-model="outcome"><option value="">Chọn kết quả</option><option value="passed">Đạt sơ tuyển</option><option value="follow_up">Hẹn liên hệ lại</option><option value="rejected">Từ chối hồ sơ</option></select>@error('kanbanPreScreeningForm.outcome')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label>
+                                    <template x-if="outcome === 'follow_up'"><label class="kanban-modal__field"><span class="kanban-modal__label">Hẹn liên hệ lại</span><input type="datetime-local" class="kanban-modal__input" wire:model="kanbanPreScreeningForm.follow_up_at">@error('kanbanPreScreeningForm.follow_up_at')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label></template>
+                                    <template x-if="outcome === 'passed' || outcome === 'follow_up'"><label class="kanban-modal__field"><span class="kanban-modal__label" x-text="outcome === 'passed' ? 'Ghi chú xác nhận' : 'Nội dung cần theo dõi'"></span><textarea class="kanban-modal__textarea" wire:model.defer="kanbanPreScreeningForm.note" placeholder="Tóm tắt mức độ quan tâm, điều kiện làm việc hoặc nội dung cần lưu ý."></textarea>@error('kanbanPreScreeningForm.note')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label></template>
+                                    <template x-if="outcome === 'rejected'"><label class="kanban-modal__field"><span class="kanban-modal__label">Lý do từ chối</span><textarea class="kanban-modal__textarea" wire:model.defer="kanbanPreScreeningForm.rejection_reason" placeholder="Nêu lý do phù hợp để lưu lịch sử và phản hồi ứng viên."></textarea>@error('kanbanPreScreeningForm.rejection_reason')<span class="kanban-modal__field-error">{{ $message }}</span>@enderror</label></template>
+                                    <div class="kanban-modal__actions"><button type="button" class="kanban-modal__button" x-on:click="closeModal()">Hủy</button><button type="submit" class="kanban-modal__button" x-bind:class="{ 'is-danger': outcome === 'rejected', 'is-primary': outcome !== 'rejected' }" wire:loading.attr="disabled" wire:target="savePreScreeningFromKanban"><span wire:loading.remove wire:target="savePreScreeningFromKanban" x-text="outcome === 'rejected' ? 'Xác nhận từ chối' : 'Xác nhận sơ tuyển'"></span><span wire:loading wire:target="savePreScreeningFromKanban">Đang lưu...</span></button></div>
+                                </div>
+                            </div>
+                        </form>
                     @elseif (($kanbanDropAction['type'] ?? null) === 'interview_evaluation')
                         @php
                             $evaluationInterview = $kanbanDropAction['interview'] ?? [];
@@ -2305,10 +2718,12 @@
                                 && collect($kanbanEvaluationForm['criteria'] ?? [])->every(
                                     fn ($criterion) => is_array($criterion) && filled($criterion['score'] ?? null)
                                 );
-                            $canCompleteEvaluation = $canFinalizeEvaluation
-                                || ($hasCompleteEvaluationScores && (bool) ($kanbanEvaluationForm['confirm_early_completion'] ?? false));
+                            $canChooseEvaluationConclusion = $hasCompleteEvaluationScores;
+                            $canCompleteEvaluation = $canChooseEvaluationConclusion
+                                && filled($kanbanEvaluationForm['conclusion'] ?? null)
+                                && (bool) ($kanbanEvaluationForm['confirm_completion'] ?? false);
                         @endphp
-                        <form class="kanban-modal__body kanban-evaluation" wire:submit.prevent="{{ $canCompleteEvaluation ? 'completeInterviewEvaluationFromKanban' : 'saveInterviewEvaluationDraftFromKanban' }}">
+                        <form class="kanban-modal__body kanban-evaluation" wire:submit.prevent="saveInterviewEvaluationDraftFromKanban">
                             <div class="kanban-evaluation__brief">
                                 <span>{{ $evaluationInterview['round_name'] ?? 'Vòng phỏng vấn' }}</span>
                                 <span>{{ $evaluationInterview['scheduled_at'] ?? '-' }}</span>
@@ -2316,19 +2731,26 @@
                                 <span>{{ $evaluationInterview['type'] ?? '-' }}</span>
                             </div>
 
-                            <label class="kanban-modal__field">
-                                <span class="kanban-modal__label">Mẫu scorecard</span>
-                                <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.template_id">
-                                    <option value="">Chọn mẫu scorecard</option>
-                                    @foreach (($kanbanDropAction['template_options'] ?? []) as $id => $label)
-                                        <option value="{{ $id }}">{{ $label }}</option>
-                                    @endforeach
-                                </select>
-                                <span class="kanban-modal__field-help">Chọn mẫu trước để xem và chấm theo các tiêu chí thống nhất.</span>
-                                @error('kanbanEvaluationForm.template_id')
-                                    <span class="kanban-modal__field-error">{{ $message }}</span>
-                                @enderror
-                            </label>
+                            @if (($kanbanDropAction['template_locked'] ?? false) === true)
+                                <div class="kanban-evaluation__brief">
+                                    <span>Mẫu đánh giá</span>
+                                    <strong>{{ $kanbanDropAction['template_name'] ?? 'Mẫu đã gắn với lịch phỏng vấn' }}</strong>
+                                </div>
+                            @else
+                                <label class="kanban-modal__field">
+                                    <span class="kanban-modal__label">Mẫu đánh giá</span>
+                                    <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.template_id">
+                                        <option value="">Chọn mẫu đánh giá</option>
+                                        @foreach (($kanbanDropAction['template_options'] ?? []) as $id => $label)
+                                            <option value="{{ $id }}">{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <span class="kanban-modal__field-help">Lịch cũ chưa có mẫu đánh giá. Chọn mẫu để tiếp tục chấm.</span>
+                                    @error('kanbanEvaluationForm.template_id')
+                                        <span class="kanban-modal__field-error">{{ $message }}</span>
+                                    @enderror
+                                </label>
+                            @endif
 
                             @if (! $hasEvaluationTemplate)
                                 <div class="kanban-evaluation__empty">
@@ -2353,11 +2775,14 @@
                                                 <option value="{{ $score }}">{{ $score }}/10</option>
                                             @endfor
                                         </select>
-                                        <textarea
-                                            class="kanban-modal__textarea"
-                                            wire:model.defer="kanbanEvaluationForm.criteria.{{ $index }}.note"
-                                            placeholder="Nhận xét ngắn cho tiêu chí này"
-                                        ></textarea>
+                                        <details class="kanban-evaluation__criterion-note" @if (filled($criterion['note'] ?? null)) open @endif>
+                                            <summary>Thêm nhận xét tiêu chí</summary>
+                                            <textarea
+                                                class="kanban-modal__textarea"
+                                                wire:model.defer="kanbanEvaluationForm.criteria.{{ $index }}.note"
+                                                placeholder="Nhận xét ngắn cho tiêu chí này"
+                                            ></textarea>
+                                        </details>
                                     </div>
                                 @endforeach
                             </div>
@@ -2365,6 +2790,7 @@
 
                             @if ($hasEvaluationTemplate)
                                 <div class="kanban-evaluation__summary">
+                                    <span>Đã chấm {{ collect($kanbanEvaluationForm['criteria'] ?? [])->filter(fn ($criterion) => is_array($criterion) && filled($criterion['score'] ?? null))->count() }}/{{ count($kanbanEvaluationForm['criteria'] ?? []) }}</span>
                                     <span>{{ $canFinalizeEvaluation ? 'Điểm trung bình' : 'Điểm tạm tính' }}</span>
                                     <strong>{{ $evaluationAverage !== null ? number_format($evaluationAverage, 2, ',', '.').'/10' : 'Chưa đủ điểm' }}</strong>
                                     @if ($hasCompleteEvaluationScores)
@@ -2374,14 +2800,7 @@
                                 </div>
                             @endif
 
-                            @if (! $canFinalizeEvaluation && $hasCompleteEvaluationScores)
-                                <label class="kanban-evaluation__early-completion">
-                                    <input type="checkbox" wire:model.live="kanbanEvaluationForm.confirm_early_completion">
-                                    <span>Xác nhận buổi phỏng vấn đã kết thúc để hoàn tất đánh giá sớm.</span>
-                                </label>
-                            @endif
-
-                            @if ($canCompleteEvaluation)
+                            @if ($canChooseEvaluationConclusion)
                             <label class="kanban-modal__field">
                                 <span class="kanban-modal__label">Kết luận phỏng vấn</span>
                                 <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.conclusion">
@@ -2414,12 +2833,71 @@
                                     @enderror
                                 </label>
                             @endif
-                            @endif
 
                             <label class="kanban-modal__field">
                                 <span class="kanban-modal__label">Nhận xét nội bộ sau phỏng vấn</span>
                                 <textarea class="kanban-modal__textarea" wire:model.defer="kanbanEvaluationForm.notes" placeholder="Tóm tắt điểm mạnh và điểm cần cân nhắc để nội bộ tham khảo."></textarea>
                             </label>
+
+                            @if ($canChooseEvaluationConclusion && filled($kanbanEvaluationForm['conclusion'] ?? null))
+                                <label class="kanban-evaluation__early-completion">
+                                    <input type="checkbox" wire:model.live="kanbanEvaluationForm.confirm_completion">
+                                    <span>
+                                        @if ($canFinalizeEvaluation)
+                                            Xác nhận đã kết thúc phỏng vấn
+                                        @else
+                                            Xác nhận kết thúc sớm
+                                        @endif
+                                    </span>
+                                </label>
+                                @error('kanbanEvaluationForm.confirm_completion')
+                                    <span class="kanban-modal__field-error">{{ $message }}</span>
+                                @enderror
+                            @endif
+                            @endif
+
+                            @php($interviewQuestions = $kanbanDropAction['interview_questions'] ?? [])
+                            @if (($interviewQuestions['available'] ?? false) === true)
+                                <details class="kanban-evaluation__questions">
+                                    <summary>
+                                        <span>Câu hỏi tham khảo</span>
+                                        <span class="kanban-evaluation__questions-count">{{ count($interviewQuestions['questions'] ?? []) }} câu hỏi</span>
+                                    </summary>
+                                    <p class="kanban-evaluation__questions-help">Được AI gợi ý từ CV và tiêu chí đánh giá.</p>
+                                    <ol class="kanban-evaluation__questions-list">
+                                        @foreach (($interviewQuestions['questions'] ?? []) as $question)
+                                            <li class="kanban-evaluation__question">
+                                                {{ $question['question'] ?? '' }}
+                                                @if (filled($question['criterion'] ?? null) || filled($question['purpose'] ?? null))
+                                                    <span class="kanban-evaluation__question-meta">
+                                                        {{ collect([$question['criterion'] ?? null, $question['purpose'] ?? null])->filter()->implode(' · ') }}
+                                                    </span>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ol>
+                                </details>
+                            @elseif ($hasEvaluationTemplate)
+                                <div class="kanban-evaluation__questions">
+                                    @if ($kanbanInterviewQuestionsConfirmation)
+                                        <div class="kanban-evaluation__question-actions">
+                                            <p>AI sẽ dùng điểm cần làm rõ từ CV và tiêu chí scorecard để tạo câu hỏi tham khảo.</p>
+                                            <div class="kanban-card__buttons">
+                                                <button type="button" class="kanban-card__button" wire:click="cancelInterviewQuestionsFromKanban">Hủy</button>
+                                                <button type="button" class="kanban-card__button is-primary" wire:click="generateInterviewQuestionsFromKanban" wire:loading.attr="disabled" wire:target="generateInterviewQuestionsFromKanban">
+                                                    <span wire:loading.remove wire:target="generateInterviewQuestionsFromKanban">Tạo câu hỏi</span>
+                                                    <span wire:loading wire:target="generateInterviewQuestionsFromKanban">Đang tạo...</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="kanban-evaluation__question-actions">
+                                            <p>Chỉ tạo khi cần thêm câu hỏi để làm rõ CV hoặc tiêu chí đánh giá.</p>
+                                            <button type="button" class="kanban-card__button" wire:click="requestInterviewQuestionsFromKanban">Tạo câu hỏi tham khảo</button>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
 
                             @if ($kanbanEvaluationDraftStatus)
                                 <p class="kanban-evaluation__save-status">
@@ -2430,20 +2908,25 @@
                             <div class="kanban-modal__actions">
                                 <button type="button" class="kanban-modal__button" x-on:click="closeModal()">Hủy</button>
                                 @if ($canCompleteEvaluation)
-                                    <button type="button" class="kanban-modal__button" wire:click="saveInterviewEvaluationDraftFromKanban" wire:loading.attr="disabled" wire:target="saveInterviewEvaluationDraftFromKanban">
-                                        <span wire:loading.remove wire:target="saveInterviewEvaluationDraftFromKanban">Lưu thay đổi</span>
+                                    <button type="button" class="kanban-modal__button is-primary" wire:click="completeInterviewEvaluationFromKanban" wire:loading.attr="disabled" wire:target="completeInterviewEvaluationFromKanban">
+                                        <span wire:loading.remove wire:target="completeInterviewEvaluationFromKanban">Hoàn tất đánh giá</span>
+                                        <span wire:loading wire:target="completeInterviewEvaluationFromKanban">Đang hoàn tất...</span>
+                                    </button>
+                                @else
+                                    <button type="submit" class="kanban-modal__button" wire:loading.attr="disabled" wire:target="saveInterviewEvaluationDraftFromKanban">
+                                        <span wire:loading.remove wire:target="saveInterviewEvaluationDraftFromKanban">Lưu đánh giá tạm</span>
                                         <span wire:loading wire:target="saveInterviewEvaluationDraftFromKanban">Đang lưu...</span>
                                     </button>
                                 @endif
-                                <button type="submit" class="kanban-modal__button is-primary" wire:loading.attr="disabled" wire:target="{{ $canCompleteEvaluation ? 'completeInterviewEvaluationFromKanban' : 'saveInterviewEvaluationDraftFromKanban' }}">
-                                    <span wire:loading.remove wire:target="{{ $canCompleteEvaluation ? 'completeInterviewEvaluationFromKanban' : 'saveInterviewEvaluationDraftFromKanban' }}">{{ $canCompleteEvaluation ? 'Hoàn tất đánh giá' : 'Lưu đánh giá tạm' }}</span>
-                                    <span wire:loading wire:target="{{ $canCompleteEvaluation ? 'completeInterviewEvaluationFromKanban' : 'saveInterviewEvaluationDraftFromKanban' }}">Đang lưu...</span>
-                                </button>
                             </div>
                         </form>
                     @elseif (($kanbanDropAction['type'] ?? null) === 'offer_draft')
                         <form class="kanban-modal__body" wire:submit.prevent="saveOfferDraftFromKanban">
                             @php($offerContext = $kanbanDropAction['offer_context'] ?? [])
+                            @php($publishedSalaryMin = data_get($offerContext, 'published_salary_min'))
+                            @php($publishedSalaryMax = data_get($offerContext, 'published_salary_max'))
+                            @php($offeredSalary = is_numeric($kanbanOfferForm['salary_offered'] ?? null) ? (int) $kanbanOfferForm['salary_offered'] : null)
+                            @php($outsidePublishedRange = ($offerContext['published_salary_currency'] ?? 'VND') === 'VND' && $offeredSalary !== null && (($publishedSalaryMin !== null && $offeredSalary < $publishedSalaryMin) || ($publishedSalaryMax !== null && $offeredSalary > $publishedSalaryMax)))
 
                             <div class="kanban-offer-layout">
                                 <aside class="kanban-offer-context">
@@ -2497,25 +2980,35 @@
                                     @endif
 
                                     <label class="kanban-modal__field">
-                                        <span class="kanban-modal__label">Mẫu thư mời đính kèm (PDF)</span>
-                                        <select class="kanban-modal__select" wire:model.defer="kanbanOfferForm.offer_letter_template_id">
-                                            <option value="">Không dùng mẫu</option>
+                                        <span class="kanban-modal__label">Mẫu thư mời</span>
+                                        <select class="kanban-modal__select" wire:model.live="kanbanOfferForm.offer_letter_template_id">
+                                            <option value="">Chọn mẫu thư mời</option>
                                             @foreach (($kanbanDropAction['template_options'] ?? []) as $id => $label)
                                                 <option value="{{ $id }}">{{ $label }}</option>
                                             @endforeach
                                         </select>
+                                        <span class="kanban-modal__field-help">Mẫu được dùng để tạo PDF và email gửi ứng viên sau khi được duyệt.</span>
                                         @error('kanbanOfferForm.offer_letter_template_id') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
                                     </label>
+
+                                    @if (filled($kanbanOfferTemplatePreview))
+                                        <details class="kanban-offer-preview">
+                                            <summary>Xem trước thư mời</summary>
+                                            <p>Thông tin được cập nhật từ dữ liệu đang nhập trước khi tạo PDF.</p>
+                                            <div class="kanban-offer-preview__body">{{ $kanbanOfferTemplatePreview }}</div>
+                                        </details>
+                                    @endif
 
                                     <div class="kanban-modal__grid">
                                         <label class="kanban-modal__field">
                                             <span class="kanban-modal__label">Mức lương đề nghị</span>
-                                            <input class="kanban-modal__input" type="number" min="1" step="1" required wire:model.defer="kanbanOfferForm.salary_offered">
+                                            <input class="kanban-modal__input" type="number" min="1" step="1" required wire:model.live.debounce.500ms="kanbanOfferForm.salary_offered">
+                                            <span class="kanban-modal__field-help">Khung lương tin tuyển dụng: {{ $offerContext['published_salary_label'] ?? 'Thỏa thuận' }}.</span>
                                             @error('kanbanOfferForm.salary_offered') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
                                         </label>
                                         <label class="kanban-modal__field">
                                             <span class="kanban-modal__label">Thời gian thử việc (tháng)</span>
-                                            <select class="kanban-modal__select" wire:model.defer="kanbanOfferForm.probation_months">
+                                            <select class="kanban-modal__select" wire:model.live="kanbanOfferForm.probation_months">
                                                 <option value="0">Không thử việc</option>
                                                 <option value="1">1 tháng</option>
                                                 <option value="2">2 tháng</option>
@@ -2528,15 +3021,24 @@
                                         </label>
                                         <label class="kanban-modal__field">
                                             <span class="kanban-modal__label">Ngày nhận việc dự kiến</span>
-                                            <input class="kanban-modal__input" type="date" required wire:model.defer="kanbanOfferForm.start_date">
+                                            <input class="kanban-modal__input" type="date" required wire:model.live="kanbanOfferForm.start_date">
                                             @error('kanbanOfferForm.start_date') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
                                         </label>
                                         <label class="kanban-modal__field">
                                             <span class="kanban-modal__label">Hạn ứng viên phản hồi</span>
-                                            <input class="kanban-modal__input" type="datetime-local" required wire:model.defer="kanbanOfferForm.expires_at">
+                                            <input class="kanban-modal__input" type="datetime-local" required wire:model.live="kanbanOfferForm.expires_at">
                                             @error('kanbanOfferForm.expires_at') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
                                         </label>
                                     </div>
+
+                                    @if ($outsidePublishedRange)
+                                        <label class="kanban-modal__field">
+                                            <span class="kanban-modal__label">Lý do điều chỉnh lương</span>
+                                            <textarea class="kanban-modal__textarea" wire:model.defer="kanbanOfferForm.salary_adjustment_reason" placeholder="Ví dụ: Điều chỉnh theo kinh nghiệm, năng lực và ngân sách vị trí."></textarea>
+                                            <span class="kanban-modal__field-help">Mức đề nghị nằm ngoài khung công khai. Lý do này chỉ hiển thị cho nội bộ khi duyệt đề nghị.</span>
+                                            @error('kanbanOfferForm.salary_adjustment_reason') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
+                                        </label>
+                                    @endif
 
                                     <label class="kanban-modal__field">
                                         <span class="kanban-modal__label">Nội dung bổ sung</span>
@@ -2629,31 +3131,39 @@
                                             <span class="kanban-modal__fact-label">Số điện thoại</span>
                                             <span class="kanban-modal__fact-value">{{ $interviewContext['candidate_phone'] ?? '-' }}</span>
                                         </div>
-                                        <div class="kanban-modal__fact">
-                                            <span class="kanban-modal__fact-label">Chi nhánh</span>
-                                            <span class="kanban-modal__fact-value">{{ $interviewContext['branch'] ?? '-' }}</span>
-                                        </div>
-                                        <div class="kanban-modal__fact">
-                                            <span class="kanban-modal__fact-label">Trạng thái</span>
-                                            <span class="kanban-modal__fact-value">{{ $interviewContext['current_status'] ?? 'Cần tạo lịch phỏng vấn' }}</span>
-                                        </div>
                                     </div>
 
-                                    <div class="kanban-interview-note">
-                                        <span class="kanban-interview-note__label">Ghi chú sàng lọc</span>
-                                        <p class="kanban-interview-note__value">{{ $interviewContext['screening_note'] ?? 'Chưa có ghi chú sàng lọc.' }}</p>
-                                    </div>
+                                    @php($screeningNote = trim((string) ($interviewContext['screening_note'] ?? '')))
+                                    @if ($screeningNote !== '')
+                                        <details class="kanban-interview-note">
+                                            <summary>
+                                                <span>
+                                                    <span class="kanban-interview-note__label">Ghi chú sàng lọc</span>
+                                                    <span class="kanban-interview-note__excerpt">{{ \Illuminate\Support\Str::limit($screeningNote, 110) }}</span>
+                                                </span>
+                                                <span class="kanban-interview-note__toggle" aria-hidden="true"></span>
+                                            </summary>
+                                            <p class="kanban-interview-note__value">{{ $screeningNote }}</p>
+                                        </details>
+                                    @else
+                                        <div class="kanban-interview-note">
+                                            <span class="kanban-interview-note__label">Ghi chú sàng lọc</span>
+                                            <p class="kanban-interview-note__value">Chưa có ghi chú sàng lọc.</p>
+                                        </div>
+                                    @endif
 
-                                    <div class="kanban-modal__ai">
-                                        <div class="kanban-modal__ai-head">
-                                            <div class="kanban-modal__ai-title">Gợi ý chuẩn bị phỏng vấn</div>
-                                            <div class="kanban-modal__ai-badges">
-                                                @if (($interviewAi['score'] ?? null) !== null)
-                                                    <span class="kanban-modal__ai-badge is-score-{{ $interviewAi['score_tone'] ?? 'neutral' }}">{{ $interviewAi['score'] }}/100</span>
-                                                @endif
-                                                <span class="kanban-modal__ai-badge">{{ $interviewAi['label'] ?? 'Chưa có khuyến nghị' }}</span>
+                                    <details class="kanban-modal__ai kanban-interview-ai">
+                                        <summary>
+                                            <div class="kanban-modal__ai-head">
+                                                <div class="kanban-modal__ai-title">Gợi ý phỏng vấn từ AI</div>
+                                                <div class="kanban-modal__ai-badges">
+                                                    @if (($interviewAi['score'] ?? null) !== null)
+                                                        <span class="kanban-modal__ai-badge is-score-{{ $interviewAi['score_tone'] ?? 'neutral' }}">{{ $interviewAi['score'] }}/100</span>
+                                                    @endif
+                                                    <span class="kanban-modal__ai-badge">{{ $interviewAi['label'] ?? 'Chưa có khuyến nghị' }}</span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </summary>
 
                                         <p class="kanban-modal__ai-text">{{ $interviewAi['summary'] ?? 'Chưa có dữ liệu AI sàng lọc để gợi ý trọng tâm phỏng vấn.' }}</p>
 
@@ -2667,7 +3177,7 @@
                                                 </ul>
                                             </div>
                                         @endif
-                                    </div>
+                                    </details>
 
                                     @if (filled($interviewContext['cv_url'] ?? null))
                                         <a href="{{ $interviewContext['cv_url'] }}" target="_blank" rel="noopener noreferrer" class="kanban-card__button">
@@ -2694,30 +3204,44 @@
                                     </label>
 
                                     <label class="kanban-modal__field">
-                                        <span class="kanban-modal__label">Thời gian phỏng vấn</span>
-                                        <input
-                                            type="datetime-local"
-                                            class="kanban-modal__select"
-                                            wire:model.live.debounce.500ms="kanbanInterviewForm.scheduled_at"
-                                        >
-                                        @error('kanbanInterviewForm.scheduled_at')
+                                        <span class="kanban-modal__label">Hình thức</span>
+                                        <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.type">
+                                            <option value="">Chọn hình thức</option>
+                                            <option value="online">Online</option>
+                                            <option value="offline">Offline</option>
+                                        </select>
+                                        @error('kanbanInterviewForm.type')
                                             <span class="kanban-modal__field-error">{{ $message }}</span>
                                         @enderror
                                     </label>
 
-                                    <label class="kanban-modal__field">
-                                        <span class="kanban-modal__label">Thời lượng</span>
-                                        <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.duration_minutes">
-                                            <option value="">Chọn thời lượng</option>
-                                            <option value="30">30 phút</option>
-                                            <option value="45">45 phút</option>
-                                            <option value="60">60 phút</option>
-                                            <option value="90">90 phút</option>
-                                        </select>
-                                        @error('kanbanInterviewForm.duration_minutes')
-                                            <span class="kanban-modal__field-error">{{ $message }}</span>
-                                        @enderror
-                                    </label>
+                                    <div class="kanban-interview-form__grid">
+                                        <label class="kanban-modal__field">
+                                            <span class="kanban-modal__label">Thời gian phỏng vấn</span>
+                                            <input
+                                                type="datetime-local"
+                                                class="kanban-modal__select"
+                                                wire:model.live.debounce.500ms="kanbanInterviewForm.scheduled_at"
+                                            >
+                                            @error('kanbanInterviewForm.scheduled_at')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
+                                        </label>
+
+                                        <label class="kanban-modal__field">
+                                            <span class="kanban-modal__label">Thời lượng</span>
+                                            <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.duration_minutes">
+                                                <option value="">Chọn thời lượng</option>
+                                                <option value="30">30 phút</option>
+                                                <option value="45">45 phút</option>
+                                                <option value="60">60 phút</option>
+                                                <option value="90">90 phút</option>
+                                            </select>
+                                            @error('kanbanInterviewForm.duration_minutes')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
+                                        </label>
+                                    </div>
 
                                     <label class="kanban-modal__field">
                                         <span class="kanban-modal__label">Người phỏng vấn</span>
@@ -2728,18 +3252,6 @@
                                             @endforeach
                                         </select>
                                         @error('kanbanInterviewForm.interviewer_id')
-                                            <span class="kanban-modal__field-error">{{ $message }}</span>
-                                        @enderror
-                                    </label>
-
-                                    <label class="kanban-modal__field">
-                                        <span class="kanban-modal__label">Hình thức</span>
-                                        <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.type">
-                                            <option value="">Chọn hình thức</option>
-                                            <option value="online">Online</option>
-                                            <option value="offline">Offline</option>
-                                        </select>
-                                        @error('kanbanInterviewForm.type')
                                             <span class="kanban-modal__field-error">{{ $message }}</span>
                                         @enderror
                                     </label>
@@ -2771,6 +3283,34 @@
                                             @enderror
                                         </label>
                                     @endif
+
+                                    @php($selectedScorecardCriteria = ($kanbanDropAction['scorecard_template_criteria'] ?? [])[(int) ($kanbanInterviewForm['scorecard_template_id'] ?? 0)] ?? [])
+                                    <div class="kanban-modal__field">
+                                        <label class="kanban-modal__label" for="kanban-scorecard-template">Mẫu đánh giá</label>
+                                        <select id="kanban-scorecard-template" class="kanban-modal__select" wire:model.live="kanbanInterviewForm.scorecard_template_id">
+                                            <option value="">Chọn mẫu đánh giá</option>
+                                            @foreach (($kanbanDropAction['scorecard_template_options'] ?? []) as $id => $label)
+                                                <option value="{{ $id }}">{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if ($selectedScorecardCriteria !== [])
+                                            <div class="kanban-scorecard-preview">
+                                                <div class="kanban-scorecard-preview__head">
+                                                    <span>Tiêu chí sẽ đánh giá</span>
+                                                    <span class="kanban-scorecard-preview__count">{{ count($selectedScorecardCriteria) }} tiêu chí</span>
+                                                </div>
+                                                <ul class="kanban-scorecard-preview__list">
+                                                    @foreach ($selectedScorecardCriteria as $criterion)
+                                                        <li>{{ $criterion }}</li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        @endif
+                                        <span class="kanban-modal__field-help">Tiêu chí sẽ được giữ cố định cho buổi phỏng vấn này.</span>
+                                        @error('kanbanInterviewForm.scorecard_template_id')
+                                            <span class="kanban-modal__field-error">{{ $message }}</span>
+                                        @enderror
+                                    </div>
 
                                     <div class="kanban-schedule-assist">
                                         @if (filled($kanbanInterviewAvailabilityNotice))

@@ -17,6 +17,8 @@ class Interview extends Model
     protected $fillable = [
         'application_id',
         'interviewer_id',
+        'scorecard_template_id',
+        'scorecard_template_snapshot',
         'round_number',
         'round_name',
         'scheduled_at',
@@ -37,6 +39,7 @@ class Interview extends Model
         'actual_ended_at' => 'datetime',
         'duration_minutes' => 'integer',
         'round_number' => 'integer',
+        'scorecard_template_snapshot' => 'array',
     ];
 
     protected function scheduledAt(): Attribute
@@ -75,6 +78,11 @@ class Interview extends Model
     public function interviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'interviewer_id');
+    }
+
+    public function scorecardTemplate(): BelongsTo
+    {
+        return $this->belongsTo(ScorecardTemplate::class, 'scorecard_template_id');
     }
 
     public function workplace(): BelongsTo

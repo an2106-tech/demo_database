@@ -17,11 +17,13 @@ use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\InterviewCalendarService;
+use App\Services\InterviewScorecardTemplateService;
 use App\Services\InterviewEvaluationService;
 use App\Services\InterviewMeetingLinkValidator;
 use App\Services\InterviewScheduleDeliveryService;
 use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationPipelineService;
+use App\Services\ApplicationPreScreeningService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\ApplicationWorkflowSummaryService;
 use App\Services\OfferApprovalService;
@@ -61,6 +63,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Validation\ValidationException;
 
@@ -323,11 +326,14 @@ class ApplicationsTable
                                 ? static::getCurrentEvaluatorScorecard($record, $interview)
                                 : null;
 
-                            $criteria = $scorecard?->criteria;
+                            $snapshot = is_array($interview?->scorecard_template_snapshot)
+                                ? $interview->scorecard_template_snapshot
+                                : [];
+                            $criteria = $scorecard?->criteria ?: ($snapshot['criteria'] ?? []);
 
                             return [
                                 'interview_id' => $interview?->id,
-                                'template_id' => $scorecard?->template_id,
+                                'template_id' => $scorecard?->template_id ?? $interview?->scorecard_template_id,
                                 'criteria' => is_array($criteria) ? $criteria : [],
                                 'average_score' => $scorecard?->average_score,
                                 'recommended_conclusion' => $scorecard?->recommended_conclusion,
@@ -614,6 +620,7 @@ class ApplicationsTable
             'meeting_link' => $interview?->meeting_link,
             'workplace_id' => $interview?->workplace_id,
             'interviewer_id' => $interview?->interviewer_id,
+            'scorecard_template_id' => $interview?->scorecard_template_id,
             'notes' => $interview?->notes,
         ];
     }
@@ -785,6 +792,11 @@ class ApplicationsTable
         return static::workflowGuard()->canManageInterview(Auth::user(), $record);
     }
 
+    protected static function canRecordPreScreening(Application $record): bool
+    {
+        return static::workflowGuard()->canRecordPreScreening(Auth::user(), $record);
+    }
+
     protected static function hasInterviewStatus(Application $record): bool
     {
         return static::workflowGuard()->hasInterviewStatus($record);
@@ -827,6 +839,10 @@ class ApplicationsTable
             return 'Sàng lọc CV';
         }
 
+        if (static::canRecordPreScreening($record)) {
+            return 'Cập nhật sơ tuyển';
+        }
+
         if (static::canManageInterview($record)) {
             return static::getInterviewActionLabel($record);
         }
@@ -846,6 +862,10 @@ class ApplicationsTable
             return 'warning';
         }
 
+        if (static::canRecordPreScreening($record)) {
+            return 'info';
+        }
+
         if (static::canManageInterview($record)) {
             return static::hasInterviewStatus($record) ? 'info' : 'warning';
         }
@@ -863,6 +883,10 @@ class ApplicationsTable
 
         if ($status === StatusApplicationEnum::NEW && static::canScreenApplication($record)) {
             return 'heroicon-o-document-magnifying-glass';
+        }
+
+        if (static::canRecordPreScreening($record)) {
+            return 'heroicon-o-phone';
         }
 
         if (static::canManageInterview($record)) {
@@ -1553,6 +1577,77 @@ class ApplicationsTable
         ];
     }
 
+    protected static function getPreScreeningFormSchema(): array
+    {
+        return [
+            Section::make('Kết quả sơ tuyển')
+                ->description('Ghi nhận lần liên hệ với ứng viên trước khi tạo lịch phỏng vấn.')
+                ->columns(2)
+                ->schema([
+                    Placeholder::make('pre_screening_candidate')
+                        ->label('Ứng viên')
+                        ->content(fn (Application $record): string => $record->snapshotCandidateName()),
+                    Placeholder::make('pre_screening_contact')
+                        ->label('Liên hệ')
+                        ->content(fn (Application $record): string => trim(implode(' · ', array_filter([
+                            $record->snapshotCandidatePhone(),
+                            $record->snapshotCandidateEmail(),
+                        ]))) ?: '-'),
+                    Select::make('pre_screening_channel')
+                        ->label('Hình thức liên hệ')
+                        ->options(app(ApplicationPreScreeningService::class)->contactMethodOptions())
+                        ->live()
+                        ->required(),
+                    TextInput::make('pre_screening_channel_detail')
+                        ->label('Hình thức liên hệ khác')
+                        ->maxLength(120)
+                        ->visible(fn (Get $get): bool => $get('pre_screening_channel') === 'other')
+                        ->required(fn (Get $get): bool => $get('pre_screening_channel') === 'other'),
+                    DateTimePicker::make('pre_screening_contacted_at')
+                        ->label('Thời điểm liên hệ')
+                        ->seconds(false)
+                        ->maxDate(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))
+                        ->required(),
+                    Select::make('pre_screening_outcome')
+                        ->label('Kết quả sơ tuyển')
+                        ->options([
+                            'passed' => 'Đạt sơ tuyển',
+                            'follow_up' => 'Hẹn liên hệ lại',
+                            'rejected' => 'Từ chối hồ sơ',
+                        ])
+                        ->live()
+                        ->required()
+                        ->columnSpanFull(),
+                    DateTimePicker::make('pre_screening_follow_up_at')
+                        ->label('Hẹn liên hệ lại')
+                        ->seconds(false)
+                        ->minDate(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))
+                        ->visible(fn (Get $get): bool => $get('pre_screening_outcome') === 'follow_up')
+                        ->required(fn (Get $get): bool => $get('pre_screening_outcome') === 'follow_up'),
+                    Textarea::make('pre_screening_note')
+                        ->label('Ghi chú trao đổi')
+                        ->placeholder('Tóm tắt mức độ quan tâm, điều kiện làm việc hoặc nội dung cần lưu ý.')
+                        ->rows(3)
+                        ->visible(fn (Get $get): bool => in_array($get('pre_screening_outcome'), ['passed', 'follow_up'], true))
+                        ->required(fn (Get $get): bool => in_array($get('pre_screening_outcome'), ['passed', 'follow_up'], true))
+                        ->columnSpanFull(),
+                    Select::make('pre_screening_rejection_reason_code')
+                        ->label('Phân loại lý do')
+                        ->options(app(ApplicationPreScreeningService::class)->rejectionReasonOptions())
+                        ->live()
+                        ->visible(fn (Get $get): bool => $get('pre_screening_outcome') === 'rejected')
+                        ->required(fn (Get $get): bool => $get('pre_screening_outcome') === 'rejected'),
+                    Textarea::make('pre_screening_rejection_reason')
+                        ->label('Lý do từ chối')
+                        ->placeholder('Nêu lý do phù hợp để lưu lịch sử và phản hồi ứng viên.')
+                        ->rows(3)
+                        ->visible(fn (Get $get): bool => $get('pre_screening_outcome') === 'rejected' && $get('pre_screening_rejection_reason_code') === 'other')
+                        ->required(fn (Get $get): bool => $get('pre_screening_outcome') === 'rejected' && $get('pre_screening_rejection_reason_code') === 'other')
+                        ->columnSpanFull(),
+                ]),
+        ];
+    }
+
     protected static function getInterviewSchedulingFormSchema(): array
     {
         return [
@@ -1625,6 +1720,13 @@ class ApplicationsTable
                             Select::make('interviewer_id')
                                 ->label('Người phỏng vấn')
                                 ->options(fn (Application $record): array => static::getInterviewerOptions($record))
+                                ->searchable()
+                                ->preload()
+                                ->required(),
+                            Select::make('scorecard_template_id')
+                                ->label('Mẫu đánh giá')
+                                ->options(fn (): array => app(InterviewScorecardTemplateService::class)->options())
+                                ->helperText('Tiêu chí được giữ cố định cho buổi phỏng vấn này.')
                                 ->searchable()
                                 ->preload()
                                 ->required(),
@@ -1797,7 +1899,11 @@ class ApplicationsTable
                                 ->preload()
                                 ->live()
                                 ->required()
-                                ->helperText('Chọn mẫu để hiển thị bộ tiêu chí thống nhất cho buổi phỏng vấn.')
+                                ->disabled(fn (Application $record): bool => filled($record->interviews()->latest('id')->first()?->scorecard_template_id))
+                                ->dehydrated()
+                                ->helperText(fn (Application $record): string => filled($record->interviews()->latest('id')->first()?->scorecard_template_id)
+                                    ? 'Mẫu đã được gắn khi tạo lịch phỏng vấn.'
+                                    : 'Chọn mẫu để hiển thị bộ tiêu chí thống nhất cho buổi phỏng vấn.')
                                 ->afterStateUpdated(function ($state, callable $set): void {
                                     if (blank($state)) {
                                         return;
@@ -2092,6 +2198,29 @@ class ApplicationsTable
                                 ->rules(['integer', 'min:1'])
                                 ->required()
                                 ->suffix('VND'),
+                            Placeholder::make('published_salary_range')
+                                ->label('Khung lương tin tuyển dụng')
+                                ->content(function (Application $record): string {
+                                    $range = $record->job?->salary_range;
+                                    $currency = is_array($range) && filled($range['currency'] ?? null)
+                                        ? strtoupper((string) $range['currency'])
+                                        : 'VND';
+                                    $min = is_array($range) && isset($range['min']) && is_numeric($range['min'])
+                                        ? number_format((float) $range['min'], 0, ',', '.').' '.$currency
+                                        : null;
+                                    $max = is_array($range) && isset($range['max']) && is_numeric($range['max'])
+                                        ? number_format((float) $range['max'], 0, ',', '.').' '.$currency
+                                        : null;
+
+                                    return $min && $max ? $min.' - '.$max : ($min ? 'Từ '.$min : ($max ? 'Đến '.$max : 'Thỏa thuận'));
+                                })
+                                ->helperText('Dùng để đối chiếu nội bộ; thư mời chỉ hiển thị mức đề nghị cuối cùng.'),
+                            Textarea::make('salary_adjustment_reason')
+                                ->label('Lý do điều chỉnh lương')
+                                ->helperText('Bắt buộc khi mức đề nghị nằm ngoài khung lương đã công khai.')
+                                ->maxLength(1000)
+                                ->rows(3)
+                                ->columnSpanFull(),
                             Select::make('probation_months')
                                 ->options([
                                     0 => 'Không thử việc',
@@ -2496,6 +2625,10 @@ class ApplicationsTable
                     return '7xl';
                 }
 
+                if (static::canRecordPreScreening($record)) {
+                    return '4xl';
+                }
+
                 return static::canManageInterview($record) ? '6xl' : '4xl';
             })
             ->modalHeading(function (Application $record): string {
@@ -2503,6 +2636,10 @@ class ApplicationsTable
 
                 if ($status === StatusApplicationEnum::NEW) {
                     return 'Sàng lọc CV';
+                }
+
+                if (static::canRecordPreScreening($record)) {
+                    return 'Cập nhật sơ tuyển';
                 }
 
                 if (static::canManageInterview($record)) {
@@ -2521,6 +2658,10 @@ class ApplicationsTable
 
                 if ($status === StatusApplicationEnum::NEW) {
                     return 'Lưu kết quả sàng lọc';
+                }
+
+                if (static::canRecordPreScreening($record)) {
+                    return 'Lưu kết quả sơ tuyển';
                 }
 
                 if (static::canManageInterview($record)) {
@@ -2543,6 +2684,19 @@ class ApplicationsTable
                     ];
                 }
 
+                if (static::canRecordPreScreening($record)) {
+                    return [
+                        'pre_screening_channel' => null,
+                        'pre_screening_channel_detail' => null,
+                        'pre_screening_contacted_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
+                        'pre_screening_outcome' => null,
+                        'pre_screening_follow_up_at' => null,
+                        'pre_screening_note' => null,
+                        'pre_screening_rejection_reason_code' => null,
+                        'pre_screening_rejection_reason' => null,
+                    ];
+                }
+
                 if (static::canManageInterview($record)) {
                     return static::getInterviewFormData($record);
                 }
@@ -2552,6 +2706,7 @@ class ApplicationsTable
                 return [
                     'offer_letter_template_id' => $offer?->offer_letter_template_id,
                     'salary_offered' => $offer?->salary_offered,
+                    'salary_adjustment_reason' => $offer?->salary_adjustment_reason,
                     'start_date_preset' => null,
                     'start_date' => $offer?->start_date,
                     'probation_months' => $offer?->probation_months ?? 2,
@@ -2565,6 +2720,10 @@ class ApplicationsTable
 
                 if ($status === StatusApplicationEnum::NEW) {
                     return static::getCvScreeningFormSchema();
+                }
+
+                if (static::canRecordPreScreening($record)) {
+                    return static::getPreScreeningFormSchema();
                 }
 
                 if (static::canManageInterview($record)) {
@@ -2613,7 +2772,7 @@ class ApplicationsTable
                         'rejected_reason' => null,
                     ])->save();
 
-                    $comment = trim('Sàng lọc CV: Đạt sơ tuyển. '.$note);
+                    $comment = trim('Sàng lọc CV: Đạt. '.$note);
 
                     if (! static::transitionApplication($record, StatusApplicationEnum::SCREENING, $comment)) {
                         return;
@@ -2622,6 +2781,89 @@ class ApplicationsTable
                     Notification::make()
                         ->success()
                         ->title('Đã chuyển sang sơ tuyển')
+                        ->send();
+
+                    return;
+                }
+
+                if (static::canRecordPreScreening($record)) {
+                    $outcome = (string) ($data['pre_screening_outcome'] ?? '');
+                    $note = trim((string) ($data['pre_screening_note'] ?? ''));
+                    $reasonCode = (string) ($data['pre_screening_rejection_reason_code'] ?? '');
+                    $reason = trim((string) ($data['pre_screening_rejection_reason'] ?? ''));
+                    $channel = (string) ($data['pre_screening_channel'] ?? '');
+                    $channelDetail = trim((string) ($data['pre_screening_channel_detail'] ?? ''));
+                    $contactedAt = Carbon::parse($data['pre_screening_contacted_at'], config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
+                    $followUpAt = filled($data['pre_screening_follow_up_at'] ?? null)
+                        ? Carbon::parse($data['pre_screening_follow_up_at'], config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                        : null;
+
+                    if ($contactedAt->gt(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')))) {
+                        throw ValidationException::withMessages([
+                            'pre_screening_contacted_at' => 'Chọn thời điểm liên hệ là hiện tại hoặc trước đó.',
+                        ]);
+                    }
+
+                    if ($channel === 'other' && $channelDetail === '') {
+                        throw ValidationException::withMessages([
+                            'pre_screening_channel_detail' => 'Vui lòng ghi rõ hình thức liên hệ.',
+                        ]);
+                    }
+
+                    if ($outcome === 'follow_up' && (! $followUpAt || $followUpAt->lte($contactedAt) || $followUpAt->lte(now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))))) {
+                        throw ValidationException::withMessages([
+                            'pre_screening_follow_up_at' => 'Hẹn liên hệ lại phải sau lần liên hệ này và ở thời điểm tương lai.',
+                        ]);
+                    }
+
+                    $preScreeningService = app(ApplicationPreScreeningService::class);
+                    if ($outcome === 'rejected' && ! array_key_exists($reasonCode, $preScreeningService->rejectionReasonOptions())) {
+                        throw ValidationException::withMessages([
+                            'pre_screening_rejection_reason_code' => 'Vui lòng chọn lý do từ chối.',
+                        ]);
+                    }
+
+                    if ($outcome === 'rejected' && $reasonCode === 'other' && $reason === '') {
+                        throw ValidationException::withMessages([
+                            'pre_screening_rejection_reason' => 'Vui lòng mô tả lý do từ chối.',
+                        ]);
+                    }
+
+                    if ($outcome === 'rejected' && $reason === '') {
+                        $reason = $preScreeningService->rejectionReasonLabel($reasonCode);
+                    }
+
+                    $preScreeningService->record(
+                        $record,
+                        Auth::user(),
+                        $channel,
+                        $contactedAt,
+                        $outcome,
+                        $outcome === 'follow_up' ? $followUpAt : null,
+                        $note !== '' ? $note : null,
+                        $reason !== '' ? $reason : null,
+                        $channel === 'other' ? $channelDetail : null,
+                        $outcome === 'rejected' ? $reasonCode : null,
+                    );
+
+                    if ($outcome === 'rejected') {
+                        $record->forceFill([
+                            'rejected_stage' => 'pre_screening',
+                            'rejected_reason' => $reason,
+                        ])->save();
+                        static::transitionApplication($record, StatusApplicationEnum::REJECTED, 'Sơ tuyển: Từ chối hồ sơ. Lý do: '.$reason);
+                    } else {
+                        $label = $outcome === 'passed' ? 'Đạt sơ tuyển' : 'Hẹn liên hệ lại';
+                        $comment = 'Sơ tuyển: '.$label.'. Ghi chú: '.$note;
+                        if ($followUpAt) {
+                            $comment .= ' Hẹn lại: '.$followUpAt->format('H:i, d/m/Y').'.';
+                        }
+                        $record->recordStatusHistory(StatusApplicationEnum::SCREENING->value, StatusApplicationEnum::SCREENING->value, $comment);
+                    }
+
+                    Notification::make()
+                        ->success()
+                        ->title($outcome === 'rejected' ? 'Đã từ chối hồ sơ' : 'Đã ghi nhận sơ tuyển')
                         ->send();
 
                     return;
@@ -2643,6 +2885,9 @@ class ApplicationsTable
                     $interview->fill([
                         'application_id' => $record->id,
                         'interviewer_id' => $data['interviewer_id'],
+                        'scorecard_template_id' => $data['scorecard_template_id'],
+                        'scorecard_template_snapshot' => app(InterviewScorecardTemplateService::class)
+                            ->snapshot((int) $data['scorecard_template_id']),
                         'round_name' => $data['round_name'] ?? ('Phỏng vấn vòng '.$roundNumber),
                         'duration_minutes' => (int) ($data['duration_minutes'] ?? 60),
                         'scheduled_at' => $scheduledAt,
@@ -2761,7 +3006,9 @@ class ApplicationsTable
         }
         $notification = Notification::make()->title($result['is_update'] ? 'Đã gửi cập nhật lịch phỏng vấn' : 'Đã gửi lịch phỏng vấn');
 
-        if ($result['failed'] > 0) {
+        if (! $result['candidate_sent']) {
+            $notification->warning()->body('Chưa gửi được lịch cho ứng viên. Lịch vẫn ở trạng thái chưa gửi để có thể kiểm tra và gửi lại.');
+        } elseif ($result['failed'] > 0) {
             $notification->warning()->body($result['is_update']
                 ? "Gửi cập nhật thành công {$result['sent']}, một số email chưa gửi được."
                 : "Đã gửi lịch, một số email chưa gửi được.");

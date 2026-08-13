@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\Workplace;
 use App\Services\ApplicationPipelineService;
 use App\Services\ApplicationWorkflowGuard;
+use App\Services\InterviewCalendarService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
@@ -359,6 +361,86 @@ class ApplicationPipeline extends Component
     private function canEvaluateInterview(Application $application): bool
     {
         return app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application);
+    }
+
+    private function interviewRules(Application $application): array
+    {
+        $branchId = (int) ($application->branch_id ?: $application->job?->branch_id);
+
+        return [
+            'interviewForm.round_name' => ['required', 'string', 'max:100'],
+            'interviewForm.scheduled_at' => ['required', 'date'],
+            'interviewForm.duration_minutes' => ['required', 'integer', Rule::in([30, 45, 60, 90])],
+            'interviewForm.type' => ['required', Rule::in(['online', 'offline'])],
+            'interviewForm.meeting_link' => [
+                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'online'),
+                'nullable',
+                'url',
+                'max:500',
+            ],
+            'interviewForm.workplace_id' => [
+                Rule::requiredIf(($this->interviewForm['type'] ?? 'online') === 'offline'),
+                'nullable',
+                Rule::exists('workplaces', 'id')->where(fn ($query) => $query
+                    ->where('branch_id', $branchId)
+                    ->where('is_interview_room', true)
+                    ->where('is_active', true)),
+            ],
+            'interviewForm.interviewer_id' => [
+                'required',
+                Rule::exists('users', 'id')->where(fn ($query) => $query
+                    ->where('branch_id', $branchId)
+                    ->where('is_active', true)
+                    ->whereIn('role', ['hr', 'pm', 'director'])),
+            ],
+            'interviewForm.notes' => ['nullable', 'string', 'max:1000'],
+        ];
+    }
+
+    private function interviewScheduleComment(Interview $interview, bool $isUpdate): string
+    {
+        $scheduledAt = $interview->scheduled_at
+            ? $interview->scheduled_at->copy()->setTimezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y')
+            : '-';
+        $type = $interview->type === 'offline' ? 'Offline' : 'Online';
+        $location = app(InterviewCalendarService::class)->resolveLocation($interview);
+        $prefix = $isUpdate ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn';
+
+        return sprintf('%s: %s, %s, %d phút, %s.', $prefix, $scheduledAt, $type, (int) ($interview->duration_minutes ?: 60), $location);
+    }
+
+    private function sendInterviewNotifications(Interview $interview): void
+    {
+        $recipients = [];
+        $candidateEmail = $interview->application?->snapshotCandidateEmail();
+        $interviewerEmail = $interview->interviewer?->email;
+
+        if (filled($candidateEmail)) {
+            $recipients[$candidateEmail] = 'candidate';
+        }
+
+        if (filled($interviewerEmail)) {
+            $recipients[$interviewerEmail] = 'interviewer';
+        }
+
+        $sentCount = 0;
+
+        foreach ($recipients as $email => $label) {
+            try {
+                Mail::to($email)->send(new InterviewScheduledMail($interview, $label));
+                $sentCount++;
+            } catch (\Throwable $exception) {
+                Log::warning('Failed to send HR portal interview schedule mail.', [
+                    'interview_id' => $interview->id,
+                    'recipient' => $email,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        if ($sentCount > 0) {
+            $interview->forceFill(['invite_sent_at' => now()])->save();
+        }
     }
 
     private function selectedInterviewApplication(): ?Application

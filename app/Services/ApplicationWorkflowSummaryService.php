@@ -55,10 +55,41 @@ class ApplicationWorkflowSummaryService
             );
         }
 
+        $preScreening = app(ApplicationPreScreeningService::class)->latest($application);
+
+        if (! $preScreening) {
+            return $this->summary(
+                $status,
+                'Chờ liên hệ',
+                'Cần liên hệ ứng viên và ghi nhận kết quả sơ tuyển.',
+                'info',
+            );
+        }
+
+        if ($preScreening->outcome === 'follow_up' && $preScreening->follow_up_at?->isPast()) {
+            return $this->summary(
+                $status,
+                'Quá hạn liên hệ lại',
+                'Đã hẹn liên hệ lại lúc '.$this->formatDateTime($preScreening->follow_up_at).'.',
+                'danger',
+            );
+        }
+
+        if ($preScreening->outcome === 'follow_up') {
+            return $this->summary(
+                $status,
+                'Cần liên hệ lại',
+                $preScreening->follow_up_at
+                    ? 'Hẹn liên hệ lại lúc '.$this->formatDateTime($preScreening->follow_up_at).'.'
+                    : 'Cần sắp xếp liên hệ lại với ứng viên.',
+                'warning',
+            );
+        }
+
         return $this->summary(
             $status,
-            'Cần tạo lịch phỏng vấn',
-            'Hồ sơ đã qua sàng lọc, cần sắp xếp lịch phỏng vấn.',
+            'Đã xác nhận sơ tuyển',
+            'Có thể tạo lịch phỏng vấn.',
             'info',
         );
     }
@@ -76,12 +107,57 @@ class ApplicationWorkflowSummaryService
             );
         }
 
+        if (blank($interview->invite_sent_at) && $interview->scheduled_at?->lte(now())) {
+            return $this->summary(
+                $status,
+                'Cần đặt lại lịch',
+                'Cập nhật thời gian mới trước khi gửi thư mời cho ứng viên.',
+                'danger',
+            );
+        }
+
         if (blank($interview->invite_sent_at)) {
             return $this->summary(
                 $status,
                 'Chưa gửi thư mời',
                 'Lịch đã tạo, cần gửi thư mời cho ứng viên và người liên quan.',
                 'warning',
+            );
+        }
+
+        $scorecard = $application->scorecards()
+            ->where('interview_id', $interview->id)
+            ->latest('updated_at')
+            ->first();
+
+        if ($scorecard?->conclusion === 'hold') {
+            $average = $scorecard->average_score !== null
+                ? number_format((float) $scorecard->average_score, 2, ',', '.').'/10'
+                : null;
+
+            return $this->summary(
+                $status,
+                'Cần đánh giá bổ sung',
+                $average
+                    ? 'Đã chấm '.$average.', cần xem xét thêm trước khi chốt kết quả.'
+                    : 'Đã có nhận xét, cần xem xét thêm trước khi chốt kết quả.',
+                'warning',
+            );
+        }
+
+        if ($scorecard && $scorecard->conclusion === null) {
+            $scoredCount = collect((array) $scorecard->criteria)
+                ->filter(fn ($criterion): bool => is_array($criterion) && filled($criterion['score'] ?? null))
+                ->count();
+            $criteriaCount = count((array) $scorecard->criteria);
+
+            return $this->summary(
+                $status,
+                'Đang đánh giá',
+                $criteriaCount > 0
+                    ? "Đã lưu {$scoredCount}/{$criteriaCount} tiêu chí, cần hoàn tất đánh giá."
+                    : 'Đã lưu bản nháp, cần hoàn tất đánh giá.',
+                'info',
             );
         }
 
@@ -97,7 +173,7 @@ class ApplicationWorkflowSummaryService
         if ($interview->scheduled_at?->lte(now())) {
             return $this->summary(
                 $status,
-                'Cần chấm phỏng vấn',
+                'Chưa đánh giá',
                 'Buổi phỏng vấn đã đến hạn, cần ghi nhận scorecard.',
                 'danger',
             );
@@ -235,6 +311,7 @@ class ApplicationWorkflowSummaryService
 
         $stage = match ($application->rejected_stage) {
             'screening' => 'Từ chối sau sàng lọc CV',
+            'pre_screening' => 'Từ chối sau sơ tuyển',
             'interview' => 'Từ chối sau phỏng vấn',
             'offer' => 'Từ chối ở giai đoạn đề nghị',
             default => 'Hồ sơ đã bị từ chối',

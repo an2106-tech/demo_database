@@ -33,15 +33,21 @@ class OfferPdfService
         $responseDeadline ??= $offer->expires_at;
         $approver ??= $offer->approvedByUser;
 
-        $letterBody = $offer->letterTemplate
-            ? $this->merge->mergeTemplateBody($offer->letterTemplate->body_html, $offer, [
+        $templateSnapshot = is_array($offer->letter_template_snapshot)
+            ? $offer->letter_template_snapshot
+            : [];
+        $templateBody = $templateSnapshot['body_html'] ?? $offer->letterTemplate?->body_html;
+        $usesTemplate = filled($templateBody);
+
+        $letterBody = $usesTemplate
+            ? $this->merge->mergeTemplateBody((string) $templateBody, $offer, [
                 '{{issued_date}}' => e($issuedAt->format('d/m/Y')),
                 '{{expiration_date}}' => e($responseDeadline?->format('d/m/Y H:i') ?? ''),
             ])
             : $this->buildFallbackBody($offer);
 
         $extra = trim((string) $offer->content);
-        $additionalBlock = $offer->letterTemplate && $extra !== ''
+        $additionalBlock = $usesTemplate && $extra !== ''
             ? '<div style="margin-top:14px;"><strong>Ghi chú thêm:</strong><p style="margin:6px 0 0;">'.nl2br(e($extra)).'</p></div>'
             : '';
 
@@ -98,12 +104,12 @@ class OfferPdfService
 
         return implode('', [
             "<p>Thân gửi <strong>{$candidateName}</strong>,</p>",
-            "<p>FPT Career trân trọng gửi đến bạn thư mời nhận việc cho vị trí <strong>{$jobTitle}</strong>.</p>",
+            "<p>FPT Education trân trọng gửi đến bạn thư mời nhận việc cho vị trí <strong>{$jobTitle}</strong>.</p>",
             '<p>Các điều khoản chính được thể hiện trong bảng thông tin của thư mời này.</p>',
             $content !== ''
                 ? '<div style="margin-top:14px;"><strong>Nội dung bổ sung:</strong><p style="margin:6px 0 0;">'.nl2br(e($content)).'</p></div>'
                 : '',
-            '<p>Trân trọng,<br/><strong>FPT Career</strong></p>',
+            '<p>Trân trọng,<br/><strong>Khối Nhân sự FPT Education</strong></p>',
         ]);
     }
 

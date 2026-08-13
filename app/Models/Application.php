@@ -195,6 +195,16 @@ class Application extends Model
         return $this->hasMany(\App\Models\ApplicationStatusHistory::class);
     }
 
+    public function preScreenings(): HasMany
+    {
+        return $this->hasMany(ApplicationPreScreening::class);
+    }
+
+    public function latestPreScreening(): HasOne
+    {
+        return $this->hasOne(ApplicationPreScreening::class)->latestOfMany();
+    }
+
     public function recordStatusHistory(?string $fromStatus, string $toStatus, ?string $comment = null): void
     {
         $this->statusHistories()->create([

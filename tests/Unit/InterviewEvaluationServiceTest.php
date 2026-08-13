@@ -76,6 +76,32 @@ class InterviewEvaluationServiceTest extends TestCase
         $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->status);
     }
 
+    public function test_saving_a_follow_up_note_keeps_a_hold_conclusion(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $service = app(InterviewEvaluationService::class);
+
+        $service->evaluate($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(6),
+            'conclusion' => 'hold',
+            'notes' => 'Cần trao đổi thêm với quản lý trực tiếp.',
+        ], $hr);
+
+        $service->saveDraft($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(6),
+            'notes' => 'Đã bổ sung nhận xét sau trao đổi nội bộ.',
+        ], $hr);
+
+        $this->assertDatabaseHas('scorecards', [
+            'application_id' => $application->id,
+            'evaluator_id' => $hr->id,
+            'conclusion' => 'hold',
+            'notes' => 'Đã bổ sung nhận xét sau trao đổi nội bộ.',
+        ]);
+    }
+
     public function test_draft_evaluation_does_not_move_the_application_to_the_next_stage(): void
     {
         [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
@@ -160,6 +186,42 @@ class InterviewEvaluationServiceTest extends TestCase
         $this->assertNotNull($interview->actual_ended_at);
     }
 
+    public function test_locked_interview_template_uses_its_snapshot_for_evaluation(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $template = ScorecardTemplate::query()->firstOrFail();
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $snapshotCriteria = [
+            ['name' => 'Nghiệp vụ giáo dục', 'score' => null, 'note' => null],
+            ['name' => 'Giao tiếp với người học', 'score' => null, 'note' => null],
+        ];
+
+        $interview->update([
+            'scorecard_template_id' => $template->id,
+            'scorecard_template_snapshot' => [
+                'name' => 'Mẫu đã gắn với lịch',
+                'criteria' => $snapshotCriteria,
+            ],
+        ]);
+        $template->update([
+            'criteria' => [['name' => 'Tiêu chí mới của hệ thống', 'score' => null, 'note' => null]],
+        ]);
+
+        app(InterviewEvaluationService::class)->complete($application, [
+            'template_id' => $template->id,
+            'criteria' => [
+                ['name' => 'Nghiệp vụ giáo dục', 'score' => 8, 'note' => null],
+                ['name' => 'Giao tiếp với người học', 'score' => 9, 'note' => null],
+            ],
+            'conclusion' => 'pass',
+        ], $hr);
+
+        $criteria = $application->scorecards()->firstOrFail()->criteria;
+
+        $this->assertSame('Nghiệp vụ giáo dục', $criteria[0]['name']);
+        $this->assertSame('Giao tiếp với người học', $criteria[1]['name']);
+    }
+
     /**
      * @return array{0: User, 1: Application}
      */
@@ -218,6 +280,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/abc-defg-hij',
+            'invite_sent_at' => now()->subHours(3),
             'result' => 'pending',
         ]);
 
