@@ -568,6 +568,18 @@ class CandidateProfile extends Component
             $pdfPath = \Illuminate\Support\Facades\Storage::disk('public')->path($candidate->cv_file);
         }
 
+        // Validate that there is actually something to analyze
+        $hasSignificantText = !empty($this->experiences) || !empty($this->educations) || !empty($this->skills);
+        
+        if (!$pdfPath && !$hasSignificantText) {
+            $this->dispatch(
+                'app-notify',
+                message: 'Bạn chưa điền đủ thông tin hồ sơ (Kinh nghiệm, Học vấn, Kỹ năng) hoặc chưa tải lên file CV. Vui lòng cập nhật hồ sơ trước khi dùng AI chấm điểm.',
+                type: 'warning'
+            );
+            return;
+        }
+
         \Illuminate\Support\Facades\Log::info("CV TEXT SENT TO AI:\n" . $cvText . "\nPDF Path: " . $pdfPath);
 
         $result = $aiService->evaluateGeneralCv($cvText, $pdfPath);

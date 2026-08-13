@@ -130,7 +130,7 @@ class PostJob extends Component
 
         // Default status for NEW jobs
         if (!$id) {
-            $this->status = in_array($user->role, ['director', 'admin']) 
+            $this->status = ($user && in_array($user->role, ['director', 'admin'])) 
                 ? StatusRecruitmentJobsEnum::PUBLISHED->value 
                 : StatusRecruitmentJobsEnum::PENDING->value;
         }

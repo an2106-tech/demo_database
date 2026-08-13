@@ -539,48 +539,188 @@
 
                         <div
                             class="profile-redesign__upload"
-                            x-data="{ selectedCvName: '' }"
+                            x-data="{ selectedCvName: '', isDragging: false }"
+                            x-on:dragover.prevent="isDragging = true"
+                            x-on:dragleave.prevent="isDragging = false"
+                            x-on:drop.prevent="
+                                isDragging = false;
+                                const file = $event.dataTransfer.files[0];
+                                if (file) {
+                                    selectedCvName = file.name;
+                                    const dt = new DataTransfer();
+                                    dt.items.add(file);
+                                    $refs.cvInput.files = dt.files;
+                                    $refs.cvInput.dispatchEvent(new Event('change'));
+                                }
+                            "
                         >
-                            <div>
+                            {{-- Header --}}
+                            <div style="text-align: center; margin-bottom: 1.25rem;">
                                 <span class="profile-redesign__upload-mark">CV</span>
-                                <h3>Tải lên CV cá nhân</h3>
-                                <p>Hỗ trợ PDF, DOC, DOCX. Dung lượng tối đa 10MB.</p>
+                                <h3 style="margin: 0.75rem 0 0.35rem; font-size: 1.1rem; font-weight: 800; color: #1e293b;">Tải lên CV cá nhân</h3>
+                                <p style="margin: 0; color: #94a3b8; font-size: 0.82rem;">Hỗ trợ PDF, DOC, DOCX · Tối đa 10MB</p>
                             </div>
+
+                            {{-- Drop Zone --}}
+                            <div
+                                class="cv-drop-zone"
+                                :class="{ 'cv-drop-zone--active': isDragging }"
+                                x-on:click="$refs.cvInput.click()"
+                            >
+                                {{-- Loading state --}}
+                                <div wire:loading wire:target="cv" class="cv-upload-loading">
+                                    <div class="cv-spinner"></div>
+                                    <span>Đang tải lên...</span>
+                                </div>
+
+                                {{-- Idle / selected state --}}
+                                <div wire:loading.remove wire:target="cv">
+                                    @if($cv && method_exists($cv, 'getClientOriginalName'))
+                                        {{-- File đã upload lên Livewire temp --}}
+                                        <div class="cv-file-preview cv-file-preview--ready">
+                                            <div class="cv-file-icon">
+                                                <i class="fa fa-file-pdf-o"></i>
+                                            </div>
+                                            <div class="cv-file-info">
+                                                <span class="cv-file-badge">✅ Sẵn sàng lưu</span>
+                                                <strong class="cv-file-name">{{ $cv->getClientOriginalName() }}</strong>
+                                                <small>Bấm <em>Lưu tất cả thay đổi</em> để cập nhật CV.</small>
+                                            </div>
+                                        </div>
+                                    @else
+                                        {{-- Chưa chọn hoặc đã chọn local (alpine) --}}
+                                        <div x-show="!selectedCvName" class="cv-drop-idle">
+                                            <i class="fa fa-cloud-upload" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.6rem;"></i>
+                                            <span style="font-weight: 700; color: #475569; font-size: 0.88rem;">Kéo thả file vào đây</span>
+                                            <span style="color: #94a3b8; font-size: 0.78rem; display: block; margin-top: 0.25rem;">hoặc bấm để chọn file</span>
+                                        </div>
+                                        <div x-show="selectedCvName" x-cloak class="cv-file-preview cv-file-preview--selected">
+                                            <div class="cv-file-icon">
+                                                <i class="fa fa-file-text-o"></i>
+                                            </div>
+                                            <div class="cv-file-info">
+                                                <span class="cv-file-badge cv-file-badge--pending">⏳ Chờ upload</span>
+                                                <strong class="cv-file-name" x-text="selectedCvName"></strong>
+                                                <small>File đã chọn · Bấm lưu để cập nhật CV.</small>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Hidden input --}}
                             <input
                                 type="file"
                                 id="cv_upload"
+                                x-ref="cvInput"
                                 wire:model="cv"
                                 class="d-none"
                                 accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
                                 x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
                             >
-                            <label for="cv_upload">Chọn file</label>
-                            <div wire:loading wire:target="cv" class="profile-redesign__uploading">Đang tải lên...</div>
-                            <div
-                                x-show="selectedCvName"
-                                x-cloak
-                                class="profile-redesign__selected-cv"
-                                role="status"
-                                aria-live="polite"
-                            >
-                                <span>Đã chọn</span>
-                                <strong x-text="selectedCvName"></strong>
-                                <small>Bấm lưu để cập nhật CV trong hồ sơ.</small>
-                            </div>
-                            @if($cv && method_exists($cv, 'getClientOriginalName'))
-                                <div class="profile-redesign__selected-cv" role="status" aria-live="polite">
-                                    <span>Đã tải lên tạm thời</span>
-                                    <strong>{{ $cv->getClientOriginalName() }}</strong>
-                                    <small>Bấm lưu để cập nhật CV trong hồ sơ.</small>
-                                </div>
-                            @endif
+
+                            {{-- Current CV link --}}
                             @if($this->currentCvUrl)
-                                <a href="{{ $this->currentCvUrl }}" target="_blank" class="profile-redesign__current-cv">
-                                    Xem CV hiện tại
+                                <a href="{{ $this->currentCvUrl }}" target="_blank" class="profile-redesign__current-cv" style="display: flex; align-items: center; gap: 0.4rem; justify-content: center; margin-top: 0.75rem;">
+                                    <i class="fa fa-eye"></i> Xem CV hiện tại
                                 </a>
                             @endif
-                            @error('cv') <small class="profile-redesign__error">{{ $message }}</small> @enderror
+
+                            @error('cv') <small class="profile-redesign__error" style="display:block; text-align:center; margin-top: 0.5rem;">{{ $message }}</small> @enderror
                         </div>
+
+                        <style>
+                            .cv-drop-zone {
+                                border: 2px dashed #e2e8f0;
+                                border-radius: 16px;
+                                padding: 1.5rem 1rem;
+                                cursor: pointer;
+                                transition: all 0.22s ease;
+                                background: #f8fafc;
+                                min-height: 120px;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            }
+                            .cv-drop-zone:hover,
+                            .cv-drop-zone--active {
+                                border-color: #f37021;
+                                background: #fff7ed;
+                            }
+                            .cv-drop-idle {
+                                text-align: center;
+                            }
+                            .cv-upload-loading {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                gap: 0.6rem;
+                                color: #64748b;
+                                font-size: 0.85rem;
+                                font-weight: 600;
+                            }
+                            .cv-spinner {
+                                width: 28px;
+                                height: 28px;
+                                border: 3px solid #e2e8f0;
+                                border-top-color: #f37021;
+                                border-radius: 50%;
+                                animation: cv-spin 0.7s linear infinite;
+                            }
+                            @keyframes cv-spin { to { transform: rotate(360deg); } }
+                            .cv-file-preview {
+                                display: flex;
+                                align-items: center;
+                                gap: 0.85rem;
+                                width: 100%;
+                                padding: 0.25rem 0.5rem;
+                            }
+                            .cv-file-icon {
+                                width: 44px;
+                                height: 44px;
+                                border-radius: 12px;
+                                background: #fff;
+                                border: 1px solid #e2e8f0;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 1.3rem;
+                                flex-shrink: 0;
+                                color: #f37021;
+                            }
+                            .cv-file-preview--ready .cv-file-icon {
+                                background: #f0fdf4;
+                                border-color: #86efac;
+                                color: #16a34a;
+                            }
+                            .cv-file-info {
+                                display: flex;
+                                flex-direction: column;
+                                gap: 0.2rem;
+                                min-width: 0;
+                            }
+                            .cv-file-badge {
+                                font-size: 0.7rem;
+                                font-weight: 700;
+                                color: #16a34a;
+                            }
+                            .cv-file-badge--pending {
+                                color: #d97706;
+                            }
+                            .cv-file-name {
+                                font-size: 0.85rem;
+                                font-weight: 800;
+                                color: #1e293b;
+                                white-space: nowrap;
+                                overflow: hidden;
+                                text-overflow: ellipsis;
+                                max-width: 240px;
+                            }
+                            .cv-file-info small {
+                                font-size: 0.73rem;
+                                color: #94a3b8;
+                            }
+                        </style>
 
                         <label class="profile-redesign__field">
                             <span>Thông tin bổ sung</span>

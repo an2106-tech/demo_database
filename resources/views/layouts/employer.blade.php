@@ -142,6 +142,7 @@
             });
         })();
     </script>
+    <livewire:ai-chatbox audience="employer" />
 </body>
 
 </html>

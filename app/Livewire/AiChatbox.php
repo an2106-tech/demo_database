@@ -426,8 +426,7 @@ class AiChatbox extends Component
     private function displayTime($dateTime = null): string
     {
         $timezone = config('app.interview_timezone', config('app.timezone', 'Asia/Ho_Chi_Minh'));
-
-        return ($dateTime ? $dateTime->copy() : now())
+        return ($dateTime ? (is_string($dateTime) ? \Illuminate\Support\Carbon::parse($dateTime) : $dateTime->copy()) : now())
             ->timezone($timezone)
             ->format('H:i');
     }

@@ -206,7 +206,12 @@ class AiChatboxTest extends TestCase
 
     public function test_chat_message_time_uses_business_timezone(): void
     {
-        config(['app.interview_timezone' => 'Asia/Ho_Chi_Minh']);
+        config([
+            'app.timezone' => 'UTC',
+            'app.interview_timezone' => 'Asia/Ho_Chi_Minh',
+        ]);
+        date_default_timezone_set('UTC');
+
         $user = User::factory()->create(['role' => 'hr', 'is_active' => true]);
 
         $session = AiChatSession::query()->create([
@@ -231,7 +236,8 @@ class AiChatboxTest extends TestCase
 
         Livewire::test(AiChatbox::class, ['audience' => 'employer'])
             ->assertSet('messages', fn (array $messages): bool => $messages[0]['db_id'] === $message->id
-                && $messages[0]['time'] === '15:00');
+                && $messages[0]['time'] === '15:00'
+            );
     }
 
     public function test_new_conversation_closes_previous_chat_session(): void

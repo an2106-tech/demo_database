@@ -70,18 +70,18 @@
                                                     <td style="text-align: right; white-space: nowrap;">
                                                         <div class="d-flex justify-content-end gap-2">
                                                             <button 
-                                                                wire:click="approve({{ $job->id }})" 
+                                                                wire:click="approve({{ $job->id }})"
+                                                                wire:confirm="Bạn có chắc muốn DUYỆT tin '{{ addslashes($job->title) }}'?"
                                                                 class="btn btn-sm" 
                                                                 style="color: #10b981; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600; transition: all 0.3s;"
-                                                                onclick="return confirm('Bạn có chắc muốn duyệt tin này?')"
                                                             >
                                                                 <i class="fa fa-check"></i> Duyệt
                                                             </button>
                                                             <button 
-                                                                wire:click="reject({{ $job->id }})" 
+                                                                wire:click="reject({{ $job->id }})"
+                                                                wire:confirm="Bạn có chắc muốn TỪ CHỐI tin '{{ addslashes($job->title) }}'?"
                                                                 class="btn btn-sm" 
                                                                 style="color: #ef4444; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 6px 14px; font-weight: 600; transition: all 0.3s;"
-                                                                onclick="return confirm('Bạn có chắc muốn từ chối tin này?')"
                                                             >
                                                                 <i class="fa fa-times"></i> Từ chối
                                                             </button>

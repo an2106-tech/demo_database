@@ -20,10 +20,15 @@ class JobDetail extends Component
     public $job;
     public bool $hasCandidateAccess = false;
     public bool $hasCv = false;
+    public bool $showApplyAction = false;
     public ?array $jobFitAiResult = null;
 
     public function mount($id = null, $slug = null)
     {
+        // Livewire updates are served through its own endpoint, so this must be
+        // captured on the initial page request rather than recomputed in Blade.
+        $this->showApplyAction = request()->routeIs('candidates.*') || request()->routeIs('jobs.public');
+
         if ($slug !== null) {
             $this->job = RecruitmentJob::with(['branch', 'workplace', 'department', 'skills', 'categories'])
                 ->where('slug', $slug)

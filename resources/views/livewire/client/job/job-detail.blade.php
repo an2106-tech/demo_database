@@ -36,7 +36,6 @@
 
     $statusLabel = $job->status?->getLabel() ?? 'Đang tuyển';
     $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
-    $showApplyAction = request()->routeIs('candidates.*') || request()->routeIs('jobs.public');
     $description = trim((string) ($job->description ?? ''));
     $descriptionParagraphs = collect(preg_split("/\\r\\n|\\r|\\n/", $description))
         ->map(fn ($line) => trim((string) $line))
@@ -358,23 +357,24 @@
             min-height: 54px;
             padding: 0 18px;
             text-decoration: none;
-            transition: .22s ease;
+            transition: opacity 0.18s ease, box-shadow 0.18s ease;
             width: 100%;
         }
 
         .jd-apply-btn {
             background: #f37021;
-            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.25);
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.22);
             color: #fff !important;
             border: none;
         }
 
         .jd-apply-btn:hover,
         .jd-apply-btn:focus {
-            background: #e56314;
+            background: #f37021;
+            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.38);
             color: #fff !important;
+            opacity: 0.9;
             text-decoration: none;
-            transform: translateY(-2px);
         }
 
         .jd-secondary-btn {
@@ -386,7 +386,8 @@
 
         .jd-secondary-btn:hover,
         .jd-secondary-btn:focus {
-            background: #e2e8f0;
+            background: #e8edf3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
             color: #334155 !important;
             text-decoration: none;
         }
@@ -394,15 +395,16 @@
         .jd-ai-btn {
             background: linear-gradient(135deg, #f37021 0%, #d95e11 100%);
             border: none;
-            box-shadow: 0 12px 24px rgba(243, 112, 33, 0.22);
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.22);
             color: #fff !important;
             margin-top: 12px;
         }
 
         .jd-ai-btn:hover,
         .jd-ai-btn:focus {
+            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.38);
             color: #fff !important;
-            transform: translateY(-2px);
+            opacity: 0.9;
         }
 
         .jd-ai-section {
@@ -1007,7 +1009,7 @@
                         @endif
 
                         @if($hasCandidateAccess)
-                            <button wire:click="startAiMockInterview" class="jd-secondary-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border-color:transparent;box-shadow:0 4px 14px rgba(124,58,237,.25); cursor:pointer;">
+                            <button wire:click="startAiMockInterview" class="jd-apply-btn" style="cursor:pointer;">
                                 <i wire:loading.remove wire:target="startAiMockInterview" class="fa fa-microphone"></i>
                                 <i wire:loading wire:target="startAiMockInterview" class="fa fa-spinner fa-spin"></i>
                                 Phỏng vấn thử với AI
@@ -1098,11 +1100,11 @@
                         </div>
 
                         <div class="jd-desc">
-                            @forelse ($descriptionParagraphs as $paragraph)
-                                <p>{{ $paragraph }}</p>
-                            @empty
+                            @if(filled($description))
+                                {!! $description !!}
+                            @else
                                 <p>Nội dung mô tả công việc đang được cập nhật. Bạn vẫn có thể ứng tuyển để nhà tuyển dụng liên hệ và cung cấp thêm thông tin chi tiết.</p>
-                            @endforelse
+                            @endif
                         </div>
                     </div>
 

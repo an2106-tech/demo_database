@@ -51,8 +51,7 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
 
-        $sentAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subHour();
-
+        $sentAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'));
         $interview = Interview::query()->create([
             'application_id' => $application->id,
             'interviewer_id' => $hr->id,
@@ -64,9 +63,10 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
             'meeting_link' => 'https://meet.google.com/fpt-demo',
             'invite_sent_at' => $sentAt,
             'result' => 'pending',
-            'created_at' => $sentAt->copy()->subMinute(),
-            'updated_at' => $sentAt->copy()->subMinute(),
         ]);
+
+        $interview->updated_at = $sentAt->copy()->subMinutes(2);
+        $interview->saveQuietly();
 
         $application->load('latestInterview');
         $guard = app(ApplicationWorkflowGuard::class);
@@ -75,8 +75,8 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
 
         $interview->forceFill([
             'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->addDays(2),
-            'updated_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
-        ])->save();
+            'updated_at' => $sentAt->copy()->addMinutes(5), // explicitly in the future relative to sentAt
+        ])->saveQuietly();
 
         $application->unsetRelation('latestInterview');
         $application->load('latestInterview');

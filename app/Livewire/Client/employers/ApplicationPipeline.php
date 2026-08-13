@@ -126,8 +126,25 @@ class ApplicationPipeline extends Component
     public function sendMessage()
     {
         $this->validate(['messageContent' => 'required|string|max:1000'], [], ['messageContent' => 'Nội dung tin nhắn']);
-        $application = $this->findManageableApplication((int)$this->messageApplicationId);
-        
+
+        if (! $this->messageApplicationId) {
+            $this->dispatch('app-notify', message: 'Không tìm thấy hồ sơ ứng viên.', type: 'error');
+            return;
+        }
+
+        $application = Application::query()->with(['job'])->find((int) $this->messageApplicationId);
+
+        if (! $application) {
+            $this->dispatch('app-notify', message: 'Hồ sơ ứng viên không tồn tại.', type: 'error');
+            return;
+        }
+
+        if (! $this->canManageApplication(Auth::user(), $application)) {
+            $this->dispatch('app-notify', message: 'Bạn không có quyền nhắn tin cho ứng viên này.', type: 'error');
+            $this->closeMessageModal();
+            return;
+        }
+
         $chat = \App\Models\Chat::firstOrCreate([
             'employer_id' => Auth::id(),
             'candidate_id' => $application->candidate_id,

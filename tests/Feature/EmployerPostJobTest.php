@@ -165,6 +165,7 @@ class EmployerPostJobTest extends TestCase
         $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
 
         $this->mock(AiMatchingService::class, function ($mock) {
+            $mock->shouldReceive('cleanJobBrief')->andReturnUsing(fn($brief) => $brief);
             $mock->shouldReceive('draftRecruitmentJob')
                 ->once()
                 ->andReturn([

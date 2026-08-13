@@ -610,56 +610,6 @@
                                                 @endif
 
                                                 <div class="card-actions">
-                                                    <a href="{{ route('employers.candidate_detail', ['candidate' => $app->candidate_id]) }}" class="pipeline-action pipeline-action--primary">
-                                                        <i class="fa fa-id-card-o"></i> Chi tiết ATS
-                                                    </a>
-
-                                                    @if($cvUrl)
-                                                        <a href="{{ $cvUrl }}" target="_blank" rel="noopener" class="pipeline-action">
-                                                            <i class="fa fa-file-text-o"></i> CV
-                                                        </a>
-                                                    @endif
-
-                                                    @if(! $app->is_viewed && $actionPermissions['manage'])
-                                                        <button type="button" wire:click="markAsViewed({{ $app->id }})" wire:loading.attr="disabled" class="pipeline-action">
-                                                            <i class="fa fa-eye"></i> Đã xem
-                                                        </button>
-                                                    @endif
-
-                                                    @if($nextAction && $actionPermissions['manage'])
-                                                        <form method="POST" action="{{ route('employers.application_pipeline.advance', ['application' => $app->id]) }}" class="m-0">
-                                                            @csrf
-                                                            <button
-                                                                type="submit"
-                                                                class="pipeline-action"
-                                                                title="Chuyển sang {{ $nextAction['label'] }}"
-                                                            >
-                                                                <i class="fa fa-arrow-right"></i>
-                                                                Chuyển vòng
-                                                            </button>
-                                                        </form>
-                                                    @endif
-
-                                                    @if($canScheduleInterview)
-                                                        <a
-                                                            href="{{ route('employers.application_pipeline', ['schedule_interview' => $app->id]) }}"
-                                                            class="pipeline-action pipeline-action--schedule"
-                                                        >
-                                                            <i class="fa fa-calendar"></i>
-                                                            {{ $app->latestInterview ? 'Sửa lịch PV' : 'Lên lịch PV' }}
-                                                        </a>
-                                                    @endif
-
-                                                    @if($canEvaluateInterview)
-                                                        <a
-                                                            href="{{ route('employers.application_pipeline', ['evaluate_interview' => $app->id]) }}"
-                                                            class="pipeline-action pipeline-action--primary"
-                                                        >
-                                                            <i class="fa fa-star-half-o"></i>
-                                                            {{ $app->latestScorecard ? 'Sửa đánh giá PV' : 'Đánh giá PV' }}
-                                                        </a>
-                                                    @endif
-
                                                     <button
                                                         type="button"
                                                         wire:click="openMessageModal({{ $app->id }})"
@@ -668,21 +618,15 @@
                                                         <i class="fa fa-commenting-o"></i> Nhắn tin
                                                     </button>
 
-                                                    @if($actionPermissions['reject'])
-                                                        <button
-                                                            type="button"
-                                                            wire:click="openRejectionModal({{ $app->id }})"
-                                                            wire:loading.attr="disabled"
-                                                            wire:target="openRejectionModal"
-                                                            class="pipeline-action pipeline-action--danger"
-                                                        >
-                                                            <i class="fa fa-times"></i> Từ chối
-                                                        </button>
+                                                    @if($cvUrl)
+                                                        <a href="{{ $cvUrl }}" target="_blank" rel="noopener" class="pipeline-action">
+                                                            <i class="fa fa-file-text-o"></i> CV chi tiết
+                                                        </a>
                                                     @endif
 
                                                     @if($advancedUrl)
                                                         <a href="{{ $advancedUrl }}" target="_blank" rel="noopener" class="pipeline-action pipeline-action--wide">
-                                                            <i class="fa fa-cog"></i> Xử lý nâng cao
+                                                            <i class="fa fa-cog"></i> ATS xử lý nâng cao
                                                         </a>
                                                     @endif
                                                 </div>

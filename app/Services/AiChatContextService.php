@@ -280,7 +280,7 @@ class AiChatContextService
             ->withCount('applications')
             ->where('status', 'published')
             ->where(fn (Builder $query) => $query->whereNull('deadline')->orWhereDate('deadline', '>=', now()))
-            ->having('applications_count', '<=', 1);
+            ->has('applications', '<=', 1);
         $this->scopeJobsForEmployer($lowApplicationJobs, $user);
 
         $sources[] = [
