@@ -16,6 +16,7 @@ use App\Models\Scorecard;
 use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
+use App\Rules\InterviewMeetingLink;
 use App\Services\InterviewCalendarService;
 use App\Services\InterviewScorecardTemplateService;
 use App\Services\InterviewEvaluationService;
@@ -1741,13 +1742,7 @@ class ApplicationsTable
                                 ->placeholder('https://meet.google.com/...')
                                 ->helperText('Dán link Google Meet, Zoom, Teams hoặc nền tảng họp trực tuyến hợp lệ. Link này sẽ được gửi cho ứng viên.')
                                 ->url()
-                                ->rules([
-                                    function (string $attribute, mixed $value, $fail): void {
-                                        if (filled($value) && ! app(InterviewMeetingLinkValidator::class)->isValid((string) $value)) {
-                                            $fail('Dùng link họp https hợp lệ, ví dụ Google Meet/Zoom/Teams.');
-                                        }
-                                    },
-                                ])
+                                ->rules([new InterviewMeetingLink(app(InterviewMeetingLinkValidator::class))])
                                 ->maxLength(500)
                                 ->visible(fn (callable $get): bool => $get('type') === 'online')
                                 ->required(fn (callable $get): bool => $get('type') === 'online'),
