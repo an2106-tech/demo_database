@@ -2,11 +2,12 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use App\Models\Branch;
+use App\Models\User;
+use App\Services\AdminUserManagementGuard;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 
@@ -36,35 +37,24 @@ class UserForm
 
                 Select::make('role')
                     ->label('Vai trò')
-                    ->options([
-                        'admin' => 'Super Admin',
-                        'hr' => 'Nhân sự',
-                        'director' => 'Giám đốc',
-                        'pm' => 'Quản lý dự án',
-                    ])
-                    ->default('pm')
+                    ->options(fn (?User $record): array => app(AdminUserManagementGuard::class)
+                        ->roleOptions(Auth::user(), $record))
+                    ->default(fn (): string => Auth::user()?->role === 'director' ? 'hr' : 'pm')
+                    ->disabled(fn (?User $record): bool => $record?->is(Auth::user()) ?? false)
+                    ->live()
                     ->required(),
 
                 Select::make('branch_id')
                     ->label('Chi nhánh')
-                    ->options(function (): array {
-                        /** @var \App\Models\User|null $user */
-                        $user = Auth::user();
-
-                        if ($user?->branchScopeId()) {
-                            return Branch::query()
-                                ->whereKey($user->branchScopeId())
-                                ->pluck('name', 'id')
-                                ->all();
-                        }
-
-                        return Branch::query()->orderBy('name')->pluck('name', 'id')->all();
-                    })
+                    ->options(fn (?User $record): array => app(AdminUserManagementGuard::class)
+                        ->branchOptions(Auth::user(), $record))
                     ->searchable()
                     ->preload()
                     ->default(fn () => Auth::user()?->branchScopeId())
-                    ->disabled(fn (): bool => (bool) Auth::user()?->branchScopeId())
-                    ->nullable(),
+                    ->visible(fn (Get $get): bool => in_array($get('role'), AdminUserManagementGuard::BRANCH_ROLES, true))
+                    ->required(fn (Get $get): bool => in_array($get('role'), AdminUserManagementGuard::BRANCH_ROLES, true))
+                    ->disabled(fn (?User $record): bool => (bool) Auth::user()?->branchScopeId() || ($record?->is(Auth::user()) ?? false))
+                    ->dehydrated(),
 
                 TextInput::make('avatar')
                     ->label('Ảnh đại diện (URL)')
@@ -73,12 +63,8 @@ class UserForm
 
                 Toggle::make('is_active')
                     ->label('Đang hoạt động')
+                    ->disabled(fn (?User $record): bool => $record?->is(Auth::user()) ?? false)
                     ->default(true),
-
-                Textarea::make('metadata')
-                    ->label('Metadata')
-                    ->columnSpanFull()
-                    ->nullable(),
             ]);
     }
 }
