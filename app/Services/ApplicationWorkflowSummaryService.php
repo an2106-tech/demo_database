@@ -6,6 +6,7 @@ use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
 use App\Models\Interview;
 use App\Models\Offer;
+use App\Models\Scorecard;
 use Carbon\CarbonInterface;
 
 class ApplicationWorkflowSummaryService
@@ -125,10 +126,7 @@ class ApplicationWorkflowSummaryService
             );
         }
 
-        $scorecard = $application->scorecards()
-            ->where('interview_id', $interview->id)
-            ->latest('updated_at')
-            ->first();
+        $scorecard = $this->latestScorecardForInterview($application, $interview);
 
         if ($scorecard?->conclusion === 'hold') {
             $average = $scorecard->average_score !== null
@@ -354,12 +352,32 @@ class ApplicationWorkflowSummaryService
 
     private function latestInterview(Application $application): ?Interview
     {
-        return $application->latestInterview ?? $application->interviews()->latest('id')->first();
+        if ($application->relationLoaded('latestInterview')) {
+            return $application->latestInterview;
+        }
+
+        return $application->interviews()->latest('id')->first();
     }
 
     private function latestOffer(Application $application): ?Offer
     {
-        return $application->latestOffer ?? $application->offers()->latest('id')->first();
+        if ($application->relationLoaded('latestOffer')) {
+            return $application->latestOffer;
+        }
+
+        return $application->offers()->latest('id')->first();
+    }
+
+    private function latestScorecardForInterview(Application $application, Interview $interview): ?Scorecard
+    {
+        if ($interview->relationLoaded('scorecards')) {
+            return $interview->scorecards->sortByDesc('updated_at')->first();
+        }
+
+        return $application->scorecards()
+            ->where('interview_id', $interview->id)
+            ->latest('updated_at')
+            ->first();
     }
 
     private function isExpiredOffer(?Offer $offer): bool

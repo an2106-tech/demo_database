@@ -832,8 +832,8 @@ class KanbanApplications extends Page
             ->success()
             ->title('Đã gửi đề nghị chờ duyệt')
             ->body($result['failed'] > 0
-                ? 'Đề nghị đã chuyển sang chờ duyệt. Một số email thông báo chưa gửi được.'
-                : 'Giám đốc chi nhánh đã nhận được đề nghị để xem xét.')
+                ? 'Đề nghị đã chuyển sang chờ duyệt, nhưng một số email chưa thể đưa vào hàng đợi gửi.'
+                : 'Đề nghị đã chuyển sang chờ duyệt. Email thông báo sẽ được gửi trong giây lát.')
             ->send();
     }
 
@@ -1076,13 +1076,13 @@ class KanbanApplications extends Page
         $notification = Notification::make()->title($result['is_update'] ? 'Đã gửi cập nhật lịch' : 'Đã gửi lịch phỏng vấn');
 
         if (! $result['has_interview'] || ! $result['candidate_sent']) {
-            $notification->warning()->body('Chưa gửi được email. Vui lòng kiểm tra thông tin người nhận và cấu hình mail.');
+            $notification->warning()->body('Chưa thể đưa email vào hàng đợi gửi. Vui lòng kiểm tra thông tin người nhận và cấu hình mail.');
         } elseif ($result['failed'] > 0) {
-            $notification->warning()->body('Lịch đã được gửi, nhưng một số người nhận chưa nhận được email.');
+            $notification->warning()->body('Lịch đã được lưu, nhưng một số email chưa thể đưa vào hàng đợi gửi.');
         } else {
             $notification->success()->body($result['is_update']
-                ? 'Ứng viên và người liên quan đã nhận lịch cập nhật kèm file lịch.'
-                : 'Ứng viên và người liên quan đã nhận lịch kèm file lịch.');
+                ? 'Email cập nhật lịch và file lịch đang được gửi đến ứng viên, người liên quan.'
+                : 'Email lịch phỏng vấn và file lịch đang được gửi đến ứng viên, người liên quan.');
         }
 
         $notification->send();
@@ -2421,14 +2421,16 @@ class KanbanApplications extends Page
     protected function getViewData(): array
     {
         $summaryService = app(ApplicationWorkflowSummaryService::class);
-        $applications = ApplicationResource::getEloquentQuery()
+        $query = ApplicationResource::getEloquentQuery()
             ->with('latestPreScreening')
-            ->latest('updated_at')
-            ->get();
+            ->latest('updated_at');
 
-        $searchFilteredApplications = $this->filterBySearch($applications, $summaryService);
-        $filteredApplications = $this->filterByWorkQueue($searchFilteredApplications);
-        $workQueues = $this->workQueues($searchFilteredApplications);
+        $unfilteredApplications = (clone $query)->count();
+        $this->applySearch($query);
+        $applications = $query->get();
+
+        $filteredApplications = $this->filterByWorkQueue($applications);
+        $workQueues = $this->workQueues($applications);
 
         return [
             'columns' => $this->buildColumns($filteredApplications, $summaryService),
@@ -2437,7 +2439,7 @@ class KanbanApplications extends Page
             'search' => $this->search,
             'quickFilter' => $this->quickFilter,
             'totalApplications' => $filteredApplications->count(),
-            'unfilteredApplications' => $applications->count(),
+            'unfilteredApplications' => $unfilteredApplications,
         ];
     }
 
@@ -2471,23 +2473,6 @@ class KanbanApplications extends Page
      * @param  Collection<int, Application>  $applications
      * @return Collection<int, Application>
      */
-    private function filterBySearch(Collection $applications, ApplicationWorkflowSummaryService $summaryService): Collection
-    {
-        $search = $this->normalizeSearchText($this->search);
-
-        return $applications
-            ->filter(function (Application $application) use ($search, $summaryService): bool {
-                $summary = $summaryService->summarize($application);
-
-                return $this->matchesSearch($application, $summary, $search);
-            })
-            ->values();
-    }
-
-    /**
-     * @param  Collection<int, Application>  $applications
-     * @return Collection<int, Application>
-     */
     private function filterByWorkQueue(Collection $applications): Collection
     {
         return $applications
@@ -2495,43 +2480,40 @@ class KanbanApplications extends Page
             ->values();
     }
 
-    /**
-     * @param  array<string, mixed>  $summary
-     */
-    private function matchesSearch(Application $application, array $summary, string $search): bool
+    private function applySearch(Builder $query): void
     {
+        $search = trim($this->search);
         if ($search === '') {
-            return true;
+            return;
         }
 
-        $haystack = $this->normalizeSearchText(implode(' ', array_filter([
-            (string) $application->id,
-            'HS'.$application->id,
-            'hoso '.$application->id,
-            'ho so '.$application->id,
-            $application->snapshotCandidateName(),
-            $application->snapshotCandidateEmail(),
-            $application->snapshotCandidatePhone(),
-            $application->job?->title,
-            $application->job?->branch?->name ?? $application->branch?->name,
-            $application->job?->department?->name,
-            $summary['stage_label'] ?? null,
-            $summary['status_label'] ?? null,
-            $summary['description'] ?? null,
-        ])));
+        $tokens = collect(preg_split('/\s+/', $search) ?: [])
+            ->map(fn (string $token): string => trim($token))
+            ->filter(fn (string $token): bool => $token !== '' && ! in_array(Str::ascii(Str::lower($token)), ['ho', 'so'], true));
 
-        return collect(explode(' ', $search))
-            ->filter()
-            ->every(fn (string $token): bool => str_contains($haystack, $token));
-    }
+        foreach ($tokens as $token) {
+            $like = '%'.$token.'%';
+            $asciiToken = Str::ascii(Str::lower($token));
+            $applicationId = preg_match('/^(?:hs|hoso)?(\d+)$/', $asciiToken, $matches)
+                ? (int) $matches[1]
+                : null;
 
-    private function normalizeSearchText(?string $value): string
-    {
-        $value = Str::ascii((string) $value);
-        $value = Str::lower($value);
-        $value = preg_replace('/[^a-z0-9]+/u', ' ', $value) ?? '';
+            $query->where(function (Builder $searchQuery) use ($applicationId, $like): void {
+                $searchQuery
+                    ->whereHas('candidate', fn (Builder $candidateQuery): Builder => $candidateQuery
+                        ->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like)
+                        ->orWhere('phone', 'like', $like))
+                    ->orWhereHas('job', fn (Builder $jobQuery): Builder => $jobQuery
+                        ->where('title', 'like', $like)
+                        ->orWhereHas('branch', fn (Builder $branchQuery): Builder => $branchQuery->where('name', 'like', $like))
+                        ->orWhereHas('department', fn (Builder $departmentQuery): Builder => $departmentQuery->where('name', 'like', $like)));
 
-        return trim(preg_replace('/\s+/', ' ', $value) ?? '');
+                if ($applicationId) {
+                    $searchQuery->orWhereKey($applicationId);
+                }
+            });
+        }
     }
 
     private function matchesWorkQueue(Application $application, string $queue): bool

@@ -132,7 +132,7 @@ class OfferWorkflowService
 
         foreach ($directors as $director) {
             try {
-                Mail::to($director->email)->send(new OfferApprovalRequestMail($offer, $application, $application->job, $director));
+                Mail::to($director->email)->queue(new OfferApprovalRequestMail($offer, $application, $application->job, $director));
                 $sent++;
             } catch (\Throwable $exception) {
                 $failed++;

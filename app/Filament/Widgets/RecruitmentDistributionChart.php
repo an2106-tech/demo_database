@@ -3,19 +3,27 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Application;
+use App\Services\RecruitmentDashboardContext;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\Auth;
 
 class RecruitmentDistributionChart extends ChartWidget
 {
-    protected static ?int $sort = -2;
+    protected static ?int $sort = -1;
 
-    protected int | string | array $columnSpan = [
+    protected ?string $pollingInterval = null;
+
+    protected int|string|array $columnSpan = [
         'default' => 'full',
         'xl' => 1,
     ];
 
     protected ?string $maxHeight = '300px';
+
+    public static function canView(): bool
+    {
+        return RecruitmentDashboardContext::current()->is('super_admin', 'hr', 'director');
+    }
 
     public function getHeading(): ?string
     {

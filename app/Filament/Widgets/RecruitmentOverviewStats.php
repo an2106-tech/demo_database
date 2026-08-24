@@ -16,13 +16,17 @@ use Illuminate\Support\Facades\Auth;
 
 class RecruitmentOverviewStats extends StatsOverviewWidget
 {
+    protected static bool $isDiscovered = false;
+
     protected static ?int $sort = -4;
+
+    protected ?string $pollingInterval = null;
 
     protected ?string $heading = 'Tổng quan vận hành tuyển dụng';
 
     protected ?string $description = 'Theo dõi nhanh nhu cầu tuyển dụng, nguồn ứng viên, lịch phỏng vấn và kết quả tuyển dụng.';
 
-    protected int | array | null $columns = [
+    protected int|array|null $columns = [
         'default' => 1,
         'md' => 2,
         'xl' => 3,
@@ -40,9 +44,20 @@ class RecruitmentOverviewStats extends StatsOverviewWidget
             ->where('status', StatusRecruitmentJobsEnum::PUBLISHED->value)
             ->count();
 
-        $newApplications = $this->scopeApplications(Application::query(), $branchId)
-            ->where('applied_at', '>=', $now->copy()->subDays(7))
-            ->count();
+        $applicationCounts = $this->scopeApplications(Application::query(), $branchId)
+            ->selectRaw(
+                'COUNT(CASE WHEN applied_at >= ? THEN 1 END) as new_applications, COUNT(CASE WHEN status = ? AND updated_at BETWEEN ? AND ? THEN 1 END) as hired_this_month',
+                [
+                    $now->copy()->subDays(7),
+                    StatusApplicationEnum::HIRED->value,
+                    $now->copy()->startOfMonth(),
+                    $now->copy()->endOfMonth(),
+                ],
+            )
+            ->first();
+
+        $newApplications = (int) ($applicationCounts?->new_applications ?? 0);
+        $hiredThisMonth = (int) ($applicationCounts?->hired_this_month ?? 0);
 
         $newCandidates = $this->scopeCandidates(Candidate::query(), $branchId)
             ->where('created_at', '>=', $now->copy()->subDays(7))
@@ -56,11 +71,6 @@ class RecruitmentOverviewStats extends StatsOverviewWidget
 
         $pendingOffers = $this->scopeOffers(Offer::query(), $branchId)
             ->where('status', 'awaiting_approval')
-            ->count();
-
-        $hiredThisMonth = $this->scopeApplications(Application::query(), $branchId)
-            ->where('status', StatusApplicationEnum::HIRED->value)
-            ->whereBetween('updated_at', [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()])
             ->count();
 
         return [

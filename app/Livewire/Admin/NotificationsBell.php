@@ -56,6 +56,14 @@ class NotificationsBell extends Component
     {
         $userId = Auth::id();
 
+        if (! $userId) {
+            return view('livewire.admin.notifications-bell', [
+                'notifications' => collect(),
+                'unreadCount' => 0,
+                'doneCount' => 0,
+            ]);
+        }
+
         $notifications = UserNotification::query()
             ->where('user_id', $userId)
             ->when($this->tab === 'pending', fn ($query) => $query->whereNull('read_at'))
@@ -64,15 +72,15 @@ class NotificationsBell extends Component
             ->limit(6)
             ->get();
 
-        $doneCount = UserNotification::query()
+        $counts = UserNotification::query()
             ->where('user_id', $userId)
-            ->whereNotNull('read_at')
-            ->count();
+            ->selectRaw(
+                'COUNT(CASE WHEN read_at IS NULL THEN 1 END) as unread_count, COUNT(CASE WHEN read_at IS NOT NULL THEN 1 END) as done_count'
+            )
+            ->first();
 
-        $unreadCount = UserNotification::query()
-            ->where('user_id', $userId)
-            ->whereNull('read_at')
-            ->count();
+        $unreadCount = (int) ($counts?->unread_count ?? 0);
+        $doneCount = (int) ($counts?->done_count ?? 0);
 
         return view('livewire.admin.notifications-bell', [
             'notifications' => $notifications,

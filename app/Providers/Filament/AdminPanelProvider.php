@@ -13,27 +13,35 @@ use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
 use App\Filament\Resources\Roles\RoleResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Resources\Workplaces\WorkplaceResource;
+use App\Filament\Widgets\RecruitmentDistributionChart;
+use App\Filament\Widgets\RecruitmentPipelineChart;
+use App\Filament\Widgets\RecruitmentRoleOverviewStats;
+use App\Filament\Widgets\RecruitmentWorkload;
+use App\Filament\Widgets\UpcomingInterviews;
+use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Pages\Dashboard;
-use Filament\View\PanelsRenderHook;
-use Illuminate\Support\Facades\Blade;
-use Illuminate\Support\HtmlString;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
 {
     public static bool $registerNavigation = false;
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -64,14 +72,14 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
-                \App\Filament\Widgets\RecruitmentOverviewStats::class,
-                \App\Filament\Widgets\RecruitmentWorkload::class,
-                \App\Filament\Widgets\RecruitmentPipelineChart::class,
-                \App\Filament\Widgets\RecruitmentDistributionChart::class,
-                \App\Filament\Widgets\InterviewCalendar::class,
+                RecruitmentRoleOverviewStats::class,
+                RecruitmentWorkload::class,
+                UpcomingInterviews::class,
+                RecruitmentPipelineChart::class,
+                RecruitmentDistributionChart::class,
             ])
             ->plugins([
-                \BezhanSalleh\FilamentShield\FilamentShieldPlugin::make(),
+                FilamentShieldPlugin::make(),
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -89,7 +97,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->renderHook(
                 PanelsRenderHook::USER_MENU_BEFORE,
-                fn (): HtmlString => new HtmlString(Blade::render('@livewire(\App\Livewire\Admin\NotificationsBell::class)'))
+                fn (): HtmlString => Auth::check()
+                    ? new HtmlString(Blade::render('@livewire(\App\Livewire\Admin\NotificationsBell::class)'))
+                    : new HtmlString('')
             )
             ->renderHook(
                 'panels::body.end',

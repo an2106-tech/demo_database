@@ -2,24 +2,26 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Applications\ApplicationResource;
 use App\Models\Interview;
-use App\Models\User;
+use App\Services\RecruitmentDashboardContext;
 use Guava\Calendar\Enums\CalendarViewType;
 use Guava\Calendar\Filament\CalendarWidget;
 use Guava\Calendar\ValueObjects\CalendarEvent;
 use Guava\Calendar\ValueObjects\FetchInfo;
-use Illuminate\Support\HtmlString;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\HtmlString;
 
 class InterviewCalendar extends CalendarWidget
 {
+    protected static bool $isDiscovered = false;
+
     protected static ?int $sort = 10;
 
-    protected string | HtmlString | bool | null $heading = 'Lịch phỏng vấn';
+    protected string|HtmlString|bool|null $heading = false;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected CalendarViewType $calendarView = CalendarViewType::TimeGridWeek;
 
@@ -30,16 +32,21 @@ class InterviewCalendar extends CalendarWidget
     protected bool $eventClickEnabled = false;
 
     protected array $options = [
-        'allDaySlot'     => false,
-        'nowIndicator'   => true,
-        'slotDuration'   => '00:30:00',
-        'scrollTime'     => '08:00:00',   // scroll to 8AM on load, events outside still visible
-        'height'         => 'auto',
+        'allDaySlot' => false,
+        'nowIndicator' => true,
+        'slotDuration' => '00:30:00',
+        'scrollTime' => '08:00:00',   // scroll to 8AM on load, events outside still visible
+        'height' => '650px',
         'eventMinHeight' => 60,
-        'expandRows'     => true,
+        'expandRows' => false,
+        'headerToolbar' => [
+            'start' => 'prev,next today',
+            'center' => 'title',
+            'end' => 'timeGridDay,timeGridWeek,listWeek',
+        ],
     ];
 
-    protected function getEvents(FetchInfo $info): Collection | array | Builder
+    protected function getEvents(FetchInfo $info): Collection|array|Builder
     {
         return $this->getInterviewQuery($info)
             ->get()
@@ -48,17 +55,20 @@ class InterviewCalendar extends CalendarWidget
 
     protected function getInterviewQuery(FetchInfo $info): Builder
     {
-        /** @var User|null $user */
-        $user = Auth::user();
+        $context = RecruitmentDashboardContext::current();
 
         $query = Interview::query()
             ->with(['application.candidate', 'application.job', 'interviewer', 'workplace'])
             ->whereBetween('scheduled_at', [$info->start->toDateTimeString(), $info->end->toDateTimeString()]);
 
-        if ($user?->branchScopeId()) {
-            $query->whereHas('application.job', function (Builder $jobQuery) use ($user): void {
-                $jobQuery->where('branch_id', $user->branchScopeId());
+        if ($context->branchId()) {
+            $query->whereHas('application.job', function (Builder $jobQuery) use ($context): void {
+                $jobQuery->where('branch_id', $context->branchId());
             });
+        }
+
+        if ($context->isPm()) {
+            $query->where('interviewer_id', $context->user()?->getKey());
         }
 
         return $query;
@@ -72,18 +82,27 @@ class InterviewCalendar extends CalendarWidget
         [$backgroundColor, $textColor] = $this->resolveEventColors($interview);
 
         $candidateName = $interview->application?->snapshotCandidateName() ?? 'Ứng viên';
-        $jobTitle      = $interview->application?->job?->title ?? 'Chưa có vị trí';
+        $jobTitle = $interview->application?->job?->title ?? 'Chưa có vị trí';
 
         // Shorter title = less truncation in the fixed-height TimeGrid block.
         // The hover tooltip (injected via JS renderHook) shows the full details.
-        $blockTitle = $candidateName . ' - ' . $jobTitle;
+        $blockTitle = $candidateName.' - '.$jobTitle;
 
-        return CalendarEvent::make($interview)
+        $event = CalendarEvent::make($interview)
             ->title($blockTitle)
             ->start($start)
             ->end($end)
             ->backgroundColor($backgroundColor)
             ->textColor($textColor);
+
+        if ($interview->application) {
+            $event->url(
+                ApplicationResource::getUrl('view', ['record' => $interview->application]),
+                '_self',
+            );
+        }
+
+        return $event;
     }
 
     protected function resolveEventColors(Interview $interview): array

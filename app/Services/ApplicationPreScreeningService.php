@@ -72,8 +72,11 @@ class ApplicationPreScreeningService
 
     public function latest(Application $application): ?ApplicationPreScreening
     {
-        return $application->latestPreScreening
-            ?? $application->preScreenings()->latest('id')->first();
+        if ($application->relationLoaded('latestPreScreening')) {
+            return $application->latestPreScreening;
+        }
+
+        return $application->preScreenings()->latest('id')->first();
     }
 
     public function hasPassed(Application $application): bool

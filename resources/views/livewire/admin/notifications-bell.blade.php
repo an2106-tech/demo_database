@@ -1,4 +1,4 @@
-<div wire:poll.10s class="relative">
+<div wire:poll.30s class="relative">
     <style>
         .admin-notification-trigger {
             position: relative;

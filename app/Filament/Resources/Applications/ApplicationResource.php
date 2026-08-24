@@ -158,6 +158,7 @@ class ApplicationResource extends Resource
                 'job.department',
                 'latestInterview.interviewer',
                 'latestInterview.workplace',
+                'latestInterview.scorecards',
                 'latestOffer.approvedByUser',
                 'latestOffer.letterTemplate',
                 'latestScorecard.evaluator',

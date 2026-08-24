@@ -78,7 +78,6 @@ class ApplicationsTable
 
         return $table
             ->defaultSort('applied_at', 'desc')
-            ->poll('10s')
             ->searchPlaceholder('Tìm theo ứng viên, vị trí, email...')
             ->columns([
                 TextColumn::make('id')
@@ -2953,15 +2952,15 @@ class ApplicationsTable
             if ($result['sent'] === 0) {
                 $notification
                     ->warning()
-                    ->body('Đề nghị đã chuyển sang chờ duyệt. Email thông báo chưa gửi được, giám đốc vẫn có thể xem trong màn Duyệt đề nghị.');
+                    ->body('Đề nghị đã chuyển sang chờ duyệt. Email thông báo chưa thể đưa vào hàng đợi gửi; giám đốc vẫn có thể xem trong màn Duyệt đề nghị.');
             } elseif ($result['failed'] > 0) {
                 $notification
                     ->success()
-                    ->body('Đề nghị đã chuyển sang chờ giám đốc duyệt. Một số email thông báo chưa gửi được.');
+                    ->body('Đề nghị đã chuyển sang chờ giám đốc duyệt. Một số email chưa thể đưa vào hàng đợi gửi.');
             } else {
                 $notification
                     ->success()
-                    ->body('Đề nghị tuyển dụng đã được gửi cho giám đốc chi nhánh duyệt.');
+                    ->body('Đề nghị đã chuyển sang chờ duyệt. Email thông báo sẽ được gửi trong giây lát.');
             }
 
             $notification->send();
@@ -3002,17 +3001,17 @@ class ApplicationsTable
         $notification = Notification::make()->title($result['is_update'] ? 'Đã gửi cập nhật lịch phỏng vấn' : 'Đã gửi lịch phỏng vấn');
 
         if (! $result['candidate_sent']) {
-            $notification->warning()->body('Chưa gửi được lịch cho ứng viên. Lịch vẫn ở trạng thái chưa gửi để có thể kiểm tra và gửi lại.');
+            $notification->warning()->body('Chưa thể đưa lịch vào hàng đợi gửi. Lịch vẫn ở trạng thái chưa gửi để có thể kiểm tra và gửi lại.');
         } elseif ($result['failed'] > 0) {
             $notification->warning()->body($result['is_update']
-                ? "Gửi cập nhật thành công {$result['sent']}, một số email chưa gửi được."
-                : "Đã gửi lịch, một số email chưa gửi được.");
+                ? "Đã đưa cập nhật lịch vào hàng đợi gửi, nhưng một số email chưa thể xử lý."
+                : "Đã đưa lịch vào hàng đợi gửi, nhưng một số email chưa thể xử lý.");
         } elseif ($result['sent'] === 0) {
             $notification->warning()->body('Không tìm thấy email ứng viên hoặc người liên quan để gửi lịch phỏng vấn.');
         } else {
             $notification->success()->body($result['is_update']
-                ? 'Đã gửi cập nhật lịch kèm file lịch phỏng vấn.'
-                : 'Đã gửi lịch phỏng vấn kèm file lịch.');
+                ? 'Email cập nhật lịch kèm file lịch đang được gửi.'
+                : 'Email lịch phỏng vấn kèm file lịch đang được gửi.');
         }
 
         $notification->send();

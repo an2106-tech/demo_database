@@ -102,7 +102,7 @@ class InterviewScheduleDeliveryService
 
         foreach ($recipients as $email => $recipientLabel) {
             try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $recipientLabel, $isUpdate));
+                Mail::to($email)->queue(new InterviewScheduledMail($interview, $recipientLabel, $isUpdate));
                 $sentCount++;
                 $candidateSent = $candidateSent || $recipientLabel === 'candidate';
             } catch (\Throwable $exception) {
@@ -133,8 +133,8 @@ class InterviewScheduleDeliveryService
                 $status,
                 $status,
                 $isUpdate
-                    ? "Đã gửi cập nhật lịch phỏng vấn tới {$sentCount} email."
-                    : "Đã gửi lịch phỏng vấn tới {$sentCount} email.",
+                    ? "Đã đưa cập nhật lịch phỏng vấn tới {$sentCount} email vào hàng đợi gửi."
+                    : "Đã đưa lịch phỏng vấn tới {$sentCount} email vào hàng đợi gửi.",
             );
         }
 

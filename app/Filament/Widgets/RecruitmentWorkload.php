@@ -11,6 +11,8 @@ use App\Models\Application;
 use App\Models\Interview;
 use App\Models\Offer;
 use App\Models\RecruitmentJob;
+use App\Services\RecruitmentDashboardContext;
+use Carbon\CarbonInterface;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -30,7 +32,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
 
     protected string $view = 'filament.widgets.recruitment-workload';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     /**
      * @return array<string, mixed>
@@ -38,121 +40,169 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
     protected function getViewData(): array
     {
         $now = now();
-        $branchId = Auth::user()?->branchScopeId();
+        $context = RecruitmentDashboardContext::current();
+        $branchId = $context->branchId();
+        $counts = $this->workloadCounts($branchId, $now);
 
         $items = [
             [
                 'key' => 'pending_jobs',
                 'label' => 'Tin chờ duyệt',
                 'description' => 'Kiểm tra và công khai tin tuyển dụng.',
-                'count' => $this->scopeRecruitmentJobs(RecruitmentJob::query(), $branchId)
-                    ->where('status', StatusRecruitmentJobsEnum::PENDING->value)
-                    ->count(),
+                'count' => $counts['pending_jobs'],
                 'icon' => 'heroicon-o-clock',
                 'color' => 'warning',
                 'priority' => 'Theo dõi',
                 'sort' => 60,
+                'roles' => ['super_admin', 'director'],
                 'url' => RecruitmentJobResource::getUrl('index'),
             ],
             [
                 'key' => 'cv_reviewing',
                 'label' => 'Chờ sàng lọc CV',
                 'description' => 'Xem CV và quyết định bước tiếp theo.',
-                'count' => $this->scopeApplications(Application::query(), $branchId)
-                    ->where('status', StatusApplicationEnum::CV_REVIEWING->value)
-                    ->count(),
+                'count' => $counts['cv_reviewing'],
                 'icon' => 'heroicon-o-document-magnifying-glass',
                 'color' => 'gray',
                 'priority' => 'Cần xử lý',
                 'sort' => 20,
+                'roles' => ['super_admin', 'hr'],
                 'url' => ApplicationResource::getUrl('index'),
             ],
             [
                 'key' => 'unsent_interviews',
                 'label' => 'Lịch chưa gửi',
                 'description' => 'Gửi thư mời và file lịch cho người liên quan.',
-                'count' => $this->scopeInterviews(Interview::query(), $branchId)
-                    ->whereNull('invite_sent_at')
-                    ->where('scheduled_at', '>=', $now)
-                    ->where('result', 'pending')
-                    ->count(),
+                'count' => $counts['unsent_interviews'],
                 'icon' => 'heroicon-o-paper-airplane',
                 'color' => 'info',
                 'priority' => 'Cần gửi',
                 'sort' => 30,
+                'roles' => ['super_admin', 'hr'],
                 'url' => ApplicationResource::getUrl('index'),
             ],
             [
                 'key' => 'overdue_interviews',
                 'label' => 'Chưa chấm phỏng vấn',
                 'description' => 'Ghi scorecard để chốt kết quả phỏng vấn.',
-                'count' => $this->scopeInterviews(Interview::query(), $branchId)
-                    ->where('scheduled_at', '<', $now)
-                    ->where('result', 'pending')
-                    ->count(),
+                'count' => $counts['overdue_interviews'],
                 'icon' => 'heroicon-o-clipboard-document-check',
                 'color' => 'danger',
                 'priority' => 'Quá hạn',
                 'sort' => 10,
+                'roles' => ['super_admin', 'hr', 'pm'],
                 'url' => ApplicationResource::getUrl('index'),
             ],
             [
                 'key' => 'draft_offers',
                 'label' => 'Đề nghị nháp',
                 'description' => 'Kiểm tra nội dung và gửi giám đốc duyệt.',
-                'count' => $this->scopeOffers(Offer::query(), $branchId)
-                    ->where('status', 'draft')
-                    ->count(),
+                'count' => $counts['draft_offers'],
                 'icon' => 'heroicon-o-document-text',
                 'color' => 'warning',
                 'priority' => 'Cần gửi',
                 'sort' => 40,
+                'roles' => ['super_admin', 'hr'],
                 'url' => ApplicationResource::getUrl('index'),
             ],
             [
                 'key' => 'pending_offers',
                 'label' => 'Đề nghị chờ duyệt',
                 'description' => 'Theo dõi quyết định của giám đốc chi nhánh.',
-                'count' => $this->scopeOffers(Offer::query(), $branchId)
-                    ->where('status', 'awaiting_approval')
-                    ->count(),
+                'count' => $counts['pending_offers'],
                 'icon' => 'heroicon-o-hand-raised',
                 'color' => 'warning',
                 'priority' => 'Chờ duyệt',
                 'sort' => 50,
+                'roles' => ['super_admin', 'director'],
                 'url' => OfferResource::getUrl('index'),
             ],
             [
                 'key' => 'expiring_offers',
                 'label' => 'Đề nghị sắp hết hạn',
                 'description' => 'Ứng viên chưa phản hồi, cần theo dõi hạn.',
-                'count' => $this->scopeOffers(Offer::query(), $branchId)
-                    ->where('status', 'pending')
-                    ->whereNotNull('expires_at')
-                    ->whereBetween('expires_at', [$now, $now->copy()->addDays(2)])
-                    ->count(),
+                'count' => $counts['expiring_offers'],
                 'icon' => 'heroicon-o-exclamation-triangle',
                 'color' => 'danger',
                 'priority' => 'Sắp hết hạn',
                 'sort' => 15,
+                'roles' => ['super_admin', 'hr', 'director'],
                 'url' => ApplicationResource::getUrl('index'),
             ],
         ];
 
-        $activeItems = collect($items)
+        $visibleItems = collect($items)
+            ->filter(fn (array $item): bool => in_array($context->role(), $item['roles'], true))
+            ->values();
+
+        $activeItems = $visibleItems
             ->filter(fn (array $item): bool => (int) $item['count'] > 0)
             ->sortBy('sort')
             ->values();
 
         return [
-            'items' => $items,
+            'items' => $visibleItems->all(),
             'activeItems' => $activeItems->all(),
-            'primaryItem' => $activeItems->first(),
-            'secondaryItems' => $activeItems->slice(1)->values()->all(),
-            'idleCount' => collect($items)->filter(fn (array $item): bool => (int) $item['count'] === 0)->count(),
-            'totalOpenItems' => collect($items)->sum('count'),
-            'scopeLabel' => $branchId ? 'Dữ liệu trong chi nhánh của tài khoản hiện tại' : 'Dữ liệu toàn hệ thống',
+            'totalOpenItems' => $visibleItems->sum('count'),
+            'scopeLabel' => $context->scopeLabel(),
         ];
+    }
+
+    /**
+     * @return array{pending_jobs: int, cv_reviewing: int, unsent_interviews: int, overdue_interviews: int, draft_offers: int, pending_offers: int, expiring_offers: int}
+     */
+    protected function workloadCounts(?int $branchId, CarbonInterface $now): array
+    {
+        $context = RecruitmentDashboardContext::current();
+        $counts = [
+            'pending_jobs' => 0,
+            'cv_reviewing' => 0,
+            'unsent_interviews' => 0,
+            'overdue_interviews' => 0,
+            'draft_offers' => 0,
+            'pending_offers' => 0,
+            'expiring_offers' => 0,
+        ];
+
+        if ($context->is('super_admin', 'director')) {
+            $jobCounts = $this->scopeRecruitmentJobs(RecruitmentJob::query(), $branchId)
+                ->selectRaw('COUNT(CASE WHEN status = ? THEN 1 END) as pending_jobs', [StatusRecruitmentJobsEnum::PENDING->value])
+                ->first();
+            $counts['pending_jobs'] = (int) ($jobCounts?->pending_jobs ?? 0);
+        }
+
+        if ($context->is('super_admin', 'hr')) {
+            $applicationCounts = $this->scopeApplications(Application::query(), $branchId)
+                ->selectRaw('COUNT(CASE WHEN status = ? THEN 1 END) as cv_reviewing', [StatusApplicationEnum::CV_REVIEWING->value])
+                ->first();
+            $counts['cv_reviewing'] = (int) ($applicationCounts?->cv_reviewing ?? 0);
+        }
+
+        if ($context->is('super_admin', 'hr', 'pm')) {
+            $interviewCounts = $this->scopeInterviews(Interview::query(), $branchId)
+                ->selectRaw(
+                    'COUNT(CASE WHEN invite_sent_at IS NULL AND scheduled_at >= ? AND result = ? THEN 1 END) as unsent_interviews, COUNT(CASE WHEN scheduled_at < ? AND result = ? THEN 1 END) as overdue_interviews',
+                    [$now, 'pending', $now, 'pending'],
+                )
+                ->first();
+            $counts['unsent_interviews'] = (int) ($interviewCounts?->unsent_interviews ?? 0);
+            $counts['overdue_interviews'] = (int) ($interviewCounts?->overdue_interviews ?? 0);
+        }
+
+        if ($context->is('super_admin', 'hr', 'director')) {
+            $offerDeadline = $now->copy()->addDays(2);
+            $offerCounts = $this->scopeOffers(Offer::query(), $branchId)
+                ->selectRaw(
+                    'COUNT(CASE WHEN status = ? THEN 1 END) as draft_offers, COUNT(CASE WHEN status = ? THEN 1 END) as pending_offers, COUNT(CASE WHEN status = ? AND expires_at IS NOT NULL AND expires_at BETWEEN ? AND ? THEN 1 END) as expiring_offers',
+                    ['draft', 'awaiting_approval', 'pending', $now, $offerDeadline],
+                )
+                ->first();
+            $counts['draft_offers'] = (int) ($offerCounts?->draft_offers ?? 0);
+            $counts['pending_offers'] = (int) ($offerCounts?->pending_offers ?? 0);
+            $counts['expiring_offers'] = (int) ($offerCounts?->expiring_offers ?? 0);
+        }
+
+        return $counts;
     }
 
     public function viewWorkloadAction(): Action
@@ -187,6 +237,10 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
      */
     protected function workloadPreviewRows(?string $key): array
     {
+        if (! collect($this->getViewData()['items'])->contains('key', $key)) {
+            return [];
+        }
+
         $now = now();
         $branchId = Auth::user()?->branchScopeId();
         $timezone = config('app.interview_timezone', 'Asia/Ho_Chi_Minh');
@@ -353,9 +407,17 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
 
     protected function scopeInterviews(Builder $query, ?int $branchId): Builder
     {
-        return $branchId
+        $query = $branchId
             ? $query->whereHas('application.job', fn (Builder $jobQuery): Builder => $jobQuery->where('branch_id', $branchId))
             : $query;
+
+        $context = RecruitmentDashboardContext::current();
+
+        if ($context->isPm()) {
+            $query->where('interviewer_id', $context->user()?->getKey());
+        }
+
+        return $query;
     }
 
     protected function scopeOffers(Builder $query, ?int $branchId): Builder

@@ -54,7 +54,7 @@ class Application extends Model
                                 'from_config' => config('mail.from.address')
                             ]);
 
-                            Mail::to($candidate->email)->send(new CandidateApplicationRejectedMail($candidate, $application, $job));
+                            Mail::to($candidate->email)->queue(new CandidateApplicationRejectedMail($candidate, $application, $job));
                             
                             Log::info('--- REJECTION EMAIL SENT SUCCESSFULLY ---', ['recipient' => $candidate->email]);
                         } catch (\Throwable $exception) {

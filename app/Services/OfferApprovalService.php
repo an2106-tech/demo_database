@@ -85,7 +85,7 @@ class OfferApprovalService
 
             $offer->refresh();
 
-            Mail::to($candidate->email)->send(
+            Mail::to($candidate->email)->queue(
                 new CandidateOfferMail(
                     $candidate,
                     $offer->application,
@@ -255,7 +255,7 @@ class OfferApprovalService
                 // Determine user's role
                 $role = $user->roles?->first()?->name ?? $user->role ?? 'hr';
 
-                Mail::to($user->email)->send(
+                Mail::to($user->email)->queue(
                     new OfferApprovedNotificationMail(
                         $offer,
                         $offer->application,

@@ -172,7 +172,7 @@ class EditOffer extends EditRecord
                         Notification::make()
                             ->success()
                             ->title('Đã duyệt đề nghị tuyển dụng')
-                            ->body('Thư mời nhận việc đã được gửi tới ứng viên.')
+                            ->body('Thư mời nhận việc đang được gửi tới ứng viên.')
                             ->send();
 
                         $this->redirect(OfferResource::getUrl('index'));

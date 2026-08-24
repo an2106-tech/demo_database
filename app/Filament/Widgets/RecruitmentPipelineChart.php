@@ -3,24 +3,33 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Application;
+use App\Services\RecruitmentDashboardContext;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class RecruitmentPipelineChart extends ChartWidget
 {
-    protected static ?int $sort = -2;
+    protected static ?int $sort = -1;
+
+    protected ?string $pollingInterval = null;
 
     protected ?string $heading = 'Xu hướng hồ sơ ứng tuyển';
 
     protected ?string $description = 'Theo dõi lượng hồ sơ mới và kết quả tuyển dụng trong 14 ngày gần nhất.';
 
-    protected int | string | array $columnSpan = [
+    protected int|string|array $columnSpan = [
         'default' => 'full',
         'xl' => 1,
     ];
 
     protected ?string $maxHeight = '300px';
+
+    public static function canView(): bool
+    {
+        return RecruitmentDashboardContext::current()->is('super_admin', 'hr', 'director');
+    }
 
     protected function getData(): array
     {
@@ -32,18 +41,18 @@ class RecruitmentPipelineChart extends ChartWidget
             ->map(fn (int $offset): string => $startDate->copy()->addDays($offset)->format('d/m'))
             ->all();
 
-        $newApplicationsByDay = $this->scopeApplications(Application::query(), $branchId)
-            ->whereBetween('applied_at', [$startDate, $endDate])
-            ->get(['applied_at'])
-            ->groupBy(fn (Application $application): string => $application->applied_at?->format('Y-m-d') ?? '-')
-            ->map->count();
+        $newApplicationsByDay = $this->dailyCounts(
+            $this->scopeApplications(Application::query(), $branchId)
+                ->whereBetween('applied_at', [$startDate, $endDate]),
+            'applied_at',
+        );
 
-        $hiredApplicationsByDay = $this->scopeApplications(Application::query(), $branchId)
-            ->where('status', 'hired')
-            ->whereBetween('updated_at', [$startDate, $endDate])
-            ->get(['updated_at'])
-            ->groupBy(fn (Application $application): string => $application->updated_at?->format('Y-m-d') ?? '-')
-            ->map->count();
+        $hiredApplicationsByDay = $this->dailyCounts(
+            $this->scopeApplications(Application::query(), $branchId)
+                ->where('status', 'hired')
+                ->whereBetween('updated_at', [$startDate, $endDate]),
+            'updated_at',
+        );
 
         $newApplicationsData = collect(range(0, 13))
             ->map(fn (int $offset): int => (int) ($newApplicationsByDay[$startDate->copy()->addDays($offset)->format('Y-m-d')] ?? 0))
@@ -79,6 +88,24 @@ class RecruitmentPipelineChart extends ChartWidget
     protected function getType(): string
     {
         return 'line';
+    }
+
+    /**
+     * @return Collection<string, int>
+     */
+    protected function dailyCounts(Builder $query, string $column): Collection
+    {
+        $dateExpression = match ($query->getConnection()->getDriverName()) {
+            'sqlite' => "strftime('%Y-%m-%d', {$column})",
+            'pgsql' => "to_char({$column}, 'YYYY-MM-DD')",
+            default => "DATE_FORMAT({$column}, '%Y-%m-%d')",
+        };
+
+        return $query
+            ->selectRaw("{$dateExpression} as day_key, COUNT(*) as aggregate")
+            ->groupByRaw($dateExpression)
+            ->pluck('aggregate', 'day_key')
+            ->map(fn ($value): int => (int) $value);
     }
 
     protected function scopeApplications(Builder $query, ?int $branchId): Builder
