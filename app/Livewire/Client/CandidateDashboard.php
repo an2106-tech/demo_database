@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Client;
 
+use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
 use App\Models\RecruitmentJob;
 use App\Services\CandidateAccountService;
@@ -18,7 +19,13 @@ class CandidateDashboard extends Component
     public $recentApplications = [];
     public int $publishedJobsCount = 0;
     public int $appliedCount = 0;
+    public int $interviewCount = 0;
+    public int $offeredCount = 0;
     public string $userName = '';
+    public ?string $userEmail = '';
+    public ?string $cvFileName = null;
+    public array $checklistItems = [];
+    public $aiRecommendedJobs = [];
 
     public function mount(): void
     {
@@ -26,9 +33,10 @@ class CandidateDashboard extends Component
         abort_unless($user, 401);
 
         $this->userName = (string) ($user->name ?? '');
+        $this->userEmail = (string) ($user->email ?? '');
 
-        $candidate = app(CandidateAccountService::class)->resolveFor($user);
         $candidateService = app(CandidateAccountService::class);
+        $candidate = $candidateService->resolveFor($user);
 
         $this->publishedJobsCount = RecruitmentJob::query()
             ->where('status', 'published')
@@ -38,14 +46,68 @@ class CandidateDashboard extends Component
             ->where('candidate_id', $candidate->id)
             ->count();
 
+        $this->interviewCount = Application::query()
+            ->where('candidate_id', $candidate->id)
+            ->whereIn('status', [
+                StatusApplicationEnum::INTERVIEW_SCHEDULED,
+                StatusApplicationEnum::INTERVIEWING,
+                'interview_scheduled',
+                'interview'
+            ])
+            ->count();
+
+        $this->offeredCount = Application::query()
+            ->where('candidate_id', $candidate->id)
+            ->whereIn('status', [
+                StatusApplicationEnum::OFFERED,
+                StatusApplicationEnum::HIRED,
+                'offer',
+                'hired'
+            ])
+            ->count();
+
         $this->hasCv = $candidateService->candidateHasCv($candidate);
+        if (!empty($candidate->cv_file)) {
+            $this->cvFileName = basename($candidate->cv_file);
+        }
 
         // New data for premium dashboard
         $this->greeting = $this->getGreeting();
         $this->profileCompletion = $candidateService->profileCompletion($candidate);
+
+        // Checklist for profile completion
+        $resume = $candidate->resume()->first();
+        $this->checklistItems = [
+            [
+                'title' => 'Thông tin liên hệ & Họ tên',
+                'completed' => filled($candidate->name) && filled($candidate->phone) && filled($candidate->email),
+                'route' => route('candidates.candidate_profile'),
+            ],
+            [
+                'title' => 'CV đính kèm (PDF / Word)',
+                'completed' => $this->hasCv,
+                'route' => route('candidates.manage_cv'),
+            ],
+            [
+                'title' => 'Vị trí & Mục tiêu nghề nghiệp',
+                'completed' => filled($resume?->profile_title) || filled($resume?->career_objective),
+                'route' => route('candidates.candidate_profile'),
+            ],
+            [
+                'title' => 'Kinh nghiệm & Dự án thực tế',
+                'completed' => filled($candidate->experience_years) || !empty($resume?->experiences),
+                'route' => route('candidates.candidate_profile'),
+            ],
+            [
+                'title' => 'Kỹ năng chuyên môn & Học vấn',
+                'completed' => !empty($candidate->skills) || !empty($resume?->skills) || !empty($resume?->educations),
+                'route' => route('candidates.candidate_profile'),
+            ],
+        ];
+
         $this->recentApplications = Application::query()
             ->where('candidate_id', $candidate->id)
-            ->with('job')
+            ->with(['job.department', 'job.workplace'])
             ->latest('applied_at')
             ->latest()
             ->take(5)
@@ -66,8 +128,6 @@ class CandidateDashboard extends Component
         if ($hour < 18) return 'Chào buổi chiều';
         return 'Chào buổi tối';
     }
-
-    public $aiRecommendedJobs = [];
 
     public function findMatchingJobsWithAi(\App\Services\AiMatchingService $aiService)
     {

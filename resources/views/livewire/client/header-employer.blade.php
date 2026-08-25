@@ -80,65 +80,139 @@
         .employer-user-trigger {
             width: 42px;
             height: 42px;
-            border-radius: 999px;
-            border: 1px solid rgba(14, 116, 144, .2);
-            background: #fff;
+            border-radius: 50%;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
             color: #0f172a;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, .1);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .employer-user-trigger:hover {
+            transform: translateY(-2px);
+            border-color: #f37021;
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.18);
+        }
+
+        .employer-user-trigger img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .employer-user-dropdown {
             position: absolute;
-            top: calc(100% + 10px);
+            top: calc(100% + 12px);
             right: 0;
-            width: 250px;
-            padding: 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(148, 163, 184, .25);
-            background: #fff;
-            box-shadow: 0 16px 30px rgba(15, 23, 42, .15);
-            z-index: 1000;
+            width: 280px;
+            padding: 8px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16), 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+            z-index: 10000;
             text-align: left;
         }
 
-        .employer-user-dropdown a,
-        .employer-user-dropdown a:visited,
-        .employer-user-dropdown a:focus {
+        .employer-user-dropdown-header {
+            padding: 10px 12px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #1e293b !important;
+            gap: 10px;
+        }
+
+        .employer-user-dropdown-header img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .employer-user-dropdown-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .employer-user-dropdown-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .employer-user-dropdown-role {
+            font-size: 11px;
+            color: #f37021;
             font-weight: 600;
-            text-align: left;
-        }
-        
-        .employer-user-dropdown a i {
-            color: #64748b;
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .employer-user-dropdown a:hover {
+        .employer-user-dropdown-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .employer-user-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            color: #334155 !important;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .employer-user-dropdown-item:hover {
             background: #f8fafc;
-            color: #ff8a1d !important;
-        }
-        
-        .employer-user-dropdown a:hover i {
-            color: #ff8a1d;
+            color: #f37021 !important;
+            transform: translateX(2px);
         }
 
-        .employer-user-dropdown .client-logout-btn {
-            width: 100% !important;
-            margin-top: 8px;
+        .employer-user-dropdown-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .employer-user-dropdown-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            font-size: 13.5px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .employer-user-dropdown-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 6px 0;
         }
 
         @media (max-width: 991.98px) {
@@ -251,7 +325,19 @@
                                 </a>
                             </li>
                             @auth
-                                @if(in_array(Auth::user()->role, ['hr', 'director', 'admin']) || (isset(Auth::user()->metadata['account_types']) && in_array('employer', Auth::user()->metadata['account_types'])))
+                                @if(in_array(Auth::user()->role, ['hr', 'director', 'admin', 'pm']) || (isset(Auth::user()->metadata['account_types']) && in_array('employer', Auth::user()->metadata['account_types'])))
+                                @php
+                                    $user = Auth::user();
+                                    $avatar = $user?->avatar;
+                                    $avatarPath = $avatar ? 'storage/' . ltrim($avatar, '/') : 'assets/img/avatar_detail.jpg';
+                                    $avatarUrl = (file_exists(public_path($avatarPath))) ? asset($avatarPath) : asset('assets/img/avatar_detail.jpg');
+                                    $roleLabel = match($user->role) {
+                                        'director' => 'Director',
+                                        'admin' => 'Admin',
+                                        'pm' => 'Project Manager',
+                                        default => 'Tuyển dụng / HR',
+                                    };
+                                @endphp
                                 <li class="employer-user-menu" @click.outside="openEmployerUserMenu = false">
                                     <button
                                         type="button"
@@ -260,19 +346,115 @@
                                         :aria-expanded="openEmployerUserMenu.toString()"
                                         @click="openEmployerUserMenu = !openEmployerUserMenu"
                                     >
-                                        <i class="fa fa-user"></i>
+                                        @if($avatar && file_exists(public_path($avatarPath)))
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                        @else
+                                            <i class="fa fa-user"></i>
+                                        @endif
                                     </button>
 
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('employers.company_profile') }}"><i class="fa fa-building-o"></i> Hồ sơ chi nhánh</a>
-                                        @if(!($canCandidateAccess ?? false))
-                                            <a href="{{ route('candidates.register') }}"><i class="fa fa-user-plus"></i> Kích hoạt hồ sơ ứng viên</a>
-                                        @else
-                                            <a href="{{ route('candidates.candidate_dashboard') }}"><i class="fa fa-user-o"></i> Khu ứng viên</a>
-                                        @endif
-                                        <a href="{{ route('director.approve_jobs') }}"><i class="fa fa-check-square-o"></i> Duyệt tin</a>
-                                        <hr style="margin: 8px 0; border-color: #f1f5f9;">
-                                        <div style="margin-top: 8px;">
+                                        <!-- Profile Header Card -->
+                                        <div class="employer-user-dropdown-header">
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                            <div class="employer-user-dropdown-info">
+                                                <div class="employer-user-dropdown-name">{{ $user?->name ?? 'Nhà tuyển dụng' }}</div>
+                                                <div class="employer-user-dropdown-role">
+                                                    <i class="fa fa-shield text-primary"></i> {{ $roleLabel }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Menu Items -->
+                                        <div class="employer-user-dropdown-menu-list">
+                                            <a href="{{ route('employers.dashboard') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #e0f2fe; color: #0284c7;">
+                                                        <i class="fa fa-tachometer"></i>
+                                                    </div>
+                                                    <span>Bảng điều khiển</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('employers.company_profile') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #ede9fe; color: #7c3aed;">
+                                                        <i class="fa fa-building-o"></i>
+                                                    </div>
+                                                    <span>Hồ sơ chi nhánh</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('employers.manage_candidates') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #ecfdf5; color: #059669;">
+                                                        <i class="fa fa-users"></i>
+                                                    </div>
+                                                    <span>Quản lý ứng viên</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('employers.post_job') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #fff7ed; color: #ea580c;">
+                                                        <i class="fa fa-plus-circle"></i>
+                                                    </div>
+                                                    <span>Đăng tin tuyển dụng</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('employers.application_pipeline') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #fdf2f8; color: #db2777;">
+                                                        <i class="fa fa-sitemap"></i>
+                                                    </div>
+                                                    <span>Pipeline tuyển dụng</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            @if(in_array($user->role, ['director', 'admin']))
+                                                <a href="{{ route('director.approve_jobs') }}" class="employer-user-dropdown-item">
+                                                    <div class="employer-user-dropdown-item-left">
+                                                        <div class="employer-user-dropdown-icon" style="background: #fef3c7; color: #d97706;">
+                                                            <i class="fa fa-check-square-o"></i>
+                                                        </div>
+                                                        <span>Duyệt tin tuyển dụng</span>
+                                                    </div>
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                </a>
+                                            @endif
+
+                                            <div class="employer-user-dropdown-divider"></div>
+
+                                            @if(!($canCandidateAccess ?? false))
+                                                <a href="{{ route('candidates.register') }}" class="employer-user-dropdown-item">
+                                                    <div class="employer-user-dropdown-item-left">
+                                                        <div class="employer-user-dropdown-icon" style="background: #f1f5f9; color: #475569;">
+                                                            <i class="fa fa-user-plus"></i>
+                                                        </div>
+                                                        <span>Kích hoạt hồ sơ ứng viên</span>
+                                                    </div>
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('candidates.candidate_dashboard') }}" class="employer-user-dropdown-item">
+                                                    <div class="employer-user-dropdown-item-left">
+                                                        <div class="employer-user-dropdown-icon" style="background: #f1f5f9; color: #475569;">
+                                                            <i class="fa fa-user-o"></i>
+                                                        </div>
+                                                        <span>Chuyển sang Khu ứng viên</span>
+                                                    </div>
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                </a>
+                                            @endif
+
+                                            <div class="employer-user-dropdown-divider"></div>
+
                                             <livewire:client.logout-button />
                                         </div>
                                     </div>

@@ -71,6 +71,81 @@ main#main-content {
     --card-shadow: 0 10px 30px -5px rgba(243, 112, 33, 0.15);
 }
 
+body.client-app .cd-hero-card h1,
+body.client-app .cd-hero-card h2,
+body.client-app .cd-hero-card h3,
+body.client-app .cd-hero-card h4,
+body.client-app .cd-hero-card h5,
+body.client-app .cd-hero-card h6,
+body.client-app .cd-hero-title {
+    color: #0f172a !important;
+}
+
+body.client-app .cd-ai-studio-card h1,
+body.client-app .cd-ai-studio-card h2,
+body.client-app .cd-ai-studio-card h3,
+body.client-app .cd-ai-studio-card h4,
+body.client-app .cd-ai-studio-card h5,
+body.client-app .cd-ai-studio-card h6,
+body.client-app .cd-ai-studio-title {
+    color: #ffffff !important;
+}
+
+/* Fix floating buttons collision: Stack Back-To-Top gracefully above AI Assistant bubble */
+.btntoTop {
+    bottom: 100px !important;
+    right: 35px !important;
+    width: 46px !important;
+    height: 46px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    border: 1px solid #cbd5e1 !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.12) !important;
+    z-index: 9998 !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btntoTop:before {
+    color: #475569 !important;
+    font-size: 16px !important;
+}
+
+.btntoTop.active:hover {
+    background: #f8fafc !important;
+    border-color: #f37021 !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 6px 18px rgba(243, 112, 33, 0.25) !important;
+}
+
+.btntoTop.active:hover:before {
+    color: #f37021 !important;
+}
+
+@media (max-width: 575px) {
+    .btntoTop {
+        bottom: 86px !important;
+        right: 26px !important;
+        width: 42px !important;
+        height: 42px !important;
+    }
+}
+
+/* Enforce pure white text on user chat bubble */
+body.employer-app .cd-msg-bubble-user,
+body.client-app .cd-msg-bubble-user,
+.cd-msg-bubble-user,
+.cd-msg-bubble-user *,
+.cd-msg-bubble-user div,
+.cd-msg-bubble-user p,
+.cd-msg-bubble-user span {
+    color: #ffffff !important;
+}
+
+body.employer-app .cd-msg-bubble-user .text-white-50,
+body.client-app .cd-msg-bubble-user .text-white-50 {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
 .premium-dashboard-container {
     font-family: 'Inter', sans-serif;
     color: #1e293b;

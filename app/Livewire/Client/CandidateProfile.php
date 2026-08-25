@@ -125,6 +125,19 @@ class CandidateProfile extends Component
         $this->references = is_array($resume->references) ? $resume->references : [];
         $this->extra = is_array($resume->extra) ? ($resume->extra['text'] ?? null) : null;
 
+        // Load existing AI evaluations if available
+        if ($candidate->match_score) {
+            $this->aiScore = (int) $candidate->match_score;
+            $reasons = is_array($candidate->match_reasons) ? $candidate->match_reasons : [];
+            $this->aiSummary = $reasons['summary'] ?? null;
+            $this->aiStrengths = $reasons['strengths'] ?? [];
+            $this->aiWeaknesses = $reasons['weaknesses'] ?? [];
+            $this->aiSuggestions = $reasons['suggestions'] ?? [];
+            $this->aiAtsKeywords = $reasons['ats_keywords'] ?? [];
+            $this->aiMissingKeywords = $reasons['missing_keywords'] ?? [];
+            $this->aiLayoutComment = $reasons['layout_comment'] ?? null;
+        }
+
         $this->refreshApplicationStatus($candidate);
         $this->focusSectionForIncompleteProfile($candidateAccounts->missingApplicationProfileFields($candidate));
     }

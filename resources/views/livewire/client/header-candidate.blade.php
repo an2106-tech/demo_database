@@ -76,65 +76,139 @@
         .candidate-user-trigger {
             width: 42px;
             height: 42px;
-            border-radius: 999px;
-            border: 1px solid rgba(14, 116, 144, .2);
-            background: #fff;
+            border-radius: 50%;
+            border: 1.5px solid #e2e8f0;
+            background: #ffffff;
             color: #0f172a;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(15, 23, 42, .1);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow: hidden;
+            padding: 0;
+        }
+
+        .candidate-user-trigger:hover {
+            transform: translateY(-2px);
+            border-color: #f37021;
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.18);
+        }
+
+        .candidate-user-trigger img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .candidate-user-dropdown {
             position: absolute;
-            top: calc(100% + 10px);
+            top: calc(100% + 12px);
             right: 0;
-            width: 240px;
-            padding: 10px;
-            border-radius: 14px;
-            border: 1px solid rgba(148, 163, 184, .25);
-            background: #fff;
-            box-shadow: 0 16px 30px rgba(15, 23, 42, .15);
-            z-index: 1000;
+            width: 270px;
+            padding: 8px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.16), 0 4px 16px -2px rgba(15, 23, 42, 0.06);
+            z-index: 10000;
             text-align: left;
         }
 
-        .candidate-user-dropdown a,
-        .candidate-user-dropdown a:visited,
-        .candidate-user-dropdown a:focus {
+        .candidate-user-dropdown-header {
+            padding: 10px 12px;
+            background: #f8fafc;
+            border: 1px solid #f1f5f9;
+            border-radius: 12px;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 10px;
-            color: #1e293b !important;
+            gap: 10px;
+        }
+
+        .candidate-user-dropdown-header img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .candidate-user-dropdown-info {
+            min-width: 0;
+            flex: 1;
+        }
+
+        .candidate-user-dropdown-name {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0f172a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.3;
+        }
+
+        .candidate-user-dropdown-role {
+            font-size: 11px;
+            color: #f37021;
             font-weight: 600;
-            text-align: left;
-        }
-        
-        .candidate-user-dropdown a i {
-            color: #64748b;
-            font-size: 16px;
-            width: 20px;
-            text-align: center;
-            transition: color 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .candidate-user-dropdown a:hover {
+        .candidate-user-dropdown-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .candidate-user-dropdown-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            color: #334155 !important;
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
+        }
+
+        .candidate-user-dropdown-item:hover {
             background: #f8fafc;
-            color: var(--fpt-orange) !important;
-        }
-        
-        .candidate-user-dropdown a:hover i {
-            color: var(--fpt-orange);
+            color: #f37021 !important;
+            transform: translateX(2px);
         }
 
-        .candidate-user-dropdown .client-logout-btn {
-            width: 100% !important;
-            margin-top: 8px;
+        .candidate-user-dropdown-item-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .candidate-user-dropdown-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            font-size: 13.5px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .candidate-user-dropdown-divider {
+            height: 1px;
+            background: #f1f5f9;
+            margin: 6px 0;
         }
 
         .app-header-candidate .header-right-menu ul li a.switch-role-btn,
@@ -254,6 +328,12 @@
                                 </a>
                             </li>
                             @if($canCandidateAccess ?? false)
+                                @php
+                                    $user = Auth::user();
+                                    $avatar = $user?->avatar;
+                                    $avatarPath = $avatar ? 'storage/' . ltrim($avatar, '/') : 'assets/img/avatar_detail.jpg';
+                                    $avatarUrl = (file_exists(public_path($avatarPath))) ? asset($avatarPath) : asset('assets/img/avatar_detail.jpg');
+                                @endphp
                                 <li class="candidate-user-menu" @click.outside="openUserMenu = false">
                                     <button
                                         type="button"
@@ -262,20 +342,93 @@
                                         :aria-expanded="openUserMenu.toString()"
                                         @click="openUserMenu = !openUserMenu"
                                     >
-                                        <i class="fa fa-user"></i>
+                                        @if($avatar && file_exists(public_path($avatarPath)))
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                        @else
+                                            <i class="fa fa-user"></i>
+                                        @endif
                                     </button>
 
                                     <div class="candidate-user-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>
-                                        <a href="{{ route('candidates.candidate_dashboard') }}"><i class="fa fa-tachometer"></i> Tổng quan hồ sơ</a>
-                                        <a href="{{ route('candidates.candidate_profile') }}"><i class="fa fa-user-o"></i> Cập nhật hồ sơ</a>
-                                        <a href="{{ route('candidates.manage_jobs') }}"><i class="fa fa-paper-plane-o"></i> Đơn đã ứng tuyển</a>
-                                        <hr style="margin: 8px 0; border-color: #f1f5f9;">
-                                        @if(!($canEmployerAccess ?? false))
-                                            <a href="{{ route('employers.register') }}"><i class="fa fa-briefcase"></i> Đăng ký nhà tuyển dụng</a>
-                                        @else
-                                            <a href="{{ route('employers.dashboard') }}"><i class="fa fa-building-o"></i> Khu nhà tuyển dụng</a>
-                                        @endif
-                                        <div style="margin-top: 8px;">
+                                        <!-- Profile Header Card -->
+                                        <div class="candidate-user-dropdown-header">
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                            <div class="candidate-user-dropdown-info">
+                                                <div class="candidate-user-dropdown-name">{{ $user?->name ?? 'Ứng viên' }}</div>
+                                                <div class="candidate-user-dropdown-role">
+                                                    <i class="fa fa-check-circle text-success"></i> Ứng viên FPT
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Menu Items -->
+                                        <div class="candidate-user-dropdown-menu-list">
+                                            <a href="{{ route('candidates.candidate_dashboard') }}" class="candidate-user-dropdown-item">
+                                                <div class="candidate-user-dropdown-item-left">
+                                                    <div class="candidate-user-dropdown-icon" style="background: #e0f2fe; color: #0284c7;">
+                                                        <i class="fa fa-tachometer"></i>
+                                                    </div>
+                                                    <span>Tổng quan hồ sơ</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('candidates.candidate_profile') }}" class="candidate-user-dropdown-item">
+                                                <div class="candidate-user-dropdown-item-left">
+                                                    <div class="candidate-user-dropdown-icon" style="background: #ede9fe; color: #7c3aed;">
+                                                        <i class="fa fa-user-o"></i>
+                                                    </div>
+                                                    <span>Cập nhật hồ sơ</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('candidates.manage_jobs') }}" class="candidate-user-dropdown-item">
+                                                <div class="candidate-user-dropdown-item-left">
+                                                    <div class="candidate-user-dropdown-icon" style="background: #ecfdf5; color: #059669;">
+                                                        <i class="fa fa-paper-plane-o"></i>
+                                                    </div>
+                                                    <span>Đơn đã ứng tuyển</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <a href="{{ route('candidates.cv_builder') }}" class="candidate-user-dropdown-item">
+                                                <div class="candidate-user-dropdown-item-left">
+                                                    <div class="candidate-user-dropdown-icon" style="background: #fff7ed; color: #ea580c;">
+                                                        <i class="fa fa-magic"></i>
+                                                    </div>
+                                                    <span>Tạo CV Online AI</span>
+                                                </div>
+                                                <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            <div class="candidate-user-dropdown-divider"></div>
+
+                                            @if(!($canEmployerAccess ?? false))
+                                                <a href="{{ route('employers.register') }}" class="candidate-user-dropdown-item">
+                                                    <div class="candidate-user-dropdown-item-left">
+                                                        <div class="candidate-user-dropdown-icon" style="background: #f1f5f9; color: #475569;">
+                                                            <i class="fa fa-briefcase"></i>
+                                                        </div>
+                                                        <span>Đăng ký nhà tuyển dụng</span>
+                                                    </div>
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('employers.dashboard') }}" class="candidate-user-dropdown-item">
+                                                    <div class="candidate-user-dropdown-item-left">
+                                                        <div class="candidate-user-dropdown-icon" style="background: #fef3c7; color: #d97706;">
+                                                            <i class="fa fa-building-o"></i>
+                                                        </div>
+                                                        <span>Khu nhà tuyển dụng</span>
+                                                    </div>
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                </a>
+                                            @endif
+
+                                            <div class="candidate-user-dropdown-divider"></div>
+
                                             <livewire:client.logout-button />
                                         </div>
                                     </div>
