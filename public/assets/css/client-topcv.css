@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Client UI theme â€” clean job-board style (TopCV-like).
  * Loaded after style.css / compat.css. Scoped via body.client-app.
  * Font: Inter (linked from layouts/client + layouts/employer).
@@ -51,6 +51,31 @@ body.client-app a {
 body.client-app a:hover {
   color: var(--cv-primary-hover);
   text-decoration: none !important;
+}
+
+/* Fix icon fonts being overridden by Plus Jakarta Sans */
+body.client-app .fa,
+body.client-app i.fa,
+body.client-app .fa:before,
+body.client-app .fa:after {
+  font-family: 'FontAwesome', FontAwesome !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+}
+
+body.client-app .bi,
+body.client-app i.bi,
+body.client-app [class^="bi-"],
+body.client-app [class*=" bi-"] {
+  font-family: 'bootstrap-icons' !important;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
 }
 
 /* ---------- Header ---------- */

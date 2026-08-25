@@ -20,6 +20,8 @@ class AiChatbox extends Component
 
     public bool $isOpen = false;
 
+    public string $mainMode = 'ai_chat'; // 'ai_chat' | 'shortcuts'
+
     public string $message = '';
 
     public ?string $error = null;
@@ -64,6 +66,17 @@ class AiChatbox extends Component
             $this->isOpen = ! $this->isOpen;
             $this->error = null;
         }
+    }
+
+    public function close(): void
+    {
+        $this->isOpen = false;
+    }
+
+    public function switchMainMode(string $mode): void
+    {
+        $this->mainMode = in_array($mode, ['ai_chat', 'shortcuts'], true) ? $mode : 'ai_chat';
+        $this->error = null;
     }
 
     public function newConversation(): void

@@ -230,6 +230,12 @@
             });
         })();
     </script>
+
+    @auth
+        @if(request()->routeIs('candidates.*'))
+            <livewire:client.candidate-assistant-modal />
+        @endif
+    @endauth
 </body>
 
 </html>

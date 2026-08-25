@@ -49,6 +49,8 @@ class ApplyJob extends Component
 
     public $cv = null;
 
+    public string $selectedCvOption = 'online_fpt-modern';
+
     public bool $sync_profile_to_candidate = false;
 
     public bool $use_cv_as_primary = false;
@@ -58,6 +60,9 @@ class ApplyJob extends Component
     public function updatedCv(): void
     {
         $this->resetValidation('cv');
+        if ($this->cv) {
+            $this->selectedCvOption = 'new_upload';
+        }
     }
 
     public function mount(RecruitmentJob $job): void
@@ -102,6 +107,18 @@ class ApplyJob extends Component
         $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
         $this->profile_title = $resume->profile_title;
         $this->career_objective = $resume->career_objective;
+
+        // Auto-select Candidate's Primary CV
+        $primaryCv = data_get($candidate->metadata, 'primary_cv', []);
+        $primaryType = $primaryCv['type'] ?? 'online';
+        if ($primaryType === 'attachment' && !empty($primaryCv['attachment_id'])) {
+            $this->selectedCvOption = 'attachment_' . $primaryCv['attachment_id'];
+        } elseif ($primaryType === 'online') {
+            $tpl = $primaryCv['template'] ?? 'fpt-modern';
+            $this->selectedCvOption = 'online_' . $tpl;
+        } else {
+            $this->selectedCvOption = 'online_fpt-modern';
+        }
     }
 
     public function submit(): mixed
@@ -121,7 +138,9 @@ class ApplyJob extends Component
             'career_objective' => ['nullable', 'string', 'max:4000'],
         ];
 
-        $rules['cv'] = [$this->existing_cv_url ? 'nullable' : 'required', 'file', 'max:10240', new CvUploadFile()];
+        if ($this->selectedCvOption === 'new_upload') {
+            $rules['cv'] = ['required', 'file', 'max:10240', new CvUploadFile()];
+        }
 
         $this->validate($rules);
 
@@ -341,7 +360,8 @@ class ApplyJob extends Component
      */
     protected function storeSubmittedCv(Candidate $candidate): array
     {
-        if ($this->cv) {
+        // 1. Uploaded new CV file
+        if ($this->selectedCvOption === 'new_upload' && $this->cv) {
             $path = $this->cv->storePublicly("applications/{$candidate->id}/{$this->job->id}/cv", 'public');
 
             $attachment = new Attachment([
@@ -364,6 +384,59 @@ class ApplyJob extends Component
             ];
         }
 
+        // 2. Selected an existing attachment
+        if (str_starts_with($this->selectedCvOption, 'attachment_')) {
+            $attId = (int) str_replace('attachment_', '', $this->selectedCvOption);
+            $attachment = $candidate->attachments()->where('id', $attId)->first();
+            if ($attachment) {
+                return [
+                    'path' => $attachment->path,
+                    'attachment' => $attachment,
+                ];
+            }
+        }
+
+        // 3. Selected Online CV Template (e.g. online_fpt-modern, online_ats-classic, online_tech-executive)
+        if (str_starts_with($this->selectedCvOption, 'online_')) {
+            $template = str_replace('online_', '', $this->selectedCvOption);
+            $template = in_array($template, ['fpt-modern', 'ats-classic', 'tech-executive'], true) ? $template : 'fpt-modern';
+
+            $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
+
+            try {
+                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cv-template', [
+                    'candidate' => $candidate,
+                    'resume' => $resume,
+                    'template' => $template,
+                ])->setPaper('a4', 'portrait')
+                  ->setOption('isHtml5ParserEnabled', true)
+                  ->setOption('isRemoteEnabled', true)
+                  ->setOption('defaultFont', 'DejaVu Sans');
+
+                $fileName = 'CV_' . \Illuminate\Support\Str::slug($candidate->name ?: 'Candidate', '_') . '_' . $template . '.pdf';
+                $relativeDir = "applications/{$candidate->id}/{$this->job->id}/cv";
+                $relativePath = "{$relativeDir}/{$fileName}";
+
+                Storage::disk('public')->put($relativePath, $pdf->output());
+
+                $attachment = new Attachment([
+                    'path' => $relativePath,
+                    'type' => 'cv',
+                    'original_filename' => $fileName,
+                    'mime_type' => 'application/pdf',
+                    'size_bytes' => Storage::disk('public')->size($relativePath) ?: 0,
+                ]);
+
+                return [
+                    'path' => $relativePath,
+                    'attachment' => $attachment,
+                ];
+            } catch (\Throwable $e) {
+                Log::error('Failed to generate online CV PDF during application: ' . $e->getMessage());
+            }
+        }
+
+        // 4. Fallback
         return [
             'path' => (string) $candidate->cv_file,
             'attachment' => $candidate->attachments()
@@ -633,6 +706,23 @@ class ApplyJob extends Component
     #[Layout('layouts.client')]
     public function render()
     {
-        return view('livewire.client.apply-job');
+        $candidate = $this->resolveExistingCandidate();
+        $attachments = $candidate
+            ? $candidate->attachments()->where('type', 'cv')->latest()->get()
+            : collect();
+
+        $primaryCv = data_get($candidate?->metadata, 'primary_cv', []);
+
+        $availableTemplates = [
+            ['id' => 'fpt-modern', 'name' => 'FPT Modern Pro', 'badge' => 'Khuyên dùng'],
+            ['id' => 'ats-classic', 'name' => 'ATS Classic Clean', 'badge' => 'ATS Standard'],
+            ['id' => 'tech-executive', 'name' => 'Tech Executive', 'badge' => 'Tech Leader'],
+        ];
+
+        return view('livewire.client.apply-job', [
+            'attachments' => $attachments,
+            'primaryCv' => $primaryCv,
+            'availableTemplates' => $availableTemplates,
+        ]);
     }
 }

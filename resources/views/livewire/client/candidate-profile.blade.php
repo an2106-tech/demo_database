@@ -1,544 +1,1285 @@
 @php
     $sections = [
-        ['id' => 'personal-info', 'label' => 'Thông tin', 'index' => '01'],
-        ['id' => 'career-objective', 'label' => 'Mục tiêu', 'index' => '02'],
-        ['id' => 'desired-job', 'label' => 'Mong muốn', 'index' => '03'],
-        ['id' => 'experiences', 'label' => 'Kinh nghiệm', 'index' => '04'],
-        ['id' => 'educations', 'label' => 'Học vấn', 'index' => '05'],
-        ['id' => 'skills', 'label' => 'Kỹ năng', 'index' => '06'],
-        ['id' => 'languages', 'label' => 'Ngôn ngữ', 'index' => '07'],
-        ['id' => 'certifications', 'label' => 'Chứng chỉ', 'index' => '08'],
-        ['id' => 'extra-info', 'label' => 'CV', 'index' => '09'],
+        ['id' => 'personal-info', 'label' => 'Thông tin cá nhân', 'index' => '01', 'icon' => 'fa-user-o'],
+        ['id' => 'career-objective', 'label' => 'Mục tiêu nghề nghiệp', 'index' => '02', 'icon' => 'fa-bullseye'],
+        ['id' => 'desired-job', 'label' => 'Công việc mong muốn', 'index' => '03', 'icon' => 'fa-briefcase'],
+        ['id' => 'experiences', 'label' => 'Kinh nghiệm làm việc', 'index' => '04', 'icon' => 'fa-history'],
+        ['id' => 'educations', 'label' => 'Học vấn & Bằng cấp', 'index' => '05', 'icon' => 'fa-graduation-cap'],
+        ['id' => 'skills', 'label' => 'Kỹ năng chuyên môn', 'index' => '06', 'icon' => 'fa-cogs'],
+        ['id' => 'languages', 'label' => 'Ngôn ngữ & Ngoại ngữ', 'index' => '07', 'icon' => 'fa-language'],
+        ['id' => 'certifications', 'label' => 'Chứng chỉ & Giải thưởng', 'index' => '08', 'icon' => 'fa-certificate'],
+        ['id' => 'extra-info', 'label' => 'CV & Thông tin bổ sung', 'index' => '09', 'icon' => 'fa-file-text-o'],
     ];
 
     $isApplicationReady = empty($missingApplicationFields);
 @endphp
 
-<div class="profile-redesign candidate-profile-redesign" x-data="{ activeSection: $wire.entangle('activeSection') }">
-    @if (session('status'))
-        <div class="profile-redesign__alert" role="status">
-            {{ session('status') }}
-        </div>
-    @endif
+<div class="candidate-profile-vanguard" x-data="{ activeSection: $wire.entangle('activeSection'), aiReportOpen: false }">
+    <style>
+        /* Vanguard High-End Visual Design System Scoped */
+        .candidate-profile-vanguard {
+            --vg-bg: #f8fafc;
+            --vg-surface: #ffffff;
+            --vg-surface-alt: #f1f5f9;
+            --vg-ink: #0f172a;
+            --vg-muted: #64748b;
+            --vg-line: #e2e8f0;
+            --vg-line-subtle: #f1f5f9;
+            --vg-primary: #f37021;
+            --vg-primary-hover: #ea580c;
+            --vg-primary-glow: rgba(243, 112, 33, 0.25);
+            --vg-success: #10b981;
+            --vg-danger: #ef4444;
+            --vg-ease: cubic-bezier(0.16, 1, 0.3, 1);
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            color: var(--vg-ink);
+            padding: 105px 0 64px;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
 
-    <section class="profile-redesign__section">
-        <div class="profile-redesign__container">
-            <aside class="profile-redesign__rail profile-redesign__rail--premium">
-                <a href="{{ route('candidates.candidate_dashboard') }}" class="profile-redesign__back">
-                    <span>←</span>
-                    Dashboard
-                </a>
+        .vg-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
 
-                <div class="profile-redesign__status-shell">
-                    <div class="profile-redesign__status-core">
-                        <span class="profile-redesign__eyebrow">Điều kiện ứng tuyển</span>
-                        <div class="profile-redesign__score">
-                            <strong>{{ $applicationCompletion }}%</strong>
-                            <span>{{ $isApplicationReady ? 'Sẵn sàng apply' : 'Cần bổ sung' }}</span>
-                        </div>
-                        <div class="profile-redesign__progress-track">
-                            <span style="width: {{ $applicationCompletion }}%"></span>
-                        </div>
+        /* Layout Split */
+        .vg-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 28px;
+            align-items: start;
+        }
 
-                        @if ($isApplicationReady)
-                            <p class="profile-redesign__status-note is-ready">Hồ sơ đã đủ họ tên, email, số điện thoại và CV.</p>
-                        @else
-                            <div class="profile-redesign__missing-list">
-                                <span>Còn thiếu</span>
-                                @foreach ($missingApplicationFields as $field)
-                                    <strong>{{ $field }}</strong>
-                                @endforeach
+        @media (max-width: 991.98px) {
+            .vg-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Double-Bezel Shell */
+        .vg-shell {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--vg-line);
+            border-radius: 24px;
+            padding: 6px;
+            box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.06);
+            backdrop-filter: blur(12px);
+        }
+
+        .vg-core {
+            background: var(--vg-surface);
+            border-radius: 18px;
+            border: 1px solid var(--vg-line-subtle);
+            padding: 24px;
+        }
+
+        /* Back to Dashboard Link */
+        .vg-back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid var(--vg-line);
+            color: var(--vg-muted) !important;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            transition: all 0.2s var(--vg-ease);
+            text-decoration: none !important;
+        }
+
+        .vg-back-btn:hover {
+            color: var(--vg-primary) !important;
+            border-color: var(--vg-primary);
+            transform: translateX(-3px);
+            background: #fff7ed;
+        }
+
+        /* Readiness Status Card (Clean Light / Pastel Edition) */
+        .vg-readiness-card {
+            background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+            border: 1px solid rgba(243, 112, 33, 0.2);
+            border-radius: 18px;
+            padding: 18px 20px;
+            color: #0f172a;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 16px -2px rgba(243, 112, 33, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vg-readiness-card::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, rgba(243, 112, 33, 0.12) 0%, rgba(243, 112, 33, 0) 70%);
+            pointer-events: none;
+        }
+
+        .vg-readiness-eyebrow {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .vg-readiness-score {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .vg-readiness-score strong {
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            color: #0f172a;
+        }
+
+        .vg-readiness-score span {
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .vg-readiness-score span.is-ready {
+            background: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+        }
+
+        .vg-progress-bar {
+            height: 8px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .vg-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f37021 0%, #ea580c 100%);
+            border-radius: 999px;
+            transition: width 0.6s var(--vg-ease);
+        }
+
+        .vg-missing-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .vg-missing-tag {
+            font-size: 11px;
+            font-weight: 600;
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid #fecaca;
+        }
+
+        .vg-readiness-note {
+            font-size: 12px;
+            color: #059669;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Sidebar Nav List */
+        .vg-nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .vg-nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 11px 14px;
+            border-radius: 12px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: #475569;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s var(--vg-ease);
+            text-align: left;
+            width: 100%;
+        }
+
+        .vg-nav-item:hover {
+            background: #f8fafc;
+            color: var(--vg-ink);
+            transform: translateX(3px);
+        }
+
+        .vg-nav-item.is-active {
+            background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+            border-color: rgba(243, 112, 33, 0.25);
+            color: var(--vg-primary);
+            font-weight: 700;
+            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.1);
+        }
+
+        .vg-nav-item-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .vg-nav-num {
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            width: 22px;
+            letter-spacing: 0.05em;
+        }
+
+        .vg-nav-item.is-active .vg-nav-num {
+            color: var(--vg-primary);
+        }
+
+        .vg-nav-icon {
+            font-size: 14px;
+            width: 16px;
+            text-align: center;
+            color: #94a3b8;
+        }
+
+        .vg-nav-item.is-active .vg-nav-icon {
+            color: var(--vg-primary);
+        }
+
+        /* Hero Header Card */
+        .vg-hero-card {
+            background: #ffffff;
+            border: 1px solid var(--vg-line);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .vg-hero-left {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .vg-avatar-wrap {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.15);
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f1f5f9;
+        }
+
+        .vg-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .vg-avatar-upload-btn {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .vg-avatar-wrap:hover .vg-avatar-upload-btn {
+            opacity: 1;
+        }
+
+        .vg-hero-copy h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--vg-ink) !important;
+            margin: 0 0 4px;
+            letter-spacing: -0.01em;
+        }
+
+        .vg-hero-copy p {
+            font-size: 13.5px;
+            color: var(--vg-muted);
+            margin: 0 0 10px;
+            line-height: 1.4;
+        }
+
+        .vg-meta-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .vg-meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            background: #f8fafc;
+            border: 1px solid var(--vg-line);
+            padding: 4px 10px;
+            border-radius: 8px;
+            color: #334155;
+        }
+
+        /* Button-in-Button CTA */
+        .vg-btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
+            color: #ffffff !important;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none !important;
+            box-shadow: 0 8px 24px -4px rgba(243, 112, 33, 0.35);
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s var(--vg-ease);
+        }
+
+        .vg-btn-cta:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            box-shadow: 0 12px 28px -4px rgba(243, 112, 33, 0.45);
+        }
+
+        .vg-btn-icon-circle {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .vg-btn-cta:hover .vg-btn-icon-circle {
+            transform: scale(1.1) rotate(15deg);
+        }
+
+        /* AI Insights Collapsible Card */
+        .vg-ai-card {
+            background: #ffffff;
+            border: 1px solid var(--vg-line);
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05);
+            transition: all 0.3s var(--vg-ease);
+        }
+
+        .vg-ai-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .vg-ai-score-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: var(--vg-primary);
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13.5px;
+            font-weight: 800;
+        }
+
+        .vg-ai-toggle-btn {
+            background: #f8fafc;
+            border: 1px solid var(--vg-line);
+            color: #475569;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .vg-ai-toggle-btn:hover {
+            background: #f1f5f9;
+            color: var(--vg-ink);
+        }
+
+        /* Form Panels & Field Layouts */
+        .vg-panel {
+            background: #ffffff;
+            border: 1px solid var(--vg-line);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 10px 30px -6px rgba(15, 23, 42, 0.05);
+        }
+
+        .vg-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--vg-line-subtle);
+        }
+
+        .vg-panel-head h2 {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--vg-ink) !important;
+            margin: 0;
+        }
+
+        .vg-panel-num {
+            font-size: 12px;
+            font-weight: 800;
+            color: var(--vg-primary);
+            background: #fff7ed;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-right: 8px;
+        }
+
+        .vg-grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .vg-grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        @media (max-width: 767.98px) {
+            .vg-grid-2, .vg-grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .vg-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .vg-field-full {
+            grid-column: 1 / -1;
+        }
+
+        .vg-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .vg-input, .vg-select, .vg-textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+            color: #0f172a;
+            font-size: 13.5px;
+            font-weight: 600;
+            transition: all 0.2s var(--vg-ease);
+            outline: none;
+        }
+
+        .vg-input:focus, .vg-select:focus, .vg-textarea:focus {
+            background: #ffffff;
+            border-color: var(--vg-primary);
+            box-shadow: 0 0 0 4px rgba(243, 112, 33, 0.12);
+        }
+
+        .vg-error {
+            color: #ef4444;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Repeatable Stack Cards */
+        .vg-repeat-card {
+            background: #f8fafc;
+            border: 1px solid var(--vg-line);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            position: relative;
+            transition: border-color 0.2s ease;
+        }
+
+        .vg-repeat-card:hover {
+            border-color: #cbd5e1;
+        }
+
+        .vg-repeat-card-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .vg-repeat-badge {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+            background: #ffffff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .vg-btn-delete {
+            background: #fee2e2;
+            color: #ef4444;
+            border: 1px solid #fca5a5;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .vg-btn-delete:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .vg-btn-add {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #ffffff;
+            border: 1.5px dashed #cbd5e1;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 10px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .vg-btn-add:hover {
+            border-color: var(--vg-primary);
+            color: var(--vg-primary);
+            background: #fff7ed;
+        }
+
+        /* Action Footer */
+        .vg-action-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid var(--vg-line-subtle);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .vg-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
+            color: #ffffff !important;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 20px -4px rgba(243, 112, 33, 0.4);
+            transition: all 0.25s var(--vg-ease);
+        }
+
+        .vg-btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px -4px rgba(243, 112, 33, 0.5);
+        }
+
+        .vg-btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* CV Drop Zone */
+        .vg-drop-zone {
+            border: 2px dashed #cbd5e1;
+            border-radius: 18px;
+            padding: 32px 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s var(--vg-ease);
+        }
+
+        .vg-drop-zone:hover, .vg-drop-zone.is-drag {
+            border-color: var(--vg-primary);
+            background: #fff7ed;
+        }
+    </style>
+
+    <div class="vg-container">
+        @if (session('status'))
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4" style="border-radius: 14px; font-weight: 600; font-size: 14px;">
+                <i class="fa fa-check-circle"></i> {{ session('status') }}
+            </div>
+        @endif
+
+        <div class="vg-layout">
+            <!-- SIDEBAR RAIL (Double-Bezel Architecture) -->
+            <aside>
+                <div class="vg-shell">
+                    <div class="vg-core" style="padding: 16px;">
+                        <a href="{{ route('candidates.candidate_dashboard') }}" class="vg-back-btn w-100 justify-content-center">
+                            <i class="fa fa-arrow-left"></i> Về Bảng điều khiển
+                        </a>
+
+                        <!-- Readiness Status Box -->
+                        <div class="vg-readiness-card">
+                            <span class="vg-readiness-eyebrow">Điều kiện ứng tuyển</span>
+                            <div class="vg-readiness-score">
+                                <strong>{{ $applicationCompletion }}%</strong>
+                                <span class="{{ $isApplicationReady ? 'is-ready' : '' }}">
+                                    {{ $isApplicationReady ? '✓ Sẵn sàng apply' : 'Cần bổ sung' }}
+                                </span>
                             </div>
-                        @endif
+                            <div class="vg-progress-bar">
+                                <div class="vg-progress-fill" style="width: {{ $applicationCompletion }}%"></div>
+                            </div>
+                            @if ($isApplicationReady)
+                                <div class="vg-readiness-note">
+                                    <i class="fa fa-check-circle"></i> Đã đầy đủ thông tin cốt lõi và CV.
+                                </div>
+                            @else
+                                <div class="vg-missing-tags">
+                                    @foreach ($missingApplicationFields as $field)
+                                        <span class="vg-missing-tag">{{ $field }}</span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Navigation Items (01 - 09) -->
+                        <nav class="vg-nav-list" aria-label="Danh mục hồ sơ">
+                            @foreach ($sections as $section)
+                                <button
+                                    type="button"
+                                    wire:click="switchSection('{{ $section['id'] }}')"
+                                    wire:loading.attr="disabled"
+                                    wire:target="switchSection,saveSection,save"
+                                    class="vg-nav-item {{ $activeSection === $section['id'] ? 'is-active' : '' }}"
+                                >
+                                    <div class="vg-nav-item-left">
+                                        <span class="vg-nav-num">{{ $section['index'] }}</span>
+                                        <i class="fa {{ $section['icon'] }} vg-nav-icon"></i>
+                                        <span>{{ $section['label'] }}</span>
+                                    </div>
+                                    <i class="fa fa-angle-right" style="font-size: 12px; color: #cbd5e1;"></i>
+                                </button>
+                            @endforeach
+                        </nav>
                     </div>
                 </div>
-
-                <nav class="profile-redesign__nav" aria-label="Điều hướng hồ sơ">
-                    @foreach ($sections as $section)
-                        <button
-                            type="button"
-                            wire:click="switchSection('{{ $section['id'] }}')"
-                            wire:loading.attr="disabled"
-                            wire:target="switchSection,saveSection,save"
-                            class="profile-redesign__nav-item {{ $activeSection === $section['id'] ? 'is-active' : '' }}"
-                        >
-                            <em>{{ $section['index'] }}</em>
-                            <span>{{ $section['label'] }}</span>
-                        </button>
-                    @endforeach
-                </nav>
             </aside>
 
-            <main class="profile-redesign__main">
-                <header class="profile-redesign__hero profile-redesign__hero--candidate">
-                    <div class="profile-redesign__avatar-wrap">
-                        <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Avatar ứng viên">
-                        <input type="file" id="avatar_upload" wire:model="avatar" class="d-none">
-                        <label for="avatar_upload" class="profile-redesign__avatar-action" title="Cập nhật ảnh đại diện">
-                            +
-                        </label>
-                    </div>
-
-                    <div class="profile-redesign__hero-copy">
-                        <span class="profile-redesign__eyebrow">Hồ sơ ứng viên</span>
-                        <h1>{{ $name ?: 'Ứng viên' }}</h1>
-                        <p>{{ $profile_title ?: 'Cập nhật hồ sơ rõ ràng để nhà tuyển dụng hiểu định hướng, năng lực và mức độ sẵn sàng của bạn.' }}</p>
-                        <div class="profile-redesign__meta-row">
-                            <span>{{ $email ?: 'Chưa có email' }}</span>
-                            <span>{{ $phone ?: 'Chưa cập nhật số điện thoại' }}</span>
+            <!-- MAIN CONTENT AREA -->
+            <main>
+                <!-- Hero Header Card -->
+                <div class="vg-hero-card">
+                    <div class="vg-hero-left">
+                        <div class="vg-avatar-wrap">
+                            <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Avatar" class="vg-avatar-img">
+                            <input type="file" id="avatar_upload_hero" wire:model="avatar" class="d-none">
+                            <label for="avatar_upload_hero" class="vg-avatar-upload-btn" title="Cập nhật ảnh">
+                                <i class="fa fa-camera mb-1"></i> Đổi ảnh
+                            </label>
+                        </div>
+                        <div class="vg-hero-copy">
+                            <h1>{{ $name ?: 'Hồ sơ Ứng viên' }}</h1>
+                            <p>{{ $profile_title ?: 'Cập nhật đầy đủ hồ sơ để nhà tuyển dụng đánh giá năng lực và mức độ phù hợp của bạn.' }}</p>
+                            <div class="vg-meta-chips">
+                                <div class="vg-meta-chip">
+                                    <i class="fa fa-envelope-o text-muted"></i> {{ $email ?: 'Chưa cập nhật email' }}
+                                </div>
+                                <div class="vg-meta-chip">
+                                    <i class="fa fa-phone text-muted"></i> {{ $phone ?: 'Chưa có số điện thoại' }}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </header>
 
-                <div class="mb-4">
+                    <a href="{{ route('candidates.cv_builder') }}" class="vg-btn-cta">
+                        <span>Tạo CV Online AI (CV Builder)</span>
+                        <div class="vg-btn-icon-circle">
+                            <i class="fa fa-magic"></i>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- AI Insights Collapsible Card -->
+                <div class="vg-ai-card">
                     @if($aiScore === null)
-                        <div class="p-4" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; gap: 20px;">
-                            <div>
-                                <h4 style="margin: 0 0 4px; font-size: 16px; font-weight: 800; color: #0f172a;">Đánh giá hồ sơ của bạn</h4>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div style="width: 42px; height: 42px; border-radius: 12px; background: #fff7ed; color: #f37021; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">
+                                    <i class="fa fa-lightbulb-o"></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: #0f172a;">Đánh giá chất lượng hồ sơ & Chuẩn ATS</h4>
+                                    <div style="font-size: 12.5px; color: #64748b;">Sử dụng Trí tuệ Nhân tạo để phân tích điểm mạnh, điểm yếu và mức độ sẵn sàng của CV.</div>
+                                </div>
                             </div>
-                            <button type="button" wire:click="analyzeCvWithAi" class="btn" style="background: #0f172a; color: white; font-weight: 700; border-radius: 10px; padding: 10px 24px; border: none; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); flex-shrink: 0;" wire:loading.attr="disabled">
-                                <span wire:loading.remove wire:target="analyzeCvWithAi">Chấm điểm CV bằng AI</span>
+                            <button type="button" wire:click="analyzeCvWithAi" class="vg-btn-primary" wire:loading.attr="disabled" style="padding: 9px 18px; font-size: 13px;">
+                                <span wire:loading.remove wire:target="analyzeCvWithAi"><i class="fa fa-bolt"></i> Chấm điểm CV bằng AI</span>
                                 <span wire:loading wire:target="analyzeCvWithAi"><i class="fa fa-circle-o-notch fa-spin"></i> Đang phân tích...</span>
                             </button>
                         </div>
                     @else
-                        <div class="p-4" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px;">
-                            <div class="d-flex justify-content-between align-items-center mb-4">
-                                <h4 style="margin: 0; font-size: 17px; font-weight: 800; color: #0f172a;">Báo cáo phân tích hồ sơ từ AI</h4>
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <button type="button" wire:click="analyzeCvWithAi" class="btn btn-sm" style="background: #fff; color: #0f172a; font-weight: 700; border-radius: 8px; border: 1px solid #e2e8f0;" wire:loading.attr="disabled">
-                                        <i class="fa fa-refresh"></i> Phân tích lại
-                                    </button>
-                                    <div style="width: 50px; height: 50px; border-radius: 50%; background: #fff; color: #f37021; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; border: 2px solid #fdba74; box-shadow: 0 2px 8px rgba(243, 112, 33, 0.15);" title="Điểm chuẩn ATS">
-                                        {{ $aiScore }}
-                                    </div>
+                        <!-- Compact Header with Toggle -->
+                        <div class="vg-ai-card-header" @click="aiReportOpen = !aiReportOpen">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="vg-ai-score-pill">
+                                    <i class="fa fa-tachometer"></i> Điểm ATS: {{ $aiScore }}/100
+                                </div>
+                                <div>
+                                    <div style="font-size: 14px; font-weight: 800; color: #0f172a;">Báo cáo phân tích chất lượng hồ sơ AI</div>
+                                    <div style="font-size: 12px; color: #64748b;">Bấm để xem chi tiết điểm mạnh, điểm yếu và từ khóa chuẩn ATS</div>
                                 </div>
                             </div>
-                            
-                            <div class="row">
-                                <div class="col-12 mb-3">
-                                    @if(!empty($aiSummary))
-                                        <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px;">
-                                            <h5 style="color: #334155; font-size: 15px; font-weight: 800; margin-bottom: 8px;"><i class="fa fa-info-circle text-primary"></i> Nhận xét chung</h5>
-                                            <p style="margin: 0; font-size: 14.5px; color: #475569; line-height: 1.5;">{{ $aiSummary }}</p>
-                                        </div>
-                                    @endif
-                                </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" wire:click.stop="analyzeCvWithAi" class="vg-ai-toggle-btn" wire:loading.attr="disabled" title="Phân tích lại">
+                                    <i class="fa fa-refresh"></i> Phân tích lại
+                                </button>
+                                <button type="button" class="vg-ai-toggle-btn">
+                                    <span x-show="!aiReportOpen">Xem chi tiết <i class="fa fa-chevron-down ms-1"></i></span>
+                                    <span x-show="aiReportOpen" x-cloak>Thu gọn <i class="fa fa-chevron-up ms-1"></i></span>
+                                </button>
+                            </div>
+                        </div>
 
+                        <!-- Expanded Content -->
+                        <div x-show="aiReportOpen" x-transition.opacity.duration.250ms class="mt-3 pt-3 border-top" x-cloak>
+                            @if(!empty($aiSummary))
+                                <div class="p-3 mb-3 bg-light rounded-3" style="font-size: 13.5px; line-height: 1.5; color: #334155;">
+                                    <strong>Nhận xét tổng quan:</strong> {{ $aiSummary }}
+                                </div>
+                            @endif
+
+                            <div class="row">
                                 @if(!empty($aiStrengths))
                                     <div class="col-md-6 mb-3">
-                                        <div style="background: #fff; border: 1px solid #d1fae5; border-radius: 12px; padding: 16px; height: 100%;">
-                                            <h5 style="color: #059669; font-size: 15px; font-weight: 800; margin-bottom: 12px;"><i class="fa fa-check-circle-o"></i> Điểm mạnh nổi bật</h5>
-                                            <ul style="padding-left: 0; margin-bottom: 0; list-style: none;">
-                                                @foreach($aiStrengths as $strength)
-                                                    <li style="margin-bottom: 8px; padding-left: 24px; position: relative; font-size: 14.5px; color: #334155; line-height: 1.5;">
-                                                        <span style="position: absolute; left: 0; color: #10b981;">✓</span>
-                                                        {{ $strength }}
-                                                    </li>
+                                        <div class="p-3 rounded-3" style="background: #f0fdf4; border: 1px solid #bbf7d0; height: 100%;">
+                                            <h6 style="color: #16a34a; font-weight: 800; font-size: 13px; margin-bottom: 8px;"><i class="fa fa-check-circle"></i> Điểm mạnh nổi bật</h6>
+                                            <ul class="mb-0 ps-3" style="font-size: 13px; color: #1e293b;">
+                                                @foreach($aiStrengths as $st)
+                                                    <li>{{ $st }}</li>
                                                 @endforeach
                                             </ul>
                                         </div>
                                     </div>
                                 @endif
-                                
+
                                 @if(!empty($aiWeaknesses))
                                     <div class="col-md-6 mb-3">
-                                        <div style="background: #fff; border: 1px solid #fee2e2; border-radius: 12px; padding: 16px; height: 100%;">
-                                            <h5 style="color: #dc2626; font-size: 15px; font-weight: 800; margin-bottom: 12px;"><i class="fa fa-exclamation-circle"></i> Cần cải thiện</h5>
-                                            <ul style="padding-left: 0; margin-bottom: 0; list-style: none;">
-                                                @foreach($aiWeaknesses as $weakness)
-                                                    <li style="margin-bottom: 8px; padding-left: 24px; position: relative; font-size: 14.5px; color: #334155; line-height: 1.5;">
-                                                        <span style="position: absolute; left: 0; color: #ef4444;">×</span>
-                                                        {{ $weakness }}
-                                                    </li>
+                                        <div class="p-3 rounded-3" style="background: #fef2f2; border: 1px solid #fecaca; height: 100%;">
+                                            <h6 style="color: #dc2626; font-weight: 800; font-size: 13px; margin-bottom: 8px;"><i class="fa fa-exclamation-circle"></i> Điểm cần cải thiện</h6>
+                                            <ul class="mb-0 ps-3" style="font-size: 13px; color: #1e293b;">
+                                                @foreach($aiWeaknesses as $wk)
+                                                    <li>{{ $wk }}</li>
                                                 @endforeach
                                             </ul>
                                         </div>
                                     </div>
                                 @endif
 
-                                @if(!empty($aiSuggestions))
-                                    <div class="col-12 mb-3">
-                                        <div style="background: #fff; border: 1px solid #fef08a; border-radius: 12px; padding: 16px;">
-                                            <h5 style="color: #ca8a04; font-size: 15px; font-weight: 800; margin-bottom: 12px;"><i class="fa fa-lightbulb-o"></i> Gợi ý hành động cụ thể</h5>
-                                            <ul style="padding-left: 0; margin-bottom: 0; list-style: none;">
-                                                @foreach($aiSuggestions as $suggestion)
-                                                    <li style="margin-bottom: 8px; padding-left: 24px; position: relative; font-size: 14.5px; color: #334155; line-height: 1.5;">
-                                                        <span style="position: absolute; left: 0; color: #eab308;"><i class="fa fa-angle-double-right"></i></span>
-                                                        {{ $suggestion }}
-                                                    </li>
-                                                @endforeach
-                                            </ul>
+                                @if(!empty($aiAtsKeywords))
+                                    <div class="col-12 mb-2">
+                                        <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px;">Từ khóa chuẩn ATS phát hiện trong hồ sơ:</div>
+                                        <div class="d-flex flex-wrap gap-1">
+                                            @foreach($aiAtsKeywords as $kw)
+                                                <span class="badge bg-white text-dark border px-2 py-1" style="font-size: 11.5px;">{{ $kw }}</span>
+                                            @endforeach
                                         </div>
                                     </div>
                                 @endif
-
-                                <div class="col-md-6 mb-3">
-                                    @if(!empty($aiAtsKeywords))
-                                        <div style="background: #fff; border: 1px solid #e0e7ff; border-radius: 12px; padding: 16px; height: 100%;">
-                                            <h5 style="color: #4338ca; font-size: 14px; font-weight: 800; margin-bottom: 12px;">Từ khóa ATS đã có</h5>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                                @foreach($aiAtsKeywords as $kw)
-                                                    <span style="background: #e0e7ff; color: #4338ca; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;">{{ $kw }}</span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    @if(!empty($aiMissingKeywords))
-                                        <div style="background: #fff; border: 1px dashed #fca5a5; border-radius: 12px; padding: 16px; height: 100%;">
-                                            <h5 style="color: #b91c1c; font-size: 14px; font-weight: 800; margin-bottom: 12px;">Từ khóa nên bổ sung</h5>
-                                            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-                                                @foreach($aiMissingKeywords as $kw)
-                                                    <span style="background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600;">{{ $kw }}</span>
-                                                @endforeach
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-
                             </div>
                         </div>
                     @endif
                 </div>
 
-                <form wire:submit.prevent="save" class="profile-redesign__form" novalidate>
-                    @if ($lastSavedSectionLabel)
-                        <div class="profile-redesign__save-state" role="status" aria-live="polite">
-                            Đã lưu {{ $lastSavedSectionLabel }}.
+                <!-- MAIN FORM CONTAINER -->
+                <form wire:submit.prevent="save" novalidate>
+                    <!-- 01. THÔNG TIN CÁ NHÂN -->
+                    <div x-show="activeSection === 'personal-info'" x-transition.opacity class="vg-panel">
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">01</span> Thông tin cá nhân</h2>
                         </div>
-                    @endif
 
-                    <section x-show="activeSection === 'personal-info'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>01</span>
-                                <h2>Thông tin cá nhân</h2>
+                        <div class="vg-grid-2">
+                            <div class="vg-field vg-field-full">
+                                <label class="vg-label">Tiêu đề hồ sơ / Vị trí chuyên môn</label>
+                                <input type="text" class="vg-input" wire:model.defer="profile_title" placeholder="VD: Senior Frontend Developer / Kỹ sư phần mềm" />
+                                @error('profile_title') <span class="vg-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Họ và tên <span class="text-danger">*</span></label>
+                                <input type="text" class="vg-input" wire:model.defer="name" placeholder="Nguyễn Văn A" />
+                                @error('name') <span class="vg-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Email liên hệ <span class="text-danger">*</span></label>
+                                <input type="email" class="vg-input" wire:model.defer="email" placeholder="example@email.com" />
+                                @error('email') <span class="vg-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Số điện thoại <span class="text-danger">*</span></label>
+                                <input type="text" class="vg-input" wire:model.defer="phone" placeholder="0901234567" />
+                                @error('phone') <span class="vg-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Số năm kinh nghiệm</label>
+                                <input type="number" class="vg-input" wire:model.defer="experience_years" placeholder="VD: 2" min="0" />
+                                @error('experience_years') <span class="vg-error">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Giới tính</label>
+                                <select class="vg-select" wire:model.defer="personal_info.gender">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Ngày sinh</label>
+                                <input type="date" class="vg-input" wire:model.defer="personal_info.date_of_birth" />
+                            </div>
+
+                            <div class="vg-field vg-field-full">
+                                <label class="vg-label">Địa chỉ hiện tại</label>
+                                <input type="text" class="vg-input" wire:model.defer="personal_info.address" placeholder="Quận / Huyện, Tỉnh / Thành phố" />
                             </div>
                         </div>
 
-                        <div class="profile-redesign__grid">
-                            <label class="profile-redesign__field profile-redesign__field--wide">
-                                <span>Tiêu đề hồ sơ</span>
-                                <input type="text" wire:model.defer="profile_title" placeholder="VD: Backend Developer" />
-                                @error('profile_title') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Số năm kinh nghiệm</span>
-                                <input type="number" wire:model.defer="experience_years" placeholder="0" />
-                                @error('experience_years') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Họ tên</span>
-                                <input type="text" wire:model.defer="name" />
-                                @error('name') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Email liên hệ</span>
-                                <input type="email" wire:model.defer="email" />
-                                @error('email') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Số điện thoại</span>
-                                <input type="text" wire:model.defer="phone" placeholder="0901234567" />
-                                @error('phone') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Giới tính</span>
-                                <input type="text" wire:model.defer="personal_info.gender" placeholder="Nam / Nữ / Khác" />
-                            </label>
-                            <label class="profile-redesign__field profile-redesign__field--full">
-                                <span>Địa chỉ</span>
-                                <input type="text" wire:model.defer="personal_info.address" />
-                            </label>
-                        </div>
-
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('career-objective')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+                        <div class="vg-action-footer">
+                            <small class="text-muted"><i class="fa fa-info-circle"></i> Họ tên, email, SĐT là thông tin bắt buộc để ứng tuyển.</small>
+                            <button type="button" wire:click="saveSection('career-objective')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'career-objective'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>02</span>
-                                <h2>Mục tiêu nghề nghiệp</h2>
-                            </div>
+                    <!-- 02. MỤC TIÊU NGHỀ NGHIỆP -->
+                    <div x-show="activeSection === 'career-objective'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">02</span> Mục tiêu nghề nghiệp</h2>
                         </div>
-                        <label class="profile-redesign__field">
-                            <span>Giới thiệu bản thân và mục tiêu ứng tuyển</span>
-                            <textarea wire:model.defer="career_objective" rows="7" placeholder="Viết ngắn gọn về định hướng, thế mạnh và mục tiêu phát triển của bạn."></textarea>
-                            @error('career_objective') <small class="profile-redesign__error">{{ $message }}</small> @enderror
-                        </label>
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('desired-job')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+
+                        <div class="vg-field">
+                            <label class="vg-label">Giới thiệu bản thân & Định hướng phát triển sự nghiệp</label>
+                            <textarea class="vg-textarea" wire:model.defer="career_objective" rows="7" placeholder="Nêu bật thế mạnh chuyên môn, các giá trị bạn có thể đóng góp cho doanh nghiệp và mục tiêu nghề nghiệp trong 1-3 năm tới..."></textarea>
+                            @error('career_objective') <span class="vg-error">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('desired-job')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'desired-job'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>03</span>
-                                <h2>Công việc mong muốn</h2>
+                    <!-- 03. CÔNG VIỆC MONG MUỐN -->
+                    <div x-show="activeSection === 'desired-job'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">03</span> Công việc mong muốn</h2>
+                        </div>
+
+                        <div class="vg-grid-2">
+                            <div class="vg-field">
+                                <label class="vg-label">Vị trí mong muốn</label>
+                                <input type="text" class="vg-input" wire:model.defer="desired_job.position" placeholder="VD: Lập trình viên Fullstack / Tester" />
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Cấp bậc mong muốn</label>
+                                <select class="vg-select" wire:model.defer="desired_job.level">
+                                    <option value="">-- Chọn cấp bậc --</option>
+                                    <option value="Thực tập sinh / Sinh viên">Thực tập sinh / Sinh viên</option>
+                                    <option value="Mới tốt nghiệp (Fresher)">Mới tốt nghiệp (Fresher)</option>
+                                    <option value="Nhân viên (Junior / Mid-level)">Nhân viên (Junior / Mid-level)</option>
+                                    <option value="Chuyên viên / Trưởng nhóm (Senior / Lead)">Chuyên viên / Trưởng nhóm (Senior / Lead)</option>
+                                    <option value="Quản lý / Trưởng phòng (Manager)">Quản lý / Trưởng phòng (Manager)</option>
+                                    <option value="Giám đốc / Cấp cao (Director / C-Level)">Giám đốc / Cấp cao (Director / C-Level)</option>
+                                </select>
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Mức lương kỳ vọng (VNĐ)</label>
+                                <input type="text" class="vg-input" wire:model.defer="desired_job.expected_salary" placeholder="VD: 15.000.000 hoặc Thỏa thuận" />
+                            </div>
+
+                            <div class="vg-field">
+                                <label class="vg-label">Địa điểm làm việc mong muốn</label>
+                                <input type="text" class="vg-input" wire:model.defer="desired_job.location" placeholder="VD: Hà Nội, TP. Hồ Chí Minh, Đà Nẵng, Cần Thơ, Quy Nhơn" />
                             </div>
                         </div>
-                        <div class="profile-redesign__grid profile-redesign__grid--two">
-                            <label class="profile-redesign__field">
-                                <span>Vị trí mong muốn</span>
-                                <input type="text" wire:model.defer="desired_job.position" />
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Mức lương kỳ vọng</span>
-                                <input type="text" wire:model.defer="desired_job.expected_salary" />
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Cấp bậc</span>
-                                <input type="text" wire:model.defer="desired_job.level" />
-                            </label>
-                            <label class="profile-redesign__field">
-                                <span>Địa điểm làm việc</span>
-                                <input type="text" wire:model.defer="desired_job.location" />
-                            </label>
-                        </div>
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('experiences')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('experiences')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'experiences'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>04</span>
-                                <h2>Kinh nghiệm làm việc</h2>
-                            </div>
-                            <button type="button" wire:click="addExperience" class="profile-redesign__ghost-btn">Thêm</button>
+                    <!-- 04. KINH NGHIỆM LÀM VIỆC -->
+                    <div x-show="activeSection === 'experiences'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">04</span> Kinh nghiệm làm việc</h2>
+                            <button type="button" wire:click="addExperience" class="vg-btn-add">
+                                <i class="fa fa-plus"></i> Thêm kinh nghiệm
+                            </button>
                         </div>
 
-                        <div class="profile-redesign__stack">
+                        <div>
                             @forelse($experiences as $index => $exp)
-                                <div class="profile-redesign__repeat">
-                                    <button type="button" wire:click="removeExperience({{ $index }})" class="profile-redesign__remove">Xóa</button>
-                                    <div class="profile-redesign__grid profile-redesign__grid--two">
-                                        <label class="profile-redesign__field">
-                                            <span>Tên công ty</span>
-                                            <input type="text" wire:model.defer="experiences.{{ $index }}.company" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Chức danh</span>
-                                            <input type="text" wire:model.defer="experiences.{{ $index }}.position" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Bắt đầu</span>
-                                            <input type="text" wire:model.defer="experiences.{{ $index }}.from" placeholder="01/2023" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Kết thúc</span>
-                                            <input type="text" wire:model.defer="experiences.{{ $index }}.to" placeholder="Hiện tại" />
-                                        </label>
-                                        <label class="profile-redesign__field profile-redesign__field--full">
-                                            <span>Mô tả công việc</span>
-                                            <textarea wire:model.defer="experiences.{{ $index }}.description" rows="4"></textarea>
-                                        </label>
+                                <div class="vg-repeat-card">
+                                    <div class="vg-repeat-card-head">
+                                        <span class="vg-repeat-badge"><i class="fa fa-building-o me-1"></i> Kinh nghiệm #{{ $index + 1 }}</span>
+                                        <button type="button" wire:click="removeExperience({{ $index }})" class="vg-btn-delete">
+                                            <i class="fa fa-trash-o"></i> Xóa mục này
+                                        </button>
+                                    </div>
+                                    <div class="vg-grid-2">
+                                        <div class="vg-field">
+                                            <label class="vg-label">Tên công ty / Tổ chức</label>
+                                            <input type="text" class="vg-input" wire:model.defer="experiences.{{ $index }}.company" placeholder="Tên công ty" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Chức danh / Vị trí</label>
+                                            <input type="text" class="vg-input" wire:model.defer="experiences.{{ $index }}.position" placeholder="Vị trí công việc" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Thời gian bắt đầu</label>
+                                            <input type="text" class="vg-input" wire:model.defer="experiences.{{ $index }}.from" placeholder="VD: 06/2023" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Thời gian kết thúc</label>
+                                            <input type="text" class="vg-input" wire:model.defer="experiences.{{ $index }}.to" placeholder="VD: Hiện tại hoặc 05/2024" />
+                                        </div>
+                                        <div class="vg-field vg-field-full">
+                                            <label class="vg-label">Mô tả công việc & Thành tích đạt được</label>
+                                            <textarea class="vg-textarea" wire:model.defer="experiences.{{ $index }}.description" rows="3" placeholder="Mô tả trách nhiệm chính, công nghệ sử dụng và kết quả công việc..."></textarea>
+                                        </div>
                                     </div>
                                 </div>
                             @empty
-                                <button type="button" wire:click="addExperience" class="profile-redesign__empty-action">
-                                    Thêm kinh nghiệm đầu tiên
-                                </button>
+                                <div class="text-center py-4 bg-light rounded-3 mb-3">
+                                    <i class="fa fa-briefcase text-muted" style="font-size: 24px;"></i>
+                                    <div class="mt-2 text-muted" style="font-size: 13.5px;">Chưa có dữ liệu kinh nghiệm làm việc.</div>
+                                    <button type="button" wire:click="addExperience" class="vg-btn-add mt-2">
+                                        <i class="fa fa-plus"></i> Thêm kinh nghiệm đầu tiên
+                                    </button>
+                                </div>
                             @endforelse
                         </div>
 
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('educations')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('educations')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'educations'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>05</span>
-                                <h2>Học vấn</h2>
-                            </div>
-                            <button type="button" wire:click="addEducation" class="profile-redesign__ghost-btn">Thêm</button>
+                    <!-- 05. HỌC VẤN & BẰNG CẤP -->
+                    <div x-show="activeSection === 'educations'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">05</span> Học vấn & Bằng cấp</h2>
+                            <button type="button" wire:click="addEducation" class="vg-btn-add">
+                                <i class="fa fa-plus"></i> Thêm học vấn
+                            </button>
                         </div>
 
-                        <div class="profile-redesign__stack">
+                        <div>
                             @forelse($educations as $index => $edu)
-                                <div class="profile-redesign__repeat">
-                                    <button type="button" wire:click="removeEducation({{ $index }})" class="profile-redesign__remove">Xóa</button>
-                                    <div class="profile-redesign__grid">
-                                        <label class="profile-redesign__field profile-redesign__field--wide">
-                                            <span>Trường học</span>
-                                            <input type="text" wire:model.defer="educations.{{ $index }}.school" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Bằng cấp</span>
-                                            <input type="text" wire:model.defer="educations.{{ $index }}.degree" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Bắt đầu</span>
-                                            <input type="text" wire:model.defer="educations.{{ $index }}.from" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Kết thúc</span>
-                                            <input type="text" wire:model.defer="educations.{{ $index }}.to" />
-                                        </label>
-                                        <label class="profile-redesign__field profile-redesign__field--full">
-                                            <span>Mô tả</span>
-                                            <textarea wire:model.defer="educations.{{ $index }}.description" rows="3"></textarea>
-                                        </label>
+                                <div class="vg-repeat-card">
+                                    <div class="vg-repeat-card-head">
+                                        <span class="vg-repeat-badge"><i class="fa fa-graduation-cap me-1"></i> Học vấn #{{ $index + 1 }}</span>
+                                        <button type="button" wire:click="removeEducation({{ $index }})" class="vg-btn-delete">
+                                            <i class="fa fa-trash-o"></i> Xóa mục này
+                                        </button>
+                                    </div>
+                                    <div class="vg-grid-2">
+                                        <div class="vg-field">
+                                            <label class="vg-label">Trường học / Cơ sở đào tạo</label>
+                                            <input type="text" class="vg-input" wire:model.defer="educations.{{ $index }}.school" placeholder="VD: Đại học FPT / FPT Polytechnic" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Chuyên ngành / Bằng cấp</label>
+                                            <input type="text" class="vg-input" wire:model.defer="educations.{{ $index }}.degree" placeholder="VD: Cử nhân Công nghệ Thông tin" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Bắt đầu</label>
+                                            <input type="text" class="vg-input" wire:model.defer="educations.{{ $index }}.from" placeholder="VD: 2020" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Kết thúc</label>
+                                            <input type="text" class="vg-input" wire:model.defer="educations.{{ $index }}.to" placeholder="VD: 2024" />
+                                        </div>
+                                        <div class="vg-field vg-field-full">
+                                            <label class="vg-label">Mô tả bổ sung (GPA, đề tài tốt nghiệp...)</label>
+                                            <textarea class="vg-textarea" wire:model.defer="educations.{{ $index }}.description" rows="2" placeholder="Ghi chú thành tích hoặc chứng chỉ liên quan..."></textarea>
+                                        </div>
                                     </div>
                                 </div>
                             @empty
-                                <button type="button" wire:click="addEducation" class="profile-redesign__empty-action">
-                                    Thêm học vấn
-                                </button>
+                                <div class="text-center py-4 bg-light rounded-3 mb-3">
+                                    <i class="fa fa-graduation-cap text-muted" style="font-size: 24px;"></i>
+                                    <div class="mt-2 text-muted" style="font-size: 13.5px;">Chưa có dữ liệu học vấn.</div>
+                                    <button type="button" wire:click="addEducation" class="vg-btn-add mt-2">
+                                        <i class="fa fa-plus"></i> Thêm học vấn đầu tiên
+                                    </button>
+                                </div>
                             @endforelse
                         </div>
 
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('skills')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('skills')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'skills'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>06</span>
-                                <h2>Kỹ năng chuyên môn</h2>
-                            </div>
-                            <button type="button" wire:click="addSkill" class="profile-redesign__ghost-btn">Thêm</button>
+                    <!-- 06. KỸ NĂNG CHUYÊN MÔN -->
+                    <div x-show="activeSection === 'skills'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">06</span> Kỹ năng chuyên môn</h2>
+                            <button type="button" wire:click="addSkill" class="vg-btn-add">
+                                <i class="fa fa-plus"></i> Thêm kỹ năng
+                            </button>
                         </div>
-                        <div class="profile-redesign__grid profile-redesign__grid--two">
+
+                        <div class="d-flex flex-column gap-2">
                             @forelse($skills as $index => $skill)
-                                <div class="profile-redesign__inline-field">
-                                    <input type="text" wire:model.defer="skills.{{ $index }}.name" placeholder="Tên kỹ năng" />
-                                    <input type="text" wire:model.defer="skills.{{ $index }}.level" placeholder="Mức độ" />
-                                    <button type="button" wire:click="removeSkill({{ $index }})">Xóa</button>
+                                <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                                    <div class="flex-grow-1">
+                                        <input type="text" class="vg-input bg-white" wire:model.defer="skills.{{ $index }}.name" placeholder="Tên kỹ năng (VD: ReactJS, PHP, SQL, Figma)" />
+                                    </div>
+                                    <div style="width: 180px;">
+                                        <input type="text" class="vg-input bg-white" wire:model.defer="skills.{{ $index }}.level" placeholder="Mức độ (VD: Khá / Giỏi / 2 năm)" />
+                                    </div>
+                                    <button type="button" wire:click="removeSkill({{ $index }})" class="vg-btn-delete" style="height: 48px; padding: 0 14px;">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
                                 </div>
                             @empty
-                                <button type="button" wire:click="addSkill" class="profile-redesign__empty-action">
-                                    Thêm kỹ năng mới
-                                </button>
+                                <div class="text-center py-4 bg-light rounded-3 mb-3">
+                                    <i class="fa fa-cogs text-muted" style="font-size: 24px;"></i>
+                                    <div class="mt-2 text-muted" style="font-size: 13.5px;">Chưa có kỹ năng chuyên môn nào.</div>
+                                    <button type="button" wire:click="addSkill" class="vg-btn-add mt-2">
+                                        <i class="fa fa-plus"></i> Thêm kỹ năng đầu tiên
+                                    </button>
+                                </div>
                             @endforelse
                         </div>
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('languages')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('languages')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'languages'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>07</span>
-                                <h2>Ngôn ngữ</h2>
-                            </div>
-                            <button type="button" wire:click="addLanguage" class="profile-redesign__ghost-btn">Thêm</button>
+                    <!-- 07. NGÔN NGỮ & NGOẠI NGỮ -->
+                    <div x-show="activeSection === 'languages'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">07</span> Ngôn ngữ & Ngoại ngữ</h2>
+                            <button type="button" wire:click="addLanguage" class="vg-btn-add">
+                                <i class="fa fa-plus"></i> Thêm ngôn ngữ
+                            </button>
                         </div>
-                        <div class="profile-redesign__stack">
+
+                        <div class="d-flex flex-column gap-2">
                             @forelse($languages as $index => $lang)
-                                <div class="profile-redesign__row-repeat">
-                                    <input type="text" wire:model.defer="languages.{{ $index }}.name" placeholder="VD: Tiếng Anh" />
-                                    <input type="text" wire:model.defer="languages.{{ $index }}.level" placeholder="VD: IELTS 7.0" />
-                                    <button type="button" wire:click="removeLanguage({{ $index }})">Xóa</button>
+                                <div class="d-flex align-items-center gap-2 p-2 bg-light rounded-3 border">
+                                    <div class="flex-grow-1">
+                                        <input type="text" class="vg-input bg-white" wire:model.defer="languages.{{ $index }}.name" placeholder="Ngôn ngữ (VD: Tiếng Anh, Tiếng Nhật)" />
+                                    </div>
+                                    <div style="width: 200px;">
+                                        <input type="text" class="vg-input bg-white" wire:model.defer="languages.{{ $index }}.level" placeholder="Trình độ (VD: IELTS 7.0, N2, Thành thạo)" />
+                                    </div>
+                                    <button type="button" wire:click="removeLanguage({{ $index }})" class="vg-btn-delete" style="height: 48px; padding: 0 14px;">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
                                 </div>
                             @empty
-                                <button type="button" wire:click="addLanguage" class="profile-redesign__empty-action">
-                                    Thêm ngôn ngữ
-                                </button>
+                                <div class="text-center py-4 bg-light rounded-3 mb-3">
+                                    <i class="fa fa-language text-muted" style="font-size: 24px;"></i>
+                                    <div class="mt-2 text-muted" style="font-size: 13.5px;">Chưa có dữ liệu ngôn ngữ.</div>
+                                    <button type="button" wire:click="addLanguage" class="vg-btn-add mt-2">
+                                        <i class="fa fa-plus"></i> Thêm ngôn ngữ đầu tiên
+                                    </button>
+                                </div>
                             @endforelse
                         </div>
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('certifications')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('certifications')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'certifications'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>08</span>
-                                <h2>Chứng chỉ</h2>
-                            </div>
-                            <button type="button" wire:click="addCertification" class="profile-redesign__ghost-btn">Thêm</button>
+                    <!-- 08. CHỨNG CHỈ & GIẢI THƯỞNG -->
+                    <div x-show="activeSection === 'certifications'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">08</span> Chứng chỉ & Giải thưởng</h2>
+                            <button type="button" wire:click="addCertification" class="vg-btn-add">
+                                <i class="fa fa-plus"></i> Thêm chứng chỉ
+                            </button>
                         </div>
-                        <div class="profile-redesign__stack">
+
+                        <div>
                             @forelse($certifications as $index => $cert)
-                                <div class="profile-redesign__repeat">
-                                    <button type="button" wire:click="removeCertification({{ $index }})" class="profile-redesign__remove">Xóa</button>
-                                    <div class="profile-redesign__grid">
-                                        <label class="profile-redesign__field profile-redesign__field--wide">
-                                            <span>Tên chứng chỉ</span>
-                                            <input type="text" wire:model.defer="certifications.{{ $index }}.name" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Tổ chức cấp</span>
-                                            <input type="text" wire:model.defer="certifications.{{ $index }}.issuer" />
-                                        </label>
-                                        <label class="profile-redesign__field">
-                                            <span>Thời gian</span>
-                                            <input type="text" wire:model.defer="certifications.{{ $index }}.date" />
-                                        </label>
-                                        <label class="profile-redesign__field profile-redesign__field--full">
-                                            <span>Mô tả</span>
-                                            <textarea wire:model.defer="certifications.{{ $index }}.description" rows="3"></textarea>
-                                        </label>
+                                <div class="vg-repeat-card">
+                                    <div class="vg-repeat-card-head">
+                                        <span class="vg-repeat-badge"><i class="fa fa-certificate me-1"></i> Chứng chỉ #{{ $index + 1 }}</span>
+                                        <button type="button" wire:click="removeCertification({{ $index }})" class="vg-btn-delete">
+                                            <i class="fa fa-trash-o"></i> Xóa mục này
+                                        </button>
+                                    </div>
+                                    <div class="vg-grid-3">
+                                        <div class="vg-field">
+                                            <label class="vg-label">Tên chứng chỉ</label>
+                                            <input type="text" class="vg-input" wire:model.defer="certifications.{{ $index }}.name" placeholder="VD: AWS Certified Cloud Practitioner" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Tổ chức cấp</label>
+                                            <input type="text" class="vg-input" wire:model.defer="certifications.{{ $index }}.issuer" placeholder="VD: Amazon Web Services" />
+                                        </div>
+                                        <div class="vg-field">
+                                            <label class="vg-label">Thời gian cấp</label>
+                                            <input type="text" class="vg-input" wire:model.defer="certifications.{{ $index }}.date" placeholder="VD: 2024" />
+                                        </div>
+                                        <div class="vg-field vg-field-full">
+                                            <label class="vg-label">Mô tả thêm</label>
+                                            <textarea class="vg-textarea" wire:model.defer="certifications.{{ $index }}.description" rows="2" placeholder="Ghi chú thêm về chứng chỉ hoặc giải thưởng..."></textarea>
+                                        </div>
                                     </div>
                                 </div>
                             @empty
-                                <button type="button" wire:click="addCertification" class="profile-redesign__empty-action">
-                                    Thêm chứng chỉ
-                                </button>
+                                <div class="text-center py-4 bg-light rounded-3 mb-3">
+                                    <i class="fa fa-certificate text-muted" style="font-size: 24px;"></i>
+                                    <div class="mt-2 text-muted" style="font-size: 13.5px;">Chưa có chứng chỉ hoặc giải thưởng nào.</div>
+                                    <button type="button" wire:click="addCertification" class="vg-btn-add mt-2">
+                                        <i class="fa fa-plus"></i> Thêm chứng chỉ đầu tiên
+                                    </button>
+                                </div>
                             @endforelse
                         </div>
-                        <div class="profile-redesign__actions">
-                            <button type="button" wire:click="saveSection('extra-info')" wire:loading.attr="disabled" wire:target="saveSection">
-                                <span wire:loading.remove wire:target="saveSection">Lưu & tiếp theo</span>
-                                <span wire:loading wire:target="saveSection">Đang lưu...</span>
-                                <span>→</span>
+
+                        <div class="vg-action-footer">
+                            <div></div>
+                            <button type="button" wire:click="saveSection('extra-info')" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="saveSection">
+                                <span wire:loading.remove wire:target="saveSection">Lưu & Tiếp theo <i class="fa fa-arrow-right ms-1"></i></span>
+                                <span wire:loading wire:target="saveSection"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
 
-                    <section x-show="activeSection === 'extra-info'" x-transition.opacity class="profile-redesign__panel">
-                        <div class="profile-redesign__panel-head">
-                            <div>
-                                <span>09</span>
-                                <h2>CV & thông tin bổ sung</h2>
-                            </div>
+                    <!-- 09. CV & THÔNG TIN BỔ SUNG -->
+                    <div x-show="activeSection === 'extra-info'" x-transition.opacity class="vg-panel" x-cloak>
+                        <div class="vg-panel-head">
+                            <h2><span class="vg-panel-num">09</span> CV & Thông tin bổ sung</h2>
                         </div>
 
                         <div
-                            class="profile-redesign__upload"
+                            class="vg-drop-zone mb-4"
                             x-data="{ selectedCvName: '', isDragging: false }"
                             x-on:dragover.prevent="isDragging = true"
                             x-on:dragleave.prevent="isDragging = false"
@@ -553,191 +1294,77 @@
                                     $refs.cvInput.dispatchEvent(new Event('change'));
                                 }
                             "
+                            :class="{ 'is-drag': isDragging }"
+                            x-on:click="$refs.cvInput.click()"
                         >
-                            {{-- Header --}}
-                            <div style="text-align: center; margin-bottom: 1.25rem;">
-                                <span class="profile-redesign__upload-mark">CV</span>
-                                <h3 style="margin: 0.75rem 0 0.35rem; font-size: 1.1rem; font-weight: 800; color: #1e293b;">Tải lên CV cá nhân</h3>
-                                <p style="margin: 0; color: #94a3b8; font-size: 0.82rem;">Hỗ trợ PDF, DOC, DOCX · Tối đa 10MB</p>
+                            <div wire:loading wire:target="cv">
+                                <i class="fa fa-circle-o-notch fa-spin text-primary" style="font-size: 28px;"></i>
+                                <div class="mt-2 font-weight-bold">Đang tải file lên...</div>
                             </div>
 
-                            {{-- Drop Zone --}}
-                            <div
-                                class="cv-drop-zone"
-                                :class="{ 'cv-drop-zone--active': isDragging }"
-                                x-on:click="$refs.cvInput.click()"
-                            >
-                                {{-- Loading state --}}
-                                <div wire:loading wire:target="cv" class="cv-upload-loading">
-                                    <div class="cv-spinner"></div>
-                                    <span>Đang tải lên...</span>
-                                </div>
-
-                                {{-- Idle / selected state --}}
-                                <div wire:loading.remove wire:target="cv">
-                                    @if($cv && method_exists($cv, 'getClientOriginalName'))
-                                        {{-- File đã upload lên Livewire temp --}}
-                                        <div class="cv-file-preview cv-file-preview--ready">
-                                            <div class="cv-file-icon">
-                                                <i class="fa fa-file-pdf-o"></i>
-                                            </div>
-                                            <div class="cv-file-info">
-                                                <span class="cv-file-badge">✅ Sẵn sàng lưu</span>
-                                                <strong class="cv-file-name">{{ $cv->getClientOriginalName() }}</strong>
-                                                <small>Bấm <em>Lưu tất cả thay đổi</em> để cập nhật CV.</small>
-                                            </div>
+                            <div wire:loading.remove wire:target="cv">
+                                @if($cv && method_exists($cv, 'getClientOriginalName'))
+                                    <div class="d-flex align-items-center justify-content-center gap-3">
+                                        <div style="width: 48px; height: 48px; border-radius: 12px; background: #ecfdf5; color: #10b981; display: flex; align-items: center; justify-content: center; font-size: 22px;">
+                                            <i class="fa fa-file-pdf-o"></i>
                                         </div>
-                                    @else
-                                        {{-- Chưa chọn hoặc đã chọn local (alpine) --}}
-                                        <div x-show="!selectedCvName" class="cv-drop-idle">
-                                            <i class="fa fa-cloud-upload" style="font-size: 2rem; color: #cbd5e1; display: block; margin-bottom: 0.6rem;"></i>
-                                            <span style="font-weight: 700; color: #475569; font-size: 0.88rem;">Kéo thả file vào đây</span>
-                                            <span style="color: #94a3b8; font-size: 0.78rem; display: block; margin-top: 0.25rem;">hoặc bấm để chọn file</span>
+                                        <div class="text-start">
+                                            <span class="badge bg-success">✓ Sẵn sàng lưu</span>
+                                            <div style="font-weight: 700; color: #0f172a; font-size: 14px;">{{ $cv->getClientOriginalName() }}</div>
+                                            <small class="text-muted">Bấm "Lưu tất cả thay đổi" để cập nhật CV vào hồ sơ.</small>
                                         </div>
-                                        <div x-show="selectedCvName" x-cloak class="cv-file-preview cv-file-preview--selected">
-                                            <div class="cv-file-icon">
-                                                <i class="fa fa-file-text-o"></i>
-                                            </div>
-                                            <div class="cv-file-info">
-                                                <span class="cv-file-badge cv-file-badge--pending">⏳ Chờ upload</span>
-                                                <strong class="cv-file-name" x-text="selectedCvName"></strong>
-                                                <small>File đã chọn · Bấm lưu để cập nhật CV.</small>
-                                            </div>
+                                    </div>
+                                @else
+                                    <div x-show="!selectedCvName">
+                                        <div style="width: 52px; height: 52px; border-radius: 50%; background: #fff7ed; color: #f37021; display: inline-flex; align-items: center; justify-content: center; font-size: 22px; margin-bottom: 10px;">
+                                            <i class="fa fa-cloud-upload"></i>
                                         </div>
-                                    @endif
-                                </div>
+                                        <div style="font-weight: 800; font-size: 15px; color: #0f172a;">Kéo thả file CV của bạn vào đây</div>
+                                        <div style="font-size: 12.5px; color: #64748b; margin-top: 4px;">Hỗ trợ PDF, DOC, DOCX (Dưới 10MB) · Hoặc bấm để chọn file từ máy tính</div>
+                                    </div>
+                                    <div x-show="selectedCvName" x-cloak>
+                                        <div style="font-weight: 700; color: #f37021;" x-text="selectedCvName"></div>
+                                        <small class="text-muted">File đã được chọn · Bấm lưu để hoàn tất</small>
+                                    </div>
+                                @endif
                             </div>
 
-                            {{-- Hidden input --}}
                             <input
                                 type="file"
-                                id="cv_upload"
+                                id="cv_upload_vanguard"
                                 x-ref="cvInput"
                                 wire:model="cv"
                                 class="d-none"
                                 accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
                                 x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
                             >
-
-                            {{-- Current CV link --}}
-                            @if($this->currentCvUrl)
-                                <a href="{{ $this->currentCvUrl }}" target="_blank" class="profile-redesign__current-cv" style="display: flex; align-items: center; gap: 0.4rem; justify-content: center; margin-top: 0.75rem;">
-                                    <i class="fa fa-eye"></i> Xem CV hiện tại
-                                </a>
-                            @endif
-
-                            @error('cv') <small class="profile-redesign__error" style="display:block; text-align:center; margin-top: 0.5rem;">{{ $message }}</small> @enderror
                         </div>
 
-                        <style>
-                            .cv-drop-zone {
-                                border: 2px dashed #e2e8f0;
-                                border-radius: 16px;
-                                padding: 1.5rem 1rem;
-                                cursor: pointer;
-                                transition: all 0.22s ease;
-                                background: #f8fafc;
-                                min-height: 120px;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                            }
-                            .cv-drop-zone:hover,
-                            .cv-drop-zone--active {
-                                border-color: #f37021;
-                                background: #fff7ed;
-                            }
-                            .cv-drop-idle {
-                                text-align: center;
-                            }
-                            .cv-upload-loading {
-                                display: flex;
-                                flex-direction: column;
-                                align-items: center;
-                                gap: 0.6rem;
-                                color: #64748b;
-                                font-size: 0.85rem;
-                                font-weight: 600;
-                            }
-                            .cv-spinner {
-                                width: 28px;
-                                height: 28px;
-                                border: 3px solid #e2e8f0;
-                                border-top-color: #f37021;
-                                border-radius: 50%;
-                                animation: cv-spin 0.7s linear infinite;
-                            }
-                            @keyframes cv-spin { to { transform: rotate(360deg); } }
-                            .cv-file-preview {
-                                display: flex;
-                                align-items: center;
-                                gap: 0.85rem;
-                                width: 100%;
-                                padding: 0.25rem 0.5rem;
-                            }
-                            .cv-file-icon {
-                                width: 44px;
-                                height: 44px;
-                                border-radius: 12px;
-                                background: #fff;
-                                border: 1px solid #e2e8f0;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 1.3rem;
-                                flex-shrink: 0;
-                                color: #f37021;
-                            }
-                            .cv-file-preview--ready .cv-file-icon {
-                                background: #f0fdf4;
-                                border-color: #86efac;
-                                color: #16a34a;
-                            }
-                            .cv-file-info {
-                                display: flex;
-                                flex-direction: column;
-                                gap: 0.2rem;
-                                min-width: 0;
-                            }
-                            .cv-file-badge {
-                                font-size: 0.7rem;
-                                font-weight: 700;
-                                color: #16a34a;
-                            }
-                            .cv-file-badge--pending {
-                                color: #d97706;
-                            }
-                            .cv-file-name {
-                                font-size: 0.85rem;
-                                font-weight: 800;
-                                color: #1e293b;
-                                white-space: nowrap;
-                                overflow: hidden;
-                                text-overflow: ellipsis;
-                                max-width: 240px;
-                            }
-                            .cv-file-info small {
-                                font-size: 0.73rem;
-                                color: #94a3b8;
-                            }
-                        </style>
+                        @if($this->currentCvUrl)
+                            <div class="d-flex align-items-center justify-content-center gap-2 mb-4">
+                                <a href="{{ $this->currentCvUrl }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                                    <i class="fa fa-eye me-1"></i> Xem CV hiện tại đã tải lên
+                                </a>
+                            </div>
+                        @endif
 
-                        <label class="profile-redesign__field">
-                            <span>Thông tin bổ sung</span>
-                            <textarea wire:model.defer="extra" rows="5" placeholder="Giải thưởng, hoạt động ngoại khóa hoặc ghi chú khác..."></textarea>
-                        </label>
+                        @error('cv') <div class="vg-error text-center mb-3">{{ $message }}</div> @enderror
 
-                        <div class="profile-redesign__actions profile-redesign__actions--split">
-                            <small>Hồ sơ đủ điều kiện ứng tuyển khi có họ tên, email, số điện thoại và CV.</small>
-                            <button type="submit" class="profile-redesign__submit" wire:loading.attr="disabled" wire:target="save">
-                                <span wire:loading.remove wire:target="save">Lưu tất cả thay đổi</span>
-                                <span wire:loading wire:target="save">Đang lưu...</span>
-                                <span>→</span>
+                        <div class="vg-field mb-4">
+                            <label class="vg-label">Ghi chú & Thông tin bổ sung</label>
+                            <textarea class="vg-textarea" wire:model.defer="extra" rows="4" placeholder="Hoạt động ngoại khóa, sở thích hoặc các lưu ý khác cho nhà tuyển dụng..."></textarea>
+                        </div>
+
+                        <div class="vg-action-footer">
+                            <small class="text-muted"><i class="fa fa-shield"></i> Dữ liệu hồ sơ được mã hóa và bảo vệ an toàn trên hệ thống.</small>
+                            <button type="submit" class="vg-btn-primary" wire:loading.attr="disabled" wire:target="save">
+                                <span wire:loading.remove wire:target="save"><i class="fa fa-check-circle"></i> Lưu tất cả thay đổi</span>
+                                <span wire:loading wire:target="save"><i class="fa fa-circle-o-notch fa-spin"></i> Đang lưu hồ sơ...</span>
                             </button>
                         </div>
-                    </section>
+                    </div>
                 </form>
             </main>
         </div>
-    </section>
+    </div>
 </div>

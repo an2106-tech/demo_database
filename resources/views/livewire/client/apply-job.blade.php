@@ -541,63 +541,121 @@
                 </div>
 
                 <div class="premium-field mb-4">
-                    <label>
-                        @if($this->existingCvUrl)
-                            Sử dụng CV trong hồ sơ hoặc tải lên bản mới
-                        @else
-                            Tải lên Hồ sơ (CV) *
+                    <label class="d-flex justify-content-between align-items-center mb-2">
+                        <span style="font-weight: 800; font-size: 14px; color: #0f172a;">
+                            <i class="fa fa-file-text-o text-warning me-1"></i> Chọn Bản CV Dùng Để Ứng Tuyển *
+                        </span>
+                        @if(Auth::check())
+                            <a href="{{ route('candidates.manage_cv') }}" target="_blank" class="text-primary small" style="font-weight: 600; text-decoration: none;">
+                                <i class="fa fa-cog me-1"></i> Quản lý CV của tôi
+                            </a>
                         @endif
                     </label>
-                    <div
-                        class="upload-wrapper"
-                        onclick="document.getElementById('cv-file').click()"
-                        x-data="{ selectedCvName: '' }"
-                    >
-                        <input
-                            type="file"
-                            id="cv-file"
-                            wire:model="cv"
-                            hidden
-                            accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
-                            x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
+
+                    <div class="cv-selector-container" style="display: grid; gap: 10px; margin-bottom: 14px;">
+                        <!-- Online CV Templates -->
+                        @foreach($availableTemplates as $tpl)
+                            @php
+                                $val = 'online_' . $tpl['id'];
+                                $isPrimary = (data_get($primaryCv, 'type') === 'online' && data_get($primaryCv, 'template', 'fpt-modern') === $tpl['id']);
+                            @endphp
+                            <label class="cv-option-card {{ $selectedCvOption === $val ? 'is-selected' : '' }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid {{ $selectedCvOption === $val ? '#f37021' : '#e2e8f0' }}; background: {{ $selectedCvOption === $val ? '#fffaf5' : '#ffffff' }}; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <input type="radio" wire:model.live="selectedCvOption" value="{{ $val }}" style="accent-color: #f37021; width: 18px; height: 18px;">
+                                    <div>
+                                        <div style="font-weight: 700; color: #0f172a; font-size: 13.5px;">
+                                            <i class="fa fa-desktop text-primary me-1"></i> {{ $tpl['name'] }} (CV Trực tuyến)
+                                            @if($isPrimary)
+                                                <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">⭐ CV CHÍNH</span>
+                                            @endif
+                                        </div>
+                                        <div style="font-size: 11.5px; color: #64748b;">Hệ thống tự động xuất PDF chuẩn in ấn A4</div>
+                                    </div>
+                                </div>
+                                <a href="{{ route('candidates.cv.download', ['template' => $tpl['id'], 'mode' => 'stream', 'action' => 'view']) }}" target="_blank" class="btn btn-sm btn-light" style="font-size: 11px; border-radius: 6px; padding: 3px 8px;" onclick="event.stopPropagation();">
+                                    <i class="fa fa-eye"></i> Xem trước
+                                </a>
+                            </label>
+                        @endforeach
+
+                        <!-- Existing Uploaded Attachments -->
+                        @if(isset($attachments) && $attachments->isNotEmpty())
+                            @foreach($attachments as $att)
+                                @php
+                                    $val = 'attachment_' . $att->id;
+                                    $isPrimary = (data_get($primaryCv, 'type') === 'attachment' && (int)data_get($primaryCv, 'attachment_id') === $att->id);
+                                @endphp
+                                <label class="cv-option-card {{ $selectedCvOption === $val ? 'is-selected' : '' }}" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1.5px solid {{ $selectedCvOption === $val ? '#f37021' : '#e2e8f0' }}; background: {{ $selectedCvOption === $val ? '#fffaf5' : '#ffffff' }}; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <input type="radio" wire:model.live="selectedCvOption" value="{{ $val }}" style="accent-color: #f37021; width: 18px; height: 18px;">
+                                        <div>
+                                            <div style="font-weight: 700; color: #0f172a; font-size: 13.5px;">
+                                                <i class="fa fa-file-pdf-o text-danger me-1"></i> {{ $att->original_filename }}
+                                                @if($isPrimary)
+                                                    <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">⭐ CV CHÍNH</span>
+                                                @endif
+                                            </div>
+                                            <div style="font-size: 11.5px; color: #64748b;">File đính kèm ({{ round($att->size_bytes / 1024) }} KB)</div>
+                                        </div>
+                                    </div>
+                                    <a href="{{ Storage::disk('public')->url($att->path) }}" target="_blank" class="btn btn-sm btn-light" style="font-size: 11px; border-radius: 6px; padding: 3px 8px;" onclick="event.stopPropagation();">
+                                        <i class="fa fa-eye"></i> Xem file
+                                    </a>
+                                </label>
+                            @endforeach
+                        @endif
+
+                        <!-- Option: Upload Brand New CV -->
+                        <label class="cv-option-card {{ $selectedCvOption === 'new_upload' ? 'is-selected' : '' }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 1.5px solid {{ $selectedCvOption === 'new_upload' ? '#f37021' : '#e2e8f0' }}; background: {{ $selectedCvOption === 'new_upload' ? '#fffaf5' : '#ffffff' }}; border-radius: 12px; cursor: pointer; transition: all 0.2s;">
+                            <input type="radio" wire:model.live="selectedCvOption" value="new_upload" style="accent-color: #f37021; width: 18px; height: 18px;">
+                            <div>
+                                <div style="font-weight: 700; color: #0f172a; font-size: 13.5px;">
+                                    <i class="fa fa-cloud-upload text-info me-1"></i> Tải lên file CV mới từ máy tính
+                                </div>
+                                <div style="font-size: 11.5px; color: #64748b;">Chọn file PDF/DOC/DOCX khác cho riêng đợt ứng tuyển này</div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Dropzone appears when new_upload is selected -->
+                    <div x-show="$wire.selectedCvOption === 'new_upload'" x-transition class="mt-3">
+                        <div
+                            class="upload-wrapper"
+                            onclick="document.getElementById('cv-file').click()"
+                            x-data="{ selectedCvName: '' }"
                         >
-                        <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>
-                        <div class="upload-hint">
-                            <h4>Nhấp để chọn file hồ sơ mới</h4>
-                            @if($this->existingCvUrl)
-                                <p class="text-primary fw-bold">Hệ thống sẽ dùng CV hiện tại nếu bạn không chọn file mới.</p>
-                            @else
+                            <input
+                                type="file"
+                                id="cv-file"
+                                wire:model="cv"
+                                hidden
+                                accept="{{ \App\Support\CvUpload::acceptAttribute() }}"
+                                x-on:change="selectedCvName = $event.target.files?.[0]?.name || ''"
+                            >
+                            <div class="upload-icon-anim"><i class="fa fa-cloud-upload"></i></div>
+                            <div class="upload-hint">
+                                <h4>Nhấp để chọn file hồ sơ mới</h4>
                                 <p>Định dạng hỗ trợ: PDF, DOC, DOCX (Tối đa 10MB)</p>
+                            </div>
+                            <div
+                                x-show="selectedCvName"
+                                x-cloak
+                                class="selected-cv-pill"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                <i class="fa fa-check-circle"></i>
+                                <span>Đã chọn: <strong x-text="selectedCvName"></strong></span>
+                            </div>
+                            @if($cv && method_exists($cv, 'getClientOriginalName'))
+                                <div class="selected-cv-pill" role="status" aria-live="polite">
+                                    <i class="fa fa-check-circle"></i>
+                                    <span>Đã tải lên tạm thời: <strong>{{ $cv->getClientOriginalName() }}</strong></span>
+                                </div>
                             @endif
                         </div>
-                        <div
-                            x-show="selectedCvName"
-                            x-cloak
-                            class="selected-cv-pill"
-                            role="status"
-                            aria-live="polite"
-                        >
-                            <i class="fa fa-check-circle"></i>
-                            <span>Đã chọn: <strong x-text="selectedCvName"></strong></span>
-                        </div>
-                        @if($cv && method_exists($cv, 'getClientOriginalName'))
-                            <div class="selected-cv-pill" role="status" aria-live="polite">
-                                <i class="fa fa-check-circle"></i>
-                                <span>Đã tải lên tạm thời: <strong>{{ $cv->getClientOriginalName() }}</strong></span>
-                            </div>
-                        @endif
+                        @error('cv') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
                     </div>
-                    @error('cv') <span class="text-danger small fw-bold mt-1">{{ $message }}</span> @enderror
-
-                    @if ($this->existingCvName)
-                    <div class="existing-cv-pill" style="background: #eff6ff; border-color: #bfdbfe;">
-                        <div>
-                            <i class="fa fa-file-pdf-o text-primary me-2"></i>
-                            <span>CV hiện tại: <strong>{{ $this->existingCvName }}</strong></span>
-                        </div>
-                        <a href="{{ $this->existingCvUrl }}" target="_blank" class="text-primary"><i class="fa fa-eye"></i> Xem bản cũ</a>
-                    </div>
-                    @endif
                 </div>
 
                 @if(Auth::check() && ! $this->requiresCandidateActivation)

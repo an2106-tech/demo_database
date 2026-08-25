@@ -149,25 +149,39 @@ Route::prefix('candidates')->name('candidates.')->group(function () {
     Route::middleware(['auth', 'candidate.account'])->group(function () {
         Route::get('submit-resume', SubmitResume::class)->name('submit_resume');
         Route::get('candidate-dashboard', CandidateDashboard::class)->name('candidate_dashboard');
+        Route::get('manage-cv', \App\Livewire\Client\ManageCv::class)->name('manage_cv');
         Route::get('candidate-profile', ClientCandidateProfile::class)->name('candidate_profile');
+        Route::get('cv-builder', \App\Livewire\Client\CvBuilder::class)->name('cv_builder');
         Route::get('download-cv', function (\Illuminate\Http\Request $request) {
             $user = auth()->user();
             $candidate = app(\App\Services\CandidateAccountService::class)->resolveFor($user);
             $resume = \App\Models\CandidateResume::where('candidate_id', $candidate->id)->first();
+            $template = $request->query('template', 'fpt-modern');
             
             if ($request->has('preview')) {
                 return view('pdf.cv-template', [
                     'candidate' => $candidate,
                     'resume' => $resume,
+                    'template' => $template,
                 ]);
             }
 
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cv-template', [
                 'candidate' => $candidate,
                 'resume' => $resume,
-            ]);
+                'template' => $template,
+            ])->setPaper('a4', 'portrait')
+              ->setOption('isHtml5ParserEnabled', true)
+              ->setOption('isRemoteEnabled', true)
+              ->setOption('defaultFont', 'DejaVu Sans');
             
-            return $pdf->download('CV_' . str_replace(' ', '_', $candidate->name) . '.pdf');
+            $filename = 'CV_' . str_replace(' ', '_', $candidate->name) . '_' . $template . '.pdf';
+
+            if ($request->query('mode') === 'stream' || $request->has('stream') || $request->query('action') === 'view') {
+                return $pdf->stream($filename);
+            }
+
+            return $pdf->download($filename);
         })->name('cv.download');
 
         Route::get('messages', Messages::class)->name('messages');
