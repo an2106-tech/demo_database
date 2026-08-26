@@ -686,6 +686,22 @@
     </style>
 
     <div class="vg-container">
+        <div class="fpt-breadcrumb-bar" style="margin-bottom: 24px; padding-top: 0;">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Hồ sơ cá nhân</li>
+                </ul>
+
+                <a href="{{ route('candidates.candidate_dashboard') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Bảng điều khiển
+                </a>
+            </div>
+        </div>
+
         @if (session('status'))
             <div class="alert alert-success d-flex align-items-center gap-2 mb-4" style="border-radius: 14px; font-weight: 600; font-size: 14px;">
                 <i class="fa fa-check-circle"></i> {{ session('status') }}
@@ -755,10 +771,11 @@
                 <div class="vg-hero-card">
                     <div class="vg-hero-left">
                         <div class="vg-avatar-wrap">
-                            <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Avatar" class="vg-avatar-img">
-                            <input type="file" id="avatar_upload_hero" wire:model="avatar" class="d-none">
-                            <label for="avatar_upload_hero" class="vg-avatar-upload-btn" title="Cập nhật ảnh">
-                                <i class="fa fa-camera mb-1"></i> Đổi ảnh
+                            <img src="{{ $avatar ? $avatar->temporaryUrl() : $this->currentAvatarUrl }}" alt="Avatar" class="vg-avatar-img" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
+                            <input type="file" id="avatar_upload_hero" wire:model="avatar" accept="image/png,image/jpeg,image/jpg,image/webp" class="d-none">
+                            <label for="avatar_upload_hero" class="vg-avatar-upload-btn" title="Cập nhật ảnh đại diện">
+                                <span wire:loading.remove wire:target="avatar"><i class="fa fa-camera mb-1"></i> Đổi ảnh</span>
+                                <span wire:loading wire:target="avatar"><i class="fa fa-circle-o-notch fa-spin"></i></span>
                             </label>
                         </div>
                         <div class="vg-hero-copy">

@@ -524,19 +524,57 @@ class CandidateProfile extends Component
             : asset('storage/' . ltrim($candidate->cv_file, '/'));
     }
 
+    public function updatedAvatar(): void
+    {
+        $this->validate([
+            'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
+        ]);
+
+        $user = Auth::user();
+        if ($this->avatar && $user) {
+            $oldAvatar = $user->avatar;
+            $avatarPath = $this->avatar->storePublicly("users/{$user->id}/avatar", 'public');
+
+            $user->avatar = $avatarPath;
+            $user->save();
+
+            if ($oldAvatar && $oldAvatar !== $avatarPath && Storage::disk('public')->exists($oldAvatar)) {
+                Storage::disk('public')->delete($oldAvatar);
+            }
+
+            $this->avatar = null;
+
+            $this->dispatch('app-notify', [
+                'type' => 'success',
+                'title' => 'Ảnh đại diện',
+                'message' => 'Đã cập nhật ảnh đại diện thành công!',
+            ]);
+        }
+    }
+
+    public function removeAvatar(): void
+    {
+        $user = Auth::user();
+        if ($user && $user->avatar) {
+            if (Storage::disk('public')->exists($user->avatar)) {
+                Storage::disk('public')->delete($user->avatar);
+            }
+            $user->avatar = null;
+            $user->save();
+        }
+
+        $this->avatar = null;
+
+        $this->dispatch('app-notify', [
+            'type' => 'success',
+            'title' => 'Ảnh đại diện',
+            'message' => 'Đã xóa ảnh đại diện thành công!',
+        ]);
+    }
+
     public function getCurrentAvatarUrlProperty(): string
     {
-        $avatar = Auth::user()?->avatar;
-
-        if (! $avatar) {
-            return asset('assets/img/avatar_detail.jpg');
-        }
-
-        if (str_starts_with($avatar, 'http://') || str_starts_with($avatar, 'https://')) {
-            return $avatar;
-        }
-
-        return asset('storage/' . ltrim($avatar, '/'));
+        return Auth::user()?->avatar_url ?? asset('assets/img/avatar_detail.jpg');
     }
 
     private function refreshApplicationStatus(Candidate $candidate): void

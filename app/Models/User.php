@@ -125,4 +125,22 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->morphMany(Attachment::class, 'attachable');
     }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if (! $this->avatar) {
+            return asset('assets/img/avatar_detail.jpg');
+        }
+
+        if (str_starts_with($this->avatar, 'http://') || str_starts_with($this->avatar, 'https://')) {
+            return $this->avatar;
+        }
+
+        return asset('storage/' . ltrim($this->avatar, '/'));
+    }
+
+    public function getHasCustomAvatarAttribute(): bool
+    {
+        return ! empty($this->avatar);
+    }
 }

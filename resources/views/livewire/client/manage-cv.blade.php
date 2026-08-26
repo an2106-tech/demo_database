@@ -331,6 +331,24 @@
         .attachment-meta { font-size: 12px; color: #64748b; }
     </style>
 
+    <div class="fpt-breadcrumb-bar">
+        <div class="container-fluid px-lg-5">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Quản lý CV</li>
+                </ul>
+
+                <a href="{{ route('candidates.candidate_dashboard') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Bảng điều khiển
+                </a>
+            </div>
+        </div>
+    </div>
+
     <div class="candidate-dashboard-area section_70">
         <div class="container-fluid px-lg-5">
             <div class="row g-4">

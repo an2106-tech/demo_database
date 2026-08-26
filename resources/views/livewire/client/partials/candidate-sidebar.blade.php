@@ -1,11 +1,15 @@
 <div class="sidebar-shell">
     <div class="sidebar-shell__brand">
-        <div class="sidebar-shell__mark">
-            <i class="fa fa-user"></i>
+        <div class="sidebar-shell__mark" style="overflow: hidden; padding: 0;">
+            @if(Auth::user()?->avatar)
+                <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
+            @else
+                <i class="fa fa-user"></i>
+            @endif
         </div>
         <div>
-            <h3>Hồ sơ ứng viên</h3>
-            <p>Quản lý hồ sơ, ứng tuyển và bảo mật</p>
+            <h3>{{ Auth::user()?->name ?? 'Hồ sơ ứng viên' }}</h3>
+            <p>Quản lý hồ sơ, ứng tuyển & bảo mật</p>
         </div>
     </div>
 
@@ -52,12 +56,7 @@
             </a>
         </li>
 
-        <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('candidates.earnings') ? 'is-active' : '' }}" href="{{ route('candidates.earnings') }}">
-                <i class="fa fa-line-chart"></i>
-                <span>Thu nhập & Thưởng</span>
-            </a>
-        </li>
+
 
         <li>
             <a class="sidebar-nav__link {{ request()->routeIs('candidates.change_password') ? 'is-active' : '' }}" href="{{ route('candidates.change_password') }}">
@@ -66,9 +65,15 @@
             </a>
         </li>
         <li>
+            @php
+                $unreadNotifs = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
+            @endphp
             <a class="sidebar-nav__link {{ request()->routeIs('candidates.notifications') ? 'is-active' : '' }}" href="{{ route('candidates.notifications') }}">
                 <i class="fa fa-bell"></i>
                 <span>Thông báo</span>
+                @if($unreadNotifs > 0)
+                    <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadNotifs }}</span>
+                @endif
             </a>
         </li>
     </ul>

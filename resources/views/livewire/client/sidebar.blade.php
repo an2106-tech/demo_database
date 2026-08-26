@@ -202,14 +202,9 @@
                                        <li>
                                           Mức lương
                                           <span class="open-icon">
-                                             <i class="fa fa-credit-card-alt"></i>
-                                             @if ($job->salary_range)
-                                                {{ number_format($job->salary_range['min']) }} -
-                                                {{ number_format($job->salary_range['max']) }} VND
-                                             @else
-                                                Thỏa thuận
-                                             @endif
-                                          </span>
+                                              <i class="fa fa-tag"></i>
+                                              {{ $job->formatted_salary }}
+                                           </span>
                                        </li>
                                        <li>
                                           Trạng thái

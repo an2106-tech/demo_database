@@ -70,9 +70,15 @@
             </a>
         </li>
         <li>
+            @php
+                $unreadEmpNotifs = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
+            @endphp
             <a class="sidebar-nav__link {{ request()->routeIs('employers.notifications') ? 'is-active' : '' }}" href="{{ route('employers.notifications') }}">
                 <i class="fa fa-bell"></i>
                 <span>Thông báo</span>
+                @if($unreadEmpNotifs > 0)
+                    <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadEmpNotifs }}</span>
+                @endif
             </a>
         </li>
     </ul>

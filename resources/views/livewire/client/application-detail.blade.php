@@ -23,12 +23,22 @@
 @endphp
 
 <div>
-    <div class="dashboard-breadcrumb">
-        <ul>
-            <li><a href="{{ route('home') }}">Trang chủ</a></li>
-            <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
-            <li class="active">Chi tiết ứng tuyển</li>
-        </ul>
+    <div class="fpt-breadcrumb-bar">
+        <div class="container">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.manage_jobs') }}">Việc làm đã ứng tuyển</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Chi tiết hồ sơ</li>
+                </ul>
+
+                <a href="{{ route('candidates.manage_jobs') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Danh sách việc làm đã nộp
+                </a>
+            </div>
+        </div>
     </div>
 
     <section class="candidate-dashboard-area section_70">

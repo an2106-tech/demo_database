@@ -137,8 +137,11 @@
             };
 
             window.addEventListener('app-notify', (event) => {
-                const detail = event.detail || {};
-                showToast(detail.message, detail.type || 'success');
+                const detail = Array.isArray(event.detail) ? event.detail[0] : (event.detail || {});
+                const message = typeof detail === 'string' ? detail : (detail?.message || detail?.title || '');
+                if (message) {
+                    showToast(message, detail?.type || 'success');
+                }
             });
         })();
     </script>

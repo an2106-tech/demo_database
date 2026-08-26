@@ -152,6 +152,12 @@ class Home extends Component
             'departments' => $departments,
             'categories' => $categories,
             'posts' => $posts,
+            'publishedJobsCount' => $publishedJobsCount,
+            'activeBranchesCount' => $activeBranchesCount,
+            'departmentsCount' => $departmentsCount,
+            'candidatesCount' => $candidatesCount,
+            'applicationsCount' => $applicationsCount,
+            'usersCount' => $usersCount,
             'stats' => [
                 'published_jobs' => $publishedJobsCount,
                 'active_branches' => $activeBranchesCount,

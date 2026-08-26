@@ -211,41 +211,57 @@
             margin: 6px 0;
         }
 
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn,
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn:hover,
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn:focus,
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn:visited,
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn:active {
-            all: unset !important;
-            box-sizing: border-box !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-height: 44px !important;
-            padding: 11px 16px !important;
-            border-radius: 999px !important;
-            background: var(--fpt-orange) !important;
-            border: none !important;
-            color: #fff !important;
-            -webkit-text-fill-color: #fff !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            font-size: 13px !important;
-            font-weight: 700 !important;
-            line-height: 1 !important;
-            letter-spacing: 0 !important;
-            white-space: nowrap !important;
-            text-decoration: none !important;
-            cursor: pointer !important;
-            opacity: 1 !important;
-            filter: none !important;
-            box-shadow: 0 4px 12px var(--fpt-orange-glow) !important;
-            transition: all 0.3s ease !important;
+        /* High-End Segmented Role Switcher */
+        .fpt-role-segmented-switcher {
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            gap: 3px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
-        .app-header-candidate .header-right-menu ul li a.switch-role-btn:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 20px var(--fpt-orange-glow) !important;
-            background: var(--fpt-orange-light) !important;
+        .fpt-role-seg-btn {
+            display: inline-flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 14px !important;
+            border-radius: 999px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+            font-size: 12.5px !important;
+            font-weight: 750 !important;
+            line-height: 1 !important;
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
+            text-decoration: none !important;
+            white-space: nowrap !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            cursor: pointer;
+        }
+
+        .fpt-role-seg-btn i {
+            font-size: 12.5px;
+            transition: transform 0.2s ease;
+        }
+
+        .fpt-role-seg-btn:hover {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .fpt-role-seg-btn.is-active {
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%) !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.28) !important;
+        }
+
+        .fpt-role-seg-btn.is-active i {
+            color: #ffffff !important;
         }
 
         @media (max-width: 991.98px) {
@@ -320,19 +336,29 @@
                     <div class="header-right-menu candidate-actions">
                         <ul>
                             <li>
-                                <a
-                                    href="{{ request()->routeIs('employers.portal') ? route('candidates.browse_job') : route('employers.portal') }}"
-                                    class="switch-role-btn"
-                                >
-                                    {{ request()->routeIs('employers.portal') ? 'Khu ứng viên' : 'Nhà tuyển dụng' }}
-                                </a>
+                                <div class="fpt-role-segmented-switcher">
+                                    <a
+                                        href="{{ route('candidates.browse_job') }}"
+                                        class="fpt-role-seg-btn is-active"
+                                        title="Khu vực Ứng viên"
+                                    >
+                                        <i class="fa fa-user-circle-o"></i>
+                                        <span>Ứng viên</span>
+                                    </a>
+                                    <a
+                                        href="{{ ($canEmployerAccess ?? false) ? route('employers.dashboard') : route('employers.portal') }}"
+                                        class="fpt-role-seg-btn"
+                                        title="Chuyển sang Cổng Tuyển dụng"
+                                    >
+                                        <i class="fa fa-building-o"></i>
+                                        <span>Tuyển dụng</span>
+                                    </a>
+                                </div>
                             </li>
                             @if($canCandidateAccess ?? false)
                                 @php
                                     $user = Auth::user();
-                                    $avatar = $user?->avatar;
-                                    $avatarPath = $avatar ? 'storage/' . ltrim($avatar, '/') : 'assets/img/avatar_detail.jpg';
-                                    $avatarUrl = (file_exists(public_path($avatarPath))) ? asset($avatarPath) : asset('assets/img/avatar_detail.jpg');
+                                    $avatarUrl = $user?->avatar_url ?? asset('assets/img/avatar_detail.jpg');
                                 @endphp
                                 <li class="candidate-user-menu" @click.outside="openUserMenu = false">
                                     <button
@@ -342,8 +368,8 @@
                                         :aria-expanded="openUserMenu.toString()"
                                         @click="openUserMenu = !openUserMenu"
                                     >
-                                        @if($avatar && file_exists(public_path($avatarPath)))
-                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                        @if($user && $user->avatar)
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
                                         @else
                                             <i class="fa fa-user"></i>
                                         @endif
@@ -352,7 +378,7 @@
                                     <div class="candidate-user-dropdown" x-show="openUserMenu" x-transition.opacity.duration.150ms>
                                         <!-- Profile Header Card -->
                                         <div class="candidate-user-dropdown-header">
-                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
                                             <div class="candidate-user-dropdown-info">
                                                 <div class="candidate-user-dropdown-name">{{ $user?->name ?? 'Ứng viên' }}</div>
                                                 <div class="candidate-user-dropdown-role">
@@ -401,6 +427,23 @@
                                                     <span>Tạo CV Online AI</span>
                                                 </div>
                                                 <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                            </a>
+
+                                            @php
+                                                $headerUnreadCount = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
+                                            @endphp
+                                            <a href="{{ route('candidates.notifications') }}" class="candidate-user-dropdown-item">
+                                                <div class="candidate-user-dropdown-item-left">
+                                                    <div class="candidate-user-dropdown-icon" style="background: #fef2f2; color: #ef4444;">
+                                                        <i class="fa fa-bell-o"></i>
+                                                    </div>
+                                                    <span>Thông báo hệ thống</span>
+                                                </div>
+                                                @if($headerUnreadCount > 0)
+                                                    <span class="badge rounded-pill bg-danger" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $headerUnreadCount }}</span>
+                                                @else
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                @endif
                                             </a>
 
                                             <div class="candidate-user-dropdown-divider"></div>

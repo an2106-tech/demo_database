@@ -41,36 +41,57 @@
             white-space: nowrap;
         }
 
-        .app-header-employer .header-right-menu ul li a.switch-role-btn,
-        .app-header-employer .header-right-menu ul li a.switch-role-btn:hover,
-        .app-header-employer .header-right-menu ul li a.switch-role-btn:focus,
-        .app-header-employer .header-right-menu ul li a.switch-role-btn:visited,
-        .app-header-employer .header-right-menu ul li a.switch-role-btn:active {
-            all: unset !important;
-            box-sizing: border-box !important;
+        /* High-End Segmented Role Switcher */
+        .fpt-role-segmented-switcher {
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            gap: 3px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .fpt-role-seg-btn {
             display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            min-height: 44px !important;
-            padding: 11px 18px !important;
-            border-radius: 999px !important;
-            background: #ff8a1d !important;
-            border: none !important;
-            color: #fff !important;
-            -webkit-text-fill-color: #fff !important;
-            font-family: 'Plus Jakarta Sans', sans-serif !important;
-            font-size: 14px !important;
-            font-weight: 700 !important;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 14px !important;
+            border-radius: 999px;
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+            font-size: 12.5px !important;
+            font-weight: 750 !important;
             line-height: 1 !important;
-            letter-spacing: 0 !important;
-            white-space: nowrap !important;
+            color: #64748b !important;
+            -webkit-text-fill-color: #64748b !important;
             text-decoration: none !important;
-            cursor: pointer !important;
-            opacity: 1 !important;
-            filter: none !important;
-            box-shadow: none !important;
-            transform: none !important;
-            transition: none !important;
+            white-space: nowrap !important;
+            transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
+            cursor: pointer;
+        }
+
+        .fpt-role-seg-btn i {
+            font-size: 12.5px;
+            transition: transform 0.2s ease;
+        }
+
+        .fpt-role-seg-btn:hover {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .fpt-role-seg-btn.is-active {
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%) !important;
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+            box-shadow: 0 2px 8px rgba(243, 112, 33, 0.28) !important;
+        }
+
+        .fpt-role-seg-btn.is-active i {
+            color: #ffffff !important;
         }
 
         .employer-user-menu {
@@ -316,21 +337,30 @@
                     <div class="header-right-menu employer-actions">
                         <ul>
                             <li>
-                                <a
-                                    href="{{ route('candidates.browse_job') }}"
-                                    class="switch-role-btn"
-                                    style="background:#ff8a1d !important;color:#fff !important;-webkit-text-fill-color:#fff !important;"
-                                >
-                                    Dành cho ứng viên
-                                </a>
+                                <div class="fpt-role-segmented-switcher">
+                                    <a
+                                        href="{{ route('candidates.browse_job') }}"
+                                        class="fpt-role-seg-btn"
+                                        title="Chuyển sang Khu vực Ứng viên"
+                                    >
+                                        <i class="fa fa-user-circle-o"></i>
+                                        <span>Ứng viên</span>
+                                    </a>
+                                    <a
+                                        href="{{ route('employers.dashboard') }}"
+                                        class="fpt-role-seg-btn is-active"
+                                        title="Khu vực Nhà tuyển dụng"
+                                    >
+                                        <i class="fa fa-building-o"></i>
+                                        <span>Tuyển dụng</span>
+                                    </a>
+                                </div>
                             </li>
                             @auth
                                 @if(in_array(Auth::user()->role, ['hr', 'director', 'admin', 'pm']) || (isset(Auth::user()->metadata['account_types']) && in_array('employer', Auth::user()->metadata['account_types'])))
                                 @php
                                     $user = Auth::user();
-                                    $avatar = $user?->avatar;
-                                    $avatarPath = $avatar ? 'storage/' . ltrim($avatar, '/') : 'assets/img/avatar_detail.jpg';
-                                    $avatarUrl = (file_exists(public_path($avatarPath))) ? asset($avatarPath) : asset('assets/img/avatar_detail.jpg');
+                                    $avatarUrl = $user?->avatar_url ?? asset('assets/img/avatar_detail.jpg');
                                     $roleLabel = match($user->role) {
                                         'director' => 'Director',
                                         'admin' => 'Admin',
@@ -346,8 +376,8 @@
                                         :aria-expanded="openEmployerUserMenu.toString()"
                                         @click="openEmployerUserMenu = !openEmployerUserMenu"
                                     >
-                                        @if($avatar && file_exists(public_path($avatarPath)))
-                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                        @if($user && $user->avatar)
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user->name }}" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
                                         @else
                                             <i class="fa fa-user"></i>
                                         @endif
@@ -356,7 +386,7 @@
                                     <div class="employer-user-dropdown" x-show="openEmployerUserMenu" x-transition.opacity.duration.150ms>
                                         <!-- Profile Header Card -->
                                         <div class="employer-user-dropdown-header">
-                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}">
+                                            <img src="{{ $avatarUrl }}" alt="{{ $user?->name }}" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
                                             <div class="employer-user-dropdown-info">
                                                 <div class="employer-user-dropdown-name">{{ $user?->name ?? 'Nhà tuyển dụng' }}</div>
                                                 <div class="employer-user-dropdown-role">
@@ -428,6 +458,23 @@
                                                     <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
                                                 </a>
                                             @endif
+
+                                            @php
+                                                $headerEmpUnreadCount = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
+                                            @endphp
+                                            <a href="{{ route('employers.notifications') }}" class="employer-user-dropdown-item">
+                                                <div class="employer-user-dropdown-item-left">
+                                                    <div class="employer-user-dropdown-icon" style="background: #fef2f2; color: #ef4444;">
+                                                        <i class="fa fa-bell-o"></i>
+                                                    </div>
+                                                    <span>Thông báo hệ thống</span>
+                                                </div>
+                                                @if($headerEmpUnreadCount > 0)
+                                                    <span class="badge rounded-pill bg-danger" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $headerEmpUnreadCount }}</span>
+                                                @else
+                                                    <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
+                                                @endif
+                                            </a>
 
                                             <div class="employer-user-dropdown-divider"></div>
 

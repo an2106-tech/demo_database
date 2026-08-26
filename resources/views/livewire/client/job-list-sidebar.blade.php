@@ -179,17 +179,8 @@
                                             <li>
                                                 Mức lương
                                                 <span class="open-icon">
-                                                    <i class="fa fa-credit-card-alt"></i>
-                                                    @if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max']))
-                                                        {{ number_format($job->salary_range['min']) }} -
-                                                        {{ number_format($job->salary_range['max']) }} VND
-                                                    @elseif (is_array($job->salary_range))
-                                                        {{ implode(' - ', $job->salary_range) }}
-                                                    @elseif (!empty($job->salary_range))
-                                                        {{ $job->salary_range }}
-                                                    @else
-                                                        Thỏa thuận
-                                                    @endif
+                                                    <i class="fa fa-tag"></i>
+                                                    {{ $job->formatted_salary }}
                                                 </span>
                                             </li>
                                             <li>

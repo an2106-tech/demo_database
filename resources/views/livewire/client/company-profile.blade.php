@@ -1,32 +1,19 @@
 <div>
-      <section class="jobguru-breadcromb-area">
-         <div class="breadcromb-top section_100">
-            <div class="container">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="breadcromb-box">
-                        <h3>Hồ sơ công ty</h3>
-                     </div>
-                  </div>
-               </div>
+    <div class="fpt-breadcrumb-bar">
+        <div class="container">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Hồ sơ công ty</li>
+                </ul>
+
+                <a href="{{ route('home') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Về trang chủ
+                </a>
             </div>
-         </div>
-         <div class="breadcromb-bottom">
-            <div class="container">
-               <div class="row">
-                  <div class="col-md-12">
-                     <div class="breadcromb-box-pagin">
-                        <ul>
-                           <li><a href="#">Trang chủ</a></li>
-                           <li><a href="#">Nhà tuyển dụng</a></li>
-                           <li class="active-breadcromb"><a href="#">Hồ sơ công ty</a></li>
-                        </ul>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </section>
+        </div>
+    </div>
       <section class="candidate-dashboard-area section_70">
          <div class="container">
             <div class="row">

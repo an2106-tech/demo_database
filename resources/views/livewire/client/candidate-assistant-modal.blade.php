@@ -598,20 +598,7 @@
                                 <i class="fa fa-angle-right text-muted"></i>
                             </button>
 
-                            <button type="button" class="cd-menu-btn" wire:click="setShortcutView('earnings')">
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="cd-menu-icon" style="background: #fef3c7; color: #d97706;">
-                                        <i class="fa fa-trophy"></i>
-                                    </div>
-                                    <div>
-                                        <div>Thu nhập & Thưởng</div>
-                                        <div style="font-size: 11.5px; color: #64748b; font-weight: 500;">
-                                            Xem số dư & chính sách
-                                        </div>
-                                    </div>
-                                </div>
-                                <i class="fa fa-angle-right text-muted"></i>
-                            </button>
+
 
                             <button type="button" class="cd-menu-btn" wire:click="setShortcutView('security')">
                                 <div class="d-flex align-items-center gap-2">
