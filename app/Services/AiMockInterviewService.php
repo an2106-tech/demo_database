@@ -128,20 +128,29 @@ class AiMockInterviewService
             $chat->update(['metadata' => $metadata]);
         } else {
             // Finish Interview & Generate Final Summary
-            $chat->load('messages');
-            $summary = $this->generateFinalReport($chat);
-
-            $aiMessages = $chat->messages->where('sender_type', 'ai');
-            $avgScore = $aiMessages->map(fn($m) => $m->metadata['score'] ?? 0)->avg() ?? 0;
-
-            $metadata['summary_feedback'] = $summary;
-            $metadata['total_score'] = $summary['total_score'] ?? round($avgScore * 10);
-            
-            $chat->update([
-                'status' => 'completed',
-                'metadata' => $metadata,
-            ]);
+            $this->completeInterviewEarly($chat);
         }
+
+        return true;
+    }
+
+    public function completeInterviewEarly(Chat $chat): bool
+    {
+        $chat->load('messages');
+        $metadata = $chat->metadata ?? [];
+        $summary = $this->generateFinalReport($chat);
+
+        $aiMessages = $chat->messages->where('sender_type', 'ai');
+        $scores = $aiMessages->map(fn($m) => $m->metadata['score'] ?? null)->filter(fn($v) => !is_null($v));
+        $avgScore = $scores->isNotEmpty() ? $scores->avg() : 7.5;
+
+        $metadata['summary_feedback'] = $summary;
+        $metadata['total_score'] = $summary['total_score'] ?? (int) round($avgScore * 10);
+
+        $chat->update([
+            'status' => 'completed',
+            'metadata' => $metadata,
+        ]);
 
         return true;
     }

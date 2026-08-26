@@ -44,6 +44,83 @@ class RecruitmentJob extends Model
         'status'       => StatusRecruitmentJobsEnum::class,
     ];
 
+    public function getFormattedSalaryAttribute(): string
+    {
+        $range = $this->salary_range;
+
+        if (empty($range)) {
+            return 'Thỏa thuận';
+        }
+
+        if (is_string($range)) {
+            return trim($range) !== '' ? $range : 'Thỏa thuận';
+        }
+
+        if (! is_array($range)) {
+            return 'Thỏa thuận';
+        }
+
+        $min = $range['min'] ?? ($range[0] ?? null);
+        $max = $range['max'] ?? ($range[1] ?? null);
+        $currency = strtoupper(trim((string) ($range['currency'] ?? '')));
+
+        if ($min === null && $max === null) {
+            return 'Thỏa thuận';
+        }
+
+        $minVal = is_numeric($min) ? (float) $min : null;
+        $maxVal = is_numeric($max) ? (float) $max : null;
+
+        $isUsd = $currency === 'USD' || str_contains($currency, '$') || ($minVal !== null && $minVal < 10000 && ($maxVal === null || $maxVal < 10000) && $currency !== 'VND' && $currency !== 'VNĐ');
+
+        $formatNumber = function (?float $num) use ($isUsd) {
+            if ($num === null || $num <= 0) {
+                return null;
+            }
+
+            if ($isUsd) {
+                return '$' . number_format($num, 0, ',', '.');
+            }
+
+            if ($num >= 1000000) {
+                $million = $num / 1000000;
+                $formatted = round($million, 1);
+                return rtrim(rtrim(number_format($formatted, 1, ',', '.'), '0'), ',') . ' triệu';
+            }
+
+            if ($num >= 1000) {
+                return number_format($num, 0, ',', '.') . ' đ';
+            }
+
+            return $num . ' triệu';
+        };
+
+        $minStr = $formatNumber($minVal);
+        $maxStr = $formatNumber($maxVal);
+
+        if ($minStr && $maxStr) {
+            if ($isUsd) {
+                return $minStr . ' - ' . $maxStr;
+            }
+
+            $cleanMin = str_replace(' triệu', '', $minStr);
+            if (str_contains($maxStr, 'triệu')) {
+                return $cleanMin . ' - ' . $maxStr . ' VNĐ';
+            }
+            return $minStr . ' - ' . $maxStr;
+        }
+
+        if ($minStr) {
+            return 'Từ ' . $minStr . ($isUsd ? '' : ' VNĐ');
+        }
+
+        if ($maxStr) {
+            return 'Lên đến ' . $maxStr . ($isUsd ? '' : ' VNĐ');
+        }
+
+        return 'Thỏa thuận';
+    }
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class);

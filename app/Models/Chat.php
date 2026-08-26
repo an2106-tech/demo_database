@@ -15,6 +15,11 @@ class Chat extends Model
         'job_id',
         'type',
         'status',
+        'metadata',
+    ];
+
+    protected $casts = [
+        'metadata' => 'array',
     ];
 
     public function messages()

@@ -416,7 +416,25 @@
         }
     </style>
 
-    <section class="candidate-dashboard-area section_70 pt-4">
+    <div class="fpt-breadcrumb-bar">
+        <div class="container-fluid px-lg-5">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Bảng điều khiển</li>
+                </ul>
+
+                <a href="{{ route('home') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Về trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <section class="candidate-dashboard-area section_70 pt-2">
         <div class="container-fluid px-lg-5">
             <div class="row">
                 <!-- Left Sidebar -->
@@ -432,7 +450,11 @@
                             <div class="col-lg-8 col-md-7">
                                 <div class="d-flex align-items-center gap-3">
                                     <div class="cd-avatar-pill">
-                                        {{ mb_substr($userName ?: 'U', 0, 1) }}
+                                        @if(Auth::user()?->avatar)
+                                            <img src="{{ Auth::user()->avatar_url }}" alt="{{ $userName }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 14px;" onerror="this.onerror=null; this.src='{{ asset('assets/img/avatar_detail.jpg') }}';">
+                                        @else
+                                            {{ mb_substr($userName ?: 'U', 0, 1) }}
+                                        @endif
                                     </div>
                                     <div>
                                         <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">

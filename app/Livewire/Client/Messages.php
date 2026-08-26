@@ -44,11 +44,39 @@ class Messages extends Component
             $mockService->submitAnswer($chat, $this->newMessage);
             $this->newMessage = '';
         } elseif ($chat->type === 'employer_candidate') {
-            // Wait, we decided employer_candidate is 1-way.
-            // Candidates CANNOT reply.
             $this->dispatch('app-notify', message: 'Bạn không thể phản hồi tin nhắn hệ thống/nhà tuyển dụng.');
             $this->newMessage = '';
         }
+    }
+
+    public function endInterview(AiMockInterviewService $mockService)
+    {
+        if (!$this->activeChatId) return;
+
+        $candidateId = Candidate::where('user_id', Auth::id())->value('id');
+        $chat = Chat::where('id', $this->activeChatId)->where('candidate_id', $candidateId)->first();
+
+        if (!$chat || $chat->type !== 'ai_mock_interview') return;
+
+        $mockService->completeInterviewEarly($chat);
+        $this->dispatch('app-notify', message: 'Đã kết thúc buổi phỏng vấn AI và hoàn tất đánh giá tổng kết.');
+    }
+
+    public function deleteChat($chatId)
+    {
+        $candidateId = Candidate::where('user_id', Auth::id())->value('id');
+        $chat = Chat::where('id', $chatId)->where('candidate_id', $candidateId)->first();
+
+        if (!$chat) return;
+
+        $chat->messages()->delete();
+        $chat->delete();
+
+        if ($this->activeChatId == $chatId) {
+            $this->activeChatId = null;
+        }
+
+        $this->dispatch('app-notify', message: 'Đã xóa cuộc hội thoại thành công.');
     }
 
     #[Layout('layouts.client')]

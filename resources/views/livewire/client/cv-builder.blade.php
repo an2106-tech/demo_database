@@ -359,7 +359,25 @@
         }
     </style>
 
-    <div class="container-fluid px-lg-5" style="padding-top: 24px;">
+    <div class="container-fluid px-lg-5" style="padding-top: 10px;">
+        <div class="fpt-breadcrumb-bar" style="margin-bottom: 20px; padding-top: 0;">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.candidate_dashboard') }}">Ứng viên</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.manage_cv') }}">Quản lý CV</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Tạo & Thiết kế CV Online</li>
+                </ul>
+
+                <a href="{{ route('candidates.manage_cv') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Quản lý CV
+                </a>
+            </div>
+        </div>
+
         <!-- Top Toolbar -->
         <div class="cv-header-panel">
             <div class="cv-title-group">

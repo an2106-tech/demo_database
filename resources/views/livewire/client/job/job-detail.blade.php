@@ -6,19 +6,9 @@
     $department = $job->department;
     $workplace = $job->workplace;
     $skills = $job->skills ?? collect();
-    $salary = is_array($job->salary_range) ? $job->salary_range : [];
-    $salaryMin = $salary['min'] ?? null;
-    $salaryMax = $salary['max'] ?? null;
-    $currency = $salary['currency'] ?? 'VND';
+    $salaryText = $job->formatted_salary;
 
-    $salaryText = match (true) {
-        $salaryMin && $salaryMax => number_format((float) $salaryMin, 0, ',', '.') . ' - ' . number_format((float) $salaryMax, 0, ',', '.') . ' ' . $currency,
-        $salaryMin => 'Từ ' . number_format((float) $salaryMin, 0, ',', '.') . ' ' . $currency,
-        $salaryMax => 'Đến ' . number_format((float) $salaryMax, 0, ',', '.') . ' ' . $currency,
-        default => 'Thỏa thuận',
-    };
-
-    $cityLabel = \App\Enums\VietnamProvince::tryFrom((string) ($branch?->city ?? ''))?->label() ?? ($branch?->city ?? 'Chưa cập nhật');
+    $cityLabel = \App\Enums\VietnamProvince::tryFrom((string) ($branch?->city ?? ''))?->label() ?? ($branch?->city ?? 'Toàn quốc');
     $branchImageRelativePath = filled($branch?->image ?? null) ? ltrim((string) $branch->image, '/') : null;
     $branchImagePath = $branchImageRelativePath ? storage_path('app/public/' . $branchImageRelativePath) : null;
     $branchImage = $branchImageRelativePath ? asset('storage/' . $branchImageRelativePath) : null;
@@ -34,24 +24,20 @@
         $shouldShowBranchImage = ! $looksLikePlaceholder && $width >= 80 && $height >= 80;
     }
 
-    $statusLabel = $job->status?->getLabel() ?? 'Đang tuyển';
+    $statusLabel = $job->status?->getLabel() ?? 'Đang tuyển dụng';
     $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
     $description = trim((string) ($job->description ?? ''));
-    $descriptionParagraphs = collect(preg_split("/\\r\\n|\\r|\\n/", $description))
-        ->map(fn ($line) => trim((string) $line))
-        ->filter()
-        ->values();
     $publishedAt = $job->created_at?->format('d/m/Y') ?? 'Đang cập nhật';
     $publishedHuman = $job->created_at?->diffForHumans() ?? 'Mới đăng';
-    $companyInitials = Str::upper(Str::substr($branch?->name ?? 'JD', 0, 2));
+    $companyInitials = Str::upper(Str::substr($branch?->name ?? 'FPT', 0, 2));
     $deadlineText = $job->deadline?->format('d/m/Y') ?? 'Không giới hạn';
     $daysUntilDeadline = $job->deadline ? now()->startOfDay()->diffInDays($job->deadline->copy()->startOfDay(), false) : null;
     $deadlineBadge = match (true) {
-        is_null($job->deadline) => 'Nhận hồ sơ liên tục',
+        is_null($job->deadline) => 'Tuyển liên tục',
         $daysUntilDeadline < 0 => 'Đã hết hạn',
-        $daysUntilDeadline === 0 => 'Hạn nộp hôm nay',
+        $daysUntilDeadline === 0 => 'Hết hạn hôm nay',
         $daysUntilDeadline <= 7 => 'Còn ' . $daysUntilDeadline . ' ngày',
-        default => 'Đang nhận hồ sơ',
+        default => 'Hạn nộp: ' . $deadlineText,
     };
     $skillCount = $skills->count();
     $aiScore = $jobFitAiResult['score'] ?? null;
@@ -65,381 +51,482 @@
     if ($aiScore !== null) {
         if ($aiScore <= 0) {
             $aiScoreLabel = 'Chưa đủ dữ liệu';
-            $aiScoreClass = 'jd-ai-section__score--soft';
-        } elseif ($aiScore < 31) {
-            $aiScoreLabel = $aiScore . '% — Ít phù hợp';
-            $aiScoreClass = 'jd-ai-section__score--low';
-        } elseif ($aiScore < 56) {
+            $aiScoreClass = 'jd-score-soft';
+        } elseif ($aiScore < 35) {
+            $aiScoreLabel = $aiScore . '% — Cần cải thiện';
+            $aiScoreClass = 'jd-score-low';
+        } elseif ($aiScore < 65) {
             $aiScoreLabel = $aiScore . '% — Khá phù hợp';
-            $aiScoreClass = 'jd-ai-section__score--mid';
-        } elseif ($aiScore < 75) {
-            $aiScoreLabel = $aiScore . '% — Tốt';
-            $aiScoreClass = 'jd-ai-section__score--good';
-        } else {
+            $aiScoreClass = 'jd-score-mid';
+        } elseif ($aiScore < 85) {
             $aiScoreLabel = $aiScore . '% — Rất phù hợp';
-            $aiScoreClass = 'jd-ai-section__score--high';
+            $aiScoreClass = 'jd-score-good';
+        } else {
+            $aiScoreLabel = $aiScore . '% — Xuất sắc';
+            $aiScoreClass = 'jd-score-high';
         }
     }
 @endphp
 
-<div>
+<div class="fpt-job-page">
     <style>
-        .job-detail-page {
-            --jd-bg: #f7f4ef;
-            --jd-surface: #ffffff;
-            --jd-surface-soft: #fbf5ee;
-            --jd-line: rgba(111, 77, 48, 0.14);
-            --jd-line-strong: rgba(196, 107, 45, 0.22);
-            --jd-ink: #221810;
-            --jd-text: #54453b;
-            --jd-muted: #8f7968;
-            --jd-primary: #c36b2d;
-            --jd-primary-dark: #8f4618;
-            --jd-shadow: 0 26px 60px rgba(86, 54, 29, 0.1);
-            background:
-                radial-gradient(circle at 0% 8%, rgba(228, 174, 125, 0.22), transparent 22%),
-                radial-gradient(circle at 100% 0%, rgba(255, 242, 226, 0.85), transparent 30%),
-                linear-gradient(180deg, #fdfaf6 0%, var(--jd-bg) 100%);
-            position: relative;
+        /* === High-End Clean Design System (FPT Orange & Pure White) === */
+        :root {
+            --fpt-orange: #f37021;
+            --fpt-orange-hover: #e05e0f;
+            --fpt-orange-light: #fff7ed;
+            --fpt-orange-border: #fed7aa;
+            --fpt-orange-glow: rgba(243, 112, 33, 0.2);
+            --fpt-dark: #0f172a;
+            --fpt-slate-800: #1e293b;
+            --fpt-slate-600: #475569;
+            --fpt-slate-500: #64748b;
+            --fpt-slate-400: #94a3b8;
+            --fpt-slate-200: #e2e8f0;
+            --fpt-slate-100: #f1f5f9;
+            --fpt-slate-50: #f8fafc;
+            --fpt-white: #ffffff;
+            --fpt-radius-lg: 20px;
+            --fpt-radius-md: 14px;
+            --fpt-radius-sm: 10px;
+            --fpt-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
+            --fpt-shadow-card: 0 10px 30px -10px rgba(15, 23, 42, 0.05), 0 4px 12px -2px rgba(15, 23, 42, 0.02);
+            --fpt-shadow-hover: 0 20px 40px -15px rgba(243, 112, 33, 0.15), 0 8px 20px -4px rgba(15, 23, 42, 0.04);
+            --fpt-ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .job-detail-page::before {
-            background: linear-gradient(180deg, rgba(195, 107, 45, 0.14), rgba(195, 107, 45, 0));
-            border-radius: 999px;
-            content: "";
-            filter: blur(18px);
-            height: 280px;
-            left: -120px;
-            position: absolute;
-            top: 180px;
-            width: 280px;
-            z-index: 0;
+        .fpt-job-page {
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(243, 112, 33, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 0% 10%, rgba(243, 112, 33, 0.03) 0%, transparent 30%);
+            color: var(--fpt-slate-800);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            padding-top: 105px;
+            padding-bottom: 70px;
         }
 
-        .jd-wrap {
-            position: relative;
-            z-index: 1;
+        /* === Breadcrumbs === */
+        .fpt-breadcrumb-bar {
+            background: transparent;
+            border-bottom: 1px solid var(--fpt-slate-200);
+            padding: 16px 0;
+            margin-bottom: 28px;
         }
 
-        .jd-top-card,
-        .jd-block,
-        .jd-sidebar {
-            background: var(--jd-surface);
-            border: 1px solid var(--jd-line);
-            border-radius: 28px;
-            box-shadow: var(--jd-shadow);
+        .fpt-breadcrumb-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
-        .jd-top-card {
-            isolation: isolate;
+        .fpt-breadcrumb-trail {
+            align-items: center;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 13.5px;
+            font-weight: 500;
+            gap: 8px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .fpt-breadcrumb-trail a {
+            color: var(--fpt-slate-500);
+            text-decoration: none;
+            transition: color 0.15s ease;
+        }
+
+        .fpt-breadcrumb-trail a:hover {
+            color: var(--fpt-orange);
+        }
+
+        .fpt-breadcrumb-trail .sep {
+            color: var(--fpt-slate-400);
+            font-size: 11px;
+        }
+
+        .fpt-breadcrumb-trail .current {
+            color: var(--fpt-dark);
+            font-weight: 600;
+            max-width: 320px;
             overflow: hidden;
-            position: relative;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .jd-top-banner {
-            background: #ffffff;
-            min-height: 184px;
-            position: relative;
+        .fpt-back-btn {
+            align-items: center;
+            color: var(--fpt-slate-600);
+            display: inline-flex;
+            font-size: 13px;
+            font-weight: 600;
+            gap: 6px;
+            text-decoration: none;
+            transition: all 0.2s var(--fpt-ease);
         }
 
-        .jd-top-banner::before {
-            background: linear-gradient(90deg, rgba(255, 255, 255, 0.5), transparent);
+        .fpt-back-btn:hover {
+            color: var(--fpt-orange);
+            transform: translateX(-2px);
+        }
+
+        /* === Hero Job Header Card === */
+        .fpt-hero-card {
+            background: var(--fpt-white);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: var(--fpt-radius-lg);
+            box-shadow: var(--fpt-shadow-card);
+            margin-bottom: 28px;
+            padding: 32px 36px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fpt-hero-card::before {
             content: "";
-            inset: 0;
             position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f37021, #fb923c);
         }
 
-        .jd-top-main {
-            display: grid;
-            gap: 28px;
-            grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.72fr);
-            margin-top: -58px;
-            padding: 0 34px 34px;
-            position: relative;
-        }
-
-        .jd-profile {
+        .fpt-hero-layout {
             align-items: flex-start;
             display: flex;
-            gap: 22px;
-            margin-bottom: 26px;
+            gap: 28px;
         }
 
-        .jd-logo {
+        .fpt-company-logo {
             align-items: center;
             background: #ffffff;
-            border: 6px solid rgba(255, 255, 255, 0.98);
-            border-radius: 30px;
-            box-shadow: 0 22px 36px rgba(148, 80, 29, 0.2);
-            color: #fff;
-            display: inline-flex;
-            flex: 0 0 112px;
-            font-size: 34px;
-            font-weight: 800;
-            height: 112px;
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: 18px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-shrink: 0;
+            height: 96px;
             justify-content: center;
-            letter-spacing: -0.04em;
             overflow: hidden;
-            position: relative;
-            transform: translateY(-4px);
-            width: 112px;
+            padding: 10px;
+            width: 96px;
         }
 
-        .jd-logo--fallback {
-            font-family: "Trebuchet MS", "Segoe UI", sans-serif;
-            text-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
-        }
-
-        .jd-logo img {
-            display: block;
-            height: calc(100% - 16px);
+        .fpt-company-logo img {
+            max-height: 100%;
+            max-width: 100%;
             object-fit: contain;
-            object-position: center;
-            width: calc(100% - 16px);
         }
 
-        .jd-top-copy {
+        .fpt-company-logo-fallback {
+            background: linear-gradient(135deg, #f37021, #ea580c);
+            color: #ffffff;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+        .fpt-hero-content {
+            flex-grow: 1;
             min-width: 0;
-            padding-top: 12px;
         }
 
-        .jd-kicker {
+        .fpt-hero-top-pills {
             align-items: center;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
 
-        .jd-status,
-        .jd-posted {
-            border-radius: 999px;
+        .fpt-badge-live {
+            align-items: center;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            border-radius: 9999px;
+            color: #059669;
             display: inline-flex;
             font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            padding: 8px 12px;
-        }
-
-        .jd-status {
-            background: var(--jd-surface-soft);
-            border: 1px solid rgba(143, 70, 24, 0.12);
-            color: var(--jd-primary-dark);
-            text-transform: uppercase;
-        }
-
-        .jd-posted {
-            background: rgba(255, 255, 255, 0.82);
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            color: var(--jd-muted);
-            letter-spacing: 0;
-        }
-
-        .jd-title {
-            color: var(--jd-ink);
-            font-size: 42px;
-            font-weight: 800;
-            letter-spacing: -0.045em;
-            line-height: 1.08;
-            margin: 0 0 14px;
-        }
-
-        .jd-company {
-            color: var(--jd-text);
-            font-size: 18px;
             font-weight: 700;
+            gap: 6px;
+            padding: 4px 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .fpt-badge-live .pulse-dot {
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            height: 7px;
+            width: 7px;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+            animation: pulseAnim 2s infinite;
+        }
+
+        @keyframes pulseAnim {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .fpt-badge-time {
+            align-items: center;
+            color: var(--fpt-slate-500);
+            display: inline-flex;
+            font-size: 12.5px;
+            font-weight: 500;
+            gap: 5px;
+        }
+
+        .fpt-badge-unit {
+            align-items: center;
+            background: var(--fpt-slate-100);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: 9999px;
+            color: var(--fpt-slate-600);
+            display: inline-flex;
+            font-size: 12px;
+            font-weight: 600;
+            gap: 5px;
+            padding: 4px 12px;
+        }
+
+        .fpt-job-title {
+            color: var(--fpt-dark);
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -0.035em;
+            line-height: 1.25;
             margin: 0 0 10px;
         }
 
-        .jd-subcopy {
-            color: var(--jd-muted);
+        .fpt-company-line {
+            align-items: center;
+            color: var(--fpt-slate-600);
+            display: flex;
+            flex-wrap: wrap;
             font-size: 15px;
-            line-height: 1.8;
-            margin: 0 0 18px;
-            max-width: 760px;
+            font-weight: 600;
+            gap: 8px;
+            margin-bottom: 20px;
         }
 
-        .jd-meta {
+        .fpt-company-line .verified-icon {
+            color: #3b82f6;
+            font-size: 14px;
+        }
+
+        .fpt-key-metrics {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
         }
 
-        .jd-meta-item {
+        .fpt-metric-pill {
             align-items: center;
-            background: rgba(255, 255, 255, 0.86);
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            border-radius: 999px;
-            color: var(--jd-text);
+            background: var(--fpt-slate-50);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: var(--fpt-radius-sm);
+            color: var(--fpt-slate-800);
             display: inline-flex;
-            font-size: 13px;
-            font-weight: 700;
+            font-size: 13.5px;
+            font-weight: 600;
             gap: 8px;
-            padding: 11px 15px;
+            padding: 8px 14px;
+            transition: all 0.2s ease;
         }
 
-        .jd-meta-item i {
-            color: var(--jd-primary);
-        }
-        .jd-highlight-grid {
-            display: grid;
-            gap: 14px;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            margin-top: 24px;
+        .fpt-metric-pill i {
+            color: var(--fpt-slate-500);
+            font-size: 14px;
         }
 
-        .jd-highlight {
-            background: #ffffff;
-            border: 1px solid rgba(111, 77, 48, 0.1);
-            border-radius: 22px;
-            padding: 18px;
-        }
-
-        .jd-highlight span {
-            color: var(--jd-muted);
-            display: block;
-            font-size: 12px;
+        .fpt-metric-pill--salary {
+            background: var(--fpt-orange-light);
+            border-color: var(--fpt-orange-border);
+            color: #c2410c;
             font-weight: 800;
-            letter-spacing: 0.08em;
-            margin-bottom: 8px;
-            text-transform: uppercase;
+            font-size: 14.5px;
         }
 
-        .jd-highlight strong,
-        .jd-highlight div {
-            color: var(--jd-ink);
-            font-size: 16px;
-            line-height: 1.6;
+        .fpt-metric-pill--salary i {
+            color: var(--fpt-orange);
         }
 
-        .jd-top-actions {
-            align-self: stretch;
-            background: #ffffff;
-            border: 1px solid rgba(111, 77, 48, 0.12);
-            border-radius: 26px;
+        /* === 2-Column Content Layout === */
+        .fpt-main-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.85fr) minmax(320px, 1fr);
+            gap: 28px;
+            align-items: start;
+        }
+
+        /* === Left Content Cards === */
+        .fpt-content-stack {
             display: flex;
             flex-direction: column;
-            padding: 24px;
+            gap: 24px;
         }
 
-        .jd-top-eyebrow {
-            color: var(--jd-primary-dark);
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            margin-bottom: 10px;
-            text-transform: uppercase;
+        .fpt-card {
+            background: var(--fpt-white);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: var(--fpt-radius-lg);
+            box-shadow: var(--fpt-shadow-card);
+            overflow: hidden;
+            padding: 28px 32px;
         }
 
-        .jd-top-actions h3 {
-            color: var(--jd-ink);
-            font-size: 26px;
-            line-height: 1.18;
-            margin: 0 0 8px;
-        }
-
-        .jd-top-actions p {
-            color: var(--jd-muted);
-            font-size: 14px;
-            line-height: 1.7;
-            margin: 0 0 18px;
-        }
-
-        .jd-apply-btn,
-        .jd-secondary-btn {
+        .fpt-card-header {
             align-items: center;
-            border-radius: 16px;
-            display: inline-flex;
-            font-size: 14px;
-            font-weight: 800;
-            gap: 8px;
-            justify-content: center;
-            min-height: 54px;
-            padding: 0 18px;
-            text-decoration: none;
-            transition: opacity 0.18s ease, box-shadow 0.18s ease;
-            width: 100%;
-        }
-
-        .jd-apply-btn {
-            background: #f37021;
-            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.22);
-            color: #fff !important;
-            border: none;
-        }
-
-        .jd-apply-btn:hover,
-        .jd-apply-btn:focus {
-            background: #f37021;
-            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.38);
-            color: #fff !important;
-            opacity: 0.9;
-            text-decoration: none;
-        }
-
-        .jd-secondary-btn {
-            background: #f1f5f9;
-            border: none;
-            color: #475569 !important;
-            margin-top: 12px;
-        }
-
-        .jd-secondary-btn:hover,
-        .jd-secondary-btn:focus {
-            background: #e8edf3;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-            color: #334155 !important;
-            text-decoration: none;
-        }
-
-        .jd-ai-btn {
-            background: linear-gradient(135deg, #f37021 0%, #d95e11 100%);
-            border: none;
-            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.22);
-            color: #fff !important;
-            margin-top: 12px;
-        }
-
-        .jd-ai-btn:hover,
-        .jd-ai-btn:focus {
-            box-shadow: 0 6px 20px rgba(243, 112, 33, 0.38);
-            color: #fff !important;
-            opacity: 0.9;
-        }
-
-        .jd-ai-section {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 24px;
-            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(0, 0, 0, 0.02);
-            margin-top: 24px;
-            padding: 28px;
-        }
-
-        .jd-ai-section__head {
-            align-items: flex-start;
+            border-bottom: 1px solid var(--fpt-slate-100);
             display: flex;
-            gap: 16px;
-            justify-content: space-between;
-            margin-bottom: 16px;
+            gap: 12px;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
         }
 
-        .jd-ai-section__title {
-            color: #0f172a;
+        .fpt-card-icon {
+            align-items: center;
+            background: var(--fpt-orange-light);
+            border: 1px solid var(--fpt-orange-border);
+            border-radius: 12px;
+            color: var(--fpt-orange);
+            display: inline-flex;
+            flex-shrink: 0;
+            font-size: 16px;
+            height: 38px;
+            justify-content: center;
+            width: 38px;
+        }
+
+        .fpt-card-title {
+            color: var(--fpt-dark);
             font-size: 20px;
             font-weight: 800;
             letter-spacing: -0.02em;
-            margin: 0 0 4px;
-        }
-
-        .jd-ai-section__sub {
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 500;
             margin: 0;
         }
 
-        .jd-ai-section__score {
+        /* === Rich Job Description Body === */
+        .fpt-job-body {
+            color: var(--fpt-slate-800);
+            font-size: 15px;
+            line-height: 1.75;
+        }
+
+        .fpt-job-body h2, .fpt-job-body h3, .fpt-job-body h4 {
+            color: var(--fpt-dark);
+            font-size: 17px;
+            font-weight: 700;
+            margin: 22px 0 10px;
+        }
+
+        .fpt-job-body p {
+            margin-bottom: 14px;
+        }
+
+        .fpt-job-body ul, .fpt-job-body ol {
+            margin: 10px 0 18px 20px;
+            padding: 0;
+        }
+
+        .fpt-job-body li {
+            margin-bottom: 8px;
+            padding-left: 4px;
+        }
+
+        /* === Skills Chips === */
+        .fpt-skill-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .fpt-skill-pill {
+            align-items: center;
+            background: var(--fpt-slate-50);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: 9999px;
+            color: var(--fpt-slate-800);
+            display: inline-flex;
+            font-size: 13.5px;
+            font-weight: 600;
+            gap: 6px;
+            padding: 7px 16px;
+            transition: all 0.2s var(--fpt-ease);
+        }
+
+        .fpt-skill-pill:hover {
+            background: var(--fpt-orange-light);
+            border-color: var(--fpt-orange-border);
+            color: var(--fpt-orange);
+            transform: translateY(-1px);
+        }
+
+        /* === AI Fit Match Scorecard === */
+        .fpt-ai-card {
+            background: #ffffff;
+            border: 1px solid #fed7aa;
+            border-radius: var(--fpt-radius-lg);
+            box-shadow: 0 12px 32px -8px rgba(243, 112, 33, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+            overflow: hidden;
+            padding: 28px 32px;
+            position: relative;
+        }
+
+        .fpt-ai-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f37021, #fb923c, #3b82f6);
+        }
+
+        .fpt-ai-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .fpt-ai-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .fpt-ai-badge-icon {
+            background: linear-gradient(135deg, #f37021, #ea580c);
+            border-radius: 12px;
+            color: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);
+        }
+
+        .fpt-ai-score-badge {
             align-items: center;
             border-radius: 9999px;
             display: inline-flex;
@@ -447,531 +534,709 @@
             font-weight: 800;
             letter-spacing: -0.01em;
             padding: 8px 18px;
-            white-space: nowrap;
         }
 
-        .jd-ai-section__score--low {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #dc2626;
-        }
-
-        .jd-ai-section__score--mid {
-            background: #fffbeb;
-            border: 1px solid #fde68a;
-            color: #d97706;
-        }
-
-        .jd-ai-section__score--good {
-            background: #ecfdf5;
-            border: 1px solid #a7f3d0;
-            color: #059669;
-        }
-
-        .jd-ai-section__score--high {
+        .jd-score-high {
             background: #eff6ff;
             border: 1px solid #bfdbfe;
-            color: #2563eb;
+            color: #1d4ed8;
         }
 
-        .jd-ai-section__score--soft {
+        .jd-score-good {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+        }
+
+        .jd-score-mid {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
+        }
+
+        .jd-score-low {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+        }
+
+        .jd-score-soft {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
             color: #64748b;
-            font-size: 13.5px;
-            font-weight: 600;
         }
 
-        .jd-ai-progress {
+        .fpt-ai-progress-track {
             background: #f1f5f9;
             border-radius: 9999px;
-            height: 6px;
-            margin-bottom: 20px;
+            height: 8px;
+            margin-bottom: 18px;
             overflow: hidden;
             width: 100%;
         }
 
-        .jd-ai-progress__bar {
+        .fpt-ai-progress-fill {
             border-radius: 9999px;
             height: 100%;
-            transition: width 0.6s ease;
+            transition: width 0.8s var(--fpt-ease);
         }
 
-        .jd-ai-progress__bar.jd-ai-section__score--low { background: #ef4444; border: none; }
-        .jd-ai-progress__bar.jd-ai-section__score--mid { background: #f59e0b; border: none; }
-        .jd-ai-progress__bar.jd-ai-section__score--good { background: #10b981; border: none; }
-        .jd-ai-progress__bar.jd-ai-section__score--high { background: #3b82f6; border: none; }
+        .fpt-ai-progress-fill.jd-score-high { background: #2563eb; }
+        .fpt-ai-progress-fill.jd-score-good { background: #10b981; }
+        .fpt-ai-progress-fill.jd-score-mid { background: #f59e0b; }
+        .fpt-ai-progress-fill.jd-score-low { background: #ef4444; }
 
-        .jd-ai-section__reason {
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-            border-left: 4px solid #f37021;
-            border-radius: 12px;
-            color: #334155;
+        .fpt-ai-reason-box {
+            background: #fffaf5;
+            border: 1px solid #fed7aa;
+            border-left: 4px solid var(--fpt-orange);
+            border-radius: var(--fpt-radius-sm);
+            color: #431407;
             font-size: 14.5px;
-            line-height: 1.7;
+            line-height: 1.65;
+            margin-bottom: 20px;
             padding: 16px 20px;
         }
 
-        .jd-ai-section__grid {
+        .fpt-ai-grid {
             display: grid;
-            gap: 20px;
             grid-template-columns: 1fr 1fr;
-            margin-top: 20px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
-        .jd-ai-section__box {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px;
+        .fpt-ai-box {
+            background: var(--fpt-slate-50);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: var(--fpt-radius-md);
+            padding: 18px;
         }
 
-        .jd-ai-section__box span {
-            display: block;
-            font-size: 11.5px;
+        .fpt-ai-box-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
             font-weight: 800;
             letter-spacing: 0.05em;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
             text-transform: uppercase;
         }
 
-        .jd-ai-section__box--match span {
-            color: #059669;
-        }
+        .fpt-ai-box-title.match { color: #047857; }
+        .fpt-ai-box-title.missing { color: #b91c1c; }
 
-        .jd-ai-section__box--missing span {
-            color: #dc2626;
-        }
-
-        .jd-ai-chip-list {
+        .fpt-ai-chip-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
         }
 
-        .jd-ai-chip {
-            align-items: center;
+        .fpt-ai-chip {
             border-radius: 8px;
-            display: inline-flex;
             font-size: 13px;
             font-weight: 600;
-            line-height: 1.4;
-            padding: 6px 14px;
+            padding: 5px 12px;
         }
 
-        .jd-ai-chip--match {
+        .fpt-ai-chip--match {
             background: #ecfdf5;
             border: 1px solid #a7f3d0;
             color: #065f46;
         }
 
-        .jd-ai-chip--missing {
+        .fpt-ai-chip--missing {
             background: #fef2f2;
             border: 1px solid #fecaca;
             color: #991b1b;
         }
 
-        .jd-ai-section__advice {
+        .fpt-ai-advice-box {
             background: #f0f9ff;
             border: 1px solid #bae6fd;
-            border-radius: 16px;
-            margin-top: 20px;
-            padding: 18px 22px;
+            border-radius: var(--fpt-radius-md);
+            padding: 16px 20px;
         }
 
-        .jd-ai-section__advice strong {
+        .fpt-ai-advice-box strong {
             color: #0369a1;
             display: block;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.05em;
             margin-bottom: 6px;
             text-transform: uppercase;
         }
 
-        .jd-ai-section__advice p {
+        .fpt-ai-advice-box p {
             color: #0c4a6e;
             font-size: 14px;
-            line-height: 1.65;
-            margin: 0;
-        }
-
-        .jd-layout {
-            display: grid;
-            gap: 24px;
-            grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.85fr);
-            margin-top: 24px;
-        }
-
-        .jd-main {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .jd-block {
-            padding: 26px;
-        }
-
-        .jd-block-head {
-            align-items: center;
-            display: flex;
-            gap: 12px;
-            margin-bottom: 18px;
-        }
-
-        .jd-block-icon {
-            align-items: center;
-            background: linear-gradient(135deg, rgba(195, 107, 45, 0.12), rgba(222, 160, 106, 0.22));
-            border-radius: 16px;
-            color: var(--jd-primary-dark);
-            display: inline-flex;
-            flex: 0 0 42px;
-            font-size: 17px;
-            height: 42px;
-            justify-content: center;
-            width: 42px;
-        }
-
-        .jd-block-head h3 {
-            color: var(--jd-ink);
-            font-size: 22px;
-            margin: 0 0 4px;
-        }
-
-        .jd-block-head p {
-            color: var(--jd-muted);
-            font-size: 14px;
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        .jd-desc {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .jd-desc p {
-            color: var(--jd-text);
-            font-size: 15.5px;
-            line-height: 1.8;
-            margin: 0;
-        }
-        .jd-grid {
-            display: grid;
-            gap: 24px;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .jd-info {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .jd-info span {
-            color: var(--jd-muted);
-            display: flex;
-            align-items: center;
-            font-size: 12.5px;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        .jd-info span::before {
-            content: "";
-            display: inline-block;
-            width: 4px;
-            height: 12px;
-            background: var(--jd-primary);
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-
-        .jd-info strong,
-        .jd-info div {
-            color: var(--jd-ink);
-            font-size: 15.5px;
-            font-weight: 500;
             line-height: 1.6;
+            margin: 0;
         }
 
-        .jd-skills {
+        /* === Right Sticky Sidebar === */
+        .fpt-sidebar {
+            position: sticky;
+            top: 24px;
             display: flex;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .fpt-apply-card {
+            background: var(--fpt-white);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: var(--fpt-radius-lg);
+            box-shadow: var(--fpt-shadow-card);
+            padding: 28px 24px;
+        }
+
+        .fpt-apply-card-title {
+            color: var(--fpt-dark);
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin: 0 0 8px;
+        }
+
+        .fpt-apply-card-sub {
+            color: var(--fpt-slate-500);
+            font-size: 13.5px;
+            line-height: 1.5;
+            margin: 0 0 20px;
+        }
+
+        /* === High-End Button System === */
+        .fpt-btn-primary {
+            align-items: center;
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(243, 112, 33, 0.28);
+            color: #ffffff !important;
+            cursor: pointer;
+            display: flex;
+            font-size: 15px;
+            font-weight: 800;
+            justify-content: space-between;
+            min-height: 52px;
+            padding: 0 16px 0 20px;
+            text-decoration: none !important;
+            transition: all 0.25s var(--fpt-ease);
+            width: 100%;
+        }
+
+        .fpt-btn-primary:hover {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+            box-shadow: 0 12px 28px rgba(243, 112, 33, 0.38);
+            transform: translateY(-2px);
+        }
+
+        .fpt-btn-icon-bubble {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            display: inline-flex;
+            height: 34px;
+            justify-content: center;
+            transition: transform 0.25s var(--fpt-ease);
+            width: 34px;
+        }
+
+        .fpt-btn-primary:hover .fpt-btn-icon-bubble {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateX(3px);
+        }
+
+        .fpt-btn-ai {
+            align-items: center;
+            background: #ffffff;
+            border: 1.5px solid var(--fpt-orange);
+            border-radius: 14px;
+            color: var(--fpt-orange) !important;
+            cursor: pointer;
+            display: flex;
+            font-size: 14px;
+            font-weight: 700;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 12px;
+            min-height: 48px;
+            padding: 0 18px;
+            text-decoration: none !important;
+            transition: all 0.2s var(--fpt-ease);
+            width: 100%;
+        }
+
+        .fpt-btn-ai:hover {
+            background: var(--fpt-orange-light);
+            border-color: var(--fpt-orange-hover);
+            color: var(--fpt-orange-hover) !important;
+            transform: translateY(-1px);
+        }
+
+        .fpt-btn-secondary {
+            align-items: center;
+            background: var(--fpt-slate-100);
+            border: 1px solid var(--fpt-slate-200);
+            border-radius: 14px;
+            color: var(--fpt-slate-600) !important;
+            cursor: pointer;
+            display: flex;
+            font-size: 13.5px;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+            min-height: 44px;
+            padding: 0 16px;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .fpt-btn-secondary:hover {
+            background: #e2e8f0;
+            color: var(--fpt-dark) !important;
+        }
+
+        /* === Trust Badges / Quick Highlights === */
+        .fpt-trust-signals {
+            border-top: 1px solid var(--fpt-slate-100);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 18px;
+        }
+
+        .fpt-trust-item {
+            align-items: center;
+            color: var(--fpt-slate-500);
+            display: flex;
+            font-size: 13px;
             gap: 10px;
         }
 
-        .jd-skill {
-            background: #f1f5f9;
-            border: 1px solid #e2e8f0;
-            border-radius: 999px;
-            color: #475569;
-            font-size: 13px;
-            font-weight: 600;
-            padding: 8px 16px;
-            transition: all 0.2s ease;
-        }
-
-        .jd-skill:hover {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-
-        .jd-empty {
-            color: var(--jd-muted);
+        .fpt-trust-item i {
+            color: #10b981;
             font-size: 14px;
-            line-height: 1.8;
-            margin: 0;
         }
 
-        .jd-sidebar {
-            padding: 24px;
-            position: sticky;
-            top: 24px;
+        /* === Overview Sidebar Card === */
+        .fpt-overview-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .jd-side-head {
-            border-bottom: 1px solid rgba(111, 77, 48, 0.1);
-            margin-bottom: 18px;
-            padding-bottom: 16px;
-        }
-
-        .jd-side-head h3 {
-            color: var(--jd-ink);
-            font-size: 21px;
-            margin: 0 0 6px;
-        }
-
-        .jd-side-head p {
-            color: var(--jd-muted);
-            font-size: 14px;
-            line-height: 1.7;
-            margin: 0;
-        }
-
-        .jd-overview {
-            display: grid;
-            gap: 12px;
-        }
-
-        .jd-overview-item {
+        .fpt-overview-row {
             align-items: flex-start;
             display: flex;
             gap: 14px;
-            padding: 14px 0;
-            border-bottom: 1px dashed rgba(111, 77, 48, 0.15);
-        }
-        
-        .jd-overview-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
         }
 
-        .jd-overview-icon {
+        .fpt-overview-icon {
             align-items: center;
-            background: rgba(195, 107, 45, 0.08);
-            border-radius: 12px;
-            color: var(--jd-primary);
+            background: var(--fpt-slate-100);
+            border-radius: 10px;
+            color: var(--fpt-slate-600);
             display: inline-flex;
-            flex: 0 0 40px;
-            font-size: 16px;
-            height: 40px;
+            flex-shrink: 0;
+            font-size: 14px;
+            height: 36px;
             justify-content: center;
-            width: 40px;
+            width: 36px;
         }
 
-        .jd-overview-item span {
-            color: var(--jd-muted);
+        .fpt-overview-meta span {
+            color: var(--fpt-slate-500);
             display: block;
-            font-size: 12.5px;
+            font-size: 12px;
             font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-bottom: 4px;
+            letter-spacing: 0.04em;
+            margin-bottom: 2px;
             text-transform: uppercase;
         }
 
-        .jd-overview-item strong,
-        .jd-overview-item div {
-            color: var(--jd-ink);
-            font-size: 15px;
-            line-height: 1.6;
-            font-weight: 500;
+        .fpt-overview-meta strong {
+            color: var(--fpt-dark);
+            font-size: 14.5px;
+            font-weight: 600;
         }
 
-        @media (max-width: 1199px) {
-            .jd-top-main,
-            .jd-layout {
+        /* === Recruitment Process Steps === */
+        .fpt-steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+        }
+
+        .fpt-step-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .fpt-step-num {
+            align-items: center;
+            background: var(--fpt-orange-light);
+            border: 1px solid var(--fpt-orange-border);
+            border-radius: 50%;
+            color: var(--fpt-orange);
+            display: flex;
+            flex-shrink: 0;
+            font-size: 12px;
+            font-weight: 800;
+            height: 26px;
+            justify-content: center;
+            width: 26px;
+        }
+
+        .fpt-step-text {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--fpt-slate-800);
+        }
+
+        .fpt-step-desc {
+            font-size: 12px;
+            color: var(--fpt-slate-500);
+            margin-top: 2px;
+        }
+
+        /* === Share Toast / Action === */
+        .fpt-share-link {
+            align-items: center;
+            background: transparent;
+            border: 1px dashed var(--fpt-slate-200);
+            border-radius: 12px;
+            color: var(--fpt-slate-500);
+            cursor: pointer;
+            display: flex;
+            font-size: 13px;
+            font-weight: 600;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 14px;
+            padding: 10px;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        .fpt-share-link:hover {
+            background: #ffffff;
+            border-color: var(--fpt-orange);
+            color: var(--fpt-orange);
+        }
+
+        /* === Responsive Layout === */
+        @media (max-width: 991px) {
+            .fpt-job-page {
+                padding-top: 90px;
+            }
+
+            .fpt-main-grid {
                 grid-template-columns: 1fr;
             }
 
-            .jd-highlight-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            .fpt-hero-card {
+                padding: 24px 20px;
             }
 
-            .jd-sidebar {
-                position: static;
+            .fpt-job-title {
+                font-size: 26px;
+            }
+
+            .fpt-card {
+                padding: 22px 20px;
+            }
+
+            .fpt-ai-card {
+                padding: 22px 20px;
+            }
+
+            .fpt-ai-grid {
+                grid-template-columns: 1fr;
             }
         }
 
-        @media (max-width: 767px) {
-            .jd-top-main,
-            .jd-block,
-            .jd-sidebar {
-                padding-left: 16px;
-                padding-right: 16px;
-            }
-
-            .jd-top-main {
-                gap: 20px;
-                margin-top: -40px;
-                padding-bottom: 20px;
-            }
-
-            .jd-top-banner {
-                min-height: 152px;
-            }
-
-            .jd-profile {
-                align-items: flex-start;
+        @media (max-width: 640px) {
+            .fpt-hero-layout {
                 flex-direction: column;
+                gap: 16px;
             }
 
-            .jd-logo {
-                flex-basis: 92px;
-                font-size: 28px;
-                height: 92px;
-                transform: none;
-                width: 92px;
+            .fpt-company-logo {
+                height: 72px;
+                width: 72px;
             }
 
-            .jd-title {
-                font-size: 30px;
+            .fpt-job-title {
+                font-size: 22px;
             }
 
-            .jd-highlight-grid,
-            .jd-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .jd-ai-columns {
-                grid-template-columns: 1fr;
-            }
-
-            .jd-ai-section__head {
+            .fpt-key-metrics {
                 flex-direction: column;
+                align-items: stretch;
             }
 
-            .jd-ai-section__grid {
-                grid-template-columns: 1fr;
-            }
-
-            .jd-ai-chip {
-                white-space: normal;
+            .fpt-metric-pill {
+                justify-content: flex-start;
             }
         }
     </style>
 
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-top section_100">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box">
-                            <h3>Chi tiết tin tuyển dụng</h3>
+    {{-- Breadcrumb Navigation Bar --}}
+    <div class="fpt-breadcrumb-bar">
+        <div class="container">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">{{ $job->title }}</li>
+                </ul>
+
+                <a href="{{ route('candidates.browse_job') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        {{-- Hero Header Card --}}
+        <div class="fpt-hero-card">
+            <div class="fpt-hero-layout">
+                <div class="fpt-company-logo">
+                    @if ($shouldShowBranchImage)
+                        <img src="{{ $branchImage }}" alt="{{ $branch?->name ?? $job->title }}">
+                    @else
+                        <div class="fpt-company-logo-fallback">{{ $companyInitials }}</div>
+                    @endif
+                </div>
+
+                <div class="fpt-hero-content">
+                    <div class="fpt-hero-top-pills">
+                        <div class="fpt-badge-live">
+                            <span class="pulse-dot"></span>
+                            {{ $statusLabel }}
                         </div>
+                        <div class="fpt-badge-time">
+                            <i class="fa fa-clock-o"></i> {{ $publishedHuman }} ({{ $publishedAt }})
+                        </div>
+                        @if ($branch?->name)
+                            <div class="fpt-badge-unit">
+                                <i class="fa fa-building-o"></i> {{ $branch->name }}
+                            </div>
+                        @endif
+                    </div>
+
+                    <h1 class="fpt-job-title">{{ $job->title }}</h1>
+
+                    <div class="fpt-company-line">
+                        <span>{{ $branch?->name ?? 'FPT Education' }}</span>
+                        <i class="fa fa-check-circle verified-icon" title="Đã xác thực"></i>
+                        @if ($department?->name)
+                            <span>·</span>
+                            <span>{{ $department->name }}</span>
+                        @endif
+                    </div>
+
+                    {{-- Key Highlights Badges --}}
+                    <div class="fpt-key-metrics">
+                        <div class="fpt-metric-pill fpt-metric-pill--salary">
+                            <i class="fa fa-money"></i>
+                            <span>{{ $salaryText }}</span>
+                        </div>
+                        <div class="fpt-metric-pill">
+                            <i class="fa fa-map-marker"></i>
+                            <span>{{ $cityLabel }} @if($workplace?->name) · {{ $workplace->name }} @endif</span>
+                        </div>
+                        <div class="fpt-metric-pill">
+                            <i class="fa fa-calendar-check-o"></i>
+                            <span>{{ $deadlineBadge }}</span>
+                        </div>
+                        @if($skillCount > 0)
+                            <div class="fpt-metric-pill">
+                                <i class="fa fa-code"></i>
+                                <span>{{ $skillCount }} kỹ năng trọng tâm</span>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="{{ route('candidates.browse_job') }}">Việc làm</a></li>
-                                <li class="active-breadcromb"><a href="#">Chi tiết công việc</a></li>
-                            </ul>
+
+        {{-- Main 2-Column Grid --}}
+        <div class="fpt-main-grid">
+            {{-- Left Column: Main Details --}}
+            <div class="fpt-content-stack">
+
+                {{-- AI Match Analysis Result Box (Rendered when checked) --}}
+                @if (is_array($jobFitAiResult))
+                    <div class="fpt-ai-card">
+                        <div class="fpt-ai-head">
+                            <div class="fpt-ai-title-wrap">
+                                <div class="fpt-ai-badge-icon">
+                                    <i class="fa fa-magic"></i>
+                                </div>
+                                <div>
+                                    <h3 style="margin: 0; font-size: 19px; font-weight: 800; color: var(--fpt-dark);">Kết quả phân tích mức độ phù hợp (AI)</h3>
+                                    <p style="margin: 3px 0 0; font-size: 13px; color: var(--fpt-slate-500);">Đánh giá đối chiếu giữa CV ứng viên và yêu cầu tuyển dụng</p>
+                                </div>
+                            </div>
+
+                            @if ($aiScoreLabel !== null)
+                                <div class="fpt-ai-score-badge {{ $aiScoreClass }}">
+                                    {{ $aiScoreLabel }}
+                                </div>
+                            @endif
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <section class="section_70 job-detail-page">
-        <div class="container jd-wrap">
-            <div class="jd-top-card">
-                <div class="jd-top-banner"></div>
+                        @if ($aiScore !== null && $aiScore > 0)
+                            <div class="fpt-ai-progress-track">
+                                <div class="fpt-ai-progress-fill {{ $aiScoreClass }}" style="width: {{ $aiScore }}%;"></div>
+                            </div>
+                        @endif
 
-                <div class="jd-top-main">
-                    <div>
-                        <div class="jd-profile">
-                            <div class="jd-logo{{ $shouldShowBranchImage ? '' : ' jd-logo--fallback' }}">
-                                @if ($shouldShowBranchImage)
-                                    <img src="{{ $branchImage }}" alt="{{ $branch?->name ?? $job->title }}">
+                        @if (filled($aiReason))
+                            <div class="fpt-ai-reason-box">
+                                <strong>Nhận định tổng quan:</strong> {{ $aiReason }}
+                            </div>
+                        @endif
+
+                        <div class="fpt-ai-grid">
+                            <div class="fpt-ai-box">
+                                <div class="fpt-ai-box-title match">
+                                    <i class="fa fa-check-circle"></i> Điểm phù hợp nổi bật
+                                </div>
+                                @if (!empty($aiMatchedRequirements))
+                                    <div class="fpt-ai-chip-list">
+                                        @foreach ($aiMatchedRequirements as $item)
+                                            <div class="fpt-ai-chip fpt-ai-chip--match">{{ $item }}</div>
+                                        @endforeach
+                                    </div>
                                 @else
-                                    {{ $companyInitials }}
+                                    <p style="font-size: 13px; color: var(--fpt-slate-500); margin: 0;">Chưa ghi nhận điểm phù hợp rõ ràng.</p>
                                 @endif
                             </div>
 
-                            <div class="jd-top-copy">
-                                <div class="jd-kicker">
-                                    <div class="jd-status">{{ $statusLabel }}</div>
-                                    <div class="jd-posted">{{ $publishedAt }} · {{ $publishedHuman }}</div>
+                            <div class="fpt-ai-box">
+                                <div class="fpt-ai-box-title missing">
+                                    <i class="fa fa-info-circle"></i> Điểm cần bổ sung / hoàn thiện
                                 </div>
+                                @if (!empty($aiMissingRequirements))
+                                    <div class="fpt-ai-chip-list">
+                                        @foreach ($aiMissingRequirements as $item)
+                                            <div class="fpt-ai-chip fpt-ai-chip--missing">{{ $item }}</div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p style="font-size: 13px; color: var(--fpt-slate-500); margin: 0;">Hồ sơ đáp ứng trọn vẹn các yêu cầu cơ bản.</p>
+                                @endif
+                            </div>
+                        </div>
 
-                                <h1 class="jd-title">{{ $job->title }}</h1>
-                                <p class="jd-company">{{ $branch?->name ?? 'Chưa cập nhật chi nhánh' }}</p>
-                                <div class="jd-meta">
-                                    <div class="jd-meta-item" style="background-color: rgba(243, 112, 33, 0.1); color: #f37021; border: 1px solid rgba(243, 112, 33, 0.2); font-weight: 700;"><i class="fa fa-money" style="color: #f37021;"></i>{{ $salaryText }}</div>
-                                    <div class="jd-meta-item"><i class="fa fa-map-marker"></i>{{ $cityLabel }}</div>
-                                    <div class="jd-meta-item"><i class="fa fa-building-o"></i>{{ $department?->name ?? 'Chưa cập nhật phòng ban' }}</div>
-                                    <div class="jd-meta-item"><i class="fa fa-clock-o"></i>{{ $deadlineText }}</div>
-                                </div>
+                        @if (filled($aiAdvice))
+                            <div class="fpt-ai-advice-box">
+                                <strong><i class="fa fa-lightbulb-o"></i> Lời khuyên từ AI Career Coach</strong>
+                                <p>{{ $aiAdvice }}</p>
                             </div>
+                        @endif
+                    </div>
+                @endif
+
+                {{-- Job Description --}}
+                <div class="fpt-card">
+                    <div class="fpt-card-header">
+                        <div class="fpt-card-icon">
+                            <i class="fa fa-file-text-o"></i>
                         </div>
-                        <div class="jd-highlight-grid">
-                            <div class="jd-highlight">
-                                <span>Hạn ứng tuyển</span>
-                                <strong>{{ $deadlineBadge }}</strong>
-                                <div>{{ $deadlineText }}</div>
-                            </div>
-                            <div class="jd-highlight">
-                                <span>Kỹ năng</span>
-                                <strong>{{ $skillCount }} nhóm</strong>
-                                <div>{{ $skillCount > 0 ? 'Đã có kỹ năng liên quan để đối chiếu nhanh' : 'Nhà tuyển dụng chưa khai báo cụ thể' }}</div>
-                            </div>
-                            <div class="jd-highlight">
-                                <span>Nơi làm việc</span>
-                                <strong>{{ $workplace?->name ?? 'Đang cập nhật' }}</strong>
-                                <div>{{ $cityLabel }}</div>
-                            </div>
-                        </div>
+                        <h2 class="fpt-card-title">Mô tả công việc & Yêu cầu chi tiết</h2>
                     </div>
 
-                    <div class="jd-top-actions">
-                        <div class="jd-top-eyebrow">Quick Apply</div>
-                        <h3>Ứng tuyển ngay nếu vị trí này phù hợp với bạn</h3>
-                        <p>Hoàn tất hồ sơ sớm để nhà tuyển dụng dễ xem và phản hồi nhanh hơn trong đợt tuyển dụng hiện tại.</p>
+                    <div class="fpt-job-body">
+                        @if(filled($description))
+                            {!! $description !!}
+                        @else
+                            <p>Nội dung mô tả công việc đang được cập nhật. Bạn có thể nộp hồ sơ trực tiếp để ban tuyển dụng hỗ trợ trao đổi chi tiết.</p>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Required Skills --}}
+                @if ($skills->isNotEmpty())
+                    <div class="fpt-card">
+                        <div class="fpt-card-header">
+                            <div class="fpt-card-icon">
+                                <i class="fa fa-code"></i>
+                            </div>
+                            <h3 class="fpt-card-title">Kỹ năng & Chuyên môn trọng tâm</h3>
+                        </div>
+
+                        <div class="fpt-skill-wrap">
+                            @foreach ($skills as $skill)
+                                <div class="fpt-skill-pill">
+                                    <i class="fa fa-tag" style="font-size: 11px; color: var(--fpt-orange);"></i>
+                                    {{ $skill->name }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Job Categories --}}
+                @if ($job->categories->isNotEmpty())
+                    <div class="fpt-card">
+                        <div class="fpt-card-header">
+                            <div class="fpt-card-icon">
+                                <i class="fa fa-th-large"></i>
+                            </div>
+                            <h3 class="fpt-card-title">Lĩnh vực & Danh mục nghề nghiệp</h3>
+                        </div>
+
+                        <div class="fpt-skill-wrap">
+                            @foreach ($job->categories as $category)
+                                <div class="fpt-skill-pill">
+                                    <i class="fa fa-folder-open-o" style="font-size: 11px; color: var(--fpt-orange);"></i>
+                                    {{ $category->name }}
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+            </div>
+
+            {{-- Right Column: Sticky Action & Fast Details --}}
+            <div>
+                <div class="fpt-sidebar">
+                    {{-- Primary Application Action Card --}}
+                    <div class="fpt-apply-card">
+                        <h3 class="fpt-apply-card-title">Sẵn sàng ứng tuyển?</h3>
+                        <p class="fpt-apply-card-sub">Nộp hồ sơ ngay hôm nay để nhận phản hồi từ bộ phận tuyển dụng FPT Education trong thời gian sớm nhất.</p>
 
                         @if ($showApplyAction)
-                            <a href="{{ $applyUrl }}" class="jd-apply-btn">
-                                <i class="fa fa-paper-plane-o"></i>
-                                Ứng tuyển ngay
+                            <a href="{{ $applyUrl }}" class="fpt-btn-primary">
+                                <span>Ứng tuyển vị trí này</span>
+                                <span class="fpt-btn-icon-bubble">
+                                    <i class="fa fa-paper-plane-o"></i>
+                                </span>
                             </a>
                         @else
-                            <a href="{{ route('jobs.public', ['slug' => $job->slug]) }}" class="jd-apply-btn">
-                                <i class="fa fa-external-link"></i>
-                                Xem giao diện ứng viên
+                            <a href="{{ route('jobs.public', ['slug' => $job->slug]) }}" class="fpt-btn-primary">
+                                <span>Xem giao diện ứng viên</span>
+                                <span class="fpt-btn-icon-bubble">
+                                    <i class="fa fa-external-link"></i>
+                                </span>
                             </a>
                         @endif
 
+                        {{-- AI Suite Tools --}}
                         @if ($hasCandidateAccess)
                             @if ($hasCv)
                                 <button
@@ -979,253 +1244,130 @@
                                     wire:click="checkJobFitWithAi"
                                     wire:loading.attr="disabled"
                                     wire:target="checkJobFitWithAi"
-                                    class="jd-apply-btn jd-ai-btn"
+                                    class="fpt-btn-ai"
                                 >
                                     <span wire:loading.remove wire:target="checkJobFitWithAi">
-                                        <i class="fa fa-magic"></i>
-                                        AI kiểm tra phù hợp
+                                        <i class="fa fa-magic"></i> AI kiểm tra độ phù hợp
                                     </span>
                                     <span wire:loading wire:target="checkJobFitWithAi">
-                                        <i class="fa fa-circle-o-notch fa-spin"></i>
-                                        Đang kiểm tra...
+                                        <i class="fa fa-circle-o-notch fa-spin"></i> Đang phân tích hồ sơ...
                                     </span>
                                 </button>
                             @else
-                                <a href="{{ route('candidates.candidate_profile') }}" class="jd-secondary-btn">
-                                    <i class="fa fa-upload"></i>
-                                    Tải CV lên để dùng AI
+                                <a href="{{ route('candidates.candidate_profile') }}" class="fpt-btn-secondary">
+                                    <i class="fa fa-upload"></i> Tải CV để dùng AI kiểm tra
                                 </a>
                             @endif
 
-                            <a href="{{ route('candidates.candidate_profile') }}" class="jd-secondary-btn">
-                                <i class="fa fa-user-edit"></i>
-                                Bổ sung hồ sơ
-                            </a>
-                        @else
-                            <a href="{{ route('candidates.login') }}" class="jd-secondary-btn">
-                                <i class="fa fa-sign-in"></i>
-                                Đăng nhập để kiểm tra
-                            </a>
-                        @endif
-
-                        @if($hasCandidateAccess)
-                            <button wire:click="startAiMockInterview" class="jd-apply-btn" style="cursor:pointer;">
-                                <i wire:loading.remove wire:target="startAiMockInterview" class="fa fa-microphone"></i>
-                                <i wire:loading wire:target="startAiMockInterview" class="fa fa-spinner fa-spin"></i>
-                                Phỏng vấn thử với AI
+                            <button
+                                type="button"
+                                wire:click="startAiMockInterview"
+                                wire:loading.attr="disabled"
+                                wire:target="startAiMockInterview"
+                                class="fpt-btn-secondary"
+                            >
+                                <span wire:loading.remove wire:target="startAiMockInterview">
+                                    <i class="fa fa-microphone"></i> Phỏng vấn thử với AI
+                                </span>
+                                <span wire:loading wire:target="startAiMockInterview">
+                                    <i class="fa fa-spinner fa-spin"></i> Đang tạo phòng phỏng vấn...
+                                </span>
                             </button>
-                        @endif
-
-                        <a href="{{ route('candidates.browse_job') }}" class="jd-secondary-btn">
-                            <i class="fa fa-th-large"></i>
-                            Xem thêm việc làm
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            @if (is_array($jobFitAiResult))
-                <section class="jd-ai-section">
-                    <div class="jd-ai-section__head">
-                        <div>
-                            <h3 class="jd-ai-section__title">Kết quả phân tích AI</h3>
-                            <p class="jd-ai-section__sub">Đánh giá độ tương thích giữa CV ứng viên và yêu cầu công việc</p>
-                        </div>
-                        @if ($aiScoreLabel !== null)
-                            <div class="jd-ai-section__score {{ $aiScoreClass }}">
-                                {{ $aiScoreLabel }}
-                            </div>
-                        @endif
-                    </div>
-
-                    @if ($aiScore !== null && $aiScore > 0)
-                        <div class="jd-ai-progress">
-                            <div class="jd-ai-progress__bar {{ $aiScoreClass }}" style="width: {{ $aiScore }}%"></div>
-                        </div>
-                    @endif
-
-                    @if (filled($aiReason))
-                        <div class="jd-ai-section__reason">
-                            {{ $aiReason }}
-                        </div>
-                    @endif
-
-                    <div class="jd-ai-section__grid">
-                        <div class="jd-ai-section__box jd-ai-section__box--match">
-                            <span>Điểm phù hợp</span>
-                            @if (!empty($aiMatchedRequirements))
-                                <div class="jd-ai-chip-list">
-                                    @foreach ($aiMatchedRequirements as $item)
-                                        <div class="jd-ai-chip jd-ai-chip--match">{{ $item }}</div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="jd-empty mb-0">Chưa ghi nhận điểm phù hợp rõ ràng.</div>
-                            @endif
-                        </div>
-
-                        <div class="jd-ai-section__box jd-ai-section__box--missing">
-                            <span>Cần bổ sung / xác minh</span>
-                            @if (!empty($aiMissingRequirements))
-                                <div class="jd-ai-chip-list">
-                                    @foreach ($aiMissingRequirements as $item)
-                                        <div class="jd-ai-chip jd-ai-chip--missing">{{ $item }}</div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="jd-empty mb-0">Chưa thấy khoảng trống lớn theo dữ liệu hiện tại.</div>
-                            @endif
-                        </div>
-                    </div>
-
-                    @if (filled($aiAdvice))
-                        <div class="jd-ai-section__advice">
-                            <div>
-                                <strong>Lời khuyên từ AI</strong>
-                                <p>{{ $aiAdvice }}</p>
-                            </div>
-                        </div>
-                    @endif
-                </section>
-            @endif
-
-            <div class="jd-layout">
-                <div class="jd-main">
-                    <div class="jd-block">
-                        <div class="jd-block-head">
-                            <div class="jd-block-icon"><i class="fa fa-file-text-o"></i></div>
-                            <div>
-                                <h3>Mô tả công việc</h3>
-                            </div>
-                        </div>
-
-                        <div class="jd-desc">
-                            @if(filled($description))
-                                {!! $description !!}
-                            @else
-                                <p>Nội dung mô tả công việc đang được cập nhật. Bạn vẫn có thể ứng tuyển để nhà tuyển dụng liên hệ và cung cấp thêm thông tin chi tiết.</p>
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="jd-block">
-                        <div class="jd-block-head">
-                            <div class="jd-block-icon"><i class="fa fa-briefcase"></i></div>
-                            <div>
-                                <h3>Thông tin chung</h3>
-                            </div>
-                        </div>
-
-                        <div class="jd-grid">
-                            <div class="jd-info">
-                                <span>Mức lương</span>
-                                <strong>{{ $salaryText }}</strong>
-                            </div>
-                            <div class="jd-info">
-                                <span>Trạng thái</span>
-                                <div>{{ $statusLabel }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Hạn nộp hồ sơ</span>
-                                <div>{{ $deadlineText }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Ngày đăng</span>
-                                <div>{{ $publishedAt }} · {{ $publishedHuman }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Chi nhánh</span>
-                                <div>{{ $branch?->name ?? 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Phòng ban</span>
-                                <div>{{ $department?->name ?? 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Nơi làm việc</span>
-                                <div>{{ $workplace?->name ?? 'Chưa cập nhật' }}</div>
-                            </div>
-                            <div class="jd-info">
-                                <span>Khu vực</span>
-                                <div>{{ $cityLabel }}</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="jd-block">
-                        <div class="jd-block-head">
-                            <div class="jd-block-icon"><i class="fa fa-th-large"></i></div>
-                            <div>
-                                <h3>Danh mục nghề nghiệp</h3>
-                            </div>
-                        </div>
-
-                        @if ($job->categories->isNotEmpty())
-                            <div class="jd-skills">
-                                @foreach ($job->categories as $category)
-                                    <div class="jd-skill">{{ $category->name }}</div>
-                                @endforeach
-                            </div>
                         @else
-                            <p class="jd-empty">Tin đăng này chưa được phân loại danh mục cụ thể.</p>
+                            <a href="{{ route('candidates.login') }}" class="fpt-btn-secondary">
+                                <i class="fa fa-sign-in"></i> Đăng nhập để dùng AI & nộp nhanh
+                            </a>
                         @endif
-                    </div>
 
-                    <div class="jd-block">
-                        <div class="jd-block-head">
-                            <div class="jd-block-icon"><i class="fa fa-code"></i></div>
-                            <div>
-                                <h3>Kỹ năng liên quan</h3>
+                        {{-- Share Link Button --}}
+                        <button type="button" class="fpt-share-link" onclick="copyJobUrl()">
+                            <i class="fa fa-share-alt"></i> Sao chép liên kết tin tuyển dụng
+                        </button>
+
+                        {{-- Trust Signals --}}
+                        <div class="fpt-trust-signals">
+                            <div class="fpt-trust-item">
+                                <i class="fa fa-check-circle"></i>
+                                <span>Tuyển dụng chính thức từ FPT</span>
+                            </div>
+                            <div class="fpt-trust-item">
+                                <i class="fa fa-check-circle"></i>
+                                <span>Phản hồi hồ sơ trong vòng 24 - 48h</span>
+                            </div>
+                            <div class="fpt-trust-item">
+                                <i class="fa fa-check-circle"></i>
+                                <span>Bảo mật tuyệt đối thông tin ứng viên</span>
                             </div>
                         </div>
-
-                        @if ($skills->isNotEmpty())
-                            <div class="jd-skills">
-                                @foreach ($skills as $skill)
-                                    <div class="jd-skill">{{ $skill->name }}</div>
-                                @endforeach
-                            </div>
-                        @else
-                            <p class="jd-empty">Tin đăng này chưa có danh sách kỹ năng cụ thể. Bạn có thể dựa vào mô tả công việc và phòng ban để đánh giá mức độ phù hợp.</p>
-                        @endif
                     </div>
-                </div>
 
-                <div>
-                    <div class="jd-sidebar">
-                        <div class="jd-side-head">
-                            <h3>Tổng quan công việc</h3>
+                    {{-- Work Environment & Process Card --}}
+                    <div class="fpt-card">
+                        <div class="fpt-card-header" style="margin-bottom: 16px; padding-bottom: 12px;">
+                            <div class="fpt-card-icon" style="width: 32px; height: 32px; font-size: 14px;">
+                                <i class="fa fa-sliders"></i>
+                            </div>
+                            <h3 class="fpt-card-title" style="font-size: 17px;">Quy trình tuyển dụng</h3>
                         </div>
 
-                        <div class="jd-overview">
-                            <div class="jd-overview-item">
-                                <div class="jd-overview-icon"><i class="fa fa-money"></i></div>
+                        <div class="fpt-steps-list">
+                            <div class="fpt-step-item">
+                                <div class="fpt-step-num">1</div>
                                 <div>
-                                    <span>Mức lương</span>
-                                    <strong>{{ $salaryText }}</strong>
+                                    <div class="fpt-step-text">Nộp hồ sơ trực tuyến</div>
+                                    <div class="fpt-step-desc">Điền thông tin và đính kèm CV qua hệ thống.</div>
                                 </div>
                             </div>
-
-                            <div class="jd-overview-item">
-                                <div class="jd-overview-icon"><i class="fa fa-map-marker"></i></div>
+                            <div class="fpt-step-item">
+                                <div class="fpt-step-num">2</div>
                                 <div>
-                                    <span>Địa điểm</span>
-                                    <div>{{ $cityLabel }}</div>
+                                    <div class="fpt-step-text">Sàng lọc & Phỏng vấn</div>
+                                    <div class="fpt-step-desc">HR liên hệ sắp xếp lịch trao đổi chuyên môn.</div>
                                 </div>
                             </div>
-
-                            <div class="jd-overview-item">
-                                <div class="jd-overview-icon"><i class="fa fa-building-o"></i></div>
+                            <div class="fpt-step-item">
+                                <div class="fpt-step-num">3</div>
                                 <div>
-                                    <span>Đơn vị</span>
-                                    <div>{{ $branch?->name ?? 'Chưa cập nhật' }}</div>
+                                    <div class="fpt-step-text">Thư mời nhận việc (Offer)</div>
+                                    <div class="fpt-step-desc">Gửi thông báo kết quả và chính sách đãi ngộ.</div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+
+    <script>
+        function copyJobUrl() {
+            const url = window.location.href;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!');
+                }).catch(() => {
+                    fallbackCopy(url);
+                });
+            } else {
+                fallbackCopy(url);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                alert('Đã sao chép liên kết tin tuyển dụng vào bộ nhớ tạm!');
+            } catch (err) {
+                prompt('Sao chép liên kết:', text);
+            }
+            document.body.removeChild(textArea);
+        }
+    </script>
 </div>

@@ -49,7 +49,7 @@ class ApplyJob extends Component
 
     public $cv = null;
 
-    public string $selectedCvOption = 'online_fpt-modern';
+    public string $selectedCvOption = 'new_upload';
 
     public bool $sync_profile_to_candidate = false;
 
@@ -71,6 +71,7 @@ class ApplyJob extends Component
 
         $user = Auth::user();
         if (! $user) {
+            $this->selectedCvOption = 'new_upload';
             return;
         }
 

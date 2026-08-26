@@ -623,11 +623,13 @@
                                              <span>Tin nhắn</span>
                                           </a>
                                        </li>
-                                       <li>
-                                          <a href="{{ $isEmployerHeader ? route('employers.transaction') : route('candidates.earnings') }}" class="user-link">
-                                             <span>Thu nhập</span>
-                                          </a>
-                                       </li>
+                                        @if($isEmployerHeader)
+                                           <li>
+                                              <a href="{{ route('employers.transaction') }}" class="user-link">
+                                                 <span>Giao dịch</span>
+                                              </a>
+                                           </li>
+                                        @endif
                                        <li>
                                           <a href="{{ $isEmployerHeader ? route('employers.change_password') : route('candidates.change_password') }}" class="user-link">
                                              <span>Đổi mật khẩu</span>

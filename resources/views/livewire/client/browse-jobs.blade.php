@@ -1,531 +1,911 @@
-<div class="bj2-page">
+<div class="fpt-browse-page">
     @php
         /** @var \Illuminate\Support\Collection<int, \App\Models\Department>|\App\Models\Department[] $departments */
         $isListView = ($display ?? 'grid') === 'list';
+        $hasActiveFilters = filled($q) || filled($city) || filled($department_id) || filled($category_id);
     @endphp
 
     <style>
-        .bj2-page {
-            --bj2-bg: #f7f8fb;
-            --bj2-surface: #ffffff;
-            --bj2-line: rgba(226, 232, 240, .95);
-            --bj2-text: #0f172a;
-            --bj2-muted: #64748b;
-            --bj2-accent: #f37021;
-            --bj2-accent-soft: rgba(243, 112, 33, .08);
+        .fpt-browse-page {
+            --fpt-bg: #f8fafc;
+            --fpt-surface: #ffffff;
+            --fpt-surface-subtle: #f1f5f9;
+            --fpt-ink: #0f172a;
+            --fpt-muted: #64748b;
+            --fpt-line: #e2e8f0;
+            --fpt-line-subtle: #f1f5f9;
+            --fpt-primary: #f37021;
+            --fpt-primary-hover: #ea580c;
+            --fpt-primary-soft: rgba(243, 112, 33, 0.08);
+            --fpt-primary-glow: rgba(243, 112, 33, 0.22);
+            --fpt-ease: cubic-bezier(0.16, 1, 0.3, 1);
+            
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            color: var(--fpt-ink);
+            background: var(--fpt-bg);
+            min-height: 100vh;
+            padding-top: 105px;
+            padding-bottom: 80px;
         }
 
-        .bj2-page .bj2-card {
+        .fpt-browse-page .fa,
+        .fpt-browse-page i.fa {
+            font-family: 'FontAwesome', FontAwesome !important;
+            font-style: normal;
+        }
+
+        /* Hero Search Hub - Double-Bezel */
+        .fpt-search-hero {
             position: relative;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 20px !important;
+            margin-bottom: 32px;
+        }
+
+        .fpt-search-hero__header {
+            margin-bottom: 24px;
+        }
+
+        .fpt-search-hero__eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: var(--fpt-primary-soft);
+            color: var(--fpt-primary);
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            border: 1px solid rgba(243, 112, 33, 0.16);
+        }
+
+        .fpt-search-hero__title {
+            font-size: clamp(24px, 3.5vw, 34px);
+            font-weight: 900;
+            color: var(--fpt-ink);
+            letter-spacing: -0.03em;
+            margin: 0 0 8px;
+            line-height: 1.25;
+        }
+
+        .fpt-search-hero__subtitle {
+            color: var(--fpt-muted);
+            font-size: 14.5px;
+            margin: 0;
+            max-width: 680px;
+            line-height: 1.55;
+        }
+
+        /* Outer Double-Bezel Tray */
+        .fpt-search-tray {
             background: #ffffff;
-            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            overflow: hidden;
+            border: 1px solid var(--fpt-line);
+            border-radius: 24px;
+            padding: 8px;
+            box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
         }
 
-        .bj2-page .bj2-card:hover {
-            transform: translateY(-4px);
-            border-color: rgba(243, 112, 33, 0.35) !important;
-            box-shadow: 0 16px 36px rgba(15, 23, 42, 0.09);
+        .fpt-search-inner {
+            display: grid;
+            grid-template-columns: 2fr 1.3fr 1.3fr auto;
+            gap: 8px;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid var(--fpt-line-subtle);
+            border-radius: 18px;
+            padding: 6px;
         }
 
-        .bj2-page .bj2-card__inner {
+        @media (max-width: 991.98px) {
+            .fpt-search-inner {
+                grid-template-columns: 1fr 1fr;
+            }
+            .fpt-search-inner .fpt-search-item--submit {
+                grid-column: 1 / -1;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .fpt-search-inner {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fpt-search-field {
             position: relative;
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 12px;
+            padding: 0 14px;
+            height: 50px;
+            transition: all 0.2s var(--fpt-ease);
+        }
+
+        .fpt-search-field:focus-within {
+            border-color: var(--fpt-primary);
+            box-shadow: 0 0 0 3px rgba(243, 112, 33, 0.12);
+        }
+
+        .fpt-search-field i {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        .fpt-search-field input,
+        .fpt-search-field select {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--fpt-ink);
+            outline: none;
+            padding: 0;
+        }
+
+        .fpt-search-field select {
+            cursor: pointer;
+        }
+
+        .fpt-search-field input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .fpt-search-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fpt-search-submit {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            height: 50px;
+            padding: 0 24px;
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 12px;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 8px 20px -4px rgba(243, 112, 33, 0.4);
+            transition: all 0.25s var(--fpt-ease);
+            white-space: nowrap;
+        }
+
+        .fpt-search-submit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px -4px rgba(243, 112, 33, 0.5);
+        }
+
+        .fpt-search-reset {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 50px;
+            padding: 0 16px;
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 12px;
+            color: var(--fpt-muted);
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s var(--fpt-ease);
+            white-space: nowrap;
+        }
+
+        .fpt-search-reset:hover {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fca5a5;
+        }
+
+        /* Quick Filter Chips */
+        .fpt-quick-chips {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+            padding: 0 4px;
+        }
+
+        .fpt-quick-label {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--fpt-muted);
+            margin-right: 4px;
+        }
+
+        .fpt-quick-chip {
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s var(--fpt-ease);
+            text-decoration: none !important;
+        }
+
+        .fpt-quick-chip:hover {
+            background: var(--fpt-primary-soft);
+            color: var(--fpt-primary);
+            border-color: rgba(243, 112, 33, 0.3);
+        }
+
+        /* Toolbar Bar */
+        .fpt-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.02);
+        }
+
+        .fpt-toolbar__count {
+            font-size: 14px;
+            color: var(--fpt-muted);
+            font-weight: 600;
+        }
+
+        .fpt-toolbar__count strong {
+            color: var(--fpt-ink);
+            font-weight: 800;
+        }
+
+        .fpt-view-toggle {
+            display: inline-flex;
+            background: #f1f5f9;
+            padding: 3px;
+            border-radius: 10px;
+            border: 1px solid var(--fpt-line);
+            gap: 3px;
+        }
+
+        .fpt-view-btn {
+            background: transparent;
+            border: none;
+            color: var(--fpt-muted);
+            width: 34px;
+            height: 32px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .fpt-view-btn.is-active {
+            background: #ffffff;
+            color: var(--fpt-primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            font-weight: 700;
+        }
+
+        /* Job Cards Grid & Double-Bezel */
+        .fpt-job-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 22px;
+        }
+
+        .fpt-job-grid.is-list {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 575.98px) {
+            .fpt-job-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fpt-card-shell {
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 20px;
+            padding: 6px;
+            transition: all 0.3s var(--fpt-ease);
+            position: relative;
+            box-shadow: 0 4px 20px -4px rgba(15, 23, 42, 0.04);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fpt-card-shell:hover {
+            transform: translateY(-4px);
+            border-color: rgba(243, 112, 33, 0.35);
+            box-shadow: 0 20px 40px -10px rgba(243, 112, 33, 0.12), 0 4px 12px rgba(15, 23, 42, 0.04);
+        }
+
+        .fpt-card-core {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
             height: 100%;
-            padding: 1.25rem;
         }
 
-        .bj2-page .bj2-card--list .bj2-card__inner {
-            padding: 1.25rem;
-        }
-
-        .bj2-page .bj2-card__top {
+        .fpt-card-top {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
-            gap: 12px;
-            margin-bottom: 0.85rem;
+            gap: 14px;
+            margin-bottom: 14px;
         }
 
-        .bj2-page .bj2-card__logo {
-            width: 60px;
-            height: 60px;
-            flex-shrink: 0;
+        .fpt-card-logo-wrap {
+            width: 54px;
+            height: 54px;
             border-radius: 14px;
-            border: 1px solid #f1f5f9;
-            background: #ffffff;
+            background: #f8fafc;
+            border: 1px solid var(--fpt-line);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            padding: 6px;
+            flex-shrink: 0;
+            overflow: hidden;
             transition: transform 0.2s ease;
         }
 
-        .bj2-page .bj2-card:hover .bj2-card__logo {
+        .fpt-card-shell:hover .fpt-card-logo-wrap {
             transform: scale(1.04);
         }
 
-        .bj2-page .bj2-card__logo img {
-            width: 100%;
-            height: 100%;
+        .fpt-card-logo-wrap img {
+            max-width: 100%;
+            max-height: 100%;
             object-fit: contain;
-            padding: 8px;
         }
 
-        .bj2-page .bj2-card__badges {
+        .fpt-card-status-badges {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 6px;
         }
 
-        .bj2-page .bj2-card__label {
-            font-size: .72rem;
-            font-weight: 700;
-            letter-spacing: .02em;
-            padding: .35rem .75rem;
+        .fpt-match-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 3px 9px;
             border-radius: 999px;
-            white-space: nowrap;
-            line-height: 1;
+            letter-spacing: 0.02em;
         }
 
-        .bj2-page .bj2-card__deadline {
-            font-size: .75rem;
-            font-weight: 500;
-            letter-spacing: .01em;
-            padding: .35rem .75rem;
-            border-radius: 999px;
-            white-space: nowrap;
+        .fpt-match-badge.high {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .fpt-match-badge.medium {
+            background: #fffbeb;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
+        .fpt-match-badge.low {
             background: #f8fafc;
             color: #64748b;
             border: 1px solid #e2e8f0;
-            box-shadow: none;
         }
 
-        .bj2-page .bj2-card__title {
-            font-size: 1.12rem;
-            font-weight: 700;
+        .fpt-card-deadline {
+            font-size: 11.5px;
+            color: #94a3b8;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .fpt-card-title {
+            font-size: 16.5px;
+            font-weight: 800;
             line-height: 1.35;
-            letter-spacing: -.01em;
-            margin-bottom: .45rem;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            height: 2.7em;
+            margin: 0 0 8px;
         }
 
-        .bj2-page .bj2-card__title a {
-            color: #0f172a;
+        .fpt-card-title a {
+            color: var(--fpt-ink) !important;
+            text-decoration: none !important;
             transition: color 0.2s ease;
         }
 
-        .bj2-page .bj2-card:hover .bj2-card__title a {
-            color: var(--bj2-accent);
+        .fpt-card-title a:hover {
+            color: var(--fpt-primary) !important;
         }
 
-        .bj2-page .bj2-card__company {
-            font-size: .88rem;
-            color: #64748b;
-            margin-bottom: .85rem;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .bj2-page .bj2-card__company .fa {
-            color: #94a3b8;
-        }
-
-        .bj2-page .bj2-card__info {
+        .fpt-card-company {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: .5rem;
-            margin-bottom: .85rem;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 14px;
         }
 
-        .bj2-page .bj2-card__location {
-            font-size: .88rem;
-            color: #64748b;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            min-width: 0;
+        .fpt-card-company i {
+            color: #94a3b8;
+            font-size: 12px;
         }
 
-        .bj2-page .bj2-card__location .fa {
-            color: var(--bj2-accent);
-        }
-
-        .bj2-page .bj2-card__salary {
-            padding: .35rem .75rem;
-            border-radius: 999px;
-            background: rgba(243, 112, 33, .08);
-            color: var(--bj2-accent);
-            border: 1px solid rgba(243, 112, 33, .16);
-            font-weight: 700;
-            font-size: .88rem;
-            white-space: nowrap;
-            box-shadow: none;
-            font-variant-numeric: tabular-nums;
-            flex-shrink: 0;
-        }
-
-        .bj2-page .bj2-card__tags {
+        .fpt-card-meta-row {
             display: flex;
             flex-wrap: wrap;
-            gap: .4rem;
-            margin-bottom: .85rem;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
         }
 
-        .bj2-page .bj2-card__tag {
+        .fpt-meta-pill {
             display: inline-flex;
             align-items: center;
-            padding: .3rem .7rem;
-            border-radius: 999px;
-            font-size: .76rem;
-            font-weight: 500;
-            line-height: 1.2;
-            white-space: nowrap;
-            border: 1px solid transparent;
-        }
-
-        .bj2-page .bj2-card__tag--accent {
-            background: rgba(243, 112, 33, .08);
-            color: var(--bj2-accent);
-            border-color: rgba(243, 112, 33, .14);
+            gap: 5px;
+            font-size: 12px;
             font-weight: 600;
-        }
-
-        .bj2-page .bj2-card__tag--soft {
-            background: #f8fafc;
-            color: #64748b;
-            border-color: #e2e8f0;
-        }
-
-        .bj2-page .bj2-card__actions {
-            margin-top: auto;
-            padding-top: .85rem;
-            border-top: 1px solid #f1f5f9;
-        }
-
-        .bj2-page .bj2-card__actions .btn-detail {
-            flex: 1;
-            padding: .6rem .8rem;
+            padding: 4px 10px;
+            border-radius: 8px;
             background: #f8fafc;
             color: #475569;
-            border: 1px solid #e2e8f0;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: .88rem;
-            text-align: center;
-            text-decoration: none;
-            transition: all .2s ease;
+            border: 1px solid var(--fpt-line-subtle);
         }
 
-        .bj2-page .bj2-card__actions .btn-detail:hover {
+        .fpt-meta-pill i {
+            color: var(--fpt-primary);
+            font-size: 11px;
+        }
+
+        .fpt-meta-pill.salary {
+            background: var(--fpt-primary-soft);
+            color: var(--fpt-primary);
+            border-color: rgba(243, 112, 33, 0.16);
+            font-weight: 700;
+        }
+
+        .fpt-card-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 18px;
+        }
+
+        .fpt-skill-tag {
+            font-size: 11.5px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
             background: #f1f5f9;
-            color: #0f172a;
+            color: #475569;
+        }
+
+        .fpt-card-actions {
+            margin-top: auto;
+            padding-top: 14px;
+            border-top: 1px solid var(--fpt-line-subtle);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .fpt-btn-detail {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 9px 14px;
+            background: #f8fafc;
+            border: 1px solid var(--fpt-line);
+            border-radius: 10px;
+            color: #334155 !important;
+            font-size: 12.5px;
+            font-weight: 700;
+            text-decoration: none !important;
+            transition: all 0.2s ease;
+        }
+
+        .fpt-btn-detail:hover {
+            background: #f1f5f9;
+            color: var(--fpt-ink) !important;
             border-color: #cbd5e1;
         }
 
-        .bj2-page .bj2-card__actions .btn-apply {
-            flex: 1.5;
-            padding: .6rem 1rem;
-            background: linear-gradient(135deg, #f37021 0%, #ff8c42 100%);
-            color: #ffffff;
+        .fpt-btn-apply {
+            flex: 1.4;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 16px;
+            background: linear-gradient(135deg, #f37021 0%, #ea580c 100%);
             border: none;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: .88rem;
-            text-align: center;
-            text-decoration: none;
-            box-shadow: 0 4px 14px rgba(243, 112, 33, 0.28);
-            transition: all .2s ease;
+            border-radius: 10px;
+            color: #ffffff !important;
+            font-size: 12.5px;
+            font-weight: 800;
+            text-decoration: none !important;
+            box-shadow: 0 4px 12px rgba(243, 112, 33, 0.25);
+            transition: all 0.2s var(--fpt-ease);
         }
 
-        .bj2-page .bj2-card__actions .btn-apply:hover {
+        .fpt-btn-apply:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(243, 112, 33, 0.38);
-            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(243, 112, 33, 0.35);
         }
 
-        @media (max-width: 575.98px) {
-            .bj2-page .bj2-card__top {
+        /* List View Overrides */
+        .fpt-job-grid.is-list .fpt-card-core {
+            display: grid;
+            grid-template-columns: 54px minmax(0, 1fr) auto;
+            gap: 20px;
+            align-items: center;
+            padding: 16px 20px;
+        }
+
+        .fpt-job-grid.is-list .fpt-card-top {
+            display: contents;
+        }
+
+        .fpt-job-grid.is-list .fpt-card-content {
+            min-width: 0;
+        }
+
+        .fpt-job-grid.is-list .fpt-card-actions {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+            flex-direction: column;
+            min-width: 140px;
+        }
+
+        .fpt-job-grid.is-list .fpt-btn-detail,
+        .fpt-job-grid.is-list .fpt-btn-apply {
+            width: 100%;
+        }
+
+        @media (max-width: 767.98px) {
+            .fpt-job-grid.is-list .fpt-card-core {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .fpt-job-grid.is-list .fpt-card-actions {
                 flex-direction: row;
             }
-
-            .bj2-page .bj2-card__badges {
-                align-items: flex-end;
-            }
-
-            .bj2-page .bj2-card__info {
-                flex-direction: column;
-                align-items: flex-start;
-            }
         }
 
-        /* Pagination overrides */
-        .bj2-pagination span[aria-current="page"] > span,
-        .bj2-pagination .page-item.active .page-link,
-        .bj2-pagination .active > .page-link {
-            background-color: var(--bj2-accent) !important;
-            border-color: var(--bj2-accent) !important;
-            color: #ffffff !important;
+        /* Empty State */
+        .fpt-empty-box {
+            text-align: center;
+            padding: 60px 24px;
+            background: #ffffff;
+            border: 1px solid var(--fpt-line);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+        }
+
+        .fpt-empty-icon {
+            width: 68px;
+            height: 68px;
+            border-radius: 20px;
+            background: var(--fpt-primary-soft);
+            color: var(--fpt-primary);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            margin-bottom: 16px;
+        }
+
+        .fpt-empty-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--fpt-ink);
+            margin-bottom: 6px;
+        }
+
+        .fpt-empty-desc {
+            color: var(--fpt-muted);
+            font-size: 14px;
+            max-width: 480px;
+            margin: 0 auto 20px;
+        }
+
+        /* Custom Pagination */
+        .fpt-pagination-wrap {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .fpt-pagination-wrap .pagination {
+            display: flex;
+            gap: 6px;
+        }
+
+        .fpt-pagination-wrap .page-item .page-link {
+            border-radius: 10px !important;
+            border: 1px solid var(--fpt-line);
+            color: #475569;
             font-weight: 600;
+            padding: 8px 16px;
+            font-size: 13.5px;
+            transition: all 0.2s ease;
         }
 
-        .bj2-pagination button:hover,
-        .bj2-pagination a:hover,
-        .bj2-pagination .page-link:hover {
-            background-color: var(--bj2-accent-soft) !important;
-            border-color: var(--bj2-accent) !important;
-            color: var(--bj2-accent) !important;
+        .fpt-pagination-wrap .page-item.active .page-link {
+            background-color: var(--fpt-primary) !important;
+            border-color: var(--fpt-primary) !important;
+            color: #ffffff !important;
+            box-shadow: 0 4px 12px rgba(243, 112, 33, 0.3);
+        }
+
+        .fpt-pagination-wrap .page-item .page-link:hover:not(.active) {
+            background-color: var(--fpt-primary-soft);
+            color: var(--fpt-primary);
+            border-color: var(--fpt-primary);
         }
     </style>
 
-    <section class="home-hero home-premium-hero browse-hero">
-        <div class="home-premium-hero-banner">
-            <img src="{{ asset('assets/img/BannerWeb_Tiensi-03.jpg') }}" alt="Tuyển dụng nội bộ FPT" class="browse-hero__bg-img">
-        </div>
+    <div class="container">
+        {{-- Unified FPT Breadcrumb Bar --}}
+        <div class="fpt-breadcrumb-bar" style="margin-bottom: 24px; padding-top: 0;">
+            <div class="fpt-breadcrumb-inner">
+                <ul class="fpt-breadcrumb-trail">
+                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
+                    <li class="sep"><i class="fa fa-angle-right"></i></li>
+                    <li class="current">Cơ hội việc làm FPT Education</li>
+                </ul>
 
-        <div class="browse-hero__overlay">
-            <div class="container">
-                <div class="row align-items-center">
-                    <div class="col-lg-7">
-                        <div class="breadcromb-box browse-hero__content text-white">
-                            <p class="text-uppercase text-warning fw-semibold mb-3">Hệ thống quản lý tuyển dụng nội bộ FPT</p>
-                            <h1 class="mb-4">Tìm việc nội bộ nhanh chóng và đồng bộ</h1>
-                            <p class="mb-4 text-white-75">Tập trung các cơ hội tuyển dụng dành cho nhân viên FPT và ứng viên nội bộ. Lọc theo phòng ban, khu vực và yêu cầu để tìm đúng vị trí phù hợp, đồng bộ với hệ thống quản lý tuyển dụng.</p>
-                            <a href="{{ route('home') }}" class="btn btn-warning rounded-pill px-5 py-3 fw-bold">Trở về hệ thống</a>
-                        </div>
-                    </div>
-                </div>
+                <a href="{{ route('home') }}" class="fpt-back-btn">
+                    <i class="fa fa-arrow-left"></i> Về trang chủ
+                </a>
             </div>
         </div>
-    </section>
 
-    <section class="jobguru-breadcromb-area">
-        <div class="breadcromb-bottom">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="breadcromb-box-pagin">
-                            <ul>
-                                <li><a href="{{ route('home') }}">Trang chủ</a></li>
-                                <li><a href="#">Ứng viên</a></li>
-                                <li class="active-breadcromb"><a href="#">Tìm việc làm</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="bj2-section section_70">
-        <div class="container">
-            <div class="row g-4 mb-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="card bj2-stat-card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-body">
-                            <p class="text-uppercase text-muted mb-2">Tổng số cơ hội</p>
-                            <h2 class="fw-bold">{{ $jobs->total() }}</h2>
-                            <p class="mb-0 text-muted">Việc làm đang tuyển dụng nội bộ</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card bj2-stat-card h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-body">
-                            <p class="text-uppercase text-muted mb-2">Phòng ban</p>
-                            <h2 class="fw-bold">{{ $departments->count() }}</h2>
-                            <p class="mb-0 text-muted">Lọc theo phòng ban hiện có</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-6">
-                    <div class="card bj2-stat-card bj2-stat-card--action h-100 border-0 shadow-sm rounded-4">
-                        <div class="card-body">
-                            <p class="text-uppercase text-muted mb-2">Xem nhanh</p>
-                            <h2 class="fw-bold">Ứng tuyển ngay</h2>
-                            <p class="mb-0 text-muted">Thao tác trực tiếp trên hệ thống</p>
-                        </div>
-                    </div>
-                </div>
+        {{-- Hero Search Hub (Double-Bezel Architecture) --}}
+        <div class="fpt-search-hero">
+            <div class="fpt-search-hero__header">
+                <span class="fpt-search-hero__eyebrow">
+                    <i class="fa fa-briefcase"></i> Tuyển dụng nội bộ & Đối ngoại
+                </span>
+                <h1 class="fpt-search-hero__title">Khám phá cơ hội nghề nghiệp tại FPT</h1>
+                <p class="fpt-search-hero__subtitle">
+                    Tìm kiếm vị trí phù hợp với năng lực của bạn tại các cơ sở đào tạo và đơn vị thành viên FPT Education trên toàn quốc.
+                </p>
             </div>
 
-            <div class="bj2-filters">
-                <div class="bj2-filters__grid">
-                    <div class="bj2-field">
+            <div class="fpt-search-tray">
+                <div class="fpt-search-inner">
+                    {{-- Keyword Input --}}
+                    <div class="fpt-search-field">
                         <i class="fa fa-search"></i>
                         <input
                             type="search"
-                            class="form-control"
-                            placeholder="Từ khóa (Laravel, Kế toán...)"
+                            placeholder="Vị trí tuyển dụng, kỹ năng (Laravel, AI, Kế toán...)"
                             wire:model.live.debounce.400ms="q"
                         >
                     </div>
 
-                    <div class="bj2-field">
+                    {{-- Location City Dropdown --}}
+                    <div class="fpt-search-field">
                         <i class="fa fa-map-marker"></i>
-                        <input
-                            type="text"
-                            class="form-control"
-                            placeholder="Khu vực (Hà Nội, TP.HCM...)"
-                            wire:model.live.debounce.400ms="city"
-                        >
-                    </div>
-
-                    <div class="bj2-field">
-                        <i class="fa fa-sitemap"></i>
-                        <select class="form-select" wire:model.live="department_id">
-                            <option value="">Tất cả phòng ban</option>
-                            @foreach(($departments ?? []) as $d)
-                                <option value="{{ $d->id }}">{{ $d->name }}</option>
+                        <select wire:model.live="city">
+                            <option value="">Tất cả địa điểm</option>
+                            @foreach(\App\Enums\VietnamProvince::cases() as $province)
+                                <option value="{{ $province->value }}">{{ $province->label() }}</option>
                             @endforeach
                         </select>
                     </div>
 
-                    <button
-                        type="button"
-                        class="bj2-reset"
-                        wire:click="clearFilters"
-                    >
-                        <i class="fa fa-refresh"></i> Xóa lọc
-                    </button>
-                </div>
-
-                <div class="bj2-filters__bar">
-                    <div class="bj2-count">
-                        Có <span class="bj2-count__num">{{ $jobs->total() }}</span> kết quả phù hợp
-                    </div>
-
-                    <div class="bj2-view">
-                        <button
-                            type="button"
-                            class="bj2-view__btn {{ ! $isListView ? 'active' : '' }}"
-                            wire:click="setDisplay('grid')"
-                            title="Dạng lưới"
-                        >
-                            <i class="fa fa-th"></i>
+                    {{-- Action Button Group --}}
+                    <div class="fpt-search-btn-group fpt-search-item--submit">
+                        <button type="button" class="fpt-search-submit">
+                            <i class="fa fa-search"></i>
+                            <span>Tìm kiếm</span>
                         </button>
-                        <button
-                            type="button"
-                            class="bj2-view__btn {{ $isListView ? 'active' : '' }}"
-                            wire:click="setDisplay('list')"
-                            title="Dạng danh sách"
-                        >
-                            <i class="fa fa-list"></i>
-                        </button>
+
+                        @if($hasActiveFilters)
+                            <button
+                                type="button"
+                                class="fpt-search-reset"
+                                wire:click="clearFilters"
+                                title="Xóa tất cả bộ lọc"
+                            >
+                                <i class="fa fa-times"></i> Xóa lọc
+                            </button>
+                        @endif
                     </div>
                 </div>
             </div>
 
-            <div class="row g-4 bj2-results {{ $isListView ? 'bj2-results--list' : '' }}">
-                @forelse ($jobs as $job)
-                    @php
-                        $detailUrl = route('jobs.public', ['slug' => $job->slug]);
-                        $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
-                        $logoSrc = $job->branch?->image
-                            ? '/storage/' . ltrim($job->branch->image, '/')
-                            : asset('assets/img/company-logo-1.png');
-                        $branchName = trim((string) ($job->branch?->name ?? ''));
-                        $cityText = \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label()
-                            ?? ($job->branch?->city ?? 'Chưa cập nhật');
-
-                        if (is_array($job->salary_range) && isset($job->salary_range['min'], $job->salary_range['max'])) {
-                            $salaryText = number_format($job->salary_range['min']) . ' - ' . number_format($job->salary_range['max']) . ' VND';
-                        } elseif (is_array($job->salary_range) && ! empty($job->salary_range)) {
-                            $salaryText = implode(' - ', $job->salary_range);
-                        } elseif (! empty($job->salary_range)) {
-                            $salaryText = (string) $job->salary_range;
-                        } else {
-                            $salaryText = 'Thỏa thuận';
-                        }
-
-                        $deadlineText = $job->deadline?->format('d/m/Y') ?? 'Liên hệ';
-                    @endphp
-
-                    <div class="col-12 {{ $isListView ? '' : 'col-md-6 col-lg-4' }}">
-                        @php
-                            $departmentName = $job->department?->name;
-                        @endphp
-
-                        <article class="bj2-card {{ $isListView ? 'bj2-card--list' : '' }} d-flex flex-column h-100">
-                            <div class="bj2-card__inner">
-                                <div class="bj2-card__top">
-                                    <a href="{{ $detailUrl }}" class="bj2-card__logo" aria-label="{{ $job->title }}">
-                                        <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Chi nhánh' }}">
-                                    </a>
-
-                                    <div class="bj2-card__badges">
-                                        @php
-                                            $matchLabel = $jobMatchLabels[$job->id] ?? null;
-                                            $matchStyle = match ($matchLabel) {
-                                                'Phù hợp cao' => ['bg' => '#ecfdf5', 'text' => '#047857', 'border' => '#a7f3d0'],
-                                                'Phù hợp vừa' => ['bg' => '#fffbeb', 'text' => '#b45309', 'border' => '#fde68a'],
-                                                'Phù hợp thấp' => ['bg' => '#f8fafc', 'text' => '#64748b', 'border' => '#e2e8f0'],
-                                                default => null,
-                                            };
-                                        @endphp
-
-                                        @if ($matchLabel && $matchStyle)
-                                            <span class="bj2-card__label badge rounded-pill" style="background: {{ $matchStyle['bg'] }}; color: {{ $matchStyle['text'] }}; border: 1px solid {{ $matchStyle['border'] }};">
-                                                {{ $matchLabel }}
-                                            </span>
-                                        @endif
-
-                                        <span class="bj2-card__deadline d-inline-flex align-items-center">
-                                            <i class="fa fa-clock-o me-1"></i> Hạn nộp: {{ $deadlineText }}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                <h3 class="bj2-card__title">
-                                    <a href="{{ $detailUrl }}">{{ $job->title }}</a>
-                                </h3>
-
-                                <div class="bj2-card__company d-flex align-items-center" title="{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}">
-                                    <i class="fa fa-building-o me-2"></i>
-                                    <span>{{ $branchName !== '' ? $branchName : 'Doanh nghiệp nội bộ' }}</span>
-                                </div>
-
-                                <div class="bj2-card__info">
-                                    <div class="bj2-card__location d-flex align-items-center" title="{{ $cityText }}">
-                                        <i class="fa fa-map-marker me-2"></i>
-                                        <span>{{ $cityText }}</span>
-                                    </div>
-
-                                    <span class="bj2-card__salary d-inline-flex align-items-center">
-                                        <i class="fa fa-money me-1"></i> {{ $salaryText }}
-                                    </span>
-                                </div>
-
-                                <div class="bj2-card__actions d-flex gap-2 w-100">
-                                    <a href="{{ $detailUrl }}" class="btn-detail">Xem chi tiết</a>
-                                    <a href="{{ $applyUrl }}" class="btn-apply">Ứng tuyển ngay</a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
-                @empty
-                    <div class="col-12">
-                        <div class="bj2-empty">Không có việc làm nào.</div>
-                    </div>
-                @endforelse
+            {{-- Quick Filter Chips --}}
+            <div class="fpt-quick-chips">
+                <span class="fpt-quick-label"><i class="fa fa-bolt text-warning"></i> Gợi ý tìm nhanh:</span>
+                <button type="button" class="fpt-quick-chip" wire:click="$set('q', 'Lập trình viên')">Lập trình viên</button>
+                <button type="button" class="fpt-quick-chip" wire:click="$set('q', 'Giảng viên')">Giảng viên Công nghệ</button>
+                <button type="button" class="fpt-quick-chip" wire:click="$set('q', 'Tuyển sinh')">Cán bộ Tuyển sinh</button>
+                <button type="button" class="fpt-quick-chip" wire:click="$set('q', 'Marketing')">Truyền thông & Marketing</button>
+                <button type="button" class="fpt-quick-chip" wire:click="$set('q', 'Kế toán')">Kế toán / Tài chính</button>
             </div>
-
-            @if ($jobs->hasPages())
-                <div class="bj2-pagination mt-5 d-flex justify-content-center">
-                    {{ $jobs->links() }}
-                </div>
-            @endif
         </div>
-    </section>
+
+        {{-- Toolbar Count & Layout View Switcher --}}
+        <div class="fpt-toolbar">
+            <div class="fpt-toolbar__count">
+                Tìm thấy <strong>{{ number_format($jobs->total()) }}</strong> vị trí tuyển dụng phù hợp
+                @if($hasActiveFilters)
+                    <span class="badge ms-2" style="background: #fff7ed; color: #ea580c; border: 1px solid #ffedd5; font-size: 11.5px; font-weight: 700;">Đang lọc kết quả</span>
+                @endif
+            </div>
+
+            <div class="fpt-view-toggle">
+                <button
+                    type="button"
+                    class="fpt-view-btn {{ ! $isListView ? 'is-active' : '' }}"
+                    wire:click="setDisplay('grid')"
+                    title="Dạng lưới"
+                >
+                    <i class="fa fa-th-large"></i>
+                </button>
+                <button
+                    type="button"
+                    class="fpt-view-btn {{ $isListView ? 'is-active' : '' }}"
+                    wire:click="setDisplay('list')"
+                    title="Dạng danh sách"
+                >
+                    <i class="fa fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        {{-- Job Cards Grid / List --}}
+        <div class="fpt-job-grid {{ $isListView ? 'is-list' : '' }}">
+            @forelse ($jobs as $job)
+                @php
+                    $detailUrl = route('jobs.public', ['slug' => $job->slug]);
+                    $applyUrl = route('candidates.apply_job', ['job' => $job->id]);
+                    $logoSrc = $job->branch?->image
+                        ? '/storage/' . ltrim($job->branch->image, '/')
+                        : asset('assets/img/company-logo-1.png');
+                    $branchName = trim((string) ($job->branch?->name ?? ''));
+                    $cityText = \App\Enums\VietnamProvince::tryFrom($job->branch?->city ?? '')?->label()
+                        ?? ($job->branch?->city ?? 'Chưa cập nhật');
+
+                    $salaryText = $job->formatted_salary;
+                    $deadlineText = $job->deadline?->format('d/m/Y') ?? 'Tuyển liên tục';
+                    $matchLabel = $jobMatchLabels[$job->id] ?? null;
+                    $matchClass = match ($matchLabel) {
+                        'Phù hợp cao' => 'high',
+                        'Phù hợp vừa' => 'medium',
+                        default => 'low',
+                    };
+                @endphp
+
+                <div class="fpt-card-shell">
+                    <div class="fpt-card-core">
+                        {{-- Top logo & status --}}
+                        <div class="fpt-card-top">
+                            <a href="{{ $detailUrl }}" class="fpt-card-logo-wrap" aria-label="{{ $job->title }}">
+                                <img src="{{ $logoSrc }}" alt="{{ $branchName !== '' ? $branchName : 'Logo' }}">
+                            </a>
+
+                            <div class="fpt-card-status-badges">
+                                @if ($matchLabel)
+                                    <span class="fpt-match-badge {{ $matchClass }}">
+                                        <i class="fa fa-check-circle"></i> {{ $matchLabel }}
+                                    </span>
+                                @endif
+
+                                <span class="fpt-card-deadline">
+                                    <i class="fa fa-clock-o"></i> Hạn: {{ $deadlineText }}
+                                </span>
+                            </div>
+                        </div>
+
+                        {{-- Middle content --}}
+                        <div class="fpt-card-content">
+                            <h3 class="fpt-card-title">
+                                <a href="{{ $detailUrl }}">{{ $job->title }}</a>
+                            </h3>
+
+                            <div class="fpt-card-company" title="{{ $branchName !== '' ? $branchName : 'FPT Education' }}">
+                                <i class="fa fa-building-o"></i>
+                                <span>{{ $branchName !== '' ? $branchName : 'FPT Education' }}</span>
+                            </div>
+
+                            <div class="fpt-card-meta-row">
+                                <span class="fpt-meta-pill" title="Địa điểm làm việc">
+                                    <i class="fa fa-map-marker"></i> {{ $cityText }}
+                                </span>
+
+                                <span class="fpt-meta-pill salary" title="Mức thu nhập">
+                                    <i class="fa fa-tag"></i> {{ $salaryText }}
+                                </span>
+
+                                @if($job->department?->name)
+                                    <span class="fpt-meta-pill" title="Phòng ban">
+                                        <i class="fa fa-folder-open-o"></i> {{ $job->department->name }}
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- Skills tags --}}
+                            @if($job->skills->isNotEmpty())
+                                <div class="fpt-card-skills">
+                                    @foreach($job->skills->take(3) as $skill)
+                                        <span class="fpt-skill-tag">{{ $skill->name }}</span>
+                                    @endforeach
+                                    @if($job->skills->count() > 3)
+                                        <span class="fpt-skill-tag">+{{ $job->skills->count() - 3 }}</span>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
+
+                        {{-- Footer Action Buttons --}}
+                        <div class="fpt-card-actions">
+                            <a href="{{ $detailUrl }}" class="fpt-btn-detail">Xem chi tiết</a>
+                            <a href="{{ $applyUrl }}" class="fpt-btn-apply">
+                                <span>Ứng tuyển ngay</span>
+                                <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-12" style="grid-column: 1 / -1;">
+                    <div class="fpt-empty-box">
+                        <div class="fpt-empty-icon">
+                            <i class="fa fa-search"></i>
+                        </div>
+                        <h3 class="fpt-empty-title">Không tìm thấy việc làm phù hợp</h3>
+                        <p class="fpt-empty-desc">
+                            Không có kết quả nào khớp với tiêu chí tìm kiếm của bạn. Hãy thử thay đổi từ khóa hoặc xóa bớt các bộ lọc để xem nhiều cơ hội hơn.
+                        </p>
+                        @if($hasActiveFilters)
+                            <button type="button" class="fpt-search-submit" wire:click="clearFilters">
+                                <i class="fa fa-refresh"></i> Xem tất cả việc làm
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            @endforelse
+        </div>
+
+        {{-- Custom Pagination --}}
+        @if ($jobs->hasPages())
+            <div class="fpt-pagination-wrap">
+                {{ $jobs->links() }}
+            </div>
+        @endif
+    </div>
 </div>

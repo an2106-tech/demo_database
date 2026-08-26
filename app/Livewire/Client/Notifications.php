@@ -16,7 +16,7 @@ class Notifications extends Component
 
     public function setFilter(string $filter): void
     {
-        $this->filter = in_array($filter, ['all', 'unread'], true) ? $filter : 'all';
+        $this->filter = in_array($filter, ['all', 'unread', 'read'], true) ? $filter : 'all';
         $this->resetPage();
     }
 
@@ -27,14 +27,44 @@ class Notifications extends Component
             ->where('user_id', Auth::id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        $this->dispatch('app-notify', message: 'Đã đánh dấu thông báo là đã đọc.');
     }
 
     public function markAllAsRead(): void
     {
-        UserNotification::query()
+        $count = UserNotification::query()
             ->where('user_id', Auth::id())
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        if ($count > 0) {
+            $this->dispatch('app-notify', message: "Đã đánh dấu {$count} thông báo là đã đọc.");
+        }
+    }
+
+    public function deleteNotification(int $notificationId): void
+    {
+        UserNotification::query()
+            ->whereKey($notificationId)
+            ->where('user_id', Auth::id())
+            ->delete();
+
+        $this->dispatch('app-notify', message: 'Đã xóa thông báo.');
+    }
+
+    public function deleteAllRead(): void
+    {
+        $count = UserNotification::query()
+            ->where('user_id', Auth::id())
+            ->whereNotNull('read_at')
+            ->delete();
+
+        if ($count > 0) {
+            $this->dispatch('app-notify', message: "Đã dọn dẹp {$count} thông báo đã đọc.");
+        } else {
+            $this->dispatch('app-notify', message: 'Không có thông báo đã đọc nào để xóa.');
+        }
     }
 
     #[Computed]
@@ -46,11 +76,20 @@ class Notifications extends Component
             ->count();
     }
 
+    #[Computed]
+    public function totalCount(): int
+    {
+        return UserNotification::query()
+            ->where('user_id', Auth::id())
+            ->count();
+    }
+
     public function render()
     {
         $notifications = UserNotification::query()
             ->where('user_id', Auth::id())
             ->when($this->filter === 'unread', fn ($query) => $query->whereNull('read_at'))
+            ->when($this->filter === 'read', fn ($query) => $query->whereNotNull('read_at'))
             ->latest()
             ->paginate(10);
 

@@ -226,16 +226,18 @@
             }
 
             window.addEventListener('app-notify', (event) => {
-                showToast(event.detail?.message);
+                const detail = Array.isArray(event.detail) ? event.detail[0] : (event.detail || {});
+                const message = typeof detail === 'string' ? detail : (detail?.message || detail?.title || '');
+                if (message) {
+                    showToast(message);
+                }
             });
         })();
     </script>
 
-    @auth
-        @if(request()->routeIs('candidates.*'))
-            <livewire:client.candidate-assistant-modal />
-        @endif
-    @endauth
+    @if(!request()->routeIs('filament.*') && !request()->routeIs('admin.*'))
+        <livewire:client.candidate-assistant-modal />
+    @endif
 </body>
 
 </html>

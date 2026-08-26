@@ -202,41 +202,8 @@ body.client-app .jobguru-header-area .header-right-menu .post-jobs:hover {
 }
 
 /* ---------- Footer ---------- */
-body.client-app .client-app-footer.jobguru-footer-area,
-body.client-app .jobguru-footer-area.client-app-footer {
-  background:
-    linear-gradient(180deg, rgba(255, 247, 241, 0.66) 0%, rgba(255, 255, 255, 0.96) 100%) !important;
-  color: #475569 !important;
-  margin-top: 56px;
-}
-
-body.client-app .jobguru-footer-area .footer-top {
-  padding-top: 36px !important;
-  padding-bottom: 18px !important;
-}
-
-body.client-app .client-footer-grid {
-  align-items: start;
-}
-
-@media (min-width: 992px) {
-  body.client-app .client-footer-grid {
-    display: grid !important;
-    gap: 36px;
-    grid-template-columns: minmax(240px, 1.15fr) minmax(190px, 0.95fr) minmax(160px, 0.8fr) minmax(220px, 1fr);
-  }
-
-  body.client-app .client-footer-grid > .client-footer-column {
-    margin-top: 0 !important;
-    max-width: none;
-    padding-left: 0;
-    padding-right: 0;
-    width: auto;
-  }
-
-  body.client-app .client-app-footer .single-footer-widget h3 {
-    white-space: nowrap;
-  }
+.fpt-elite-footer {
+  background: #ffffff !important;
 }
 
 body.client-app .client-app-footer .single-footer-widget {
@@ -6137,4 +6104,134 @@ body.client-app .candidate-profile-redesign .profile-redesign__save-state {
   line-height: 1.45;
   margin: 0 0 14px;
   padding: 12px 14px;
+}
+
+/* ==========================================================================
+   Global FPT Modern Breadcrumb System
+   ========================================================================== */
+.fpt-breadcrumb-bar {
+  background: transparent;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 0;
+  margin-bottom: 24px;
+}
+
+.fpt-breadcrumb-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.fpt-breadcrumb-trail {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 13.5px;
+  font-weight: 500;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.fpt-breadcrumb-trail li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fpt-breadcrumb-trail a {
+  color: #64748b !important;
+  text-decoration: none !important;
+  transition: color 0.15s ease;
+  font-weight: 500;
+}
+
+.fpt-breadcrumb-trail a:hover {
+  color: #f37021 !important;
+}
+
+.fpt-breadcrumb-trail .sep {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.fpt-breadcrumb-trail .current,
+.fpt-breadcrumb-trail .active-breadcromb {
+  color: #0f172a !important;
+  font-weight: 600;
+  max-width: 320px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fpt-back-btn {
+  align-items: center;
+  color: #475569 !important;
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: 600;
+  gap: 6px;
+  text-decoration: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fpt-back-btn:hover {
+  color: #f37021 !important;
+  transform: translateX(-2px);
+}
+
+/* Override legacy Jobguru breadcrumb area to match modern FPT breadcrumb */
+.jobguru-breadcromb-area {
+  background: transparent !important;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 14px 0 !important;
+  margin-bottom: 24px;
+}
+
+.jobguru-breadcromb-area .breadcromb-top {
+  display: none !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-bottom {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-box-pagin ul {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-box-pagin ul li {
+  display: inline-flex !important;
+  align-items: center !important;
+  font-size: 13.5px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-box-pagin ul li a {
+  color: #64748b !important;
+  text-decoration: none !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-box-pagin ul li a:hover {
+  color: #f37021 !important;
+}
+
+.jobguru-breadcromb-area .breadcromb-box-pagin ul li.active-breadcromb a,
+.jobguru-breadcromb-area .breadcromb-box-pagin ul li.active-breadcromb {
+  color: #0f172a !important;
+  font-weight: 600 !important;
 }
