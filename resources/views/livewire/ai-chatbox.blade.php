@@ -376,6 +376,7 @@
         <button 
             type="button" 
             class="cd-assistant-trigger" 
+            data-ai-chat-launcher
             wire:click="toggle"
             title="{{ $assistantTitle }}"
             aria-label="{{ $assistantTitle }}"

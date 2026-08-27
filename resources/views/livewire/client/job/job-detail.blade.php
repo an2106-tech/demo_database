@@ -53,16 +53,16 @@
             $aiScoreLabel = 'Chưa đủ dữ liệu';
             $aiScoreClass = 'jd-score-soft';
         } elseif ($aiScore < 35) {
-            $aiScoreLabel = $aiScore . '% — Cần cải thiện';
+            $aiScoreLabel = $aiScore . '% — Mức phù hợp thấp';
             $aiScoreClass = 'jd-score-low';
         } elseif ($aiScore < 65) {
-            $aiScoreLabel = $aiScore . '% — Khá phù hợp';
+            $aiScoreLabel = $aiScore . '% — Phù hợp một phần';
             $aiScoreClass = 'jd-score-mid';
         } elseif ($aiScore < 85) {
-            $aiScoreLabel = $aiScore . '% — Rất phù hợp';
+            $aiScoreLabel = $aiScore . '% — Phù hợp';
             $aiScoreClass = 'jd-score-good';
         } else {
-            $aiScoreLabel = $aiScore . '% — Xuất sắc';
+            $aiScoreLabel = $aiScore . '% — Rất phù hợp';
             $aiScoreClass = 'jd-score-high';
         }
     }

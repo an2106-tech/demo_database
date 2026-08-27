@@ -65,14 +65,12 @@
             </a>
         </li>
         <li>
-            @php
-                $unreadNotifs = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
-            @endphp
+            @php($unreadNotificationCount = Auth::user()?->unreadNotificationCount() ?? 0)
             <a class="sidebar-nav__link {{ request()->routeIs('candidates.notifications') ? 'is-active' : '' }}" href="{{ route('candidates.notifications') }}">
                 <i class="fa fa-bell"></i>
                 <span>Thông báo</span>
-                @if($unreadNotifs > 0)
-                    <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadNotifs }}</span>
+                @if($unreadNotificationCount > 0)
+                    <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadNotificationCount }}</span>
                 @endif
             </a>
         </li>

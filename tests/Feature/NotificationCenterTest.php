@@ -15,6 +15,26 @@ class NotificationCenterTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_user_model_counts_only_unread_notifications(): void
+    {
+        [$user] = $this->makeCandidateUsers();
+
+        UserNotification::query()->create([
+            'user_id' => $user->id,
+            'type' => 'account',
+            'data' => ['title' => 'Unread notification'],
+        ]);
+
+        UserNotification::query()->create([
+            'user_id' => $user->id,
+            'type' => 'account',
+            'data' => ['title' => 'Read notification'],
+            'read_at' => now(),
+        ]);
+
+        $this->assertSame(1, $user->unreadNotificationCount());
+    }
+
     public function test_candidate_only_sees_their_own_notifications(): void
     {
         [$user, $otherUser] = $this->makeCandidateUsers();

@@ -786,32 +786,6 @@
                             </div>
                         @endif
 
-                    @elseif($currentShortcutView === 'earnings')
-                        <!-- In-Modal Earnings -->
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <button type="button" class="cd-back-btn" wire:click="backToShortcutMenu">
-                                <i class="fa fa-arrow-left"></i> Quay lại Menu
-                            </button>
-                            <span style="font-size: 13px; font-weight: 700; color: #0f172a;">🏆 Thu nhập & Thưởng</span>
-                        </div>
-
-                        <div class="p-3 bg-white border rounded-3 text-center">
-                            <div style="font-size: 12px; color: #64748b; margin-bottom: 4px;">Số dư khả dụng hiện tại</div>
-                            <h3 class="fw-bold mb-1" style="color: #f37021; font-size: 24px;">0 VNĐ</h3>
-                            <p style="font-size: 11.5px; color: #94a3b8; margin: 0;">Chương trình Referral & Điểm thưởng ứng viên FPT</p>
-                        </div>
-
-                        <div class="p-3 bg-white border rounded-3">
-                            <div style="font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">
-                                <i class="fa fa-gift text-warning me-1"></i> Cơ hội nhận thưởng
-                            </div>
-                            <ul style="padding-left: 18px; margin: 0; font-size: 12px; color: #475569; line-height: 1.6;">
-                                <li>Giới thiệu bạn bè ứng tuyển các vị trí Hot.</li>
-                                <li>Nhận thưởng trực tiếp khi ứng viên được onboard thành công.</li>
-                                <li>Tích điểm đổi quà công nghệ và vouchers.</li>
-                            </ul>
-                        </div>
-
                     @elseif($currentShortcutView === 'security')
                         <!-- In-Modal Security Form -->
                         <div class="d-flex justify-content-between align-items-center mb-1">

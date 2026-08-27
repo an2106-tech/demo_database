@@ -28,9 +28,11 @@ class CandidateAssistantModal extends Component
 {
     use WithFileUploads;
 
+    private const SHORTCUT_VIEWS = ['menu', 'manage_cv', 'messages', 'chat_detail', 'security'];
+
     public bool $isOpen = false;
     public string $mainMode = 'ai_chat'; // 'ai_chat' | 'shortcuts'
-    public string $currentShortcutView = 'menu'; // 'menu' | 'manage_cv' | 'messages' | 'chat_detail' | 'earnings' | 'security'
+    public string $currentShortcutView = 'menu';
 
     // AI Chatbox State
     public string $aiInput = '';
@@ -94,7 +96,7 @@ class CandidateAssistantModal extends Component
             $this->mainMode = 'ai_chat';
         } else {
             $this->mainMode = 'shortcuts';
-            $this->currentShortcutView = $view;
+            $this->currentShortcutView = in_array($view, self::SHORTCUT_VIEWS, true) ? $view : 'menu';
         }
         $this->resetErrorBag();
         $this->passwordStatus = null;
@@ -123,7 +125,7 @@ class CandidateAssistantModal extends Component
 
     public function setShortcutView(string $view): void
     {
-        $this->currentShortcutView = $view;
+        $this->currentShortcutView = in_array($view, self::SHORTCUT_VIEWS, true) ? $view : 'menu';
         $this->passwordStatus = null;
         $this->resetErrorBag();
     }

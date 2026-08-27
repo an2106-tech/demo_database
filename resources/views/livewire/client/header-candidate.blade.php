@@ -429,9 +429,6 @@
                                                 <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
                                             </a>
 
-                                            @php
-                                                $headerUnreadCount = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
-                                            @endphp
                                             <a href="{{ route('candidates.notifications') }}" class="candidate-user-dropdown-item">
                                                 <div class="candidate-user-dropdown-item-left">
                                                     <div class="candidate-user-dropdown-icon" style="background: #fef2f2; color: #ef4444;">
@@ -439,8 +436,8 @@
                                                     </div>
                                                     <span>Thông báo hệ thống</span>
                                                 </div>
-                                                @if($headerUnreadCount > 0)
-                                                    <span class="badge rounded-pill bg-danger" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $headerUnreadCount }}</span>
+                                                @if($unreadNotificationCount > 0)
+                                                    <span class="badge rounded-pill bg-danger" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadNotificationCount }}</span>
                                                 @else
                                                     <i class="fa fa-angle-right text-muted" style="font-size: 12px;"></i>
                                                 @endif

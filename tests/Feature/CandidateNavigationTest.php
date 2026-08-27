@@ -33,7 +33,7 @@ class CandidateNavigationTest extends TestCase
             ->assertSee(route('candidates.candidate_dashboard'), false)
             ->assertSee(route('candidates.candidate_profile'), false)
             ->assertSee(route('candidates.manage_jobs'), false)
-            ->assertSee(route('candidates.earnings'), false)
+            ->assertDontSee(route('candidates.earnings'), false)
             ->assertDontSee('candidate-dashboard.html', false)
             ->assertDontSee('message.html', false)
             ->assertDontSee('manage-jobs.html', false);

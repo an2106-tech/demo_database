@@ -76,7 +76,7 @@ class JobDetailAiMatchTest extends TestCase
         Livewire::test(JobDetail::class, ['slug' => $job->slug])
             ->set('showApplyAction', true)
             ->call('checkJobFitWithAi')
-            ->assertSee('Ứng tuyển ngay')
+            ->assertSee('Ứng tuyển vị trí này')
             ->assertDontSee('Xem giao diện ứng viên')
             ->assertSee('91% — Rất phù hợp')
             ->assertSee('CV thể hiện kinh nghiệm phù hợp với công việc này.')

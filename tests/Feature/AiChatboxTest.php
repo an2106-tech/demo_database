@@ -48,7 +48,7 @@ class AiChatboxTest extends TestCase
 
         Livewire::test(AiChatbox::class, ['audience' => 'candidate'])
             ->assertSet('enabled', true)
-            ->assertSeeHtml('ai-chatbox__launcher-orb')
+            ->assertSeeHtml('data-ai-chat-launcher')
             ->call('toggle')
             ->set('message', 'Check my application')
             ->call('sendMessage')

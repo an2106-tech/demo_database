@@ -33,9 +33,10 @@ class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
-
     use HasRoles;
     use SoftDeletes;
+
+    protected ?int $cachedUnreadNotificationCount = null;
 
     protected static function booted(): void
     {
@@ -148,5 +149,21 @@ class User extends Authenticatable implements FilamentUser
     public function interviewAssignments(): HasMany
     {
         return $this->hasMany(InterviewEvaluator::class);
+    }
+
+    public function userNotifications(): HasMany
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
+    public function unreadNotificationCount(): int
+    {
+        if (! $this->exists) {
+            return 0;
+        }
+
+        return $this->cachedUnreadNotificationCount ??= $this->userNotifications()
+            ->whereNull('read_at')
+            ->count();
     }
 }

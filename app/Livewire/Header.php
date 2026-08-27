@@ -30,14 +30,18 @@ class Header extends Component
             || in_array('candidate', $accountTypes, true)
         );
 
+        $unreadNotificationCount = $user?->unreadNotificationCount() ?? 0;
+
         return $this->type === 'employer'
             ? view('livewire.client.header-employer', [
                 'canEmployerAccess' => $canEmployerAccess,
                 'canCandidateAccess' => $canCandidateAccess,
+                'unreadNotificationCount' => $unreadNotificationCount,
             ])
             : view('livewire.client.header-candidate', [
                 'canCandidateAccess' => $canCandidateAccess,
                 'canEmployerAccess' => $canEmployerAccess,
+                'unreadNotificationCount' => $unreadNotificationCount,
             ]);
     }
 }
