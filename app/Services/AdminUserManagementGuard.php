@@ -43,7 +43,7 @@ final class AdminUserManagementGuard
         if ($actor->branchScopeId()) {
             $query->whereKey($actor->branchScopeId());
         } elseif ($target?->branch_id) {
-            $query->orWhereKey($target->branch_id);
+            $query->orWhere($query->getModel()->getKeyName(), $target->branch_id);
         }
 
         return $query->pluck('name', 'id')->all();

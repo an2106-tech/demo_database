@@ -93,6 +93,28 @@ class AdminUserManagementGuardTest extends TestCase
         $this->assertTrue($data['is_active']);
     }
 
+    public function test_admin_can_open_branch_options_when_editing_a_branch_user(): void
+    {
+        $activeBranch = $this->makeBranch('CT3', 'Cần Thơ');
+        $inactiveBranch = $this->makeBranch('HN2', 'Hà Nội');
+        $inactiveBranch->forceFill(['is_active' => false])->save();
+        $admin = User::factory()->create([
+            'role' => 'admin',
+            'branch_id' => null,
+            'is_active' => true,
+        ]);
+        $target = User::factory()->create([
+            'role' => 'hr',
+            'branch_id' => $inactiveBranch->id,
+            'is_active' => true,
+        ]);
+
+        $options = app(AdminUserManagementGuard::class)->branchOptions($admin, $target);
+
+        $this->assertArrayHasKey($activeBranch->id, $options);
+        $this->assertArrayHasKey($inactiveBranch->id, $options);
+    }
+
     private function makeBranch(string $code, string $city): Branch
     {
         return Branch::query()->create([
