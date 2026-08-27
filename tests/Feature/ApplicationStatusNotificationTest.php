@@ -57,7 +57,7 @@ class ApplicationStatusNotificationTest extends TestCase
             'to_status' => StatusApplicationEnum::REJECTED->value,
         ]);
 
-        Mail::assertSent(CandidateApplicationRejectedMail::class, function (CandidateApplicationRejectedMail $mail) use ($application): bool {
+        Mail::assertQueued(CandidateApplicationRejectedMail::class, function (CandidateApplicationRejectedMail $mail) use ($application): bool {
             return $mail->application->is($application);
         });
         Mail::assertNotSent(CandidateApplicationStatusChangeMail::class);

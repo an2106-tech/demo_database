@@ -1088,10 +1088,224 @@
             padding: 12px;
         }
 
-        .kanban-evaluation__save-status {
-            margin: 0;
+        .kanban-evaluation__assignments {
+            display: grid;
+            margin: 8px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .kanban-evaluation__assignment {
+            padding: 9px 0;
+            border-top: 1px solid var(--kanban-border);
+        }
+
+        .kanban-evaluation__assignment:first-child {
+            border-top: 0;
+        }
+
+        .kanban-evaluation__assignment-row,
+        .kanban-evaluation__submission-summary,
+        .kanban-evaluation__panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .kanban-evaluation__assignment-person {
+            min-width: 0;
+        }
+
+        .kanban-evaluation__assignment-person strong,
+        .kanban-evaluation__assignment-person span {
+            display: block;
+        }
+
+        .kanban-evaluation__assignment-person strong {
+            overflow: hidden;
+            color: var(--kanban-text);
+            font-size: 13px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .kanban-evaluation__assignment-person span,
+        .kanban-evaluation__assignment-note {
             color: var(--kanban-muted);
             font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .kanban-evaluation__assignment-actions {
+            display: flex;
+            align-items: center;
+            flex: 0 0 auto;
+            gap: 8px;
+        }
+
+        .kanban-evaluation__assignment-status {
+            border-radius: 999px;
+            background: var(--kanban-soft);
+            padding: 4px 8px;
+            color: var(--kanban-muted);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .kanban-evaluation__assignment-status.is-submitted {
+            background: rgb(220 252 231);
+            color: rgb(21 128 61);
+        }
+
+        .kanban-evaluation__assignment-status.is-waived {
+            background: rgb(241 245 249);
+            color: rgb(71 85 105);
+        }
+
+        .kanban-evaluation__assignment-button {
+            border: 0;
+            background: transparent;
+            padding: 4px 0;
+            color: rgb(194 65 12);
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .kanban-evaluation__waiver-editor {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 8px;
+            margin-top: 9px;
+        }
+
+        .kanban-evaluation__waiver-editor .kanban-modal__field-error {
+            grid-column: 1 / -1;
+        }
+
+        .kanban-evaluation__waiver-actions {
+            display: flex;
+            align-items: flex-end;
+            gap: 6px;
+        }
+
+        .kanban-evaluation__panel-review {
+            display: grid;
+            gap: 8px;
+            padding-top: 4px;
+        }
+
+        .kanban-evaluation__panel-head span {
+            color: var(--kanban-text);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .kanban-evaluation__panel-head small {
+            color: var(--kanban-muted);
+            font-size: 12px;
+        }
+
+        .kanban-evaluation__submission {
+            border-top: 1px solid var(--kanban-border);
+            padding: 9px 0 0;
+        }
+
+        .kanban-evaluation__submission-summary {
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .kanban-evaluation__submission-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-evaluation__submission-person {
+            min-width: 0;
+        }
+
+        .kanban-evaluation__submission-person strong,
+        .kanban-evaluation__submission-person span {
+            display: block;
+        }
+
+        .kanban-evaluation__submission-person strong {
+            color: var(--kanban-text);
+            font-size: 13px;
+        }
+
+        .kanban-evaluation__submission-person span {
+            color: var(--kanban-muted);
+            font-size: 11px;
+        }
+
+        .kanban-evaluation__submission-result {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .kanban-evaluation__submission-body {
+            display: grid;
+            gap: 8px;
+            padding: 10px 0 2px;
+        }
+
+        .kanban-evaluation__submission-facts {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .kanban-evaluation__submission-fact {
+            color: var(--kanban-muted);
+            font-size: 12px;
+        }
+
+        .kanban-evaluation__submission-fact strong {
+            display: block;
+            margin-top: 2px;
+            color: var(--kanban-text);
+        }
+
+        .kanban-evaluation__submission-notes {
+            margin: 0;
+            color: var(--kanban-text);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .kanban-evaluation__submission-criteria {
+            display: grid;
+            gap: 5px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .kanban-evaluation__submission-criterion {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 4px 10px;
+            color: var(--kanban-text);
+            font-size: 12px;
+        }
+
+        .kanban-evaluation__submission-criterion small {
+            grid-column: 1 / -1;
+            color: var(--kanban-muted);
+            line-height: 1.4;
+        }
+
+        .kanban-evaluation__save-status {
+            margin: 0;
+            color: color-mix(in srgb, #166534 82%, var(--kanban-text));
+            font-size: 12px;
+            font-weight: 700;
             line-height: 1.45;
         }
 
@@ -1327,6 +1541,212 @@
             overflow-wrap: anywhere;
         }
 
+        .kanban-evaluator-picker {
+            border: 1px solid var(--kanban-border);
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--kanban-card) 96%, var(--kanban-accent) 4%);
+            overflow: hidden;
+        }
+
+        .kanban-interview-panel {
+            display: grid;
+            gap: 10px;
+            border: 1px solid var(--kanban-border);
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--kanban-card) 98%, var(--kanban-accent) 2%);
+            padding: 12px;
+        }
+
+        .kanban-interview-panel__head {
+            display: grid;
+            gap: 2px;
+        }
+
+        .kanban-interview-panel__title {
+            color: var(--kanban-text);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .kanban-interview-panel__help,
+        .kanban-evaluator-picker__disabled {
+            margin: 0;
+            color: var(--kanban-muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .kanban-evaluator-picker__disabled {
+            border: 1px dashed var(--kanban-border);
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--kanban-card) 96%, var(--kanban-muted) 4%);
+            padding: 10px 12px;
+        }
+
+        .kanban-evaluator-picker__disabled strong {
+            display: block;
+            margin-bottom: 2px;
+            color: var(--kanban-text);
+            font-size: 12px;
+        }
+
+        .kanban-evaluator-picker__summary {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 52px;
+            padding: 9px 12px;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .kanban-evaluator-picker__summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .kanban-evaluator-picker__summary > div {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .kanban-evaluator-picker__summary-count {
+            flex: 0 0 auto;
+            color: var(--kanban-muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .kanban-evaluator-picker[open] .kanban-evaluator-picker__summary {
+            border-bottom: 1px solid var(--kanban-border);
+        }
+
+        .kanban-evaluator-picker__body {
+            display: grid;
+            gap: 9px;
+            padding: 10px 12px 12px;
+        }
+
+        .kanban-evaluator-picker__help {
+            margin: 0;
+            color: var(--kanban-muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .kanban-evaluator-picker__selected {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .kanban-evaluator-picker__chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 100%;
+            border: 1px solid color-mix(in srgb, var(--kanban-accent) 26%, var(--kanban-border));
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--kanban-card) 90%, var(--kanban-accent) 10%);
+            padding: 4px 6px 4px 9px;
+            color: var(--kanban-text);
+            font-size: 12px;
+            line-height: 1.25;
+        }
+
+        .kanban-evaluator-picker__chip span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .kanban-evaluator-picker__chip button {
+            display: grid;
+            place-items: center;
+            flex: 0 0 auto;
+            width: 20px;
+            height: 20px;
+            border: 0;
+            border-radius: 50%;
+            background: transparent;
+            color: var(--kanban-muted);
+            cursor: pointer;
+            font-size: 17px;
+            line-height: 1;
+        }
+
+        .kanban-evaluator-picker__chip button:hover {
+            background: color-mix(in srgb, var(--kanban-text) 8%, transparent);
+            color: var(--kanban-text);
+        }
+
+        .kanban-evaluator-picker__search {
+            width: 100%;
+            min-height: 38px;
+            border: 1px solid var(--kanban-border);
+            border-radius: 8px;
+            background: var(--kanban-card);
+            padding: 7px 10px;
+            color: var(--kanban-text);
+            font: inherit;
+            font-size: 13px;
+        }
+
+        .kanban-evaluator-picker__options {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 5px;
+            max-height: 190px;
+            overflow-y: auto;
+            padding-right: 3px;
+        }
+
+        .kanban-evaluator-picker__option {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            min-width: 0;
+            border: 1px solid var(--kanban-border);
+            border-radius: 8px;
+            background: color-mix(in srgb, var(--kanban-card) 98%, var(--kanban-accent) 2%);
+            padding: 7px 9px;
+            color: var(--kanban-text);
+            font-size: 12px;
+            line-height: 1.35;
+            cursor: pointer;
+        }
+
+        .kanban-evaluator-picker__option:hover {
+            border-color: color-mix(in srgb, var(--kanban-accent) 45%, var(--kanban-border));
+            background: color-mix(in srgb, var(--kanban-card) 94%, var(--kanban-accent) 6%);
+        }
+
+        .kanban-evaluator-picker__option input {
+            flex: 0 0 auto;
+            width: 15px;
+            height: 15px;
+            margin-top: 1px;
+            accent-color: var(--kanban-accent);
+        }
+
+        .kanban-evaluator-picker__option span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .kanban-evaluator-picker__empty {
+            margin: 0;
+            color: var(--kanban-muted);
+            font-size: 12px;
+        }
+
+        @media (max-width: 900px) {
+            .kanban-evaluator-picker__options {
+                grid-template-columns: minmax(0, 1fr);
+            }
+        }
+
         .kanban-screening-cv {
             min-width: 0;
             overflow: hidden;
@@ -1508,6 +1928,23 @@
 
         @media (max-width: 640px) {
             .kanban-modal__grid {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .kanban-evaluation__assignment-row,
+            .kanban-evaluation__submission-summary,
+            .kanban-evaluation__panel-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .kanban-evaluation__assignment-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .kanban-evaluation__waiver-editor,
+            .kanban-evaluation__submission-facts {
                 grid-template-columns: minmax(0, 1fr);
             }
         }
@@ -2704,8 +3141,14 @@
                     @elseif (($kanbanDropAction['type'] ?? null) === 'interview_evaluation')
                         @php
                             $evaluationInterview = $kanbanDropAction['interview'] ?? [];
-                            $evaluationAverage = app(\App\Services\InterviewEvaluationService::class)->calculateAverage($kanbanEvaluationForm['criteria'] ?? []);
-                            $evaluationRecommendation = app(\App\Services\InterviewEvaluationService::class)->recommendedConclusion($evaluationAverage);
+                            $isPanelFinalization = (bool) ($kanbanDropAction['finalization_mode'] ?? false);
+                            $canEditEvaluation = (bool) ($kanbanDropAction['can_edit_evaluation'] ?? true);
+                            $evaluationAverage = $isPanelFinalization
+                                ? ($kanbanDropAction['panel_average'] ?? null)
+                                : app(\App\Services\InterviewEvaluationService::class)->calculateAverage($kanbanEvaluationForm['criteria'] ?? []);
+                            $evaluationRecommendation = $isPanelFinalization
+                                ? ($kanbanDropAction['panel_recommendation'] ?? null)
+                                : app(\App\Services\InterviewEvaluationService::class)->recommendedConclusion($evaluationAverage);
                             $isEvaluationOverride = filled($kanbanEvaluationForm['conclusion'] ?? null)
                                 && filled($evaluationRecommendation)
                                 && ($kanbanEvaluationForm['conclusion'] ?? null) !== $evaluationRecommendation;
@@ -2718,8 +3161,11 @@
                                 && collect($kanbanEvaluationForm['criteria'] ?? [])->every(
                                     fn ($criterion) => is_array($criterion) && filled($criterion['score'] ?? null)
                                 );
-                            $canChooseEvaluationConclusion = $hasCompleteEvaluationScores;
-                            $canCompleteEvaluation = $canChooseEvaluationConclusion
+                            $canChooseEvaluationConclusion = $isPanelFinalization || $hasCompleteEvaluationScores;
+                            $requiresCandidateRejectionReason = $isPanelFinalization
+                                || (($kanbanDropAction['single_evaluator'] ?? true) === true);
+                            $canCompleteEvaluation = ($canEditEvaluation || $isPanelFinalization)
+                                && $canChooseEvaluationConclusion
                                 && filled($kanbanEvaluationForm['conclusion'] ?? null)
                                 && (bool) ($kanbanEvaluationForm['confirm_completion'] ?? false);
                         @endphp
@@ -2727,9 +3173,142 @@
                             <div class="kanban-evaluation__brief">
                                 <span>{{ $evaluationInterview['round_name'] ?? 'Vòng phỏng vấn' }}</span>
                                 <span>{{ $evaluationInterview['scheduled_at'] ?? '-' }}</span>
-                                <span>{{ $evaluationInterview['interviewer'] ?? '-' }}</span>
+                                <span>Phụ trách: {{ $evaluationInterview['interviewer'] ?? '-' }}</span>
                                 <span>{{ $evaluationInterview['type'] ?? '-' }}</span>
                             </div>
+
+                            @php
+                                $evaluationProgress = $kanbanDropAction['evaluation_progress'] ?? [];
+                            @endphp
+                            @if (($evaluationProgress['is_panel'] ?? false) === true)
+                                <div class="kanban-evaluation__summary">
+                                    <span>Tiến độ hội đồng</span>
+                                    <strong>{{ $evaluationProgress['submitted'] ?? 0 }}/{{ $evaluationProgress['required'] ?? 0 }} phiếu</strong>
+                                    <span>
+                                        {{ ($evaluationProgress['all_submitted'] ?? false) ? 'Đã đủ phiếu' : 'Còn '.($evaluationProgress['pending'] ?? 0).' phiếu' }}
+                                        @if (($evaluationProgress['waived'] ?? 0) > 0)
+                                            · {{ $evaluationProgress['waived'] }} không yêu cầu
+                                        @endif
+                                    </span>
+                                </div>
+                                <details class="kanban-evaluation__questions" @if (! $isPanelFinalization) open @endif>
+                                    <summary>
+                                        <span>Phân công đánh giá</span>
+                                        <span class="kanban-evaluation__questions-count">{{ $evaluationProgress['assigned'] ?? 0 }} người</span>
+                                    </summary>
+                                    <ul class="kanban-evaluation__assignments">
+                                        @foreach (($kanbanDropAction['evaluation_assignments'] ?? []) as $assignment)
+                                            <li class="kanban-evaluation__assignment" wire:key="evaluation-assignment-{{ $assignment['user_id'] ?? $loop->index }}">
+                                                <div class="kanban-evaluation__assignment-row">
+                                                    <div class="kanban-evaluation__assignment-person">
+                                                        <strong>{{ $assignment['name'] ?? 'Người đánh giá' }}</strong>
+                                                        <span>{{ $assignment['role'] ?? 'Thành viên' }}</span>
+                                                    </div>
+                                                    <div class="kanban-evaluation__assignment-actions">
+                                                        <span @class([
+                                                            'kanban-evaluation__assignment-status',
+                                                            'is-submitted' => ($assignment['submitted'] ?? false),
+                                                            'is-waived' => ($assignment['waived'] ?? false),
+                                                        ])>
+                                                            @if ($assignment['submitted'] ?? false)
+                                                                Đã gửi phiếu
+                                                            @elseif ($assignment['waived'] ?? false)
+                                                                Không yêu cầu
+                                                            @else
+                                                                Chưa gửi
+                                                            @endif
+                                                        </span>
+                                                        @if ($assignment['can_waive'] ?? false)
+                                                            <button
+                                                                type="button"
+                                                                class="kanban-evaluation__assignment-button"
+                                                                wire:click="requestInterviewEvaluatorWaiverFromKanban({{ (int) $assignment['user_id'] }})"
+                                                            >Không yêu cầu phiếu</button>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                @if ($assignment['waived'] ?? false)
+                                                    <p class="kanban-evaluation__assignment-note">
+                                                        {{ $assignment['waiver_reason'] ?? 'Đã cập nhật yêu cầu gửi phiếu.' }}
+                                                        @if (filled($assignment['waived_at'] ?? null))
+                                                            · {{ $assignment['waived_at'] }}
+                                                        @endif
+                                                    </p>
+                                                @endif
+
+                                                @if ((int) $kanbanEvaluationWaiverUserId === (int) ($assignment['user_id'] ?? 0))
+                                                    <div class="kanban-evaluation__waiver-editor">
+                                                        <input
+                                                            type="text"
+                                                            maxlength="500"
+                                                            class="kanban-modal__input"
+                                                            wire:model.defer="kanbanEvaluationWaiverReason"
+                                                            placeholder="Lý do, ví dụ: Không tham gia buổi phỏng vấn"
+                                                        >
+                                                        <div class="kanban-evaluation__waiver-actions">
+                                                            <button type="button" class="kanban-card__button" wire:click="cancelInterviewEvaluatorWaiverFromKanban">Hủy</button>
+                                                            <button type="button" class="kanban-card__button is-primary" wire:click="waiveInterviewEvaluatorFromKanban" wire:loading.attr="disabled" wire:target="waiveInterviewEvaluatorFromKanban">
+                                                                <span wire:loading.remove wire:target="waiveInterviewEvaluatorFromKanban">Xác nhận</span>
+                                                                <span wire:loading wire:target="waiveInterviewEvaluatorFromKanban">Đang lưu...</span>
+                                                            </button>
+                                                        </div>
+                                                        @error('kanbanEvaluationWaiverReason')
+                                                            <span class="kanban-modal__field-error">{{ $message }}</span>
+                                                        @enderror
+                                                    </div>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </details>
+                            @endif
+
+                            @if ($isPanelFinalization && count($kanbanDropAction['panel_submissions'] ?? []) > 0)
+                                <section class="kanban-evaluation__panel-review">
+                                    <div class="kanban-evaluation__panel-head">
+                                        <span>Đối chiếu phiếu đánh giá</span>
+                                        <small>{{ count($kanbanDropAction['panel_submissions']) }} phiếu đã gửi</small>
+                                    </div>
+                                    @foreach ($kanbanDropAction['panel_submissions'] as $submission)
+                                        <details class="kanban-evaluation__submission" wire:key="panel-submission-{{ $loop->index }}">
+                                            <summary class="kanban-evaluation__submission-summary">
+                                                <span class="kanban-evaluation__submission-person">
+                                                    <strong>{{ $submission['name'] ?? 'Người đánh giá' }}</strong>
+                                                    <span>{{ $submission['role'] ?? 'Thành viên' }} · {{ $submission['submitted_at'] ?? '-' }}</span>
+                                                </span>
+                                                <span class="kanban-evaluation__submission-result">
+                                                    {{ isset($submission['average']) ? number_format((float) $submission['average'], 2, ',', '.').'/10' : '-' }}
+                                                    · {{ $submission['conclusion'] ?? 'Chưa có đề xuất' }}
+                                                </span>
+                                            </summary>
+                                            <div class="kanban-evaluation__submission-body">
+                                                <div class="kanban-evaluation__submission-facts">
+                                                    <span class="kanban-evaluation__submission-fact">Đề xuất<strong>{{ $submission['conclusion'] ?? '-' }}</strong></span>
+                                                    <span class="kanban-evaluation__submission-fact">Khuyến nghị theo điểm<strong>{{ $submission['recommendation'] ?? '-' }}</strong></span>
+                                                </div>
+                                                @if (filled($submission['notes'] ?? null))
+                                                    <p class="kanban-evaluation__submission-notes"><strong>Nhận xét:</strong> {{ $submission['notes'] }}</p>
+                                                @endif
+                                                @if (filled($submission['override_reason'] ?? null))
+                                                    <p class="kanban-evaluation__submission-notes"><strong>Lý do khác khuyến nghị:</strong> {{ $submission['override_reason'] }}</p>
+                                                @endif
+                                                <ul class="kanban-evaluation__submission-criteria">
+                                                    @foreach (($submission['criteria'] ?? []) as $criterion)
+                                                        <li class="kanban-evaluation__submission-criterion">
+                                                            <span>{{ $criterion['name'] ?? 'Tiêu chí' }}</span>
+                                                            <strong>{{ filled($criterion['score'] ?? null) ? $criterion['score'].'/10' : '-' }}</strong>
+                                                            @if (filled($criterion['note'] ?? null))
+                                                                <small>{{ $criterion['note'] }}</small>
+                                                            @endif
+                                                        </li>
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+                                        </details>
+                                    @endforeach
+                                </section>
+                            @endif
 
                             @if (($kanbanDropAction['template_locked'] ?? false) === true)
                                 <div class="kanban-evaluation__brief">
@@ -2756,7 +3335,7 @@
                                 <div class="kanban-evaluation__empty">
                                     Chọn mẫu scorecard để hiển thị tiêu chí đánh giá.
                                 </div>
-                            @else
+                            @elseif (! $isPanelFinalization)
                             <div class="kanban-evaluation__criteria">
                                 <div class="kanban-evaluation__section-head">
                                     <span>Tiêu chí đánh giá</span>
@@ -2769,7 +3348,7 @@
                                 @foreach ($kanbanEvaluationForm['criteria'] as $index => $criterion)
                                     <div class="kanban-evaluation__criterion" wire:key="kanban-criterion-{{ $index }}">
                                         <span class="kanban-evaluation__criterion-name">{{ $criterion['name'] ?? 'Tiêu chí '.($index + 1) }}</span>
-                                        <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.criteria.{{ $index }}.score">
+                                        <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.criteria.{{ $index }}.score" @disabled(! $canEditEvaluation)>
                                             <option value="">Điểm</option>
                                             @for ($score = 0; $score <= 10; $score++)
                                                 <option value="{{ $score }}">{{ $score }}/10</option>
@@ -2781,6 +3360,7 @@
                                                 class="kanban-modal__textarea"
                                                 wire:model.defer="kanbanEvaluationForm.criteria.{{ $index }}.note"
                                                 placeholder="Nhận xét ngắn cho tiêu chí này"
+                                                @disabled(! $canEditEvaluation)
                                             ></textarea>
                                         </details>
                                     </div>
@@ -2790,11 +3370,15 @@
 
                             @if ($hasEvaluationTemplate)
                                 <div class="kanban-evaluation__summary">
-                                    <span>Đã chấm {{ collect($kanbanEvaluationForm['criteria'] ?? [])->filter(fn ($criterion) => is_array($criterion) && filled($criterion['score'] ?? null))->count() }}/{{ count($kanbanEvaluationForm['criteria'] ?? []) }}</span>
-                                    <span>{{ $canFinalizeEvaluation ? 'Điểm trung bình' : 'Điểm tạm tính' }}</span>
+                                    @if (! $isPanelFinalization)
+                                        <span>Đã chấm {{ collect($kanbanEvaluationForm['criteria'] ?? [])->filter(fn ($criterion) => is_array($criterion) && filled($criterion['score'] ?? null))->count() }}/{{ count($kanbanEvaluationForm['criteria'] ?? []) }}</span>
+                                    @else
+                                        <span>Kết quả tổng hợp</span>
+                                    @endif
+                                    <span>{{ $isPanelFinalization ? 'Điểm hội đồng' : (($kanbanDropAction['single_evaluator'] ?? true) ? 'Điểm trung bình' : 'Điểm phiếu của bạn') }}</span>
                                     <strong>{{ $evaluationAverage !== null ? number_format($evaluationAverage, 2, ',', '.').'/10' : 'Chưa đủ điểm' }}</strong>
                                     @if ($hasCompleteEvaluationScores)
-                                        <span>{{ $canFinalizeEvaluation ? 'Khuyến nghị' : 'Khuyến nghị tạm' }}</span>
+                                        <span>{{ $isPanelFinalization ? 'Khuyến nghị tổng hợp' : (($kanbanDropAction['single_evaluator'] ?? true) ? 'Khuyến nghị' : 'Khuyến nghị theo phiếu') }}</span>
                                         <strong>{{ app(\App\Services\InterviewEvaluationService::class)->conclusionLabel($evaluationRecommendation) }}</strong>
                                     @endif
                                 </div>
@@ -2802,12 +3386,14 @@
 
                             @if ($canChooseEvaluationConclusion)
                             <label class="kanban-modal__field">
-                                <span class="kanban-modal__label">Kết luận phỏng vấn</span>
-                                <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.conclusion">
+                                <span class="kanban-modal__label">
+                                    {{ $isPanelFinalization ? 'Kết luận chung của vòng' : (($kanbanDropAction['single_evaluator'] ?? true) ? 'Kết luận phỏng vấn' : 'Đề xuất của bạn') }}
+                                </span>
+                                <select class="kanban-modal__select" wire:model.live="kanbanEvaluationForm.conclusion" @disabled(! $canEditEvaluation && ! $isPanelFinalization)>
                                     <option value="">Chọn kết luận</option>
-                                    <option value="pass">Đạt - chuyển sang đề nghị tuyển dụng</option>
-                                    <option value="hold">Cân nhắc thêm - giữ ở Phỏng vấn</option>
-                                    <option value="fail">Không đạt - chuyển sang Từ chối</option>
+                                    <option value="pass">{{ ($isPanelFinalization || ($kanbanDropAction['single_evaluator'] ?? true)) ? 'Đạt - chuyển sang đề nghị tuyển dụng' : 'Đạt' }}</option>
+                                    <option value="hold">{{ ($isPanelFinalization || ($kanbanDropAction['single_evaluator'] ?? true)) ? 'Cân nhắc thêm - giữ ở Phỏng vấn' : 'Cần cân nhắc' }}</option>
+                                    <option value="fail">{{ ($isPanelFinalization || ($kanbanDropAction['single_evaluator'] ?? true)) ? 'Không đạt - chuyển sang Từ chối' : 'Không đạt' }}</option>
                                 </select>
                                 @error('kanbanEvaluationForm.conclusion')
                                     <span class="kanban-modal__field-error">{{ $message }}</span>
@@ -2824,7 +3410,7 @@
                                 </label>
                             @endif
 
-                            @if (($kanbanEvaluationForm['conclusion'] ?? '') === 'fail')
+                            @if (($kanbanEvaluationForm['conclusion'] ?? '') === 'fail' && $requiresCandidateRejectionReason)
                                 <label class="kanban-modal__field">
                                     <span class="kanban-modal__label">Thông tin phản hồi ứng viên khi từ chối</span>
                                     <textarea class="kanban-modal__textarea" wire:model.defer="kanbanEvaluationForm.rejected_reason" placeholder="Nêu ngắn gọn, lịch sự và phù hợp để phản hồi ứng viên."></textarea>
@@ -2835,15 +3421,19 @@
                             @endif
 
                             <label class="kanban-modal__field">
-                                <span class="kanban-modal__label">Nhận xét nội bộ sau phỏng vấn</span>
-                                <textarea class="kanban-modal__textarea" wire:model.defer="kanbanEvaluationForm.notes" placeholder="Tóm tắt điểm mạnh và điểm cần cân nhắc để nội bộ tham khảo."></textarea>
+                                <span class="kanban-modal__label">{{ $isPanelFinalization ? 'Nhận xét chung của vòng' : 'Nhận xét nội bộ sau phỏng vấn' }}</span>
+                                <textarea class="kanban-modal__textarea" wire:model.defer="kanbanEvaluationForm.notes" placeholder="Tóm tắt điểm mạnh và điểm cần cân nhắc để nội bộ tham khảo." @disabled(! $canEditEvaluation && ! $isPanelFinalization)></textarea>
                             </label>
 
-                            @if ($canChooseEvaluationConclusion && filled($kanbanEvaluationForm['conclusion'] ?? null))
+                            @if (($canEditEvaluation || $isPanelFinalization) && $canChooseEvaluationConclusion && filled($kanbanEvaluationForm['conclusion'] ?? null))
                                 <label class="kanban-evaluation__early-completion">
                                     <input type="checkbox" wire:model.live="kanbanEvaluationForm.confirm_completion">
                                     <span>
-                                        @if ($canFinalizeEvaluation)
+                                        @if ($isPanelFinalization)
+                                            Xác nhận chốt kết quả vòng
+                                        @elseif (($kanbanDropAction['single_evaluator'] ?? true) === false)
+                                            Tôi đã hoàn tất phiếu đánh giá
+                                        @elseif ($canFinalizeEvaluation)
                                             Xác nhận đã kết thúc phỏng vấn
                                         @else
                                             Xác nhận kết thúc sớm
@@ -2856,8 +3446,10 @@
                             @endif
                             @endif
 
-                            @php($interviewQuestions = $kanbanDropAction['interview_questions'] ?? [])
-                            @if (($interviewQuestions['available'] ?? false) === true)
+                            @php
+                                $interviewQuestions = $kanbanDropAction['interview_questions'] ?? [];
+                            @endphp
+                            @if (! $isPanelFinalization && ($interviewQuestions['available'] ?? false) === true)
                                 <details class="kanban-evaluation__questions">
                                     <summary>
                                         <span>Câu hỏi tham khảo</span>
@@ -2877,7 +3469,7 @@
                                         @endforeach
                                     </ol>
                                 </details>
-                            @elseif ($hasEvaluationTemplate)
+                            @elseif (! $isPanelFinalization && $hasEvaluationTemplate)
                                 <div class="kanban-evaluation__questions">
                                     @if ($kanbanInterviewQuestionsConfirmation)
                                         <div class="kanban-evaluation__question-actions">
@@ -2900,8 +3492,8 @@
                             @endif
 
                             @if ($kanbanEvaluationDraftStatus)
-                                <p class="kanban-evaluation__save-status">
-                                    {{ $kanbanEvaluationDraftStatus }} Lần lưu gần nhất: {{ $kanbanEvaluationDraftSavedAt }}.
+                                <p class="kanban-evaluation__save-status" role="status" aria-live="polite">
+                                    {{ $kanbanEvaluationDraftStatus }} lúc {{ $kanbanEvaluationDraftSavedAt }}.
                                 </p>
                             @endif
 
@@ -2909,12 +3501,20 @@
                                 <button type="button" class="kanban-modal__button" x-on:click="closeModal()">Hủy</button>
                                 @if ($canCompleteEvaluation)
                                     <button type="button" class="kanban-modal__button is-primary" wire:click="completeInterviewEvaluationFromKanban" wire:loading.attr="disabled" wire:target="completeInterviewEvaluationFromKanban">
-                                        <span wire:loading.remove wire:target="completeInterviewEvaluationFromKanban">Hoàn tất đánh giá</span>
+                                        <span wire:loading.remove wire:target="completeInterviewEvaluationFromKanban">
+                                            @if ($isPanelFinalization)
+                                                Chốt kết quả vòng
+                                            @elseif (($kanbanDropAction['single_evaluator'] ?? true) === true)
+                                                Gửi và chốt kết quả
+                                            @else
+                                                Gửi phiếu đánh giá
+                                            @endif
+                                        </span>
                                         <span wire:loading wire:target="completeInterviewEvaluationFromKanban">Đang hoàn tất...</span>
                                     </button>
-                                @else
+                                @elseif ($canEditEvaluation)
                                     <button type="submit" class="kanban-modal__button" wire:loading.attr="disabled" wire:target="saveInterviewEvaluationDraftFromKanban">
-                                        <span wire:loading.remove wire:target="saveInterviewEvaluationDraftFromKanban">Lưu đánh giá tạm</span>
+                                        <span wire:loading.remove wire:target="saveInterviewEvaluationDraftFromKanban">Lưu bản nháp</span>
                                         <span wire:loading wire:target="saveInterviewEvaluationDraftFromKanban">Đang lưu...</span>
                                     </button>
                                 @endif
@@ -2922,11 +3522,18 @@
                         </form>
                     @elseif (($kanbanDropAction['type'] ?? null) === 'offer_draft')
                         <form class="kanban-modal__body" wire:submit.prevent="saveOfferDraftFromKanban">
-                            @php($offerContext = $kanbanDropAction['offer_context'] ?? [])
-                            @php($publishedSalaryMin = data_get($offerContext, 'published_salary_min'))
-                            @php($publishedSalaryMax = data_get($offerContext, 'published_salary_max'))
-                            @php($offeredSalary = is_numeric($kanbanOfferForm['salary_offered'] ?? null) ? (int) $kanbanOfferForm['salary_offered'] : null)
-                            @php($outsidePublishedRange = ($offerContext['published_salary_currency'] ?? 'VND') === 'VND' && $offeredSalary !== null && (($publishedSalaryMin !== null && $offeredSalary < $publishedSalaryMin) || ($publishedSalaryMax !== null && $offeredSalary > $publishedSalaryMax)))
+                            @php
+                                $offerContext = $kanbanDropAction['offer_context'] ?? [];
+                                $publishedSalaryMin = data_get($offerContext, 'published_salary_min');
+                                $publishedSalaryMax = data_get($offerContext, 'published_salary_max');
+                                $offeredSalary = is_numeric($kanbanOfferForm['salary_offered'] ?? null)
+                                    ? (int) $kanbanOfferForm['salary_offered']
+                                    : null;
+                                $outsidePublishedRange = ($offerContext['published_salary_currency'] ?? 'VND') === 'VND'
+                                    && $offeredSalary !== null
+                                    && (($publishedSalaryMin !== null && $offeredSalary < $publishedSalaryMin)
+                                        || ($publishedSalaryMax !== null && $offeredSalary > $publishedSalaryMax));
+                            @endphp
 
                             <div class="kanban-offer-layout">
                                 <aside class="kanban-offer-context">
@@ -3108,8 +3715,10 @@
                         </form>
                     @elseif (($kanbanDropAction['type'] ?? null) === 'interview_schedule')
                         <form class="kanban-modal__body" wire:submit.prevent="scheduleInterviewFromKanban">
-                            @php($interviewContext = $kanbanDropAction['interview_context'] ?? [])
-                            @php($interviewAi = $interviewContext['ai'] ?? [])
+                            @php
+                                $interviewContext = $kanbanDropAction['interview_context'] ?? [];
+                                $interviewAi = $interviewContext['ai'] ?? [];
+                            @endphp
 
                             <div class="kanban-interview-layout">
                                 <aside class="kanban-interview-context">
@@ -3133,7 +3742,9 @@
                                         </div>
                                     </div>
 
-                                    @php($screeningNote = trim((string) ($interviewContext['screening_note'] ?? '')))
+                                    @php
+                                        $screeningNote = trim((string) ($interviewContext['screening_note'] ?? ''));
+                                    @endphp
                                     @if ($screeningNote !== '')
                                         <details class="kanban-interview-note">
                                             <summary>
@@ -3243,18 +3854,115 @@
                                         </label>
                                     </div>
 
-                                    <label class="kanban-modal__field">
-                                        <span class="kanban-modal__label">Người phỏng vấn</span>
-                                        <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.interviewer_id">
-                                            <option value="">Chọn người phỏng vấn</option>
-                                            @foreach (($kanbanDropAction['interviewer_options'] ?? []) as $id => $label)
-                                                <option value="{{ $id }}">{{ $label }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('kanbanInterviewForm.interviewer_id')
-                                            <span class="kanban-modal__field-error">{{ $message }}</span>
-                                        @enderror
-                                    </label>
+                                    <div class="kanban-interview-panel">
+                                        <div class="kanban-interview-panel__head">
+                                            <span class="kanban-interview-panel__title">Phân công phỏng vấn</span>
+                                            <p class="kanban-interview-panel__help">Chọn một người phụ trách, sau đó thêm người cùng đánh giá nếu cần.</p>
+                                        </div>
+
+                                        <label class="kanban-modal__field">
+                                            <span class="kanban-modal__label">Người phụ trách phỏng vấn</span>
+                                            <select class="kanban-modal__select" wire:model.live="kanbanInterviewForm.interviewer_id">
+                                                <option value="">Chọn người phụ trách</option>
+                                                @foreach (($kanbanDropAction['interviewer_options'] ?? []) as $id => $label)
+                                                    <option value="{{ $id }}">{{ $label }}</option>
+                                                @endforeach
+                                            </select>
+                                            <span class="kanban-modal__field-help">Bắt buộc · tham gia đánh giá và chốt kết quả vòng.</span>
+                                            @error('kanbanInterviewForm.interviewer_id')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
+                                        </label>
+
+                                    @php
+                                        $additionalEvaluatorOptions = collect($kanbanDropAction['interviewer_options'] ?? [])
+                                            ->reject(fn ($label, $id) => (string) $id === (string) ($kanbanInterviewForm['interviewer_id'] ?? ''));
+                                        $selectedEvaluatorOptions = collect((array) ($kanbanInterviewForm['evaluator_ids'] ?? []))
+                                            ->mapWithKeys(function ($id) use ($additionalEvaluatorOptions): array {
+                                                $label = $additionalEvaluatorOptions->get((int) $id)
+                                                    ?? $additionalEvaluatorOptions->get((string) $id);
+
+                                                return filled($label) ? [(int) $id => $label] : [];
+                                            });
+                                    @endphp
+                                    @if (filled($kanbanInterviewForm['interviewer_id'] ?? null))
+                                    <details class="kanban-evaluator-picker" x-data="{ open: false, search: '' }" x-bind:open="open">
+                                        <summary class="kanban-evaluator-picker__summary" x-on:click.prevent="open = ! open">
+                                            <div>
+                                                <span class="kanban-modal__label">Người cùng đánh giá</span>
+                                                <span class="kanban-modal__field-help">Không bắt buộc</span>
+                                            </div>
+                                            <span class="kanban-evaluator-picker__summary-count">
+                                                {{ $selectedEvaluatorOptions->isEmpty() ? 'Thêm người' : $selectedEvaluatorOptions->count().' người' }}
+                                            </span>
+                                        </summary>
+
+                                        <div class="kanban-evaluator-picker__body">
+                                            <p class="kanban-evaluator-picker__help">
+                                                Mỗi người gửi một phiếu độc lập; người phụ trách tổng hợp và chốt kết quả vòng.
+                                            </p>
+
+                                            @if ($selectedEvaluatorOptions->isNotEmpty())
+                                                <div class="kanban-evaluator-picker__selected" aria-label="Thành viên đã chọn">
+                                                    @foreach ($selectedEvaluatorOptions as $id => $label)
+                                                        <span class="kanban-evaluator-picker__chip" wire:key="kanban-evaluator-chip-{{ $id }}">
+                                                            <span title="{{ $label }}">{{ $label }}</span>
+                                                            <button
+                                                                type="button"
+                                                                wire:click="removeKanbanInterviewEvaluator({{ $id }})"
+                                                                wire:loading.attr="disabled"
+                                                                wire:target="removeKanbanInterviewEvaluator({{ $id }})"
+                                                                aria-label="Bỏ {{ $label }}"
+                                                                title="Bỏ thành viên"
+                                                            >×</button>
+                                                        </span>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+
+                                            @if ($additionalEvaluatorOptions->isNotEmpty())
+                                                <input
+                                                    type="search"
+                                                    class="kanban-evaluator-picker__search"
+                                                    x-model.debounce.150ms="search"
+                                                    placeholder="Tìm theo tên hoặc vai trò"
+                                                    aria-label="Tìm người cùng đánh giá"
+                                                >
+                                                <div class="kanban-evaluator-picker__options">
+                                                    @foreach ($additionalEvaluatorOptions as $id => $label)
+                                                        @php
+                                                            $searchLabel = mb_strtolower($label).' '.mb_strtolower(\Illuminate\Support\Str::ascii($label));
+                                                        @endphp
+                                                        <label
+                                                            class="kanban-evaluator-picker__option"
+                                                            data-search="{{ $searchLabel }}"
+                                                            x-show="$el.dataset.search.includes(search.toLowerCase())"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                value="{{ $id }}"
+                                                                wire:model.live.debounce.180ms="kanbanInterviewForm.evaluator_ids"
+                                                            >
+                                                            <span>{{ $label }}</span>
+                                                        </label>
+                                                    @endforeach
+                                                </div>
+                                            @else
+                                                <p class="kanban-evaluator-picker__empty">Chưa có người phù hợp trong chi nhánh.</p>
+                                            @endif
+
+                                            @error('kanbanInterviewForm.evaluator_ids')
+                                                <span class="kanban-modal__field-error">{{ $message }}</span>
+                                            @enderror
+                                        </div>
+                                    </details>
+                                    @else
+                                        <div class="kanban-evaluator-picker__disabled" aria-disabled="true">
+                                            <strong>Người cùng đánh giá</strong>
+                                            Chọn người phụ trách trước để thêm thành viên.
+                                        </div>
+                                    @endif
+                                    </div>
 
                                     @if (($kanbanInterviewForm['type'] ?? '') === 'offline')
                                         <label class="kanban-modal__field">
@@ -3284,7 +3992,11 @@
                                         </label>
                                     @endif
 
-                                    @php($selectedScorecardCriteria = ($kanbanDropAction['scorecard_template_criteria'] ?? [])[(int) ($kanbanInterviewForm['scorecard_template_id'] ?? 0)] ?? [])
+                                    @php
+                                        $selectedScorecardCriteria = ($kanbanDropAction['scorecard_template_criteria'] ?? [])[
+                                            (int) ($kanbanInterviewForm['scorecard_template_id'] ?? 0)
+                                        ] ?? [];
+                                    @endphp
                                     <div class="kanban-modal__field">
                                         <label class="kanban-modal__label" for="kanban-scorecard-template">Mẫu đánh giá</label>
                                         <select id="kanban-scorecard-template" class="kanban-modal__select" wire:model.live="kanbanInterviewForm.scorecard_template_id">

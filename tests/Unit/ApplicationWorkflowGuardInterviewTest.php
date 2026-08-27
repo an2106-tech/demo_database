@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
@@ -10,8 +11,12 @@ use App\Models\Interview;
 use App\Models\RecruitmentJob;
 use App\Models\Scorecard;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\ApplicationWorkflowGuard;
+use App\Services\ApplicationWorkflowSummaryService;
+use App\Services\InterviewEvaluatorService;
 use App\Services\InterviewScheduleDeliveryService;
+use App\Services\RecruitmentInternalNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -199,7 +204,7 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         $this->assertFalse($guard->canEvaluateInterview($hr, $application));
     }
 
-    public function test_interview_delivery_recipients_include_candidate_and_assigned_interviewer(): void
+    public function test_interview_delivery_recipients_include_candidate_and_all_assigned_evaluators(): void
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
         $interviewer = User::factory()->create([
@@ -208,7 +213,20 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
             'is_active' => true,
         ]);
 
-        Interview::query()->create([
+        $panelist = User::factory()->create([
+            'email' => 'panelist-workflow@example.com',
+            'role' => 'pm',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+        User::factory()->create([
+            'email' => 'unassigned-director@example.com',
+            'role' => 'director',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+
+        $interview = Interview::query()->create([
             'application_id' => $application->id,
             'interviewer_id' => $interviewer->id,
             'round_number' => 1,
@@ -219,14 +237,108 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
             'meeting_link' => 'https://meet.google.com/fpt-demo',
             'result' => 'pending',
         ]);
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$panelist->id],
+        );
 
         $recipients = app(InterviewScheduleDeliveryService::class)->recipients($application);
 
         $this->assertSame('candidate', $recipients['candidate-workflow@example.com']);
-        $this->assertSame('interviewer', $recipients['interviewer-workflow@example.com']);
+        $this->assertSame('lead', $recipients['interviewer-workflow@example.com']);
+        $this->assertSame('evaluator', $recipients['panelist-workflow@example.com']);
+        $this->assertArrayNotHasKey('unassigned-director@example.com', $recipients);
+
+        app(RecruitmentInternalNotificationService::class)->notifyInterviewPanelAssigned($interview);
+        app(RecruitmentInternalNotificationService::class)->notifyInterviewPanelAssigned($interview, true);
+
+        $this->assertSame(1, UserNotification::query()->where('user_id', $interviewer->id)->count());
+        $this->assertSame(1, UserNotification::query()->where('user_id', $panelist->id)->count());
+        $this->assertSame(
+            'Lịch phỏng vấn đã cập nhật',
+            UserNotification::query()->where('user_id', $interviewer->id)->firstOrFail()->title,
+        );
+        $this->assertDatabaseMissing('notifications', [
+            'user_id' => User::query()->where('email', 'unassigned-director@example.com')->value('id'),
+            'type' => 'interview_panel_assigned',
+        ]);
     }
 
-    public function test_branch_hr_can_record_draft_after_start_but_can_only_finalize_after_interview_ends(): void
+    public function test_only_interview_lead_can_finalize_multi_evaluator_panel_or_confirm_an_early_end(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+        $lead = User::factory()->create([
+            'role' => 'pm',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+        $member = User::factory()->create([
+            'role' => 'hr',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+        $unassignedHr = User::factory()->create([
+            'role' => 'hr',
+            'branch_id' => $hr->branch_id,
+            'is_active' => true,
+        ]);
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $lead->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn chuyên môn',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subMinutes(10),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-panel',
+            'invite_sent_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subHour(),
+            'result' => 'pending',
+        ]);
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$member->id],
+        );
+        $interview->evaluators()->update(['submitted_at' => now()]);
+
+        $guard = app(ApplicationWorkflowGuard::class);
+
+        $this->assertFalse($guard->canFinalizeInterviewPanel($lead, $application));
+        $this->assertTrue($guard->canFinalizeInterviewPanel($lead, $application, true));
+        $this->assertFalse($guard->canFinalizeInterviewPanel($member, $application, true));
+        $this->assertFalse($guard->canFinalizeInterviewPanel($unassignedHr, $application, true));
+
+        $summary = app(ApplicationWorkflowSummaryService::class)->summarize($application);
+        $this->assertSame('Chờ chốt kết quả', $summary['status_label']);
+        $this->assertStringContainsString('2/2 phiếu', $summary['description']);
+    }
+
+    public function test_internal_interview_mail_uses_assignment_wording(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn chuyên môn',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->addDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/fpt-panel',
+            'result' => 'pending',
+        ]);
+
+        $internalMail = new InterviewScheduledMail($interview, 'evaluator');
+        $legacyLeadMail = new InterviewScheduledMail($interview, 'interviewer');
+        $candidateMail = new InterviewScheduledMail($interview, 'candidate');
+
+        $this->assertStringContainsString('Phân công phỏng vấn', $internalMail->envelope()->subject);
+        $this->assertStringContainsString('Người cùng đánh giá', $internalMail->render());
+        $this->assertStringNotContainsString('Chúc mừng bạn đã vượt qua', $internalMail->render());
+        $this->assertStringContainsString('Người phụ trách phỏng vấn', $legacyLeadMail->render());
+        $this->assertStringContainsString('Thư mời phỏng vấn', $candidateMail->envelope()->subject);
+    }
+
+    public function test_only_assigned_hr_can_record_draft_and_can_only_finalize_after_interview_ends(): void
     {
         [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
         $interviewer = User::factory()->create([
@@ -249,6 +361,13 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         ]);
 
         $guard = app(ApplicationWorkflowGuard::class);
+
+        $this->assertFalse($guard->canEvaluateInterview($hr, $application));
+
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$hr->id],
+        );
 
         $this->assertTrue($guard->canEvaluateInterview($hr, $application));
         $this->assertFalse($guard->canFinalizeInterviewEvaluation($hr, $application));

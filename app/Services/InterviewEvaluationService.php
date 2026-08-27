@@ -16,6 +16,8 @@ class InterviewEvaluationService
     public function __construct(
         private readonly ApplicationPipelineService $pipelineService,
         private readonly ApplicationWorkflowGuard $workflowGuard,
+        private readonly InterviewEvaluatorService $evaluatorService,
+        private readonly RecruitmentInternalNotificationService $internalNotifications,
     ) {}
 
     /**
@@ -145,7 +147,7 @@ class InterviewEvaluationService
 
     /**
      * @param  array{template_id?: mixed, criteria?: mixed, conclusion?: mixed, notes?: mixed, override_reason?: mixed, rejected_reason?: mixed}  $data
-     * @return array{scorecard_id: int, average: ?float, is_complete: bool, saved: bool}
+     * @return array{scorecard_id: int, average: ?float, is_complete: bool, saved: bool, saved_at: mixed}
      */
     public function saveDraft(Application $application, array $data, ?User $actor): array
     {
@@ -171,16 +173,34 @@ class InterviewEvaluationService
             ->where('evaluator_id', (int) $actor?->id)
             ->first();
 
-        // A completed "hold" outcome must not become an unfinished draft just
-        // because the evaluator adds a note or adjusts a criterion later.
-        $preserveHoldConclusion = $existingScorecard
-            && ! $existingScorecard->trashed()
-            && $existingScorecard->conclusion === 'hold';
-        $recommendedConclusion = $preserveHoldConclusion
-            ? $existingScorecard->recommended_conclusion
+        if ($existingScorecard?->submitted_at) {
+            throw ValidationException::withMessages([
+                'interview' => 'Phiếu đánh giá đã được gửi và không thể chỉnh sửa.',
+            ]);
+        }
+
+        $isComplete = ! collect($criteria)->contains(
+            fn (array $criterion): bool => $criterion['score'] === null,
+        );
+        $requestedConclusion = trim((string) ($data['conclusion'] ?? ''));
+
+        if ($requestedConclusion !== '' && ! in_array($requestedConclusion, ['pass', 'hold', 'fail'], true)) {
+            throw ValidationException::withMessages([
+                'conclusion' => 'Kết luận đang chọn không hợp lệ.',
+            ]);
+        }
+
+        // A draft conclusion is persisted but remains editable until submitted_at
+        // is set. Calls that omit the field keep an existing draft conclusion.
+        $conclusion = array_key_exists('conclusion', $data)
+            ? ($requestedConclusion !== '' ? $requestedConclusion : null)
+            : $existingScorecard?->conclusion;
+        $recommendedConclusion = $isComplete
+            ? $this->recommendedConclusion($average)
             : null;
-        $conclusion = $preserveHoldConclusion ? 'hold' : null;
-        $overrideReason = $preserveHoldConclusion ? $existingScorecard->override_reason : null;
+        $overrideReason = array_key_exists('override_reason', $data)
+            ? (filled($data['override_reason']) ? trim((string) $data['override_reason']) : null)
+            : $existingScorecard?->override_reason;
 
         $unchanged = $existingScorecard
             && ! $existingScorecard->trashed()
@@ -209,14 +229,15 @@ class InterviewEvaluationService
         return [
             'scorecard_id' => $scorecard->id,
             'average' => $average,
-            'is_complete' => ! collect($criteria)->contains(fn (array $criterion): bool => $criterion['score'] === null),
+            'is_complete' => $isComplete,
             'saved' => ! $unchanged,
+            'saved_at' => $scorecard->updated_at,
         ];
     }
 
     /**
      * @param  array{template_id?: mixed, criteria?: mixed, conclusion?: mixed, notes?: mixed, override_reason?: mixed, rejected_reason?: mixed}  $data
-     * @return array{conclusion: string, average: ?float, recommended_conclusion: ?string}
+     * @return array{conclusion: string, average: ?float, recommended_conclusion: ?string, finalized: bool, progress: array{required: int, submitted: int, pending: int, all_submitted: bool}}
      */
     public function complete(Application $application, array $data, ?User $actor): array
     {
@@ -235,6 +256,19 @@ class InterviewEvaluationService
                 'interview' => 'Chưa có lịch phỏng vấn để hoàn tất đánh giá.',
             ]);
         }
+
+        $existingScorecard = Scorecard::withTrashed()
+            ->where('interview_id', $interview->id)
+            ->where('evaluator_id', (int) $actor?->id)
+            ->first();
+
+        if ($existingScorecard?->submitted_at) {
+            throw ValidationException::withMessages([
+                'interview' => 'Phiếu đánh giá đã được gửi và không thể gửi lại.',
+            ]);
+        }
+
+        $progress = $this->evaluatorService->progress($interview);
 
         $scheduledEnd = $interview->scheduled_at
             ? $interview->scheduled_at->copy()->addMinutes(max(1, (int) $interview->duration_minutes))
@@ -262,7 +296,7 @@ class InterviewEvaluationService
         }
 
         $rejectedReason = trim((string) ($data['rejected_reason'] ?? ''));
-        if ($conclusion === 'fail' && $rejectedReason === '') {
+        if (! $progress['is_panel'] && $conclusion === 'fail' && $rejectedReason === '') {
             throw ValidationException::withMessages([
                 'rejected_reason' => 'Vui lòng nhập lý do từ chối khi kết luận không đạt.',
             ]);
@@ -276,7 +310,41 @@ class InterviewEvaluationService
             $overrideReason,
         );
 
+        if ($progress['is_panel']) {
+            DB::transaction(function () use ($application, $interview, $actor, $template, $criteria, $average, $recommendedConclusion, $conclusion, $data, $overrideReason): void {
+                $this->persistScorecard(
+                    $application,
+                    $interview,
+                    $actor,
+                    $template,
+                    $criteria,
+                    $average,
+                    $recommendedConclusion,
+                    $conclusion,
+                    $overrideReason,
+                    $data['notes'] ?? null,
+                    now(),
+                );
+                $this->evaluatorService->markSubmitted($interview, $actor);
+            });
+
+            $updatedProgress = $this->evaluatorService->progress($interview);
+            if ($updatedProgress['all_submitted']) {
+                $this->internalNotifications->notifyInterviewPanelReady($interview);
+            }
+
+            return [
+                'conclusion' => $conclusion,
+                'average' => $average,
+                'recommended_conclusion' => $recommendedConclusion,
+                'finalized' => false,
+                'completion_state' => 'submitted',
+                'progress' => $updatedProgress,
+            ];
+        }
+
         DB::transaction(function () use ($application, $interview, $actor, $template, $criteria, $average, $recommendedConclusion, $conclusion, $data, $overrideReason, $rejectedReason, $comment, $finishedEarly): void {
+            $isFinalDecision = in_array($conclusion, ['pass', 'fail'], true);
             $this->persistScorecard(
                 $application,
                 $interview,
@@ -288,13 +356,21 @@ class InterviewEvaluationService
                 $conclusion,
                 $overrideReason,
                 $data['notes'] ?? null,
+                $isFinalDecision ? now() : null,
             );
+
+            if ($isFinalDecision) {
+                $this->evaluatorService->markSubmitted($interview, $actor);
+            }
 
             $interview->forceFill([
                 'result' => $conclusion === 'hold' ? 'pending' : $conclusion,
                 'actual_ended_at' => $finishedEarly
                     ? now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
                     : $interview->actual_ended_at,
+                'finalized_at' => $isFinalDecision ? now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')) : null,
+                'finalized_by_user_id' => $isFinalDecision ? $actor?->id : null,
+                'final_notes' => filled($data['notes'] ?? null) ? trim((string) $data['notes']) : null,
             ])->save();
 
             $currentStatus = $this->pipelineService->normalizeStatus($application->status);
@@ -332,6 +408,94 @@ class InterviewEvaluationService
             'conclusion' => $conclusion,
             'average' => $average,
             'recommended_conclusion' => $recommendedConclusion,
+            'finalized' => in_array($conclusion, ['pass', 'fail'], true),
+            'completion_state' => in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held',
+            'progress' => $this->evaluatorService->progress($interview),
+        ];
+    }
+
+    /**
+     * @param  array{conclusion?: mixed, notes?: mixed, override_reason?: mixed, rejected_reason?: mixed, confirm_early_completion?: mixed}  $data
+     * @return array{conclusion: string, average: ?float, recommended_conclusion: ?string, finalized: bool, progress: array{required: int, submitted: int, pending: int, all_submitted: bool}}
+     */
+    public function finalizePanel(Application $application, array $data, ?User $actor): array
+    {
+        $confirmedEarlyCompletion = (bool) ($data['confirm_early_completion'] ?? false);
+        if (! $this->workflowGuard->canFinalizeInterviewPanel($actor, $application, $confirmedEarlyCompletion)) {
+            throw ValidationException::withMessages([
+                'interview' => 'Chỉ có thể chốt kết quả khi các đánh giá bắt buộc đã được gửi đầy đủ.',
+            ]);
+        }
+
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $scorecards = $interview->scorecards()->whereNotNull('submitted_at')->get();
+        $average = $scorecards->whereNotNull('average_score')->avg('average_score');
+        $average = $average !== null ? round((float) $average, 2) : null;
+        $recommendedConclusion = $this->recommendedConclusion($average);
+        $conclusion = (string) ($data['conclusion'] ?? '');
+
+        if (! in_array($conclusion, ['pass', 'hold', 'fail'], true)) {
+            throw ValidationException::withMessages([
+                'conclusion' => 'Vui lòng chọn kết luận chung của vòng phỏng vấn.',
+            ]);
+        }
+
+        $overrideReason = trim((string) ($data['override_reason'] ?? ''));
+        if ($this->isConclusionOverride($conclusion, $recommendedConclusion) && $overrideReason === '') {
+            throw ValidationException::withMessages([
+                'override_reason' => 'Vui lòng nêu lý do khi kết luận chung khác khuyến nghị từ điểm tổng hợp.',
+            ]);
+        }
+
+        $rejectedReason = trim((string) ($data['rejected_reason'] ?? ''));
+        if ($conclusion === 'fail' && $rejectedReason === '') {
+            throw ValidationException::withMessages([
+                'rejected_reason' => 'Vui lòng nhập nội dung phản hồi khi ứng viên không đạt.',
+            ]);
+        }
+
+        $comment = 'Chốt kết quả vòng phỏng vấn từ '.$scorecards->count().' phiếu đánh giá.'
+            .($average !== null ? ' Điểm tổng hợp: '.number_format($average, 2, ',', '.').'/10.' : '')
+            .' Kết luận: '.$this->conclusionLabel($conclusion).'.'
+            .(filled($data['notes'] ?? null) ? ' Nhận xét chung: '.trim((string) $data['notes']) : '');
+
+        DB::transaction(function () use ($application, $interview, $actor, $conclusion, $data, $rejectedReason, $comment): void {
+            $isFinalDecision = in_array($conclusion, ['pass', 'fail'], true);
+            $interview->forceFill([
+                'result' => $conclusion === 'hold' ? 'pending' : $conclusion,
+                'actual_ended_at' => $interview->actual_ended_at ?: now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')),
+                'finalized_at' => $isFinalDecision ? now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh')) : null,
+                'finalized_by_user_id' => $isFinalDecision ? $actor?->id : null,
+                'final_notes' => filled($data['notes'] ?? null) ? trim((string) $data['notes']) : null,
+            ])->save();
+
+            $currentStatus = $this->pipelineService->normalizeStatus($application->status);
+            if ($currentStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED) {
+                $this->pipelineService->transition($application, StatusApplicationEnum::INTERVIEWING, $actor, 'Đã hoàn tất các phiếu đánh giá của vòng phỏng vấn.');
+                $application->refresh();
+            }
+
+            if ($conclusion === 'pass') {
+                $application->forceFill(['rejected_reason' => null])->save();
+                $this->pipelineService->transition($application, StatusApplicationEnum::OFFERED, $actor, $comment);
+            } elseif ($conclusion === 'fail') {
+                $application->forceFill([
+                    'rejected_stage' => 'interview',
+                    'rejected_reason' => $rejectedReason,
+                ])->save();
+                $this->pipelineService->transition($application, StatusApplicationEnum::REJECTED, $actor, $comment.' Lý do từ chối: '.$rejectedReason);
+            } else {
+                $application->recordStatusHistory(StatusApplicationEnum::INTERVIEWING->value, StatusApplicationEnum::INTERVIEWING->value, $comment);
+            }
+        });
+
+        return [
+            'conclusion' => $conclusion,
+            'average' => $average,
+            'recommended_conclusion' => $recommendedConclusion,
+            'finalized' => in_array($conclusion, ['pass', 'fail'], true),
+            'completion_state' => in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held',
+            'progress' => $this->evaluatorService->progress($interview),
         ];
     }
 
@@ -418,6 +582,7 @@ class InterviewEvaluationService
         ?string $conclusion,
         ?string $overrideReason,
         ?string $notes = null,
+        mixed $submittedAt = null,
     ): Scorecard {
         $scorecard = Scorecard::withTrashed()->firstOrNew([
             'interview_id' => $interview->id,
@@ -439,6 +604,7 @@ class InterviewEvaluationService
             'notes' => filled($notes) ? trim($notes) : null,
             'override_reason' => $overrideReason,
             'conclusion' => $conclusion,
+            'submitted_at' => $submittedAt,
         ])->save();
 
         return $scorecard;

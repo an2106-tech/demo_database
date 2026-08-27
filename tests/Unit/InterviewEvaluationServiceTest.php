@@ -10,8 +10,11 @@ use App\Models\Interview;
 use App\Models\RecruitmentJob;
 use App\Models\ScorecardTemplate;
 use App\Models\User;
+use App\Models\UserNotification;
 use App\Services\InterviewEvaluationService;
+use App\Services\InterviewEvaluatorService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class InterviewEvaluationServiceTest extends TestCase
@@ -126,11 +129,30 @@ class InterviewEvaluationServiceTest extends TestCase
         ]);
     }
 
+    public function test_draft_keeps_the_selected_conclusion_without_submitting_the_scorecard(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+
+        app(InterviewEvaluationService::class)->saveDraft($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(8),
+            'conclusion' => 'pass',
+            'notes' => 'Ứng viên đáp ứng yêu cầu chuyên môn.',
+        ], $hr);
+
+        $scorecard = $application->scorecards()->firstOrFail();
+
+        $this->assertSame('pass', $scorecard->conclusion);
+        $this->assertSame('pass', $scorecard->recommended_conclusion);
+        $this->assertNull($scorecard->submitted_at);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
+    }
+
     public function test_completion_requires_a_score_for_every_template_criterion(): void
     {
         [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
 
-        $this->expectException(\Illuminate\Validation\ValidationException::class);
+        $this->expectException(ValidationException::class);
 
         app(InterviewEvaluationService::class)->complete($application, [
             'template_id' => $this->templateId(),
@@ -159,6 +181,11 @@ class InterviewEvaluationServiceTest extends TestCase
 
         $this->assertTrue($first['saved']);
         $this->assertFalse($second['saved']);
+        $this->assertNotNull($first['saved_at']);
+        $this->assertSame(
+            $first['saved_at']->toISOString(),
+            $second['saved_at']->toISOString(),
+        );
         $this->assertSame(1, $application->scorecards()->count());
     }
 
@@ -220,6 +247,248 @@ class InterviewEvaluationServiceTest extends TestCase
 
         $this->assertSame('Nghiệp vụ giáo dục', $criteria[0]['name']);
         $this->assertSame('Giao tiếp với người học', $criteria[1]['name']);
+    }
+
+    public function test_multiple_evaluators_submit_individually_before_lead_finalizes_the_round(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$panelist->id],
+        );
+        $service = app(InterviewEvaluationService::class);
+
+        $first = $service->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(8),
+            'conclusion' => 'pass',
+        ], $hr);
+
+        $this->assertFalse($first['finalized']);
+        $this->assertSame(1, $first['progress']['submitted']);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
+
+        $second = $service->complete($application->fresh(), [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(6),
+            'conclusion' => 'hold',
+        ], $panelist);
+
+        $this->assertFalse($second['finalized']);
+        $this->assertTrue($second['progress']['all_submitted']);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
+        $this->assertDatabaseHas('notifications', [
+            'user_id' => $hr->id,
+            'type' => 'interview_panel_ready',
+        ]);
+        $this->assertSame(
+            'Đã đủ phiếu đánh giá',
+            UserNotification::query()
+                ->where('user_id', $hr->id)
+                ->where('type', 'interview_panel_ready')
+                ->firstOrFail()
+                ->title,
+        );
+        $this->assertDatabaseMissing('notifications', [
+            'user_id' => $panelist->id,
+            'type' => 'interview_panel_ready',
+        ]);
+
+        $final = $service->finalizePanel($application->fresh(), [
+            'conclusion' => 'pass',
+            'notes' => 'Hội đồng thống nhất ứng viên đáp ứng yêu cầu.',
+        ], $hr);
+
+        $this->assertTrue($final['finalized']);
+        $this->assertSame(7.0, $final['average']);
+        $this->assertSame(StatusApplicationEnum::OFFERED, $application->fresh()->status);
+        $this->assertNotNull($interview->fresh()->finalized_at);
+    }
+
+    public function test_individual_fail_recommendation_does_not_require_candidate_rejection_reason(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$panelist->id],
+        );
+
+        $result = app(InterviewEvaluationService::class)->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(3),
+            'conclusion' => 'fail',
+        ], $panelist);
+
+        $this->assertSame('submitted', $result['completion_state']);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
+        $this->assertNull($application->fresh()->rejected_reason);
+    }
+
+    public function test_lead_can_waive_a_pending_panelist_and_finalize_the_remaining_panel(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $evaluatorService = app(InterviewEvaluatorService::class);
+        $evaluatorService->sync($interview->loadMissing('application.job'), [$panelist->id]);
+
+        app(InterviewEvaluationService::class)->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(8),
+            'conclusion' => 'pass',
+        ], $hr);
+
+        $evaluatorService->waivePendingEvaluator(
+            $interview,
+            $panelist->id,
+            $hr,
+            'Không tham gia buổi phỏng vấn.',
+        );
+
+        $progress = $evaluatorService->progress($interview);
+        $this->assertTrue($progress['is_panel']);
+        $this->assertSame(1, $progress['required']);
+        $this->assertSame(1, $progress['submitted']);
+        $this->assertSame(1, $progress['waived']);
+        $this->assertTrue($progress['all_submitted']);
+        $this->assertDatabaseHas('interview_evaluators', [
+            'interview_id' => $interview->id,
+            'user_id' => $panelist->id,
+            'is_required' => false,
+            'waived_by_user_id' => $hr->id,
+            'waiver_reason' => 'Không tham gia buổi phỏng vấn.',
+        ]);
+        $this->assertDatabaseHas('application_status_histories', [
+            'application_id' => $application->id,
+            'from_status' => StatusApplicationEnum::INTERVIEWING->value,
+            'to_status' => StatusApplicationEnum::INTERVIEWING->value,
+            'changed_by_id' => $hr->id,
+        ]);
+
+        $result = app(InterviewEvaluationService::class)->finalizePanel($application->fresh(), [
+            'conclusion' => 'pass',
+            'notes' => 'Chốt theo phiếu của thành viên thực tế tham gia.',
+        ], $hr);
+
+        $this->assertTrue($result['finalized']);
+        $this->assertSame(StatusApplicationEnum::OFFERED, $application->fresh()->status);
+    }
+
+    public function test_panelist_cannot_waive_another_required_evaluator(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $otherPanelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $service = app(InterviewEvaluatorService::class);
+        $service->sync($interview->loadMissing('application.job'), [$panelist->id, $otherPanelist->id]);
+
+        $this->expectException(ValidationException::class);
+
+        $service->waivePendingEvaluator(
+            $interview,
+            $otherPanelist->id,
+            $panelist,
+            'Không tham gia buổi phỏng vấn.',
+        );
+    }
+
+    public function test_submitted_panelist_cannot_be_waived(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $evaluatorService = app(InterviewEvaluatorService::class);
+        $evaluatorService->sync($interview->loadMissing('application.job'), [$panelist->id]);
+        app(InterviewEvaluationService::class)->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(7),
+            'conclusion' => 'pass',
+        ], $panelist);
+
+        $this->expectException(ValidationException::class);
+
+        $evaluatorService->waivePendingEvaluator(
+            $interview,
+            $panelist->id,
+            $hr,
+            'Không cần phiếu này.',
+        );
+    }
+
+    public function test_submitted_scorecard_cannot_be_edited_or_sent_twice(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $panelist = User::factory()->create([
+            'role' => 'pm',
+            'is_active' => true,
+            'branch_id' => $hr->branch_id,
+        ]);
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            [$panelist->id],
+        );
+        $service = app(InterviewEvaluationService::class);
+        $service->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(8),
+            'conclusion' => 'pass',
+        ], $hr);
+
+        $this->expectException(ValidationException::class);
+        $service->saveDraft($application->fresh(), [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(9),
+        ], $hr);
+    }
+
+    public function test_single_evaluator_hold_remains_editable_and_does_not_finalize_round(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+
+        $result = app(InterviewEvaluationService::class)->complete($application, [
+            'template_id' => $this->templateId(),
+            'criteria' => $this->criteria(6),
+            'conclusion' => 'hold',
+            'notes' => 'Cần trao đổi thêm trước khi chốt.',
+        ], $hr);
+
+        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $scorecard = $application->scorecards()->firstOrFail();
+
+        $this->assertSame('held', $result['completion_state']);
+        $this->assertNull($scorecard->submitted_at);
+        $this->assertNull($interview->finalized_at);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
     }
 
     /**

@@ -21,11 +21,13 @@ class Scorecard extends Model
         'notes',
         'override_reason',
         'conclusion',
+        'submitted_at',
     ];
 
     protected $casts = [
         'criteria' => 'array',
         'average_score' => 'decimal:2',
+        'submitted_at' => 'datetime',
     ];
 
     public function application(): BelongsTo
@@ -48,4 +50,3 @@ class Scorecard extends Model
         return $this->belongsTo(User::class, 'evaluator_id');
     }
 }
-

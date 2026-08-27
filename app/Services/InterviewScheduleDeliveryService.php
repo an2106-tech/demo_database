@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Enums\StatusApplicationEnum;
 use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -14,6 +12,7 @@ class InterviewScheduleDeliveryService
 {
     public function __construct(
         private readonly InterviewCalendarService $calendarService,
+        private readonly RecruitmentInternalNotificationService $internalNotifications,
     ) {}
 
     /**
@@ -27,31 +26,23 @@ class InterviewScheduleDeliveryService
             $recipients[$application->snapshotCandidateEmail()] = 'candidate';
         }
 
-        $interviewer = $application->interviews()
+        $interview = $application->interviews()
+            ->with('evaluators.user:id,name,email')
             ->latest('id')
-            ->first()?->interviewer;
+            ->first();
+        $interviewer = $interview?->interviewer;
 
         // Keep the candidate mail type when the interviewer happens to share an address.
         if (filled($interviewer?->email) && ! isset($recipients[$interviewer->email])) {
-            $recipients[$interviewer->email] = 'interviewer';
+            $recipients[$interviewer->email] = 'lead';
         }
 
-        $branchId = $application->job?->branch_id;
-
-        if (! $branchId) {
-            return $recipients;
+        foreach ($interview?->evaluators ?? [] as $assignment) {
+            $evaluator = $assignment->user;
+            if (filled($evaluator?->email) && ! isset($recipients[$evaluator->email])) {
+                $recipients[$evaluator->email] = $assignment->role === 'lead' ? 'lead' : 'evaluator';
+            }
         }
-
-        User::query()
-            ->where('branch_id', $branchId)
-            ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['director', 'pm']))
-            ->get()
-            ->each(function (User $user) use (&$recipients): void {
-                if (filled($user->email)) {
-                    $recipients[$user->email] = $user->role ?: 'internal';
-                }
-            });
 
         return $recipients;
     }
@@ -73,7 +64,7 @@ class InterviewScheduleDeliveryService
             ];
         }
 
-        $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
+        $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'evaluators.user', 'workplace']);
         $this->calendarService->store($interview);
 
         $freshApplication = $application->fresh(['job.branch', 'candidate']) ?? $application;
@@ -124,6 +115,7 @@ class InterviewScheduleDeliveryService
         // A schedule is only considered delivered when the candidate received it.
         if ($candidateSent) {
             $interview->forceFill(['invite_sent_at' => now()])->save();
+            $this->internalNotifications->notifyInterviewPanelAssigned($interview, $isUpdate);
 
             $status = $application->status instanceof StatusApplicationEnum
                 ? $application->status->value

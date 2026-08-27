@@ -66,38 +66,24 @@ class InterviewScheduledMail extends Mailable
         $interviewer = $this->interview->interviewer;
         $locationText = app(InterviewCalendarService::class)->resolveLocation($this->interview);
 
-        // 1. Cập nhật mẫu Interview Invitation chuyên nghiệp
-        $fallbackSubject = $this->isUpdate
-            ? 'Cập nhật lịch phỏng vấn vị trí {{job_title}} - {{app_name}}'
-            : 'Thư mời phỏng vấn vị trí {{job_title}} - {{app_name}}';
-        
-        $fallbackBody = implode("\n", [
-            '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
-            $this->isUpdate
-                ? '<p>Chúng tôi xin gửi đến bạn thông tin <strong>cập nhật lịch phỏng vấn</strong> sau khi điều chỉnh từ bộ phận tuyển dụng.</p>'
-                : '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ! Sau khi xem xét các kỹ năng và kinh nghiệm của bạn, chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn để trao đổi chi tiết hơn về sự phù hợp của bạn với đội ngũ <strong>{{app_name}}</strong>.</p>',
-            '<p><strong>Thông tin chi tiết về buổi phỏng vấn:</strong></p>',
-            '<ul style="line-height: 1.6;">',
-            '<li><strong>Vị trí ứng tuyển:</strong> {{job_title}}</li>',
-            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
-            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
-            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
-            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
-            '<li><strong>Người phỏng vấn:</strong> {{interviewer_name}}</li>',
-            '</ul>',
-            '<p><strong>Ghi chú từ bộ phận tuyển dụng:</strong> {{interview_notes}}</p>',
-            $this->isUpdate
-                ? '<p>Lịch phỏng vấn đã được điều chỉnh. Vui lòng cập nhật lại thời gian tham gia của bạn theo thông tin bên dưới. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>'
-                : '<p>Vui lòng phản hồi email này để xác nhận sự tham gia của bạn. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>',
-            '<p>Mong sớm được gặp bạn!</p>',
-            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
-        ]);
+        $isCandidate = $this->recipientLabel === 'candidate';
+        $fallbackSubject = $isCandidate
+            ? ($this->isUpdate
+                ? 'Cập nhật lịch phỏng vấn vị trí {{job_title}} - {{app_name}}'
+                : 'Thư mời phỏng vấn vị trí {{job_title}} - {{app_name}}')
+            : ($this->isUpdate
+                ? 'Cập nhật phân công phỏng vấn: {{candidate_name}} - {{job_title}}'
+                : 'Phân công phỏng vấn: {{candidate_name}} - {{job_title}}');
+
+        $fallbackBody = $isCandidate
+            ? $this->candidateBody()
+            : $this->evaluatorBody();
 
         $subject = $fallbackSubject;
         $body = $fallbackBody;
         $usesStoredTemplate = false;
 
-        if (Schema::hasTable('email_templates')) {
+        if ($isCandidate && Schema::hasTable('email_templates')) {
             $template = EmailTemplate::query()
                 ->where('type', 'interview_invite')
                 ->where('is_active', true)
@@ -122,6 +108,7 @@ class InterviewScheduledMail extends Mailable
             '{{interviewer_name}}' => e($interviewer?->name ?? 'Hội đồng tuyển dụng'),
             '{{interview_notes}}' => e($this->interview->notes ?: 'Không có ghi chú bổ sung'),
             '{{recipient_label}}' => e($this->recipientLabel),
+            '{{recipient_role}}' => e(in_array($this->recipientLabel, ['lead', 'interviewer'], true) ? 'Người phụ trách phỏng vấn' : 'Người cùng đánh giá'),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
@@ -135,6 +122,49 @@ class InterviewScheduledMail extends Mailable
         }
 
         return [$resolvedSubject, $resolvedBody];
+    }
+
+    protected function candidateBody(): string
+    {
+        return implode("\n", [
+            '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
+            $this->isUpdate
+                ? '<p>Chúng tôi xin gửi đến bạn thông tin <strong>cập nhật lịch phỏng vấn</strong> từ bộ phận tuyển dụng.</p>'
+                : '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ. Chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn cho vị trí <strong>{{job_title}}</strong> tại <strong>{{app_name}}</strong>.</p>',
+            '<p><strong>Thông tin buổi phỏng vấn:</strong></p>',
+            '<ul style="line-height: 1.6;">',
+            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
+            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
+            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
+            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
+            '<li><strong>Người phụ trách phỏng vấn:</strong> {{interviewer_name}}</li>',
+            '</ul>',
+            '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
+            $this->isUpdate
+                ? '<p>Vui lòng cập nhật lại lịch cá nhân theo file iCal đính kèm.</p>'
+                : '<p>Vui lòng phản hồi email để xác nhận tham gia. File iCal đã được đính kèm để bạn lưu lịch.</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+        ]);
+    }
+
+    protected function evaluatorBody(): string
+    {
+        return implode("\n", [
+            '<p>Chào anh/chị,</p>',
+            $this->isUpdate
+                ? '<p>Lịch phỏng vấn ứng viên <strong>{{candidate_name}}</strong> đã được cập nhật.</p>'
+                : '<p>Anh/chị được phân công tham gia phỏng vấn ứng viên <strong>{{candidate_name}}</strong> cho vị trí <strong>{{job_title}}</strong>.</p>',
+            '<p><strong>Vai trò:</strong> {{recipient_role}}</p>',
+            '<ul style="line-height: 1.6;">',
+            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
+            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
+            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
+            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
+            '</ul>',
+            '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
+            '<p>Sau buổi phỏng vấn, vui lòng mở hồ sơ trên hệ thống và gửi phiếu đánh giá theo mẫu đã phân công.</p>',
+            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+        ]);
     }
 
     protected function formatDisplayDate($date): string

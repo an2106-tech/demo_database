@@ -355,16 +355,27 @@ class ApplicationsTable
                                 ? app(InterviewEvaluationService::class)->complete($record, $data, Auth::user())
                                 : app(InterviewEvaluationService::class)->saveDraft($record, $data, Auth::user());
 
+                            $completionState = $result['completion_state'] ?? null;
+                            $progress = $result['progress'] ?? [];
+
                             Notification::make()
                                 ->success()
-                                ->title($canFinalize ? 'Đã hoàn tất đánh giá phỏng vấn' : 'Đã lưu đánh giá tạm')
-                                ->body($canFinalize
-                                    ? ($result['conclusion'] === 'pass'
+                                ->title($completionState === 'submitted'
+                                    ? 'Đã gửi phiếu đánh giá'
+                                    : ($completionState === 'held'
+                                        ? 'Đã ghi nhận kết quả cần xem xét thêm'
+                                        : ($canFinalize ? 'Đã hoàn tất đánh giá phỏng vấn' : 'Đã lưu đánh giá tạm')))
+                                ->body($completionState === 'submitted'
+                                    ? 'Đã nhận '.($progress['submitted'] ?? 0).'/'.($progress['required'] ?? 0).' phiếu. Hồ sơ chưa chuyển giai đoạn.'
+                                    : ($completionState === 'held'
+                                        ? 'Hồ sơ vẫn ở giai đoạn Phỏng vấn để nội bộ tiếp tục xem xét.'
+                                        : ($canFinalize
+                                            ? ($result['conclusion'] === 'pass'
                                         ? 'Ứng viên đạt - hồ sơ đã chuyển sang bước đề nghị tuyển dụng.'
                                         : ($result['conclusion'] === 'fail'
                                             ? 'Ứng viên không đạt — hồ sơ đã chuyển sang Từ chối.'
                                             : 'Đánh giá đã hoàn tất — hồ sơ giữ ở Phỏng vấn để xem xét thêm.'))
-                                    : 'Điểm và nhận xét đang nhập đã được lưu. Hồ sơ chưa chuyển giai đoạn.')
+                                            : 'Điểm và nhận xét đang nhập đã được lưu. Hồ sơ chưa chuyển giai đoạn.')))
                                 ->send();
                         })
                         ->visible(fn (Application $record): bool => static::canEvaluateInterview($record)),
@@ -804,7 +815,16 @@ class ApplicationsTable
 
     protected static function canEvaluateInterview(Application $record): bool
     {
-        return static::workflowGuard()->canEvaluateInterview(Auth::user(), $record);
+        if (! static::workflowGuard()->canEvaluateInterview(Auth::user(), $record)) {
+            return false;
+        }
+
+        $interview = $record->interviews()->latest('id')->first();
+
+        return ! $interview?->scorecards()
+            ->where('evaluator_id', Auth::id())
+            ->whereNotNull('submitted_at')
+            ->exists();
     }
 
     protected static function canSendInterviewSchedule(Application $record): bool

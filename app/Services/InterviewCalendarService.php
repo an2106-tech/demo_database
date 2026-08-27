@@ -44,6 +44,13 @@ class InterviewCalendarService
         $candidate = $application?->candidate;
         $job = $application?->job;
         $location = $this->resolveLocation($interview);
+        if ($interview->exists) {
+            $interview->loadMissing('evaluators.user');
+        }
+
+        $evaluatorNames = $interview->relationLoaded('evaluators')
+            ? $interview->evaluators->pluck('user.name')->filter()->unique()->implode(', ')
+            : '';
         $organizerEmail = (string) config('mail.from.address', 'no-reply@example.com');
         $organizerName = (string) config('mail.from.name', config('app.name', 'Laravel'));
 
@@ -57,7 +64,7 @@ class InterviewCalendarService
             'Lịch phỏng vấn được tạo từ hệ thống tuyển dụng.',
             $job?->title ? "Vị trí: {$job->title}" : null,
             $candidate?->name ? "Ứng viên: {$candidate->name}" : null,
-            $interview->interviewer?->name ? "Người phỏng vấn: {$interview->interviewer->name}" : null,
+            $evaluatorNames !== '' ? "Hội đồng phỏng vấn: {$evaluatorNames}" : ($interview->interviewer?->name ? "Người phụ trách phỏng vấn: {$interview->interviewer->name}" : null),
             $interview->type === 'online' && $interview->meeting_link ? "Link phỏng vấn: {$interview->meeting_link}" : null,
             $interview->notes ? "Ghi chú: {$interview->notes}" : null,
         ]);

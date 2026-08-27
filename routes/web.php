@@ -439,6 +439,12 @@ Route::prefix('employers')->name('employers.')->group(function () {
                 'culture_score' => ['required', 'numeric', 'min:0', 'max:10'],
                 'conclusion' => ['required', \Illuminate\Validation\Rule::in(['pass', 'hold', 'fail'])],
                 'notes' => ['nullable', 'string', 'max:1500'],
+                'rejected_reason' => [
+                    \Illuminate\Validation\Rule::requiredIf(request('conclusion') === 'fail'),
+                    'nullable',
+                    'string',
+                    'max:1500',
+                ],
             ]);
 
             $criteria = [
@@ -518,6 +524,10 @@ Route::prefix('employers')->name('employers.')->group(function () {
                 }
 
                 if ($conclusion === 'fail') {
+                    $application->forceFill([
+                        'rejected_stage' => 'interview',
+                        'rejected_reason' => trim((string) ($validated['rejected_reason'] ?? '')),
+                    ])->save();
                     $pipelineService->transition($application, \App\Enums\StatusApplicationEnum::REJECTED, $user, $comment);
 
                     return;

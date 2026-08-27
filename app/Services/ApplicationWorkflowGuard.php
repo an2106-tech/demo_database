@@ -58,7 +58,8 @@ class ApplicationWorkflowGuard
 
         $interview = $this->latestInterview($application);
 
-        return (bool) $interview && (int) $interview->interviewer_id === (int) $user->id;
+        return (bool) $interview
+            && app(InterviewEvaluatorService::class)->isAssigned($interview, $user);
     }
 
     public function canScreenApplication(?User $user, Application $application): bool
@@ -140,9 +141,7 @@ class ApplicationWorkflowGuard
             return false;
         }
 
-        if (! $this->canOverseeRecruitment($user)
-            && ! $this->isHr($user)
-            && ! $this->isAssignedInterviewer($user, $application)) {
+        if (! $this->isAssignedInterviewer($user, $application)) {
             return false;
         }
 
@@ -170,6 +169,37 @@ class ApplicationWorkflowGuard
 
         return $scheduledEnd->lte(now($interview->scheduled_at->getTimezone()))
             || $confirmedEarlyCompletion;
+    }
+
+    public function canFinalizeInterviewPanel(?User $user, Application $application, bool $confirmedEarlyCompletion = false): bool
+    {
+        if (! $user || ! $this->canAccessApplicationBranch($user, $application)) {
+            return false;
+        }
+
+        $interview = $this->latestInterview($application);
+        if (! $interview || $interview->result !== 'pending' || $interview->finalized_at) {
+            return false;
+        }
+
+        $isLead = (int) $interview->interviewer_id === (int) $user->id;
+        if (! $this->canOverseeRecruitment($user) && ! $isLead) {
+            return false;
+        }
+
+        if (! app(InterviewEvaluatorService::class)->progress($interview)['all_submitted']) {
+            return false;
+        }
+
+        if ($interview->actual_ended_at) {
+            return true;
+        }
+
+        $scheduledEnd = $interview->scheduled_at?->copy()
+            ->addMinutes(max(1, (int) $interview->duration_minutes));
+
+        return (bool) $scheduledEnd
+            && ($scheduledEnd->lte(now($scheduledEnd->getTimezone())) || $confirmedEarlyCompletion);
     }
 
     public function canSendInterviewSchedule(?User $user, Application $application): bool

@@ -12,18 +12,20 @@ use App\Models\ScorecardTemplate;
 use App\Models\User;
 use App\Models\Workplace;
 use App\Services\ApplicationAiAnalysisService;
-use App\Services\InterviewCalendarService;
-use App\Services\InterviewEvaluationService;
-use App\Services\InterviewMeetingLinkValidator;
 use App\Services\ApplicationKanbanTransitionService;
 use App\Services\ApplicationPipelineService;
 use App\Services\ApplicationPreScreeningService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\ApplicationWorkflowSummaryService;
+use App\Services\InterviewCalendarService;
+use App\Services\InterviewEvaluationService;
+use App\Services\InterviewEvaluatorService;
+use App\Services\InterviewMeetingLinkValidator;
 use App\Services\InterviewScheduleDeliveryService;
 use App\Services\InterviewScorecardTemplateService;
-use App\Services\OfferWorkflowService;
 use App\Services\OfferLetterMergeService;
+use App\Services\OfferWorkflowService;
+use App\Services\RecruitmentInternalNotificationService;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Filament\Actions\Action;
@@ -48,7 +50,7 @@ class KanbanApplications extends Page
 
     protected ?string $subheading = null;
 
-    protected Width | string | null $maxContentWidth = Width::Full;
+    protected Width|string|null $maxContentWidth = Width::Full;
 
     #[Url(as: 'q')]
     public string $search = '';
@@ -108,6 +110,7 @@ class KanbanApplications extends Page
         'meeting_link' => '',
         'workplace_id' => '',
         'interviewer_id' => '',
+        'evaluator_ids' => [],
         'scorecard_template_id' => '',
         'notes' => '',
     ];
@@ -129,6 +132,10 @@ class KanbanApplications extends Page
     public ?string $kanbanEvaluationDraftSavedAt = null;
 
     public ?string $kanbanEvaluationDraftStatus = null;
+
+    public ?int $kanbanEvaluationWaiverUserId = null;
+
+    public string $kanbanEvaluationWaiverReason = '';
 
     public bool $kanbanInterviewQuestionsConfirmation = false;
 
@@ -670,7 +677,12 @@ class KanbanApplications extends Page
         ]);
         $interview->save();
 
-        $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'workplace']);
+        app(InterviewEvaluatorService::class)->sync(
+            $interview->loadMissing('application.job'),
+            (array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []),
+        );
+
+        $interview->loadMissing(['application.job.branch', 'application.candidate', 'interviewer', 'evaluators.user', 'workplace']);
         app(InterviewCalendarService::class)->store($interview);
 
         if ($currentStatus === StatusApplicationEnum::SCREENING->value) {
@@ -693,7 +705,7 @@ class KanbanApplications extends Page
         Notification::make()
             ->success()
             ->title($existingInterview ? 'Đã cập nhật lịch phỏng vấn' : 'Đã tạo lịch phỏng vấn')
-            ->body('Lịch đã được lưu. Bước tiếp theo: gửi lịch phỏng vấn cho ứng viên và người liên quan.')
+            ->body('Lịch đã được lưu. Hãy gửi lịch cho ứng viên và hội đồng phỏng vấn.')
             ->send();
     }
 
@@ -722,11 +734,12 @@ class KanbanApplications extends Page
             ->whereKey($applicationId)
             ->first();
 
-        if (! $application || ! app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application)) {
+        $guard = app(ApplicationWorkflowGuard::class);
+        if (! $application || (! $guard->canEvaluateInterview(Auth::user(), $application) && ! $guard->canFinalizeInterviewPanel(Auth::user(), $application, true))) {
             Notification::make()
                 ->warning()
                 ->title('Chưa thể chấm phỏng vấn')
-                ->body('Chỉ có thể chấm sau thời điểm phỏng vấn và với tài khoản được phân công.')
+                ->body('Chỉ có thể chấm sau khi buổi phỏng vấn bắt đầu và với tài khoản được phân công.')
                 ->send();
 
             return;
@@ -870,12 +883,80 @@ class KanbanApplications extends Page
             return;
         }
 
-        $this->kanbanEvaluationDraftSavedAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i');
-        $this->kanbanEvaluationDraftStatus = $result['saved']
-            ? ($result['is_complete']
-                ? 'Đã lưu đủ điểm. Có thể hoàn tất đánh giá khi buổi phỏng vấn kết thúc.'
-                : 'Đã lưu đánh giá tạm. Hồ sơ chưa chuyển giai đoạn.')
-            : 'Không có thay đổi mới cần lưu.';
+        $savedAt = $result['saved_at'] ?? now();
+        $this->kanbanEvaluationDraftSavedAt = $savedAt
+            ->copy()
+            ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+            ->format('H:i, d/m/Y');
+        $this->kanbanEvaluationDraftStatus = 'Đã lưu bản nháp';
+    }
+
+    public function requestInterviewEvaluatorWaiverFromKanban(int $userId): void
+    {
+        $assignment = collect($this->kanbanDropAction['evaluation_assignments'] ?? [])
+            ->first(fn (array $item): bool => (int) ($item['user_id'] ?? 0) === $userId);
+
+        if (! $assignment || ! ($assignment['can_waive'] ?? false)) {
+            $this->setKanbanModalError('Thành viên này không thể được bỏ yêu cầu gửi phiếu.');
+
+            return;
+        }
+
+        $this->kanbanEvaluationWaiverUserId = $userId;
+        $this->kanbanEvaluationWaiverReason = '';
+        $this->resetValidation('kanbanEvaluationWaiverReason');
+    }
+
+    public function cancelInterviewEvaluatorWaiverFromKanban(): void
+    {
+        $this->kanbanEvaluationWaiverUserId = null;
+        $this->kanbanEvaluationWaiverReason = '';
+        $this->resetValidation('kanbanEvaluationWaiverReason');
+    }
+
+    public function waiveInterviewEvaluatorFromKanban(): void
+    {
+        $applicationId = (int) data_get($this->kanbanDropAction, 'application_id');
+        $userId = (int) $this->kanbanEvaluationWaiverUserId;
+        $application = ApplicationResource::getEloquentQuery()
+            ->whereKey($applicationId)
+            ->first();
+        $interview = $application?->interviews()->latest('id')->first();
+
+        if (! $application || ! $interview || $userId <= 0) {
+            $this->setKanbanModalError('Không tìm thấy phân công cần cập nhật.');
+
+            return;
+        }
+
+        try {
+            $assignment = app(InterviewEvaluatorService::class)->waivePendingEvaluator(
+                $interview,
+                $userId,
+                Auth::user(),
+                $this->kanbanEvaluationWaiverReason,
+            );
+        } catch (ValidationException $exception) {
+            $message = (string) ($exception->errors()['waiver_reason'][0] ?? 'Không thể cập nhật yêu cầu gửi phiếu.');
+            $this->addError('kanbanEvaluationWaiverReason', $message);
+
+            return;
+        }
+
+        $progress = app(InterviewEvaluatorService::class)->progress($interview);
+        if ($progress['all_submitted']) {
+            app(RecruitmentInternalNotificationService::class)->notifyInterviewPanelReady($interview);
+        }
+
+        $memberName = $assignment->loadMissing('user:id,name')->user?->name ?: 'Thành viên';
+        $application->unsetRelation('latestInterview');
+        $this->showKanbanDropAction($this->interviewEvaluationPayload($application->fresh()));
+
+        Notification::make()
+            ->success()
+            ->title('Đã cập nhật hội đồng')
+            ->body($memberName.' không còn được yêu cầu gửi phiếu. Lý do đã được lưu.')
+            ->send();
     }
 
     public function completeInterviewEvaluationFromKanban(): void
@@ -903,11 +984,10 @@ class KanbanApplications extends Page
             // finishes before its scheduled end time.
             $evaluationData['confirm_early_completion'] = (bool) ($evaluationData['confirm_completion'] ?? false);
 
-            $result = app(InterviewEvaluationService::class)->complete(
-                $application,
-                $evaluationData,
-                Auth::user(),
-            );
+            $service = app(InterviewEvaluationService::class);
+            $result = (bool) data_get($this->kanbanDropAction, 'finalization_mode')
+                ? $service->finalizePanel($application, $evaluationData, Auth::user())
+                : $service->complete($application, $evaluationData, Auth::user());
         } catch (ValidationException $exception) {
             $errors = $exception->errors();
             $field = (string) array_key_first($errors);
@@ -923,6 +1003,27 @@ class KanbanApplications extends Page
         }
 
         $this->dismissKanbanDropAction();
+
+        if (($result['completion_state'] ?? null) === 'held') {
+            Notification::make()
+                ->success()
+                ->title('Đã ghi nhận kết quả cần xem xét thêm')
+                ->body('Hồ sơ vẫn ở giai đoạn Phỏng vấn để nội bộ tiếp tục xem xét trước khi chốt.')
+                ->send();
+
+            return;
+        }
+
+        if (! ($result['finalized'] ?? true)) {
+            $progress = $result['progress'] ?? [];
+            Notification::make()
+                ->success()
+                ->title('Đã gửi phiếu đánh giá')
+                ->body('Đã nhận '.$progress['submitted'].'/'.$progress['required'].' phiếu. Hồ sơ sẽ giữ ở Phỏng vấn cho đến khi chốt kết quả vòng.')
+                ->send();
+
+            return;
+        }
 
         Notification::make()
             ->success()
@@ -1041,8 +1142,8 @@ class KanbanApplications extends Page
             'type' => 'interview_delivery',
             'title' => $isUpdate ? 'Gửi cập nhật lịch phỏng vấn' : 'Gửi lịch phỏng vấn',
             'message' => $isUpdate
-                ? 'Thông tin lịch mới và file lịch sẽ được gửi lại cho ứng viên cùng những người liên quan.'
-                : 'Thông tin lịch và file lịch sẽ được gửi cho ứng viên cùng những người liên quan.',
+                ? 'Thông tin lịch mới và file lịch sẽ được gửi lại cho ứng viên cùng hội đồng phỏng vấn.'
+                : 'Thông tin lịch và file lịch sẽ được gửi cho ứng viên cùng hội đồng phỏng vấn.',
             'application_id' => $application->id,
             'candidate' => $application->snapshotCandidateName(),
             'job' => $application->job?->title,
@@ -1081,8 +1182,8 @@ class KanbanApplications extends Page
             $notification->warning()->body('Lịch đã được lưu, nhưng một số email chưa thể đưa vào hàng đợi gửi.');
         } else {
             $notification->success()->body($result['is_update']
-                ? 'Email cập nhật lịch và file lịch đang được gửi đến ứng viên, người liên quan.'
-                : 'Email lịch phỏng vấn và file lịch đang được gửi đến ứng viên, người liên quan.');
+                ? 'Email cập nhật và file lịch đang được gửi đến ứng viên, hội đồng phỏng vấn.'
+                : 'Email và file lịch đang được gửi đến ứng viên, hội đồng phỏng vấn.');
         }
 
         $notification->send();
@@ -1120,10 +1221,36 @@ class KanbanApplications extends Page
     {
         $this->resetValidation('kanbanInterviewForm.'.$key);
 
-        if (! in_array($key, ['scheduled_at', 'duration_minutes', 'type', 'workplace_id', 'interviewer_id'], true)) {
+        $field = str($key)->before('.')->toString();
+
+        if ($field === 'interviewer_id') {
+            $leadId = (int) ($this->kanbanInterviewForm['interviewer_id'] ?? 0);
+            $this->kanbanInterviewForm['evaluator_ids'] = $leadId > 0
+                ? collect((array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []))
+                    ->map(fn ($id): string => (string) $id)
+                    ->reject(fn (string $id): bool => (int) $id === $leadId)
+                    ->unique()
+                    ->values()
+                    ->all()
+                : [];
+            $this->resetValidation('kanbanInterviewForm.evaluator_ids');
+        }
+
+        if (! in_array($field, ['scheduled_at', 'duration_minutes', 'type', 'workplace_id', 'interviewer_id', 'evaluator_ids'], true)) {
             return;
         }
 
+        $this->refreshKanbanInterviewAvailabilityPreview();
+    }
+
+    public function removeKanbanInterviewEvaluator(int $userId): void
+    {
+        $this->kanbanInterviewForm['evaluator_ids'] = collect((array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []))
+            ->reject(fn ($id): bool => (int) $id === $userId)
+            ->map(fn ($id): string => (string) $id)
+            ->values()
+            ->all();
+        $this->resetValidation('kanbanInterviewForm.evaluator_ids');
         $this->refreshKanbanInterviewAvailabilityPreview();
     }
 
@@ -1226,7 +1353,8 @@ class KanbanApplications extends Page
         }
 
         if ($result['requires'] === 'interview_evaluation') {
-            if (app(ApplicationWorkflowGuard::class)->canEvaluateInterview(Auth::user(), $application)) {
+            $guard = app(ApplicationWorkflowGuard::class);
+            if ($guard->canEvaluateInterview(Auth::user(), $application) || $guard->canFinalizeInterviewPanel(Auth::user(), $application, true)) {
                 return $this->interviewEvaluationPayload($application);
             }
 
@@ -1344,6 +1472,11 @@ class KanbanApplications extends Page
     private function interviewEvaluationPayload(Application $application): array
     {
         $interview = $application->interviews()->latest('id')->first();
+        $evaluatorService = app(InterviewEvaluatorService::class);
+        $progress = $interview
+            ? $evaluatorService->progress($interview)
+            : ['assigned' => 0, 'required' => 0, 'submitted' => 0, 'pending' => 0, 'waived' => 0, 'is_panel' => false, 'all_submitted' => false];
+        $assignments = $interview ? $evaluatorService->assignments($interview) : collect();
         $scorecard = $interview
             ? $application->scorecards()
                 ->where('interview_id', $interview->id)
@@ -1355,14 +1488,81 @@ class KanbanApplications extends Page
             ? $interview->scorecard_template_snapshot
             : [];
         $criteria = $scorecard?->criteria ?: ($snapshot['criteria'] ?? []);
-        $canFinalize = app(ApplicationWorkflowGuard::class)->canFinalizeInterviewEvaluation(Auth::user(), $application);
+        $guard = app(ApplicationWorkflowGuard::class);
+        $canSubmit = ! $scorecard?->submitted_at
+            && $guard->canFinalizeInterviewEvaluation(Auth::user(), $application);
+        $canFinalizePanel = $progress['is_panel']
+            && $guard->canFinalizeInterviewPanel(Auth::user(), $application, true);
+        $finalizationMode = $canFinalizePanel && $progress['all_submitted'];
+        $panelScorecards = $interview
+            ? $interview->scorecards()->whereNotNull('submitted_at')->get()
+            : collect();
+        $panelAverage = $panelScorecards->whereNotNull('average_score')->avg('average_score');
+        $panelAverage = $panelAverage !== null ? round((float) $panelAverage, 2) : null;
+        $evaluationService = app(InterviewEvaluationService::class);
+        $panelRecommendation = $evaluationService->recommendedConclusion($panelAverage);
+        $scorecardsByEvaluator = $panelScorecards->keyBy('evaluator_id');
+        $actor = Auth::user();
+        $canManagePendingEvaluators = $interview
+            && ((int) $interview->interviewer_id === (int) $actor?->id || $guard->canOverseeRecruitment($actor));
+        $evaluationAssignments = $assignments->map(function ($assignment) use ($scorecardsByEvaluator, $canManagePendingEvaluators): array {
+            $scorecard = $scorecardsByEvaluator->get($assignment->user_id);
+
+            return [
+                'user_id' => (int) $assignment->user_id,
+                'name' => $assignment->user?->name ?: 'Người đánh giá',
+                'role' => $assignment->role === 'lead' ? 'Phụ trách' : 'Cùng đánh giá',
+                'required' => (bool) $assignment->is_required,
+                'submitted' => filled($assignment->submitted_at),
+                'waived' => filled($assignment->waived_at),
+                'waiver_reason' => $assignment->waiver_reason,
+                'waived_at' => $assignment->waived_at?->copy()
+                    ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                    ->format('H:i, d/m/Y'),
+                'can_waive' => $canManagePendingEvaluators
+                    && $assignment->role !== 'lead'
+                    && $assignment->is_required
+                    && blank($assignment->submitted_at),
+                'average' => $scorecard?->average_score !== null ? (float) $scorecard->average_score : null,
+                'conclusion' => $scorecard?->conclusion,
+            ];
+        })->all();
+        $panelSubmissions = $finalizationMode
+            ? $assignments
+                ->filter(fn ($assignment): bool => filled($assignment->submitted_at))
+                ->map(function ($assignment) use ($scorecardsByEvaluator, $evaluationService): array {
+                    $scorecard = $scorecardsByEvaluator->get($assignment->user_id);
+
+                    return [
+                        'name' => $assignment->user?->name ?: 'Người đánh giá',
+                        'role' => $assignment->role === 'lead' ? 'Phụ trách' : 'Cùng đánh giá',
+                        'average' => $scorecard?->average_score !== null ? (float) $scorecard->average_score : null,
+                        'conclusion' => $evaluationService->conclusionLabel($scorecard?->conclusion),
+                        'recommendation' => $evaluationService->conclusionLabel($scorecard?->recommended_conclusion),
+                        'notes' => $scorecard?->notes,
+                        'override_reason' => $scorecard?->override_reason,
+                        'submitted_at' => $scorecard?->submitted_at?->copy()
+                            ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                            ->format('H:i, d/m/Y'),
+                        'criteria' => collect((array) $scorecard?->criteria)->map(fn (array $criterion): array => [
+                            'name' => (string) ($criterion['name'] ?? 'Tiêu chí'),
+                            'score' => $criterion['score'] ?? null,
+                            'note' => $criterion['note'] ?? null,
+                        ])->all(),
+                    ];
+                })
+                ->values()
+                ->all()
+            : [];
 
         return [
             'type' => 'interview_evaluation',
-            'title' => $canFinalize ? 'Hoàn tất đánh giá phỏng vấn' : 'Ghi nhận đánh giá phỏng vấn',
-            'message' => $canFinalize
-                ? 'Kiểm tra lại scorecard và hoàn tất đánh giá để xử lý bước tiếp theo.'
-                : 'Ghi nhận điểm và nhận xét trong buổi phỏng vấn. Hồ sơ chỉ chuyển bước khi hoàn tất đánh giá.',
+            'title' => $finalizationMode ? 'Chốt kết quả vòng phỏng vấn' : 'Đánh giá phỏng vấn',
+            'message' => $finalizationMode
+                ? 'Các phiếu bắt buộc đã hoàn tất. Kiểm tra kết quả tổng hợp trước khi chốt vòng.'
+                : ($scorecard?->submitted_at
+                    ? 'Phiếu của bạn đã được gửi. Kết quả vòng sẽ được chốt sau khi đủ đánh giá bắt buộc.'
+                    : 'Ghi nhận điểm và nhận xét theo mẫu đã thống nhất cho vòng phỏng vấn.'),
             'application_id' => $application->id,
             'candidate' => $application->snapshotCandidateName(),
             'job' => $application->job?->title,
@@ -1376,23 +1576,30 @@ class KanbanApplications extends Page
             'template_locked' => filled($interview?->scorecard_template_id),
             'template_name' => $snapshot['name'] ?? $interview?->scorecardTemplate?->name,
             'interview_questions' => $this->interviewQuestionsContext($application),
+            'evaluation_progress' => $progress,
+            'evaluation_assignments' => $evaluationAssignments,
+            'panel_submissions' => $panelSubmissions,
+            'panel_average' => $panelAverage,
+            'panel_recommendation' => $panelRecommendation,
             'draft_saved_at' => $scorecard?->updated_at
-                ? $scorecard->updated_at->copy()->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i')
+                ? $scorecard->updated_at->copy()->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y')
                 : null,
-            'draft_status' => $scorecard?->conclusion === 'hold'
-                ? 'Đã lưu kết quả cần đánh giá bổ sung.'
-                : ($scorecard ? 'Bản nháp đã lưu.' : null),
+            'draft_status' => $scorecard && blank($scorecard->submitted_at) ? 'Đã lưu bản nháp' : null,
             'form' => [
                 'template_id' => (string) ($scorecard?->template_id ?? $interview?->scorecard_template_id ?? ''),
                 'criteria' => is_array($criteria) ? $criteria : [],
-                'conclusion' => (string) ($scorecard?->conclusion ?? ''),
-                'notes' => (string) ($scorecard?->notes ?? ''),
+                'conclusion' => (string) ($finalizationMode ? ($panelRecommendation ?? '') : ($scorecard?->conclusion ?? '')),
+                'notes' => (string) ($finalizationMode ? '' : ($scorecard?->notes ?? '')),
                 'override_reason' => (string) ($scorecard?->override_reason ?? ''),
                 'rejected_reason' => (string) ($application->rejected_reason ?? ''),
                 'confirm_early_completion' => false,
                 'confirm_completion' => false,
             ],
-            'can_finalize' => $canFinalize,
+            'can_finalize' => $canSubmit,
+            'can_edit_evaluation' => ! $scorecard?->submitted_at && ! $finalizationMode,
+            'can_submit_evaluation' => $canSubmit,
+            'finalization_mode' => $finalizationMode,
+            'single_evaluator' => ! $progress['is_panel'],
         ];
     }
 
@@ -1440,10 +1647,23 @@ class KanbanApplications extends Page
      */
     private function offerDraftContext(Application $application): array
     {
+        $interview = $application->interviews()
+            ->with(['scorecards' => fn ($query) => $query->whereNotNull('submitted_at')])
+            ->latest('id')
+            ->first();
         $scorecard = $application->scorecards()
             ->whereNotNull('conclusion')
             ->latest('id')
             ->first();
+        $usesFinalInterviewResult = filled($interview?->finalized_at)
+            && in_array($interview?->result, ['pass', 'fail'], true);
+        $panelAverage = $usesFinalInterviewResult
+            ? $interview->scorecards->whereNotNull('average_score')->avg('average_score')
+            : null;
+        $evaluationAverage = $panelAverage !== null
+            ? round((float) $panelAverage, 2)
+            : ($scorecard?->average_score !== null ? (float) $scorecard->average_score : null);
+        $evaluationService = app(InterviewEvaluationService::class);
         $analysis = $this->screeningAiContext($this->screeningAiAnalysisForDisplay($application));
         $salaryRange = $application->job?->salary_range;
         $salaryMin = is_array($salaryRange) && isset($salaryRange['min']) && is_numeric($salaryRange['min'])
@@ -1460,12 +1680,23 @@ class KanbanApplications extends Page
             'candidate_name' => $application->snapshotCandidateName() ?: 'Ứng viên',
             'job_title' => $application->job?->title ?: '-',
             'branch' => $application->job?->branch?->name ?? $application->branch?->name ?? '-',
-            'interview_result' => app(InterviewEvaluationService::class)->conclusionLabel($scorecard?->conclusion),
-            'average_score' => $scorecard?->average_score !== null
-                ? number_format((float) $scorecard->average_score, 2, ',', '.').'/10'
+            'interview_result' => $evaluationService->conclusionLabel(
+                $usesFinalInterviewResult ? $interview?->result : $scorecard?->conclusion,
+            ),
+            'average_score' => $evaluationAverage !== null
+                ? number_format($evaluationAverage, 2, ',', '.').'/10'
                 : '-',
-            'recommendation' => app(InterviewEvaluationService::class)->conclusionLabel($scorecard?->recommended_conclusion),
-            'interview_note' => $this->compactAiText($scorecard?->notes ?: 'Chưa có nhận xét tổng quan từ buổi phỏng vấn.', 180),
+            'recommendation' => $evaluationService->conclusionLabel(
+                $usesFinalInterviewResult
+                    ? $evaluationService->recommendedConclusion($evaluationAverage)
+                    : $scorecard?->recommended_conclusion,
+            ),
+            'interview_note' => $this->compactAiText(
+                ($usesFinalInterviewResult ? $interview?->final_notes : null)
+                    ?: $scorecard?->notes
+                    ?: 'Chưa có nhận xét tổng quan từ buổi phỏng vấn.',
+                180,
+            ),
             'ai_summary' => $analysis['available']
                 ? $this->compactAiText((string) ($analysis['summary'] ?? ''), 180)
                 : null,
@@ -1587,6 +1818,7 @@ class KanbanApplications extends Page
             'meeting_link' => '',
             'workplace_id' => '',
             'interviewer_id' => '',
+            'evaluator_ids' => [],
             'scorecard_template_id' => '',
             'notes' => '',
         ];
@@ -1610,6 +1842,8 @@ class KanbanApplications extends Page
     {
         $this->kanbanEvaluationDraftSavedAt = null;
         $this->kanbanEvaluationDraftStatus = null;
+        $this->kanbanEvaluationWaiverUserId = null;
+        $this->kanbanEvaluationWaiverReason = '';
         $this->kanbanInterviewQuestionsConfirmation = false;
         $this->kanbanEvaluationForm = [
             'template_id' => '',
@@ -1885,6 +2119,13 @@ class KanbanApplications extends Page
             'meeting_link' => (string) ($interview?->meeting_link ?: ''),
             'workplace_id' => $interview?->workplace_id ? (string) $interview->workplace_id : '',
             'interviewer_id' => $interview?->interviewer_id ? (string) $interview->interviewer_id : '',
+            'evaluator_ids' => $interview
+                ? $interview->evaluators()
+                    ->where('user_id', '<>', (int) $interview->interviewer_id)
+                    ->pluck('user_id')
+                    ->map(fn ($id): string => (string) $id)
+                    ->all()
+                : [],
             'scorecard_template_id' => $interview?->scorecard_template_id ? (string) $interview->scorecard_template_id : '',
             'notes' => (string) ($interview?->notes ?: ''),
         ];
@@ -1904,10 +2145,23 @@ class KanbanApplications extends Page
         return User::query()
             ->where('branch_id', $branchId)
             ->where('is_active', true)
-            ->whereHas('roles', fn (Builder $query) => $query->whereIn('name', ['director', 'pm', 'hr']))
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereIn('role', ['director', 'pm', 'hr'])
+                    ->orWhereHas('roles', fn (Builder $roleQuery): Builder => $roleQuery->whereIn('name', ['director', 'pm', 'hr']));
+            })
             ->with(['branch', 'roles'])
-            ->orderBy('name')
             ->get()
+            ->sortBy(fn (User $user): string => sprintf(
+                '%d-%s',
+                match ($this->interviewerRoleKey($user)) {
+                    'pm' => 0,
+                    'hr' => 1,
+                    'director' => 2,
+                    default => 3,
+                },
+                str($user->name)->lower()->ascii()->toString(),
+            ))
             ->mapWithKeys(fn (User $user): array => [$user->id => $this->formatInterviewerLabel($user)])
             ->all();
     }
@@ -1967,7 +2221,20 @@ class KanbanApplications extends Page
         $interviewerId = (int) ($this->kanbanInterviewForm['interviewer_id'] ?? 0);
 
         if ($interviewerId <= 0 || ! array_key_exists($interviewerId, $interviewerOptions)) {
-            return ['interviewer_id' => 'Vui lòng chọn người phỏng vấn thuộc chi nhánh.'];
+            return ['interviewer_id' => 'Vui lòng chọn người phụ trách phỏng vấn thuộc chi nhánh tuyển dụng.'];
+        }
+
+        $evaluatorIds = collect((array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []))
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->unique();
+
+        if ($evaluatorIds->contains($interviewerId)) {
+            return ['evaluator_ids' => 'Người phụ trách đã có trong danh sách phân công.'];
+        }
+
+        if ($evaluatorIds->contains(fn (int $id): bool => ! array_key_exists($id, $interviewerOptions))) {
+            return ['evaluator_ids' => 'Người cùng đánh giá phải đang hoạt động và thuộc đúng chi nhánh tuyển dụng.'];
         }
 
         try {
@@ -1990,6 +2257,12 @@ class KanbanApplications extends Page
         }
 
         $workplaceId = (int) ($this->kanbanInterviewForm['workplace_id'] ?? 0);
+        $participantIds = collect((array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []))
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->prepend($interviewerId)
+            ->unique()
+            ->values();
 
         if ($type === 'offline' && ($workplaceId <= 0 || ! array_key_exists($workplaceId, $workplaceOptions))) {
             return ['workplace_id' => 'Vui lòng chọn địa điểm phỏng vấn thuộc chi nhánh.'];
@@ -1997,8 +2270,8 @@ class KanbanApplications extends Page
 
         $availabilityNotice = $this->interviewAvailabilityNotice($application);
 
-        if ($availabilityNotice === 'Người phỏng vấn đang bận khung giờ này.') {
-            return ['interviewer_id' => $availabilityNotice];
+        if (str_starts_with((string) $availabilityNotice, 'Người đánh giá ')) {
+            return ['scheduled_at' => $availabilityNotice];
         }
 
         if ($availabilityNotice === 'Ứng viên đã có lịch phỏng vấn khác trong khung giờ này.') {
@@ -2201,12 +2474,22 @@ class KanbanApplications extends Page
             );
 
             if (! $busy) {
-                $busy = $this->hasInterviewOverlap(
-                    $cursor,
-                    $endAt,
-                    $existingInterview?->id,
-                    fn (Builder $query): Builder => $query->where('interviewer_id', $interviewerId),
-                );
+                foreach ($participantIds as $participantId) {
+                    $busy = $this->hasInterviewOverlap(
+                        $cursor,
+                        $endAt,
+                        $existingInterview?->id,
+                        fn (Builder $query): Builder => $query->where(function (Builder $participantQuery) use ($participantId): void {
+                            $participantQuery
+                                ->where('interviewer_id', $participantId)
+                                ->orWhereHas('evaluators', fn (Builder $evaluatorQuery): Builder => $evaluatorQuery->where('user_id', $participantId));
+                        }),
+                    );
+
+                    if ($busy) {
+                        break;
+                    }
+                }
             }
 
             if (! $busy && $type === 'offline') {
@@ -2274,13 +2557,27 @@ class KanbanApplications extends Page
             return 'Ứng viên đã có lịch phỏng vấn khác trong khung giờ này.';
         }
 
-        if ($this->hasInterviewOverlap(
-            $scheduledAt,
-            $endAt,
-            $existingInterview?->id,
-            fn (Builder $query): Builder => $query->where('interviewer_id', $interviewerId),
-        )) {
-            return 'Người phỏng vấn đang bận khung giờ này.';
+        $participantIds = collect((array) ($this->kanbanInterviewForm['evaluator_ids'] ?? []))
+            ->map(fn ($id): int => (int) $id)
+            ->filter()
+            ->prepend($interviewerId)
+            ->unique()
+            ->values();
+        $participantNames = User::query()->whereIn('id', $participantIds)->pluck('name', 'id');
+
+        foreach ($participantIds as $participantId) {
+            if ($this->hasInterviewOverlap(
+                $scheduledAt,
+                $endAt,
+                $existingInterview?->id,
+                fn (Builder $query): Builder => $query->where(function (Builder $participantQuery) use ($participantId): void {
+                    $participantQuery
+                        ->where('interviewer_id', $participantId)
+                        ->orWhereHas('evaluators', fn (Builder $evaluatorQuery): Builder => $evaluatorQuery->where('user_id', $participantId));
+                }),
+            )) {
+                return 'Người đánh giá '.($participantNames[$participantId] ?? '').' đã có lịch khác trong khung giờ này.';
+            }
         }
 
         if ($type === 'offline') {
@@ -2380,20 +2677,35 @@ class KanbanApplications extends Page
 
     private function formatInterviewerLabel(User $user): string
     {
-        $roleKey = $user->role;
+        $displayName = trim((string) $user->name);
+        $branchName = trim((string) $user->branch?->name);
 
-        if (! filled($roleKey)) {
-            $allowed = ['director', 'pm', 'hr'];
-            $roleKey = $user->roles->first(fn ($role) => in_array($role->name, $allowed, true))?->name;
+        if ($branchName !== '' && str($displayName)->endsWith($branchName)) {
+            $displayName = trim((string) str($displayName)->beforeLast($branchName));
+            $displayName = trim((string) preg_replace('/[\s\-–—·|]+$/u', '', $displayName));
         }
 
-        $nameWithRole = $user->name;
+        $displayName = $displayName !== '' ? $displayName : $user->name;
+        $roleLabel = $this->formatUserRole($this->interviewerRoleKey($user));
+        $normalizedName = str($displayName)->lower()->ascii()->toString();
+        $normalizedRole = str($roleLabel)->lower()->ascii()->toString();
 
-        if (filled($roleKey)) {
-            $nameWithRole .= ' ('.$this->formatUserRole($roleKey).')';
+        if ($roleLabel === '' || str_contains($normalizedName, $normalizedRole)) {
+            return $displayName;
         }
 
-        return trim(implode(' - ', array_filter([$nameWithRole, $user->branch?->name])));
+        return $displayName.' · '.$roleLabel;
+    }
+
+    private function interviewerRoleKey(User $user): ?string
+    {
+        if (in_array($user->role, ['director', 'pm', 'hr'], true)) {
+            return $user->role;
+        }
+
+        return $user->roles
+            ->first(fn ($role) => in_array($role->name, ['director', 'pm', 'hr'], true))
+            ?->name;
     }
 
     private function formatWorkplaceLabel(Workplace $workplace): string
@@ -2510,7 +2822,10 @@ class KanbanApplications extends Page
                         ->orWhereHas('department', fn (Builder $departmentQuery): Builder => $departmentQuery->where('name', 'like', $like)));
 
                 if ($applicationId) {
-                    $searchQuery->orWhereKey($applicationId);
+                    $searchQuery->orWhere(
+                        $searchQuery->getModel()->qualifyColumn($searchQuery->getModel()->getKeyName()),
+                        $applicationId,
+                    );
                 }
             });
         }
@@ -2616,8 +2931,7 @@ class KanbanApplications extends Page
     private function buildCard(
         Application $application,
         ApplicationWorkflowSummaryService $summaryService,
-    ): array
-    {
+    ): array {
         $summary = $summaryService->summarize($application);
         $analysis = $this->screeningAiAnalysisForDisplay($application);
 
@@ -2750,14 +3064,28 @@ class KanbanApplications extends Page
             ];
         }
 
-        if ($workflowGuard->canEvaluateInterview(Auth::user(), $application)) {
+        if ($workflowGuard->canEvaluateInterview(Auth::user(), $application) || $workflowGuard->canFinalizeInterviewPanel(Auth::user(), $application, true)) {
             $canFinalize = $workflowGuard->canFinalizeInterviewEvaluation(Auth::user(), $application);
+            $progress = $interview ? app(InterviewEvaluatorService::class)->progress($interview) : null;
+            $scorecardSubmitted = $interview?->scorecards()
+                ->where('evaluator_id', Auth::id())
+                ->whereNotNull('submitted_at')
+                ->exists() ?? false;
+            $canFinalizePanel = $workflowGuard->canFinalizeInterviewPanel(Auth::user(), $application, true);
             $actions[] = [
                 'key' => 'evaluate_interview',
-                'label' => $canFinalize ? 'Hoàn tất đánh giá' : 'Ghi nhận đánh giá',
-                'hint' => $canFinalize
-                    ? 'Kiểm tra scorecard và chốt kết quả phỏng vấn.'
-                    : 'Lưu điểm và nhận xét tạm trong buổi phỏng vấn.',
+                'label' => $canFinalizePanel
+                    ? 'Chốt kết quả vòng'
+                    : ($scorecardSubmitted
+                        ? 'Xem phiếu đã gửi'
+                        : ($canFinalize
+                            ? (($progress['is_panel'] ?? false) ? 'Gửi phiếu đánh giá' : 'Hoàn tất đánh giá')
+                            : 'Ghi nhận đánh giá')),
+                'hint' => $canFinalizePanel
+                    ? 'Đã đủ '.$progress['submitted'].'/'.$progress['required'].' phiếu. Kiểm tra kết quả tổng hợp trước khi chốt.'
+                    : ($scorecardSubmitted
+                        ? 'Theo dõi tiến độ các phiếu đánh giá của vòng phỏng vấn.'
+                        : ($canFinalize ? 'Hoàn tất và gửi phiếu đánh giá của bạn.' : 'Lưu điểm và nhận xét tạm trong buổi phỏng vấn.')),
                 'primary' => true,
             ];
         }

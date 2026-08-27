@@ -121,8 +121,20 @@ class ApplicationWorkflowSummaryService
             return $this->summary(
                 $status,
                 'Chưa gửi thư mời',
-                'Lịch đã tạo, cần gửi thư mời cho ứng viên và người liên quan.',
+                'Lịch đã tạo, cần gửi thư mời cho ứng viên và hội đồng phỏng vấn.',
                 'warning',
+            );
+        }
+
+        $evaluationProgress = app(InterviewEvaluatorService::class)->progress($interview);
+        if ($evaluationProgress['is_panel'] && ($evaluationProgress['submitted'] > 0 || $evaluationProgress['waived'] > 0)) {
+            return $this->summary(
+                $status,
+                $evaluationProgress['all_submitted'] ? 'Chờ chốt kết quả' : 'Đang nhận phiếu đánh giá',
+                $evaluationProgress['all_submitted']
+                    ? 'Đã đủ '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu. Người phụ trách cần chốt kết quả vòng.'
+                    : 'Đã nhận '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu, còn '.$evaluationProgress['pending'].' phiếu.',
+                $evaluationProgress['all_submitted'] ? 'warning' : 'info',
             );
         }
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Filament\Resources\OfferResource;
 use App\Models\Application;
+use App\Models\Interview;
 use App\Models\Offer;
 use App\Models\User;
 use App\Models\UserNotification;
@@ -13,6 +14,76 @@ use Illuminate\Support\Collection;
 
 class RecruitmentInternalNotificationService
 {
+    public function notifyInterviewPanelAssigned(Interview $interview, bool $isUpdate = false): void
+    {
+        $interview->loadMissing([
+            'application.candidate',
+            'application.job.branch',
+            'evaluators.user',
+        ]);
+
+        $application = $interview->application;
+        $candidateName = $application?->snapshotCandidateName() ?: 'Ứng viên';
+        $jobTitle = $application?->job?->title ?: 'vị trí tuyển dụng';
+        $scheduledAt = $interview->scheduled_at
+            ? $interview->scheduled_at
+                ->copy()
+                ->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+                ->format('H:i, d/m/Y')
+            : 'chưa xác định';
+
+        $interview->evaluators
+            ->filter(fn ($assignment): bool => (bool) $assignment->user?->is_active)
+            ->each(function ($assignment) use ($interview, $isUpdate, $candidateName, $jobTitle, $scheduledAt): void {
+                $isLead = $assignment->role === 'lead';
+                $this->upsertUnreadInterviewNotification(
+                    $assignment->user,
+                    $interview,
+                    'interview_panel_assigned',
+                    $isUpdate
+                        ? 'Lịch phỏng vấn đã cập nhật'
+                        : ($isLead ? 'Bạn phụ trách một buổi phỏng vấn' : 'Bạn được phân công đánh giá'),
+                    ($isUpdate ? 'Thời gian mới: ' : 'Thời gian: ').$scheduledAt.'.',
+                    $candidateName,
+                    $jobTitle,
+                    $isLead ? 'Người phụ trách phỏng vấn' : 'Người cùng đánh giá',
+                    'Mở Kanban',
+                );
+            });
+    }
+
+    public function notifyInterviewPanelReady(Interview $interview): void
+    {
+        $interview->loadMissing([
+            'application.candidate',
+            'application.job.branch',
+            'interviewer',
+        ]);
+
+        $lead = $interview->interviewer;
+        if (! $lead?->is_active) {
+            return;
+        }
+
+        $progress = app(InterviewEvaluatorService::class)->progress($interview);
+        if (! $progress['is_panel'] || ! $progress['all_submitted']) {
+            return;
+        }
+
+        $application = $interview->application;
+        $this->upsertUnreadInterviewNotification(
+            $lead,
+            $interview,
+            'interview_panel_ready',
+            'Đã đủ phiếu đánh giá',
+            'Đã nhận '.$progress['submitted'].'/'.$progress['required'].' phiếu. Vui lòng chốt kết quả vòng phỏng vấn.',
+            $application?->snapshotCandidateName() ?: 'Ứng viên',
+            $application?->job?->title ?: 'vị trí tuyển dụng',
+            'Người phụ trách phỏng vấn',
+            'Chốt kết quả',
+        );
+    }
+
     public function notifyOfferSubmittedForApproval(Offer $offer): void
     {
         $offer->loadMissing(['application.candidate', 'application.job.branch']);
@@ -209,5 +280,51 @@ class RecruitmentInternalNotificationService
             'context' => trim($jobTitle.($branchName ? ' · '.$branchName : '')),
             'action_label' => $actionLabel,
         ];
+    }
+
+    private function upsertUnreadInterviewNotification(
+        User $user,
+        Interview $interview,
+        string $type,
+        string $title,
+        string $message,
+        string $subject,
+        string $context,
+        string $role,
+        string $actionLabel,
+    ): void {
+        $data = [
+            'title' => $title,
+            'message' => $message,
+            'url' => ApplicationResource::getUrl('kanban'),
+            'application_id' => $interview->application_id,
+            'interview_id' => $interview->id,
+            'subject' => $subject,
+            'context' => $context.' · '.$role,
+            'action_label' => $actionLabel,
+        ];
+
+        $notification = UserNotification::query()
+            ->where('user_id', $user->id)
+            ->where('type', $type)
+            ->whereNull('read_at')
+            ->where('data->interview_id', $interview->id)
+            ->latest('id')
+            ->first();
+
+        if ($notification) {
+            $notification->forceFill([
+                'data' => $data,
+                'created_at' => now(),
+            ])->save();
+
+            return;
+        }
+
+        UserNotification::create([
+            'user_id' => $user->id,
+            'type' => $type,
+            'data' => $data,
+        ]);
     }
 }

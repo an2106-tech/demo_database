@@ -23,6 +23,9 @@ class Interview extends Model
         'round_name',
         'scheduled_at',
         'actual_ended_at',
+        'finalized_at',
+        'finalized_by_user_id',
+        'final_notes',
         'duration_minutes',
         'type',
         'meeting_link',
@@ -37,6 +40,7 @@ class Interview extends Model
         'invite_sent_at' => 'datetime',
         'invite_confirmed_at' => 'datetime',
         'actual_ended_at' => 'datetime',
+        'finalized_at' => 'datetime',
         'duration_minutes' => 'integer',
         'round_number' => 'integer',
         'scorecard_template_snapshot' => 'array',
@@ -78,6 +82,16 @@ class Interview extends Model
     public function interviewer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'interviewer_id');
+    }
+
+    public function finalizedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'finalized_by_user_id');
+    }
+
+    public function evaluators(): HasMany
+    {
+        return $this->hasMany(InterviewEvaluator::class);
     }
 
     public function scorecardTemplate(): BelongsTo

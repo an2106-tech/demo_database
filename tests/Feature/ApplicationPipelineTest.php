@@ -161,6 +161,15 @@ class ApplicationPipelineTest extends TestCase
 
         $this->actingAs($hr);
 
+        app(\App\Services\ApplicationPreScreeningService::class)->record(
+            $application,
+            $hr,
+            'phone',
+            now(),
+            'passed',
+            note: 'Ứng viên xác nhận tiếp tục quy trình.',
+        );
+
         Livewire::test(ApplicationPipeline::class)
             ->call('openInterviewScheduler', $application->id)
             ->assertSet('showInterviewModal', true)
@@ -392,6 +401,7 @@ class ApplicationPipelineTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/fpt-pm',
+            'invite_sent_at' => now()->subHours(2),
             'result' => 'pending',
         ]);
 
@@ -432,6 +442,7 @@ class ApplicationPipelineTest extends TestCase
             'duration_minutes' => 60,
             'type' => 'online',
             'meeting_link' => 'https://meet.google.com/fpt-demo',
+            'invite_sent_at' => now()->subHours(2),
             'result' => 'pending',
         ]);
 
