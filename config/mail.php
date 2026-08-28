@@ -16,6 +16,8 @@ return [
 
     'default' => env('MAIL_MAILER', 'log'),
 
+    'queue_spacing_seconds' => (int) env('MAIL_QUEUE_SPACING_SECONDS', 2),
+
     /*
     |--------------------------------------------------------------------------
     | Mailer Configurations

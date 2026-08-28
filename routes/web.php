@@ -218,7 +218,9 @@ Route::prefix('employers')->name('employers.')->group(function () {
         Route::get('/candidate-profile', EmpCandidateProfile::class)->name('candidate_profile');
         Route::get('/manage-jobs', EmployerManageJobs::class)->name('manage_jobs');
         Route::get('/candidate-earnings', CandidateEarnings::class)->name('candidate_earnings');
-        Route::get('/application-pipeline', \App\Livewire\Client\Employers\ApplicationPipeline::class)->name('application_pipeline');
+        Route::get('/application-pipeline', \App\Livewire\Client\Employers\ApplicationPipeline::class)
+            ->middleware('applications.kanban-only')
+            ->name('application_pipeline');
         Route::post('/application-pipeline/{application}/advance', function (\App\Models\Application $application) {
             $user = auth()->user();
             $branchId = $user?->branchScopeId();
@@ -242,7 +244,10 @@ Route::prefix('employers')->name('employers.')->group(function () {
             }
 
             $nextStatus = collect($pipelineService->allowedTransitions($application->status))
-                ->first(fn (\App\Enums\StatusApplicationEnum $status): bool => $status !== \App\Enums\StatusApplicationEnum::REJECTED);
+                ->first(fn (\App\Enums\StatusApplicationEnum $status): bool => ! in_array($status, [
+                    \App\Enums\StatusApplicationEnum::REJECTED,
+                    \App\Enums\StatusApplicationEnum::WITHDRAWN,
+                ], true));
 
             if (! $nextStatus) {
                 return back()->with('warning', 'Hồ sơ này chưa có bước kế tiếp phù hợp.');
@@ -262,10 +267,11 @@ Route::prefix('employers')->name('employers.')->group(function () {
                 \App\Enums\StatusApplicationEnum::OFFERED->value => 'Đề nghị tuyển dụng',
                 \App\Enums\StatusApplicationEnum::HIRED->value => 'Đã tuyển',
                 \App\Enums\StatusApplicationEnum::REJECTED->value => 'Từ chối',
+                \App\Enums\StatusApplicationEnum::WITHDRAWN->value => 'Ứng viên rút hồ sơ',
             ];
 
             return back()->with('message', 'Đã chuyển hồ sơ sang: '.($statusLabels[$nextStatus->value] ?? $nextStatus->value).'.');
-        })->name('application_pipeline.advance');
+        })->middleware('applications.kanban-only')->name('application_pipeline.advance');
         Route::post('/application-pipeline/{application}/schedule-interview', function (\App\Models\Application $application) {
             $user = auth()->user();
             $application->loadMissing(['candidate', 'job.branch']);
@@ -399,7 +405,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
             return redirect()
                 ->route('employers.application_pipeline')
                 ->with('message', $existingInterview ? 'Đã cập nhật lịch phỏng vấn.' : 'Đã tạo lịch phỏng vấn.');
-        })->name('application_pipeline.schedule_interview');
+        })->middleware('applications.kanban-only')->name('application_pipeline.schedule_interview');
         Route::post('/application-pipeline/{application}/evaluate-interview', function (\App\Models\Application $application) {
             $user = auth()->user();
             $application->loadMissing(['job.branch']);
@@ -543,7 +549,7 @@ Route::prefix('employers')->name('employers.')->group(function () {
             return redirect()
                 ->route('employers.application_pipeline')
                 ->with('message', 'Da luu danh gia phong van.');
-        })->name('application_pipeline.evaluate_interview');
+        })->middleware('applications.kanban-only')->name('application_pipeline.evaluate_interview');
 
         Route::post('/applications/{application}/advance', [EmployerApplicationPipelineController::class, 'advance'])->name('applications.advance');
     });

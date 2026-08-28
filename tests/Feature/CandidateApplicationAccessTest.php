@@ -122,13 +122,21 @@ class CandidateApplicationAccessTest extends TestCase
             ->call('withdraw')
             ->assertRedirect(route('candidates.manage_jobs'));
 
-        $this->assertSoftDeleted('applications', [
+        $this->assertDatabaseHas('applications', [
             'id' => $application->id,
+            'status' => StatusApplicationEnum::WITHDRAWN->value,
+            'deleted_at' => null,
         ]);
-        $this->assertSoftDeleted('candidate_job_submissions', [
+        $this->assertDatabaseHas('candidate_job_submissions', [
             'job_id' => $job->id,
             'candidate_id' => $candidate->id,
+            'deleted_at' => null,
         ]);
+        $this->assertDatabaseHas('application_status_histories', [
+            'application_id' => $application->id,
+            'to_status' => StatusApplicationEnum::WITHDRAWN->value,
+        ]);
+        $this->assertNotNull($application->fresh()->withdrawn_at);
     }
 
     /**

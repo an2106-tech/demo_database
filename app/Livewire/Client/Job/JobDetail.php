@@ -2,25 +2,31 @@
 
 namespace App\Livewire\Client\Job;
 
-use App\Models\CandidateResume;
 use App\Models\Candidate;
+use App\Models\CandidateResume;
 use App\Models\RecruitmentJob;
 use App\Services\AiMatchingService;
 use App\Services\AiMockInterviewService;
 use App\Services\CandidateAccountService;
 use App\Services\CvTextExtractor;
+use App\Services\InterviewProcessTemplateService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
-use Illuminate\Support\Facades\Route;
 
 class JobDetail extends Component
 {
     public $id;
+
     public $job;
+
     public bool $hasCandidateAccess = false;
+
     public bool $hasCv = false;
+
     public bool $showApplyAction = false;
+
     public ?array $jobFitAiResult = null;
 
     public function mount($id = null, $slug = null)
@@ -58,6 +64,7 @@ class JobDetail extends Component
 
         if (! $user || ! $this->hasCandidateAccess) {
             $this->dispatch('app-notify', message: 'Vui long dang nhap bang tai khoan ung vien de dung AI kiem tra phu hop.', type: 'error');
+
             return;
         }
 
@@ -66,6 +73,7 @@ class JobDetail extends Component
 
         if (! $candidateService->candidateHasCv($candidate)) {
             $this->dispatch('app-notify', message: 'Ban can tai CV len ho so truoc khi kiem tra AI.', type: 'error');
+
             return;
         }
 
@@ -86,39 +94,39 @@ class JobDetail extends Component
         if (filled($resume->career_objective)) {
             $cvParts[] = "Muc tieu nghe nghiep: {$resume->career_objective}";
         }
-        if (!empty($resume->desired_job)) {
-            $cvParts[] = "Vi tri mong muon: " . $this->formatArrayField($resume->desired_job);
+        if (! empty($resume->desired_job)) {
+            $cvParts[] = 'Vi tri mong muon: '.$this->formatArrayField($resume->desired_job);
         }
-        if (!empty($resume->skills)) {
-            $cvParts[] = "Ky nang: " . $this->formatArrayField($resume->skills);
+        if (! empty($resume->skills)) {
+            $cvParts[] = 'Ky nang: '.$this->formatArrayField($resume->skills);
         }
-        if (!empty($resume->experiences)) {
-            $cvParts[] = "Kinh nghiem lam viec:\n" . $this->formatExperiences($resume->experiences);
+        if (! empty($resume->experiences)) {
+            $cvParts[] = "Kinh nghiem lam viec:\n".$this->formatExperiences($resume->experiences);
         }
-        if (!empty($resume->educations)) {
-            $cvParts[] = "Hoc van:\n" . $this->formatArrayField($resume->educations);
+        if (! empty($resume->educations)) {
+            $cvParts[] = "Hoc van:\n".$this->formatArrayField($resume->educations);
         }
-        if (!empty($resume->certifications)) {
-            $cvParts[] = "Chung chi: " . $this->formatArrayField($resume->certifications);
+        if (! empty($resume->certifications)) {
+            $cvParts[] = 'Chung chi: '.$this->formatArrayField($resume->certifications);
         }
-        if (!empty($resume->languages)) {
-            $cvParts[] = "Ngoai ngu: " . $this->formatArrayField($resume->languages);
+        if (! empty($resume->languages)) {
+            $cvParts[] = 'Ngoai ngu: '.$this->formatArrayField($resume->languages);
         }
-        if (!empty($resume->achievements)) {
-            $cvParts[] = "Thanh tich: " . $this->formatArrayField($resume->achievements);
+        if (! empty($resume->achievements)) {
+            $cvParts[] = 'Thanh tich: '.$this->formatArrayField($resume->achievements);
         }
 
         $cvText = implode("\n", $cvParts);
 
         // Extract text from uploaded CV file (PDF/DOCX) and append
         $pdfPath = null;
-        if (!empty($candidate->cv_file)) {
+        if (! empty($candidate->cv_file)) {
             $pdfPath = Storage::disk('public')->path($candidate->cv_file);
 
             try {
                 $extractedFileText = app(CvTextExtractor::class)->extractFromPublicPath($candidate->cv_file);
                 if (filled($extractedFileText) && strlen($extractedFileText) > 50) {
-                    $cvText .= "\n\n[Noi dung file CV]\n" . mb_substr($extractedFileText, 0, 4000);
+                    $cvText .= "\n\n[Noi dung file CV]\n".mb_substr($extractedFileText, 0, 4000);
                 }
             } catch (\Throwable) {
                 // silently ignore extraction errors
@@ -126,29 +134,29 @@ class JobDetail extends Component
         }
 
         // Build enriched JD data with structured sections
-        $descriptionHtml  = (string) ($this->job->description ?? '');
+        $descriptionHtml = (string) ($this->job->description ?? '');
         $descriptionPlain = trim(strip_tags($descriptionHtml));
-        $parsedSections   = $this->parseJdSections($descriptionHtml);
+        $parsedSections = $this->parseJdSections($descriptionHtml);
 
         $jobData = [
-            'id'               => $this->job->id,
-            'title'            => $this->job->title,
-            'description'      => $descriptionPlain,
-            'requirements'     => $parsedSections['requirements'] ?? '',
+            'id' => $this->job->id,
+            'title' => $this->job->title,
+            'description' => $descriptionPlain,
+            'requirements' => $parsedSections['requirements'] ?? '',
             'responsibilities' => $parsedSections['responsibilities'] ?? '',
-            'benefits'         => $parsedSections['benefits'] ?? '',
-            'department'       => $this->job->department?->name,
-            'workplace'        => $this->job->workplace?->name,
-            'branch'           => $this->job->branch?->name,
-            'skills'           => $this->job->skills->map(fn ($s) => $s->name)->values()->all(),
-            'categories'       => $this->job->categories->map(fn ($c) => $c->name)->values()->all(),
-            'deadline'         => optional($this->job->deadline)?->toDateString(),
+            'benefits' => $parsedSections['benefits'] ?? '',
+            'department' => $this->job->department?->name,
+            'workplace' => $this->job->workplace?->name,
+            'branch' => $this->job->branch?->name,
+            'skills' => $this->job->skills->map(fn ($s) => $s->name)->values()->all(),
+            'categories' => $this->job->categories->map(fn ($c) => $c->name)->values()->all(),
+            'deadline' => optional($this->job->deadline)?->toDateString(),
         ];
 
         // Smart cache version – invalidates when candidate, resume or job changes
         $cacheVersion = md5(
-            ($candidate->updated_at?->timestamp ?? 0) . '_' .
-            ($resume->updated_at?->timestamp ?? 0) . '_' .
+            ($candidate->updated_at?->timestamp ?? 0).'_'.
+            ($resume->updated_at?->timestamp ?? 0).'_'.
             ($this->job->updated_at?->timestamp ?? 0)
         );
 
@@ -157,6 +165,7 @@ class JobDetail extends Component
         if (is_array($result)) {
             $this->jobFitAiResult = $result;
             $this->dispatch('app-notify', message: 'AI da kiem tra do phu hop cho cong viec nay.', type: 'success');
+
             return;
         }
 
@@ -169,43 +178,66 @@ class JobDetail extends Component
 
     private function formatArrayField(mixed $field): string
     {
-        if (empty($field)) return 'N/A';
-        if (is_string($field)) return $field;
+        if (empty($field)) {
+            return 'N/A';
+        }
+        if (is_string($field)) {
+            return $field;
+        }
         if (is_array($field)) {
             $first = reset($field);
             if (is_string($first) || is_numeric($first)) {
                 return implode(', ', array_filter(array_map('strval', $field)));
             }
+
             return json_encode($field, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         }
+
         return json_encode($field, JSON_UNESCAPED_UNICODE);
     }
 
     private function formatExperiences(mixed $experiences): string
     {
-        if (empty($experiences) || !is_array($experiences)) return 'N/A';
+        if (empty($experiences) || ! is_array($experiences)) {
+            return 'N/A';
+        }
         $lines = [];
         foreach ($experiences as $exp) {
-            if (!is_array($exp)) continue;
+            if (! is_array($exp)) {
+                continue;
+            }
             $line = '';
-            if (!empty($exp['position']))    $line .= $exp['position'];
-            if (!empty($exp['company']))     $line .= ' at ' . $exp['company'];
-            if (!empty($exp['duration']))    $line .= ' (' . $exp['duration'] . ')';
-            if (!empty($exp['description'])) $line .= ': ' . $exp['description'];
-            if ($line) $lines[] = '- ' . $line;
+            if (! empty($exp['position'])) {
+                $line .= $exp['position'];
+            }
+            if (! empty($exp['company'])) {
+                $line .= ' at '.$exp['company'];
+            }
+            if (! empty($exp['duration'])) {
+                $line .= ' ('.$exp['duration'].')';
+            }
+            if (! empty($exp['description'])) {
+                $line .= ': '.$exp['description'];
+            }
+            if ($line) {
+                $lines[] = '- '.$line;
+            }
         }
+
         return $lines ? implode("\n", $lines) : json_encode($experiences, JSON_UNESCAPED_UNICODE);
     }
 
     private function parseJdSections(string $html): array
     {
-        if (blank($html)) return [];
+        if (blank($html)) {
+            return [];
+        }
 
-        $sections   = [];
+        $sections = [];
         $keywordMap = [
-            'requirements'     => ['yeu cau', 'requirement', 'qualification'],
+            'requirements' => ['yeu cau', 'requirement', 'qualification'],
             'responsibilities' => ['trach nhiem', 'cong viec', 'responsibilit', 'nhiem vu'],
-            'benefits'         => ['quyen loi', 'phuc loi', 'benefit', 'dai ngo'],
+            'benefits' => ['quyen loi', 'phuc loi', 'benefit', 'dai ngo'],
         ];
 
         $pattern = '/<h[23][^>]*>(.*?)<\/h[23]>(.*?)(?=<h[23]|$)/is';
@@ -239,18 +271,21 @@ class JobDetail extends Component
 
         return view('livewire.client.job.job-detail', [
             'job' => $this->job,
+            'publicInterviewProcess' => app(InterviewProcessTemplateService::class)
+                ->publicSummaryForJob($this->job),
         ])->layout($layout);
     }
 
     public function startAiMockInterview(AiMockInterviewService $service)
     {
-        if (!auth()->check()) {
+        if (! auth()->check()) {
             return redirect()->route('candidates.login');
         }
 
         $candidate = Candidate::where('user_id', auth()->id())->first();
-        if (!$candidate) {
+        if (! $candidate) {
             $this->dispatch('app-notify', message: 'Không tìm thấy hồ sơ ứng viên.');
+
             return;
         }
 

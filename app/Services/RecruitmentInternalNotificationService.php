@@ -46,7 +46,7 @@ class RecruitmentInternalNotificationService
                     ($isUpdate ? 'Thời gian mới: ' : 'Thời gian: ').$scheduledAt.'.',
                     $candidateName,
                     $jobTitle,
-                    $isLead ? 'Người phụ trách phỏng vấn' : 'Người cùng đánh giá',
+                    $isLead ? 'Người phụ trách vòng phỏng vấn' : 'Thành viên đánh giá',
                     'Mở Kanban',
                 );
             });
@@ -79,9 +79,44 @@ class RecruitmentInternalNotificationService
             'Đã nhận '.$progress['submitted'].'/'.$progress['required'].' phiếu. Vui lòng chốt kết quả vòng phỏng vấn.',
             $application?->snapshotCandidateName() ?: 'Ứng viên',
             $application?->job?->title ?: 'vị trí tuyển dụng',
-            'Người phụ trách phỏng vấn',
+            'Người phụ trách vòng phỏng vấn',
             'Chốt kết quả',
         );
+    }
+
+    public function notifyInterviewRoundHandoff(Interview $interview, bool $hasNextRound): void
+    {
+        $interview->loadMissing(['application.candidate', 'application.job.branch']);
+        $application = $interview->application;
+        if (! $application) {
+            return;
+        }
+
+        $branchId = $application?->job?->branch_id ?? $application?->branch_id;
+        $candidateName = $application?->snapshotCandidateName() ?: 'Ứng viên';
+        $jobTitle = $application?->job?->title ?: 'vị trí tuyển dụng';
+
+        $this->branchUsers($branchId, ['hr'])
+            ->reject(fn (User $user): bool => (int) $user->id === (int) $interview->finalized_by_user_id)
+            ->each(function (User $user) use ($interview, $hasNextRound, $candidateName, $jobTitle): void {
+                $nextRound = $hasNextRound
+                    ? app(InterviewRoundWorkflowService::class)->nextRound($interview->application, $interview)
+                    : null;
+
+                $this->upsertUnreadInterviewNotification(
+                    $user,
+                    $interview,
+                    $hasNextRound ? 'interview_next_round_ready' : 'interview_process_passed',
+                    $hasNextRound ? 'Cần tạo lịch vòng tiếp theo' : 'Ứng viên đã đạt vòng cuối',
+                    $hasNextRound
+                        ? 'Đã chốt đạt vòng '.(int) $interview->round_number.'. Tạo lịch cho '.mb_strtolower((string) ($nextRound['name'] ?? 'vòng tiếp theo')).'.'
+                        : 'Quy trình phỏng vấn đã hoàn tất. Có thể tạo đề nghị tuyển dụng.',
+                    $candidateName,
+                    $jobTitle,
+                    'Bàn giao cho HR',
+                    $hasNextRound ? 'Tạo lịch' : 'Tạo đề nghị',
+                );
+            });
     }
 
     public function notifyOfferSubmittedForApproval(Offer $offer): void

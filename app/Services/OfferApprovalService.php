@@ -6,11 +6,13 @@ use App\Mail\CandidateOfferMail;
 use App\Mail\OfferApprovedNotificationMail;
 use App\Models\Offer;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class OfferApprovalService
 {
+    private ?string $lastError = null;
+
     public function __construct(
         private OfferPdfService $pdfService,
         private RecruitmentInternalNotificationService $internalNotifications,
@@ -21,12 +23,14 @@ class OfferApprovalService
      */
     public function approve(Offer $offer, User $approver): bool
     {
+        $this->lastError = null;
         $invitationHandedOff = false;
 
         try {
             $offer->loadMissing(['application.candidate', 'application.job.branch']);
 
             if (! $this->canReviewOffer($offer, $approver)) {
+                $this->lastError = 'Đề nghị không còn ở trạng thái chờ duyệt hoặc bạn không có quyền xử lý.';
                 Log::warning('Unauthorized offer approval attempt.', [
                     'offer_id' => $offer->id,
                     'user_id' => $approver->id,
@@ -35,20 +39,31 @@ class OfferApprovalService
                 return false;
             }
 
-            $responseDeadline = $offer->expires_at && $offer->expires_at->isFuture()
-                ? $offer->expires_at
-                : now()->addDays(3);
+            $responseDeadline = $offer->expires_at;
+            $startDate = $offer->start_date?->copy()->startOfDay();
 
-            if (! $offer->expires_at || ! $offer->expires_at->equalTo($responseDeadline)) {
-                $offer->forceFill([
-                    'expires_at' => $responseDeadline,
-                ])->save();
-                $offer->refresh();
+            if (! $responseDeadline || ! $responseDeadline->isFuture()) {
+                $this->lastError = 'Hạn phản hồi đã qua. HR cần cập nhật đề nghị trước khi gửi lại duyệt.';
+
+                return false;
+            }
+
+            if (! $startDate || $startDate->isBefore(now()->startOfDay())) {
+                $this->lastError = 'Ngày bắt đầu dự kiến không còn hợp lệ. HR cần cập nhật đề nghị.';
+
+                return false;
+            }
+
+            if ($responseDeadline->greaterThanOrEqualTo($startDate)) {
+                $this->lastError = 'Hạn phản hồi phải trước ngày bắt đầu dự kiến.';
+
+                return false;
             }
 
             // Send to candidate
             $candidate = $offer->application?->candidate;
             if (!$candidate?->email) {
+                $this->lastError = 'Ứng viên chưa có địa chỉ email để nhận thư mời.';
                 Log::warning('Cannot send offer to candidate - no email', ['offer_id' => $offer->id]);
                 return false;
             }
@@ -80,18 +95,21 @@ class OfferApprovalService
                 ]);
 
             if ($claimed !== 1) {
+                $this->lastError = 'Đề nghị vừa được người khác xử lý. Vui lòng tải lại trang.';
+
                 return false;
             }
 
             $offer->refresh();
 
-            Mail::to($candidate->email)->queue(
+            app(OutboundMailQueue::class)->queue(
+                $candidate->email,
                 new CandidateOfferMail(
                     $candidate,
                     $offer->application,
                     $offer->application->job,
                     $offer
-                )
+                ),
             );
             $invitationHandedOff = true;
 
@@ -117,6 +135,7 @@ class OfferApprovalService
 
             return true;
         } catch (\Throwable $exception) {
+            $this->lastError ??= 'Không thể duyệt đề nghị lúc này. Vui lòng thử lại hoặc kiểm tra queue.';
             if (! $invitationHandedOff) {
                 Offer::query()
                     ->whereKey($offer->id)
@@ -138,6 +157,11 @@ class OfferApprovalService
 
             return false;
         }
+    }
+
+    public function lastError(): ?string
+    {
+        return $this->lastError;
     }
 
     /**
@@ -241,7 +265,11 @@ class OfferApprovalService
         $teamMembers = User::query()
             ->where('branch_id', $branchId)
             ->where('is_active', true)
-            ->whereHas('roles', fn ($q) => $q->whereIn('name', ['director', 'hr', 'pm']))
+            ->where(function (Builder $query): void {
+                $query
+                    ->whereIn('role', ['director', 'hr', 'pm'])
+                    ->orWhereHas('roles', fn (Builder $roleQuery) => $roleQuery->whereIn('name', ['director', 'hr', 'pm']));
+            })
             ->with('roles')
             ->get();
 
@@ -255,14 +283,15 @@ class OfferApprovalService
                 // Determine user's role
                 $role = $user->roles?->first()?->name ?? $user->role ?? 'hr';
 
-                Mail::to($user->email)->queue(
+                app(OutboundMailQueue::class)->queue(
+                    $user->email,
                     new OfferApprovedNotificationMail(
                         $offer,
                         $offer->application,
                         $offer->application->job,
                         $user,
                         $role
-                    )
+                    ),
                 );
             } catch (\Throwable $exception) {
                 Log::warning('Failed to send offer approval notification', [

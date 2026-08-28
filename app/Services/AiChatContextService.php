@@ -255,7 +255,7 @@ class AiChatContextService
         ];
 
         $staleApplications = (clone $applications)
-            ->whereNotIn('status', ['hired', 'rejected'])
+            ->whereNotIn('status', ['hired', 'rejected', 'withdrawn'])
             ->where('updated_at', '<=', now()->subDays(7))
             ->with(['candidate:id,name', 'job:id,title'])
             ->oldest('updated_at')
@@ -322,7 +322,7 @@ class AiChatContextService
 
             $hrLoads = (clone $applications)
                 ->whereNotNull('assigned_hr_id')
-                ->whereNotIn('status', ['hired', 'rejected'])
+                ->whereNotIn('status', ['hired', 'rejected', 'withdrawn'])
                 ->selectRaw('assigned_hr_id, count(*) as aggregate')
                 ->groupBy('assigned_hr_id')
                 ->orderByDesc('aggregate')

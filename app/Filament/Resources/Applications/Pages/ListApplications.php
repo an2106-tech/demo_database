@@ -14,6 +14,11 @@ class ListApplications extends ListRecords
 {
     protected static string $resource = ApplicationResource::class;
 
+    public function mount(): void
+    {
+        $this->redirect(ApplicationResource::getUrl('kanban'), navigate: true);
+    }
+
     protected function getHeaderActions(): array
     {
         return [

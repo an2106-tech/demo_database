@@ -13,10 +13,13 @@ use App\Models\RecruitmentJob;
 use App\Models\Scorecard;
 use App\Models\ScorecardTemplate;
 use App\Models\User;
+use App\Services\ApplicationAiAnalysisService;
 use App\Services\ApplicationKanbanTransitionService;
 use App\Services\InterviewEvaluatorService;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -36,6 +39,18 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
         $this->assertNull($result['target_status']);
         $this->assertNull($result['requires']);
         $this->assertStringContainsString('Không thể chuyển', $result['message']);
+    }
+
+    public function test_withdrawn_application_is_terminal_on_kanban(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::WITHDRAWN);
+
+        $result = app(ApplicationKanbanTransitionService::class)
+            ->evaluateStageMove($application, 'screening', $hr);
+
+        $this->assertFalse($result['allowed']);
+        $this->assertNull($result['target_status']);
+        $this->assertStringContainsString('đã kết thúc', $result['message']);
     }
 
     public function test_it_requires_screening_data_before_moving_to_screening_stage(): void
@@ -127,8 +142,9 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
         ]);
 
         Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Storage::fake('local');
 
-        Livewire::actingAs($hr)
+        $component = Livewire::actingAs($hr)
             ->test(KanbanApplications::class)
             ->set('search', 'HS'.$application->id)
             ->assertSee($application->snapshotCandidateName())
@@ -136,14 +152,82 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
             ->assertSet('kanbanDropAction.type', 'interview_schedule')
             ->assertSet('kanbanDropAction.application_id', $application->id)
             ->assertSee('scheduleInterviewFromKanban', escape: false)
-            ->assertSee('Người phụ trách phỏng vấn')
-            ->assertSee('Người cùng đánh giá')
+            ->assertSee('Mẫu đánh giá mặc định')
+            ->assertSee('Xem tiêu chí đánh giá')
+            ->assertDontSee('Chọn mẫu đánh giá')
+            ->assertSee('Người phụ trách vòng phỏng vấn')
+            ->assertSee('Thành viên đánh giá')
             ->set('kanbanInterviewForm.evaluator_ids', [(string) $hr->id, (string) $member->id])
             ->set('kanbanInterviewForm.interviewer_id', (string) $hr->id)
             ->assertSet('kanbanInterviewForm.evaluator_ids', [(string) $member->id])
             ->set('kanbanInterviewForm.interviewer_id', '')
             ->assertSet('kanbanInterviewForm.evaluator_ids', [])
             ->assertSee('Lưu lịch phỏng vấn');
+
+        $component
+            ->set('kanbanInterviewForm.interviewer_id', (string) $hr->id)
+            ->set('kanbanInterviewForm.scheduled_at', now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->addDay()->setMinute(0)->format('Y-m-d\TH:i'))
+            ->set('kanbanInterviewForm.duration_minutes', '60')
+            ->set('kanbanInterviewForm.type', 'online')
+            ->set('kanbanInterviewForm.meeting_link', 'https://meet.google.com/abc-defg-hij')
+            ->call('scheduleInterviewFromKanban')
+            ->assertHasNoErrors();
+
+        $scorecard = ScorecardTemplate::query()->where('name', 'Mẫu đánh giá mặc định')->firstOrFail();
+        $this->assertDatabaseHas('interviews', [
+            'application_id' => $application->id,
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn và đánh giá',
+            'scorecard_template_id' => $scorecard->id,
+        ]);
+    }
+
+    public function test_kanban_can_open_and_reschedule_an_overdue_unsent_interview(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEW_SCHEDULED);
+        $scorecard = ScorecardTemplate::query()->where('name', 'Mẫu đánh giá mặc định')->firstOrFail();
+        $interview = Interview::query()->create([
+            'application_id' => $application->id,
+            'interviewer_id' => $hr->id,
+            'scorecard_template_id' => $scorecard->id,
+            'scorecard_template_snapshot' => [
+                'id' => $scorecard->id,
+                'name' => $scorecard->name,
+                'criteria' => $scorecard->criteria,
+            ],
+            'round_number' => 1,
+            'round_name' => 'Phỏng vấn và đánh giá',
+            'scheduled_at' => now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->subDay(),
+            'duration_minutes' => 60,
+            'type' => 'online',
+            'meeting_link' => 'https://meet.google.com/abc-defg-hij',
+            'result' => 'pending',
+        ]);
+        $hr->givePermissionTo([
+            Permission::findOrCreate('ViewAny:Application'),
+            Permission::findOrCreate('View:Application'),
+        ]);
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Storage::fake('local');
+        $newSchedule = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))
+            ->addDay()
+            ->setMinute(0)
+            ->format('Y-m-d\TH:i');
+
+        Livewire::actingAs($hr)
+            ->test(KanbanApplications::class)
+            ->call('openInterviewScheduleFromKanban', $application->id)
+            ->assertSet('kanbanDropAction.type', 'interview_schedule')
+            ->assertSet('kanbanDropAction.application_id', $application->id)
+            ->assertSet('kanbanInterviewForm.interviewer_id', (string) $hr->id)
+            ->set('kanbanInterviewForm.scheduled_at', $newSchedule)
+            ->call('scheduleInterviewFromKanban')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseCount('interviews', 1);
+        $this->assertTrue($interview->fresh()->scheduled_at->isFuture());
+        $this->assertNull($interview->fresh()->invite_sent_at);
     }
 
     public function test_it_only_allows_hired_stage_after_candidate_accepts_offer(): void
@@ -294,6 +378,69 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
         $this->assertSame('Cần làm rõ kinh nghiệm.', $payload['panel_submissions'][1]['notes']);
     }
 
+    public function test_evaluation_confirmation_is_only_reset_when_the_result_changes(): void
+    {
+        $page = app(KanbanApplications::class);
+        $page->kanbanEvaluationForm['confirm_completion'] = true;
+
+        $page->updatedKanbanEvaluationForm('Nhận xét bổ sung.', 'notes');
+        $this->assertTrue($page->kanbanEvaluationForm['confirm_completion']);
+
+        $page->updatedKanbanEvaluationForm('Làm rõ thêm.', 'criteria.0.note');
+        $this->assertTrue($page->kanbanEvaluationForm['confirm_completion']);
+
+        $page->updatedKanbanEvaluationForm('', 'notes');
+        $this->assertFalse($page->kanbanEvaluationForm['confirm_completion']);
+
+        $page->kanbanEvaluationForm['confirm_completion'] = true;
+        $page->updatedKanbanEvaluationForm(9, 'criteria.0.score');
+        $this->assertFalse($page->kanbanEvaluationForm['confirm_completion']);
+    }
+
+    public function test_interview_questions_can_use_job_and_scorecard_without_screening_analysis(): void
+    {
+        [$hr, $application] = $this->makeApplication(StatusApplicationEnum::INTERVIEWING);
+        config()->set('services.gemini.key', 'test-key');
+        Http::fake([
+            '*' => Http::response([
+                'candidates' => [[
+                    'content' => [
+                        'parts' => [[
+                            'text' => json_encode([
+                                'questions' => [[
+                                    'criterion' => 'Năng lực chuyên môn',
+                                    'type' => 'Tình huống',
+                                    'question' => 'Bạn sẽ xử lý một buổi học có mức độ tiếp thu không đồng đều như thế nào?',
+                                    'purpose' => 'Đánh giá khả năng xử lý tình huống',
+                                    'expected_signal' => 'Có phương án phân nhóm và theo dõi tiến độ',
+                                ]],
+                            ], JSON_UNESCAPED_UNICODE),
+                        ]],
+                    ],
+                ]],
+            ]),
+        ]);
+
+        $analysis = app(ApplicationAiAnalysisService::class)->generateInterviewQuestions(
+            $application,
+            [['name' => 'Năng lực chuyên môn']],
+            $hr,
+            'test',
+        );
+
+        $this->assertSame('completed', $analysis->status);
+        $this->assertSame('interview_questions', $analysis->analysis_type);
+        $this->assertSame('job_scorecard', data_get($analysis->result_json, 'basis'));
+        $this->assertSame(
+            'Bạn sẽ xử lý một buổi học có mức độ tiếp thu không đồng đều như thế nào?',
+            data_get($analysis->result_json, 'questions.0.question'),
+        );
+        $this->assertDatabaseMissing('application_ai_analyses', [
+            'application_id' => $application->id,
+            'analysis_type' => 'screening',
+        ]);
+    }
+
     /**
      * @return array{0: User, 1: Application}
      */
@@ -317,6 +464,18 @@ class ApplicationKanbanTransitionServiceTest extends TestCase
             'email' => 'kanban-candidate@example.com',
             'phone' => '0901234567',
         ]);
+
+        ScorecardTemplate::query()->firstOrCreate(
+            ['name' => 'Mẫu đánh giá mặc định'],
+            [
+                'criteria' => [
+                    ['name' => 'Năng lực chuyên môn', 'score' => null, 'note' => null],
+                    ['name' => 'Phù hợp môi trường giáo dục', 'score' => null, 'note' => null],
+                ],
+                'is_default' => true,
+                'created_by' => $hr->id,
+            ],
+        );
 
         $job = RecruitmentJob::query()->create([
             'title' => 'Kanban Job',

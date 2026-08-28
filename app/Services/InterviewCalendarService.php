@@ -64,7 +64,7 @@ class InterviewCalendarService
             'Lịch phỏng vấn được tạo từ hệ thống tuyển dụng.',
             $job?->title ? "Vị trí: {$job->title}" : null,
             $candidate?->name ? "Ứng viên: {$candidate->name}" : null,
-            $evaluatorNames !== '' ? "Hội đồng phỏng vấn: {$evaluatorNames}" : ($interview->interviewer?->name ? "Người phụ trách phỏng vấn: {$interview->interviewer->name}" : null),
+            $evaluatorNames !== '' ? "Hội đồng phỏng vấn: {$evaluatorNames}" : ($interview->interviewer?->name ? "Người phụ trách vòng phỏng vấn: {$interview->interviewer->name}" : null),
             $interview->type === 'online' && $interview->meeting_link ? "Link phỏng vấn: {$interview->meeting_link}" : null,
             $interview->notes ? "Ghi chú: {$interview->notes}" : null,
         ]);

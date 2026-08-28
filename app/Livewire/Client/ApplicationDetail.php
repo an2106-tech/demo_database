@@ -2,10 +2,12 @@
 
 namespace App\Livewire\Client;
 
+use App\Enums\StatusApplicationEnum;
 use App\Models\Application;
-use App\Models\CandidateJobSubmission;
+use App\Services\ApplicationPipelineService;
 use App\Services\CandidateAccountService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -31,22 +33,47 @@ class ApplicationDetail extends Component
     {
         abort_if($this->application->trashed(), 404);
 
-        $status = $this->application->status instanceof \App\Enums\StatusApplicationEnum
+        $status = $this->application->status instanceof StatusApplicationEnum
             ? $this->application->status
-            : \App\Enums\StatusApplicationEnum::tryFrom((string) $this->application->status);
+            : StatusApplicationEnum::tryFrom((string) $this->application->status);
 
-        if (in_array($status?->value, ['rejected', 'hired'], true)) {
+        if (in_array($status, [StatusApplicationEnum::REJECTED, StatusApplicationEnum::HIRED, StatusApplicationEnum::WITHDRAWN], true)) {
             session()->flash('error', 'Hồ sơ đã ở trạng thái không thể rút.');
 
             return;
         }
 
-        CandidateJobSubmission::query()
-            ->where('job_id', $this->application->job_id)
-            ->where('candidate_id', $this->application->candidate_id)
-            ->delete();
+        $withdrawn = DB::transaction(function (): bool {
+            $application = Application::query()->lockForUpdate()->findOrFail($this->application->id);
+            $status = $application->status instanceof StatusApplicationEnum
+                ? $application->status
+                : StatusApplicationEnum::tryFrom((string) $application->status);
 
-        $this->application->delete();
+            if (in_array($status, [StatusApplicationEnum::REJECTED, StatusApplicationEnum::HIRED, StatusApplicationEnum::WITHDRAWN], true)) {
+                return false;
+            }
+
+            app(ApplicationPipelineService::class)->transition(
+                $application,
+                StatusApplicationEnum::WITHDRAWN,
+                Auth::user(),
+                'Ứng viên chủ động rút hồ sơ.',
+            );
+
+            $application->forceFill([
+                'withdrawn_at' => now(),
+                'rejected_stage' => null,
+                'rejected_reason' => null,
+            ])->save();
+
+            return true;
+        });
+
+        if (! $withdrawn) {
+            session()->flash('error', 'Hồ sơ vừa được xử lý và không thể rút lúc này.');
+
+            return;
+        }
 
         session()->flash('status', 'Đã rút hồ sơ ứng tuyển.');
 

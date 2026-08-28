@@ -108,7 +108,7 @@ class InterviewScheduledMail extends Mailable
             '{{interviewer_name}}' => e($interviewer?->name ?? 'Hội đồng tuyển dụng'),
             '{{interview_notes}}' => e($this->interview->notes ?: 'Không có ghi chú bổ sung'),
             '{{recipient_label}}' => e($this->recipientLabel),
-            '{{recipient_role}}' => e(in_array($this->recipientLabel, ['lead', 'interviewer'], true) ? 'Người phụ trách phỏng vấn' : 'Người cùng đánh giá'),
+            '{{recipient_role}}' => e(in_array($this->recipientLabel, ['lead', 'interviewer'], true) ? 'Người phụ trách vòng phỏng vấn' : 'Thành viên đánh giá'),
             '{{app_name}}' => e((string) config('app.name')),
         ];
 
@@ -137,7 +137,7 @@ class InterviewScheduledMail extends Mailable
             '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
             '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
             '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
-            '<li><strong>Người phụ trách phỏng vấn:</strong> {{interviewer_name}}</li>',
+            '<li><strong>Người phụ trách vòng phỏng vấn:</strong> {{interviewer_name}}</li>',
             '</ul>',
             '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
             $this->isUpdate

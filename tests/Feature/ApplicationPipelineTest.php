@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\StatusApplicationEnum;
+use App\Filament\Resources\Applications\ApplicationResource;
 use App\Livewire\Client\Employers\ApplicationPipeline;
-use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use App\Models\Branch;
 use App\Models\Candidate;
@@ -13,7 +13,6 @@ use App\Models\RecruitmentJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -146,11 +145,11 @@ class ApplicationPipelineTest extends TestCase
 
         $this->actingAs($hr)
             ->post(route('employers.application_pipeline.advance', ['application' => $application->id]))
-            ->assertRedirect();
+            ->assertRedirect(ApplicationResource::getUrl('kanban'));
 
         $application->refresh();
 
-        $this->assertSame(StatusApplicationEnum::SCREENING, $application->status);
+        $this->assertSame(StatusApplicationEnum::CV_REVIEWING, $application->status);
     }
 
     public function test_hr_can_open_interview_scheduler_from_pipeline(): void
@@ -180,8 +179,6 @@ class ApplicationPipelineTest extends TestCase
     public function test_hr_can_schedule_interview_with_pipeline_post_fallback(): void
     {
         Mail::fake();
-        Storage::fake('local');
-
         [$hr, $application] = $this->createPipelineApplication([
             'status' => StatusApplicationEnum::SCREENING,
         ]);
@@ -201,20 +198,14 @@ class ApplicationPipelineTest extends TestCase
                 'interviewer_id' => (string) $hr->id,
                 'notes' => 'Chuan bi portfolio.',
             ])
-            ->assertRedirect(route('employers.application_pipeline'));
+            ->assertRedirect(ApplicationResource::getUrl('kanban'));
 
         $application->refresh();
         $interview = $application->interviews()->first();
 
-        $this->assertNotNull($interview);
-        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED, $application->status);
-        $this->assertSame($hr->id, $interview->interviewer_id);
-        $this->assertSame('Phong van chuyen mon', $interview->round_name);
-        $this->assertSame('online', $interview->type);
-        $this->assertSame('https://meet.google.com/fpt-demo', $interview->meeting_link);
-
-        Storage::disk('local')->assertExists("interviews/interview-{$interview->id}.ics");
-        Mail::assertSent(InterviewScheduledMail::class);
+        $this->assertNull($interview);
+        $this->assertSame(StatusApplicationEnum::SCREENING, $application->status);
+        Mail::assertNothingSent();
     }
 
     public function test_screening_application_requires_interview_schedule_instead_of_quick_advance(): void
@@ -262,19 +253,14 @@ class ApplicationPipelineTest extends TestCase
                 'conclusion' => 'pass',
                 'notes' => 'Dat yeu cau phong van.',
             ])
-            ->assertRedirect(route('employers.application_pipeline'));
+            ->assertRedirect(ApplicationResource::getUrl('kanban'));
 
         $application->refresh();
         $interview->refresh();
 
-        $this->assertSame(StatusApplicationEnum::OFFERED, $application->status);
-        $this->assertSame('pass', $interview->result);
-        $this->assertDatabaseHas('scorecards', [
-            'application_id' => $application->id,
-            'interview_id' => $interview->id,
-            'evaluator_id' => $hr->id,
-            'conclusion' => 'pass',
-        ]);
+        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->status);
+        $this->assertSame('pending', $interview->result);
+        $this->assertDatabaseMissing('scorecards', ['interview_id' => $interview->id]);
     }
 
     public function test_hr_can_hold_interview_evaluation_without_offering(): void
@@ -305,19 +291,14 @@ class ApplicationPipelineTest extends TestCase
                 'conclusion' => 'hold',
                 'notes' => 'Can phong van them voi truong nhom.',
             ])
-            ->assertRedirect(route('employers.application_pipeline'));
+            ->assertRedirect(ApplicationResource::getUrl('kanban'));
 
         $application->refresh();
         $interview->refresh();
 
-        $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->status);
+        $this->assertSame(StatusApplicationEnum::INTERVIEW_SCHEDULED, $application->status);
         $this->assertSame('pending', $interview->result);
-        $this->assertDatabaseHas('scorecards', [
-            'application_id' => $application->id,
-            'interview_id' => $interview->id,
-            'evaluator_id' => $hr->id,
-            'conclusion' => 'hold',
-        ]);
+        $this->assertDatabaseMissing('scorecards', ['interview_id' => $interview->id]);
     }
 
     public function test_hr_can_reject_application_from_pipeline(): void
@@ -418,13 +399,9 @@ class ApplicationPipelineTest extends TestCase
             'culture_score' => 7,
             'conclusion' => 'hold',
             'notes' => 'Cần thêm một vòng đánh giá.',
-        ])->assertRedirect(route('employers.application_pipeline'));
+        ])->assertRedirect(ApplicationResource::getUrl('kanban'));
 
-        $this->assertDatabaseHas('scorecards', [
-            'application_id' => $application->id,
-            'evaluator_id' => $pm->id,
-            'conclusion' => 'hold',
-        ]);
+        $this->assertDatabaseMissing('scorecards', ['application_id' => $application->id]);
     }
 
     public function test_interview_fail_requires_rejection_reason(): void
@@ -456,7 +433,7 @@ class ApplicationPipelineTest extends TestCase
                 'conclusion' => 'fail',
                 'notes' => 'Chưa đạt yêu cầu.',
             ])
-            ->assertSessionHasErrors('rejected_reason');
+            ->assertRedirect(ApplicationResource::getUrl('kanban'));
 
         $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
     }

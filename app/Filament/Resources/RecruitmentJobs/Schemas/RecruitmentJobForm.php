@@ -5,7 +5,11 @@ namespace App\Filament\Resources\RecruitmentJobs\Schemas;
 use App\Enums\StatusRecruitmentJobsEnum;
 use App\Models\Branch;
 use App\Models\Department;
+use App\Models\InterviewProcessTemplate;
+use App\Models\RecruitmentJob;
+use App\Models\User;
 use App\Models\Workplace;
+use App\Services\InterviewProcessTemplateService;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
@@ -64,7 +68,7 @@ class RecruitmentJobForm
                                 Select::make('branch_id')
                                     ->label('Chi nhánh')
                                     ->options(function (): array {
-                                        /** @var \App\Models\User|null $user */
+                                        /** @var User|null $user */
                                         $user = Auth::user();
 
                                         if ($user?->branchScopeId()) {
@@ -131,10 +135,10 @@ class RecruitmentJobForm
                                             return 'Chi nhánh chưa có hình ảnh.';
                                         }
 
-                                        $url = '/storage/' . ltrim($branchImage, '/');
+                                        $url = '/storage/'.ltrim($branchImage, '/');
 
                                         return new HtmlString(
-                                            '<img src="' . e($url) . '" alt="Ảnh chi nhánh" style="max-height: 120px; border-radius: 8px; object-fit: cover;" />'
+                                            '<img src="'.e($url).'" alt="Ảnh chi nhánh" style="max-height: 120px; border-radius: 8px; object-fit: cover;" />'
                                         );
                                     }),
                                 Select::make('workplace_id')
@@ -266,8 +270,8 @@ class RecruitmentJobForm
                                         if (! $record || ! filled($record->slug)) {
                                             return new HtmlString(
                                                 '<span style="color:#94a3b8;font-size:13px;">'
-                                                . '💡 Lưu tin tuyển dụng để hệ thống tự tạo link chia sẻ'
-                                                . '</span>'
+                                                .'💡 Lưu tin tuyển dụng để hệ thống tự tạo link chia sẻ'
+                                                .'</span>'
                                             );
                                         }
 
@@ -275,26 +279,122 @@ class RecruitmentJobForm
 
                                         return new HtmlString(
                                             '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'
-                                            . '<a href="' . e($url) . '" target="_blank" '
-                                            . 'style="color:#2563eb;word-break:break-all;font-size:13px;flex:1;min-width:200px;">'
-                                            . e($url)
-                                            . '</a>'
-                                            . '<button type="button" '
-                                            . 'onclick="navigator.clipboard.writeText(\'' . e($url) . '\');'
-                                            . 'this.innerHTML=\'✅ Đã copy!\';'
-                                            . 'setTimeout(()=>this.innerHTML=\'📋 Copy link\',2500)"'
-                                            . ' style="white-space:nowrap;padding:6px 14px;background:#f0fdf4;'
-                                            . 'border:1.5px solid #86efac;border-radius:8px;cursor:pointer;'
-                                            . 'font-size:12px;font-weight:600;color:#15803d;">'
-                                            . '📋 Copy link'
-                                            . '</button>'
-                                            . '</div>'
+                                            .'<a href="'.e($url).'" target="_blank" '
+                                            .'style="color:#2563eb;word-break:break-all;font-size:13px;flex:1;min-width:200px;">'
+                                            .e($url)
+                                            .'</a>'
+                                            .'<button type="button" '
+                                            .'onclick="navigator.clipboard.writeText(\''.e($url).'\');'
+                                            .'this.innerHTML=\'✅ Đã copy!\';'
+                                            .'setTimeout(()=>this.innerHTML=\'📋 Copy link\',2500)"'
+                                            .' style="white-space:nowrap;padding:6px 14px;background:#f0fdf4;'
+                                            .'border:1.5px solid #86efac;border-radius:8px;cursor:pointer;'
+                                            .'font-size:12px;font-weight:600;color:#15803d;">'
+                                            .'📋 Copy link'
+                                            .'</button>'
+                                            .'</div>'
                                         );
                                     }),
                             ]),
                         Hidden::make('created_by')
                             ->default(fn () => Auth::id()),
                     ]),
+                Section::make('Quy trình phỏng vấn')
+                    ->description('Chọn quy trình phù hợp với nhóm vị trí trước khi tiếp nhận ứng viên.')
+                    ->compact()
+                    ->schema([
+                        Select::make('interview_process_template_id')
+                            ->label('Mẫu quy trình')
+                            ->options(function (?RecruitmentJob $record): array {
+                                return InterviewProcessTemplate::query()
+                                    ->withCount('rounds')
+                                    ->where(function ($query) use ($record): void {
+                                        $query->where('is_active', true);
+
+                                        if ($record?->interview_process_template_id) {
+                                            $query->orWhere('id', $record->interview_process_template_id);
+                                        }
+                                    })
+                                    ->orderByDesc('is_default')
+                                    ->orderBy('name')
+                                    ->get()
+                                    ->mapWithKeys(fn (InterviewProcessTemplate $template): array => [
+                                        $template->id => $template->name.' · '.$template->rounds_count.' vòng',
+                                    ])
+                                    ->all();
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->native(false)
+                            ->live()
+                            ->required(fn (?RecruitmentJob $record): bool => $record === null)
+                            ->disabled(fn (?RecruitmentJob $record): bool => $record?->hasLockedInterviewProcess() ?? false)
+                            ->dehydrated()
+                            ->helperText(fn (?RecruitmentJob $record): string => $record?->hasLockedInterviewProcess()
+                                ? 'Quy trình đã được cố định vì tin tuyển dụng đã có ứng viên.'
+                                : 'Mỗi vòng sẽ tự áp dụng mục tiêu và mẫu đánh giá đã cấu hình.'),
+                        Placeholder::make('interview_process_preview')
+                            ->label('Nội dung quy trình')
+                            ->content(function (callable $get, ?RecruitmentJob $record): HtmlString|string {
+                                return self::renderInterviewProcessPreview(
+                                    filled($get('interview_process_template_id'))
+                                        ? (int) $get('interview_process_template_id')
+                                        : null,
+                                    $record
+                                );
+                            }),
+                    ]),
             ]);
+    }
+
+    private static function renderInterviewProcessPreview(
+        ?int $templateId,
+        ?RecruitmentJob $record
+    ): HtmlString|string {
+        if (! $templateId && ! $record?->interview_process_snapshot) {
+            if ($record) {
+                $snapshot = app(InterviewProcessTemplateService::class)->singleRoundFallback();
+            } else {
+                return 'Chọn một mẫu để xem các vòng phỏng vấn và tiêu chí đánh giá.';
+            }
+        } elseif (
+            $record
+            && (int) $record->interview_process_template_id === $templateId
+            && is_array($record->interview_process_snapshot)
+        ) {
+            $snapshot = $record->interview_process_snapshot;
+        } else {
+            try {
+                $snapshot = app(InterviewProcessTemplateService::class)
+                    ->snapshotFromTemplateId((int) $templateId);
+            } catch (\Throwable) {
+                return 'Không thể tải nội dung quy trình đã chọn.';
+            }
+        }
+
+        $rounds = collect($snapshot['rounds'] ?? []);
+
+        if ($rounds->isEmpty()) {
+            return 'Quy trình chưa có vòng phỏng vấn.';
+        }
+
+        $items = $rounds->map(function (array $round): string {
+            $scorecardName = data_get($round, 'scorecard_template.name', 'Chưa gắn mẫu đánh giá');
+            $candidateLabel = (string) ($round['candidate_label'] ?? $round['name'] ?? '');
+
+            return '<li style="padding:10px 0;border-bottom:1px solid #e5e7eb;">'
+                .'<strong>Vòng '.e((string) ($round['round_number'] ?? '')).' · '.e((string) ($round['name'] ?? '')).'</strong>'
+                .'<div style="margin-top:3px;color:#64748b;">'.e((string) ($round['objective'] ?? '')).'</div>'
+                .'<div style="margin-top:3px;font-size:12px;color:#475569;">Ứng viên thấy: '.e($candidateLabel).'</div>'
+                .'<div style="margin-top:3px;font-size:12px;color:#475569;">Mẫu đánh giá: '.e((string) $scorecardName).'</div>'
+                .'</li>';
+        })->implode('');
+
+        return new HtmlString(
+            '<div style="max-width:760px;">'
+            .'<div style="font-weight:600;">'.e((string) ($snapshot['name'] ?? 'Quy trình phỏng vấn')).'</div>'
+            .'<ol style="margin:6px 0 0;padding-left:20px;">'.$items.'</ol>'
+            .'</div>'
+        );
     }
 }

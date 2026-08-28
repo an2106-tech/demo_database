@@ -26,30 +26,36 @@ class ApplicationPipelineServiceTest extends TestCase
         $this->assertEqualsCanonicalizing([
             StatusApplicationEnum::SCREENING,
             StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
         ], $service->allowedTransitions(StatusApplicationEnum::NEW));
 
         $this->assertEqualsCanonicalizing([
             StatusApplicationEnum::INTERVIEW_SCHEDULED,
             StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
         ], $service->allowedTransitions(StatusApplicationEnum::SCREENING));
 
         $this->assertEqualsCanonicalizing([
             StatusApplicationEnum::INTERVIEW,
             StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
         ], $service->allowedTransitions(StatusApplicationEnum::INTERVIEW_SCHEDULED));
 
         $this->assertEqualsCanonicalizing([
             StatusApplicationEnum::OFFER,
             StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
         ], $service->allowedTransitions(StatusApplicationEnum::INTERVIEW));
 
         $this->assertEqualsCanonicalizing([
             StatusApplicationEnum::HIRED,
             StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
         ], $service->allowedTransitions(StatusApplicationEnum::OFFER));
 
         $this->assertSame([], $service->allowedTransitions(StatusApplicationEnum::HIRED));
         $this->assertSame([], $service->allowedTransitions(StatusApplicationEnum::REJECTED));
+        $this->assertSame([], $service->allowedTransitions(StatusApplicationEnum::WITHDRAWN));
     }
 
     public function test_it_transitions_valid_status_and_rejects_invalid_jump(): void
@@ -111,6 +117,7 @@ class ApplicationPipelineServiceTest extends TestCase
 
         $this->assertFalse($service->canTransition(StatusApplicationEnum::HIRED, StatusApplicationEnum::SCREENING));
         $this->assertFalse($service->canTransition(StatusApplicationEnum::REJECTED, StatusApplicationEnum::SCREENING));
+        $this->assertFalse($service->canTransition(StatusApplicationEnum::WITHDRAWN, StatusApplicationEnum::SCREENING));
     }
 
     private function makeApplication(StatusApplicationEnum $status): Application

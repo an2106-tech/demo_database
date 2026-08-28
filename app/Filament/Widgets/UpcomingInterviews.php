@@ -106,7 +106,7 @@ class UpcomingInterviews extends Widget
             'inviteColor' => $interview->invite_sent_at ? 'success' : 'warning',
             'url' => $application
                 ? ApplicationResource::getUrl('view', ['record' => $application])
-                : ApplicationResource::getUrl('index'),
+                : ApplicationResource::getUrl('kanban'),
         ];
     }
 

@@ -332,9 +332,9 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         $candidateMail = new InterviewScheduledMail($interview, 'candidate');
 
         $this->assertStringContainsString('Phân công phỏng vấn', $internalMail->envelope()->subject);
-        $this->assertStringContainsString('Người cùng đánh giá', $internalMail->render());
+        $this->assertStringContainsString('Thành viên đánh giá', $internalMail->render());
         $this->assertStringNotContainsString('Chúc mừng bạn đã vượt qua', $internalMail->render());
-        $this->assertStringContainsString('Người phụ trách phỏng vấn', $legacyLeadMail->render());
+        $this->assertStringContainsString('Người phụ trách vòng phỏng vấn', $legacyLeadMail->render());
         $this->assertStringContainsString('Thư mời phỏng vấn', $candidateMail->envelope()->subject);
     }
 

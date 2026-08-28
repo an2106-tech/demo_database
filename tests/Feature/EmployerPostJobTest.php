@@ -7,7 +7,9 @@ use App\Livewire\Client\Employers\ManageJobs;
 use App\Livewire\Client\Employers\PostJob;
 use App\Models\Branch;
 use App\Models\Category;
+use App\Models\InterviewProcessTemplate;
 use App\Models\RecruitmentJob;
+use App\Models\ScorecardTemplate;
 use App\Models\Skill;
 use App\Models\User;
 use App\Models\Workplace;
@@ -41,6 +43,7 @@ class EmployerPostJobTest extends TestCase
         ]);
         $skill = Skill::query()->create(['name' => 'Laravel']);
         $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+        $processTemplate = $this->createInterviewProcessTemplate($user);
 
         $this->actingAs($user);
 
@@ -54,6 +57,7 @@ class EmployerPostJobTest extends TestCase
             ->set('salary_max', '25000000')
             ->set('skills', [$skill->id])
             ->set('selected_categories', [$category->id])
+            ->set('interview_process_template_id', $processTemplate->id)
             ->call('save')
             ->assertRedirect(route('employers.manage_jobs'));
 
@@ -65,6 +69,9 @@ class EmployerPostJobTest extends TestCase
         $this->assertSame($branch->id, $job->branch_id);
         $this->assertSame(StatusRecruitmentJobsEnum::PENDING, $job->status);
         $this->assertEquals(['min' => 15000000.0, 'max' => 25000000.0], $job->salary_range);
+        $this->assertSame($processTemplate->id, $job->interview_process_template_id);
+        $this->assertSame('Quy trình phỏng vấn kiểm thử', $job->interview_process_snapshot['name']);
+        $this->assertSame(1, $job->interview_process_snapshot['round_count']);
     }
 
     public function test_branch_scoped_employer_cannot_post_job_for_another_branch(): void
@@ -88,6 +95,7 @@ class EmployerPostJobTest extends TestCase
         ]);
         $skill = Skill::query()->create(['name' => 'PHP']);
         $category = Category::query()->create(['name' => 'Technology', 'slug' => 'technology']);
+        $processTemplate = $this->createInterviewProcessTemplate($user);
 
         $this->actingAs($user);
 
@@ -98,6 +106,7 @@ class EmployerPostJobTest extends TestCase
             ->set('positions_count', 1)
             ->set('skills', [$skill->id])
             ->set('selected_categories', [$category->id])
+            ->set('interview_process_template_id', $processTemplate->id)
             ->call('save')
             ->assertHasErrors(['branch_id']);
 
@@ -127,6 +136,7 @@ class EmployerPostJobTest extends TestCase
         ]);
         $skill = Skill::query()->create(['name' => 'Livewire']);
         $category = Category::query()->create(['name' => 'Software', 'slug' => 'software']);
+        $processTemplate = $this->createInterviewProcessTemplate($user);
 
         $this->actingAs($user);
 
@@ -137,6 +147,7 @@ class EmployerPostJobTest extends TestCase
             ->set('positions_count', 1)
             ->set('skills', [$skill->id])
             ->set('selected_categories', [$category->id])
+            ->set('interview_process_template_id', $processTemplate->id)
             ->call('save')
             ->assertRedirect(route('employers.manage_jobs'));
 
@@ -165,7 +176,7 @@ class EmployerPostJobTest extends TestCase
         $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
 
         $this->mock(AiMatchingService::class, function ($mock) {
-            $mock->shouldReceive('cleanJobBrief')->andReturnUsing(fn($brief) => $brief);
+            $mock->shouldReceive('cleanJobBrief')->andReturnUsing(fn ($brief) => $brief);
             $mock->shouldReceive('draftRecruitmentJob')
                 ->once()
                 ->andReturn([
@@ -298,6 +309,7 @@ class EmployerPostJobTest extends TestCase
         ]);
         $skill = Skill::query()->create(['name' => 'Laravel']);
         $category = Category::query()->create(['name' => 'Engineering', 'slug' => 'engineering']);
+        $processTemplate = $this->createInterviewProcessTemplate($user);
 
         $this->actingAs($user);
 
@@ -311,6 +323,7 @@ class EmployerPostJobTest extends TestCase
             ->set('positions_count', 2)
             ->set('skills', [$skill->id])
             ->set('selected_categories', [$category->id])
+            ->set('interview_process_template_id', $processTemplate->id)
             ->call('save')
             ->assertRedirect(route('employers.manage_jobs'));
 
@@ -408,5 +421,37 @@ class EmployerPostJobTest extends TestCase
         Livewire::test(ManageJobs::class)
             ->assertSee('Backend PHP Developer')
             ->assertDontSee('Khong hien thi');
+    }
+
+    private function createInterviewProcessTemplate(User $creator): InterviewProcessTemplate
+    {
+        $scorecard = ScorecardTemplate::query()->create([
+            'name' => 'Mẫu đánh giá kiểm thử',
+            'criteria' => [
+                ['name' => 'Năng lực chuyên môn', 'score' => null, 'note' => null],
+            ],
+            'is_default' => true,
+            'created_by' => $creator->id,
+        ]);
+
+        $template = InterviewProcessTemplate::query()->create([
+            'code' => 'test-process-'.$creator->id,
+            'name' => 'Quy trình phỏng vấn kiểm thử',
+            'description' => 'Quy trình dùng trong kiểm thử form đăng tin.',
+            'is_default' => true,
+            'is_active' => true,
+            'created_by' => $creator->id,
+        ]);
+
+        $template->rounds()->create([
+            'round_number' => 1,
+            'name' => 'Phỏng vấn chuyên môn',
+            'candidate_label' => 'Phỏng vấn chuyên môn',
+            'objective' => 'Đánh giá năng lực theo vị trí.',
+            'scorecard_template_id' => $scorecard->id,
+            'evaluator_roles' => ['hr', 'pm'],
+        ]);
+
+        return $template;
     }
 }

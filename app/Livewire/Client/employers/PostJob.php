@@ -3,20 +3,24 @@
 namespace App\Livewire\Client\Employers;
 
 use App\Enums\StatusRecruitmentJobsEnum;
+use App\Mail\JobApprovalNotificationMail;
 use App\Models\Branch;
+use App\Models\Category;
 use App\Models\Department;
+use App\Models\InterviewProcessTemplate;
 use App\Models\RecruitmentJob;
 use App\Models\Skill;
+use App\Models\User;
 use App\Models\Workplace;
-use App\Models\Category;
+use App\Services\AiMatchingService;
+use App\Services\InterviewProcessTemplateService;
+use App\Services\OutboundMailQueue;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
-use App\Services\AiMatchingService;
 
 class PostJob extends Component
 {
@@ -86,6 +90,10 @@ class PostJob extends Component
 
     public ?int $jobId = null;
 
+    public ?int $interview_process_template_id = null;
+
+    public bool $interview_process_locked = false;
+
     public function mount($id = null): void
     {
         // Prepare defaults for the employer job form.
@@ -110,6 +118,8 @@ class PostJob extends Component
             $this->deadline = $job->deadline ? $job->deadline->format('Y-m-d') : null;
             $this->positions_count = $job->positions_count;
             $this->status = $job->status->value ?? 'draft';
+            $this->interview_process_template_id = $job->interview_process_template_id;
+            $this->interview_process_locked = $job->hasLockedInterviewProcess();
 
             if (is_array($job->salary_range)) {
                 $this->salary_min = $job->salary_range['min'] ?? null;
@@ -129,9 +139,9 @@ class PostJob extends Component
         }
 
         // Default status for NEW jobs
-        if (!$id) {
-            $this->status = ($user && in_array($user->role, ['director', 'admin'])) 
-                ? StatusRecruitmentJobsEnum::PUBLISHED->value 
+        if (! $id) {
+            $this->status = ($user && in_array($user->role, ['director', 'admin']))
+                ? StatusRecruitmentJobsEnum::PUBLISHED->value
                 : StatusRecruitmentJobsEnum::PENDING->value;
         }
     }
@@ -165,6 +175,7 @@ class PostJob extends Component
 
         if (blank(trim($this->ai_brief)) && blank(trim($this->title))) {
             $this->addError('ai_brief', 'Vui lòng nhập ghi chú tuyển dụng để AI soạn bản nháp.');
+
             return;
         }
 
@@ -176,6 +187,7 @@ class PostJob extends Component
 
         if (! $draft) {
             $this->addError('ai_brief', $aiService->getLastError() ?: 'Không thể tạo bản nháp AI.');
+
             return;
         }
 
@@ -227,8 +239,8 @@ class PostJob extends Component
         $this->ai_draft_missing_information = array_values(array_filter((array) ($draft['missing_information'] ?? []), fn ($value) => filled($value)));
 
         $this->dispatch('job-description-updated', description: $this->description);
-        $this->dispatch('ai-draft-fields-updated', 
-            skills: $this->skills, 
+        $this->dispatch('ai-draft-fields-updated',
+            skills: $this->skills,
             categories: $this->selected_categories
         );
 
@@ -317,6 +329,15 @@ class PostJob extends Component
 
     protected function rules(): array
     {
+        $processTemplateRules = $this->jobId
+            ? ['nullable', 'integer', 'exists:interview_process_templates,id']
+            : [
+                'required',
+                'integer',
+                Rule::exists('interview_process_templates', 'id')
+                    ->where(fn ($query) => $query->where('is_active', true)),
+            ];
+
         return [
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
@@ -343,6 +364,7 @@ class PostJob extends Component
             'skills_level' => ['required', 'in:junior,mid,senior'],
             'selected_categories' => ['required', 'array', 'min:1'],
             'selected_categories.*' => ['integer', 'distinct', 'exists:categories,id'],
+            'interview_process_template_id' => $processTemplateRules,
         ];
     }
 
@@ -406,7 +428,7 @@ class PostJob extends Component
         $finalStatus = $validated['status'];
 
         // Logic: if not Director/Admin, must be PENDING (even on edits as requested)
-        if (!in_array($user->role, ['director', 'admin'])) {
+        if (! in_array($user->role, ['director', 'admin'])) {
             $finalStatus = StatusRecruitmentJobsEnum::PENDING->value;
         }
 
@@ -421,12 +443,24 @@ class PostJob extends Component
             'department_id' => $validated['department_id'] ?: null,
             'branch_id' => $branchId,
             'workplace_id' => $validated['workplace_id'] ?: null,
+            'interview_process_template_id' => $validated['interview_process_template_id'] ?: null,
         ];
 
         if ($this->jobId) {
             $job = RecruitmentJob::findOrFail($this->jobId);
             if ($job->created_by !== Auth::id()) {
                 abort(403);
+            }
+            if (
+                $job->hasLockedInterviewProcess()
+                && (int) $job->interview_process_template_id !== (int) $data['interview_process_template_id']
+            ) {
+                $this->addError(
+                    'interview_process_template_id',
+                    'Không thể đổi quy trình khi tin tuyển dụng đã có ứng viên.'
+                );
+
+                return null;
             }
             if ($job->title !== trim($validated['title'])) {
                 $data['slug'] = $this->generateUniqueSlug($validated['title'], $job->id);
@@ -457,7 +491,7 @@ class PostJob extends Component
 
         // Notify Directors of the branch if pending
         if ($job->status === StatusRecruitmentJobsEnum::PENDING) {
-            $directors = \App\Models\User::where('role', 'director')
+            $directors = User::where('role', 'director')
                 ->where('branch_id', $job->branch_id)
                 ->get();
 
@@ -481,12 +515,15 @@ class PostJob extends Component
 
                 // Email Notification
                 try {
-                    Mail::to($director->email)->send(new \App\Mail\JobApprovalNotificationMail(
-                        $job,
-                        $director->name,
-                        Auth::user()->name,
-                        $director->id
-                    ));
+                    app(OutboundMailQueue::class)->queue(
+                        $director->email,
+                        new JobApprovalNotificationMail(
+                            $job,
+                            $director->name,
+                            Auth::user()->name,
+                            $director->id,
+                        ),
+                    );
                 } catch (\Exception $e) {
                     \Log::error('Lỗi khi gửi email thông báo phê duyệt: '.$e->getMessage());
                 }
@@ -527,6 +564,19 @@ class PostJob extends Component
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        $interviewProcessTemplates = InterviewProcessTemplate::query()
+            ->withCount('rounds')
+            ->where(function ($query): void {
+                $query->where('is_active', true);
+
+                if ($this->interview_process_template_id) {
+                    $query->orWhere('id', $this->interview_process_template_id);
+                }
+            })
+            ->orderByDesc('is_default')
+            ->orderBy('name')
+            ->get();
+
         return view('livewire.client.employers.post_job', [
             'branches' => $branches,
             'departments' => $departments,
@@ -534,6 +584,8 @@ class PostJob extends Component
             'skillsOptions' => $skillsOptions,
             'categoriesOptions' => $categoriesOptions,
             'isBranchLocked' => (bool) $user?->branchScopeId(),
+            'interviewProcessTemplates' => $interviewProcessTemplates,
+            'interviewProcessPreview' => $this->selectedInterviewProcessPreview(),
         ]);
     }
 
@@ -606,7 +658,7 @@ class PostJob extends Component
         $sections = [];
 
         if (filled($this->overview)) {
-            $sections[] = '<h3>Tổng quan</h3><p>' . nl2br(e(trim($this->overview))) . '</p>';
+            $sections[] = '<h3>Tổng quan</h3><p>'.nl2br(e(trim($this->overview))).'</p>';
         }
 
         if (filled($this->responsibilities)) {
@@ -636,14 +688,47 @@ class PostJob extends Component
             return '';
         }
 
-        $html = '<h3>' . e($title) . '</h3><ul>';
+        $html = '<h3>'.e($title).'</h3><ul>';
 
         foreach ($items as $item) {
-            $html .= '<li>' . e($item) . '</li>';
+            $html .= '<li>'.e($item).'</li>';
         }
 
         $html .= '</ul>';
 
         return $html;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function selectedInterviewProcessPreview(): ?array
+    {
+        if ($this->jobId) {
+            $job = RecruitmentJob::query()->find($this->jobId);
+
+            if (
+                $job
+                && (int) $job->interview_process_template_id === (int) $this->interview_process_template_id
+                && is_array($job->interview_process_snapshot)
+            ) {
+                return $job->interview_process_snapshot;
+            }
+
+            if ($job && ! $this->interview_process_template_id) {
+                return app(InterviewProcessTemplateService::class)->singleRoundFallback();
+            }
+        }
+
+        if (! $this->interview_process_template_id) {
+            return null;
+        }
+
+        try {
+            return app(InterviewProcessTemplateService::class)
+                ->snapshotFromTemplateId($this->interview_process_template_id);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 }

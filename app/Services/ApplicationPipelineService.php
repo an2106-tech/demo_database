@@ -18,25 +18,31 @@ class ApplicationPipelineService
             StatusApplicationEnum::CV_REVIEWING->value => [
                 StatusApplicationEnum::SCREENING,
                 StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
             ],
             StatusApplicationEnum::SCREENING->value => [
                 StatusApplicationEnum::INTERVIEW_SCHEDULED,
                 StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
             ],
             StatusApplicationEnum::INTERVIEW_SCHEDULED->value => [
                 StatusApplicationEnum::INTERVIEWING,
                 StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
             ],
             StatusApplicationEnum::INTERVIEWING->value => [
                 StatusApplicationEnum::OFFERED,
                 StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
             ],
             StatusApplicationEnum::OFFERED->value => [
                 StatusApplicationEnum::HIRED,
                 StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
             ],
             StatusApplicationEnum::HIRED->value => [],
             StatusApplicationEnum::REJECTED->value => [],
+            StatusApplicationEnum::WITHDRAWN->value => [],
         ];
     }
 

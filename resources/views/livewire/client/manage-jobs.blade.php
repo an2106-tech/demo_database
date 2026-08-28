@@ -68,6 +68,7 @@
                                                         'interview_scheduled', 'interview', 'offer' => 'active',
                                                         'hired' => 'hired',
                                                         'rejected' => 'rejected',
+                                                        'withdrawn' => 'rejected',
                                                         default => 'pending',
                                                     };
                                                 @endphp

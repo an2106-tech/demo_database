@@ -70,7 +70,8 @@ class ApplicationInfolist
             StatusApplicationEnum::INTERVIEWING => static::interviewStepHtml($record),
             StatusApplicationEnum::OFFERED => static::offerStepHtml($record),
             StatusApplicationEnum::HIRED,
-            StatusApplicationEnum::REJECTED => static::finalStepHtml($summary['status_label'], $summary['description'], $summary['color']),
+            StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN => static::finalStepHtml($summary['status_label'], $summary['description'], $summary['color']),
             default => static::finalStepHtml('Chưa xác định', 'Chưa có trạng thái hợp lệ cho hồ sơ này.', 'gray'),
         };
     }

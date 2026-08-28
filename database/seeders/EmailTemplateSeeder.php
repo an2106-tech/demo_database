@@ -82,7 +82,7 @@ class EmailTemplateSeeder extends Seeder
                     '<li>Vị trí: {{job_title}}</li>',
                     '<li>Thời gian cập nhật: {{updated_at}}</li>',
                     '</ul>',
-                    '<p><strong>Lý do:</strong> {{rejected_reason}}</p>',
+                    '<p>Hồ sơ hiện chưa phù hợp với nhu cầu tuyển dụng tại thời điểm này.</p>',
                     '<p>Chúng tôi sẽ lưu thông tin của bạn cho các cơ hội phù hợp hơn trong tương lai.</p>',
                     '<p>Trân trọng,<br>{{app_name}}</p>',
                 ]),

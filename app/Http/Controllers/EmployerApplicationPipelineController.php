@@ -11,12 +11,12 @@ use App\Models\User;
 use App\Services\ApplicationPipelineService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\InterviewCalendarService;
+use App\Services\OutboundMailQueue;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -47,7 +47,10 @@ class EmployerApplicationPipelineController extends Controller
         }
 
         $nextStatus = collect($pipelineService->allowedTransitions($application->status))
-            ->first(fn (StatusApplicationEnum $status): bool => $status !== StatusApplicationEnum::REJECTED);
+            ->first(fn (StatusApplicationEnum $status): bool => ! in_array($status, [
+                StatusApplicationEnum::REJECTED,
+                StatusApplicationEnum::WITHDRAWN,
+            ], true));
 
         if (! $nextStatus) {
             return back()->with('warning', 'Hồ sơ này chưa có bước kế tiếp phù hợp.');
@@ -330,6 +333,7 @@ class EmployerApplicationPipelineController extends Controller
             StatusApplicationEnum::OFFERED => 'Đề nghị tuyển dụng',
             StatusApplicationEnum::HIRED => 'Đã tuyển',
             StatusApplicationEnum::REJECTED => 'Từ chối',
+            StatusApplicationEnum::WITHDRAWN => 'Ứng viên rút hồ sơ',
         };
     }
 
@@ -364,7 +368,10 @@ class EmployerApplicationPipelineController extends Controller
 
         foreach ($recipients as $email => $label) {
             try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $label));
+                app(OutboundMailQueue::class)->queue(
+                    $email,
+                    new InterviewScheduledMail($interview, $label),
+                );
                 $sentCount++;
             } catch (\Throwable $exception) {
                 Log::warning('Failed to send HR portal interview schedule mail.', [

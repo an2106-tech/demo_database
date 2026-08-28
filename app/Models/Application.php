@@ -3,19 +3,17 @@
 namespace App\Models;
 
 use App\Enums\StatusApplicationEnum;
+use App\Mail\CandidateApplicationRejectedMail;
+use App\Services\OutboundMailQueue;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
-use App\Mail\CandidateApplicationRejectedMail;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use App\Models\User;
 
 class Application extends Model
 {
@@ -51,11 +49,14 @@ class Application extends Model
                             Log::info('--- PREPARING TO SEND REJECTION EMAIL ---', [
                                 'app_id' => $application->id,
                                 'recipient_email' => $candidate->email,
-                                'from_config' => config('mail.from.address')
+                                'from_config' => config('mail.from.address'),
                             ]);
 
-                            Mail::to($candidate->email)->queue(new CandidateApplicationRejectedMail($candidate, $application, $job));
-                            
+                            app(OutboundMailQueue::class)->queue(
+                                $candidate->email,
+                                new CandidateApplicationRejectedMail($candidate, $application, $job),
+                            );
+
                             Log::info('--- REJECTION EMAIL SENT SUCCESSFULLY ---', ['recipient' => $candidate->email]);
                         } catch (\Throwable $exception) {
                             Log::warning('Failed to send rejection email via Model observer.', [
@@ -90,6 +91,7 @@ class Application extends Model
         'salary_expected',
         'applied_at',
         'rejected_reason',
+        'withdrawn_at',
         'is_viewed',
         'viewed_at',
         'applied_by',
@@ -103,6 +105,7 @@ class Application extends Model
         'profile_snapshot' => 'array',
         'is_viewed' => 'boolean',
         'viewed_at' => 'datetime',
+        'withdrawn_at' => 'datetime',
         'is_duplicate' => 'boolean',
     ];
 
@@ -133,7 +136,10 @@ class Application extends Model
 
     public function latestInterview(): HasOne
     {
-        return $this->hasOne(Interview::class)->latestOfMany('scheduled_at');
+        return $this->hasOne(Interview::class)->ofMany([
+            'round_number' => 'max',
+            'id' => 'max',
+        ]);
     }
 
     public function offers(): HasMany
@@ -192,7 +198,7 @@ class Application extends Model
 
     public function statusHistories(): HasMany
     {
-        return $this->hasMany(\App\Models\ApplicationStatusHistory::class);
+        return $this->hasMany(ApplicationStatusHistory::class);
     }
 
     public function preScreenings(): HasMany

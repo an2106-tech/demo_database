@@ -151,18 +151,7 @@ class ApplicationAiAnalysisService
                 ->where('status', 'completed')
                 ->latest('id')
                 ->first();
-        if (! $screening || $screening->status !== 'completed') {
-            $analysis = $this->newAnalysis($application, 'interview_questions', $user, $source);
-
-            return $this->markFailed($analysis, 'Chưa có kết quả sàng lọc AI để tạo câu hỏi phỏng vấn.');
-        }
-
-        $gaps = array_values(array_filter((array) $screening->gaps, fn ($value): bool => filled($value)));
-        if ($gaps === []) {
-            $analysis = $this->newAnalysis($application, 'interview_questions', $user, $source);
-
-            return $this->markFailed($analysis, 'Chưa có điểm cần làm rõ từ bước sàng lọc.');
-        }
+        $gaps = array_values(array_filter((array) $screening?->gaps, fn ($value): bool => filled($value)));
 
         $criteriaNames = collect($criteria)
             ->map(fn ($criterion) => is_array($criterion) ? ($criterion['name'] ?? null) : $criterion)
@@ -205,7 +194,7 @@ class ApplicationAiAnalysisService
                                 ['text' => $this->buildInterviewQuestionPrompt(
                                     $application,
                                     $jobText,
-                                    (string) $screening->summary,
+                                    (string) $screening?->summary,
                                     $gaps,
                                     $criteriaNames,
                                 )],
@@ -236,11 +225,14 @@ class ApplicationAiAnalysisService
 
             $analysis->forceFill([
                 'status' => 'completed',
-                'summary' => 'Câu hỏi gợi ý phỏng vấn được tạo từ điểm cần làm rõ và tiêu chí scorecard.',
+                'summary' => $screening
+                    ? 'Câu hỏi gợi ý được tạo từ kết quả sàng lọc và tiêu chí scorecard.'
+                    : 'Câu hỏi gợi ý được tạo từ vị trí tuyển dụng và tiêu chí scorecard.',
                 'result_json' => [
                     'questions' => $questions,
                     'criteria' => $criteriaNames,
                     'gaps' => array_slice($gaps, 0, 5),
+                    'basis' => $screening ? 'screening' : 'job_scorecard',
                 ],
                 'raw_response' => $raw,
                 'error_message' => null,

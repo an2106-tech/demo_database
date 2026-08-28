@@ -11,6 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class InterviewEvaluatorService
 {
+    public function __construct(
+        private readonly InterviewRoundWorkflowService $roundWorkflow,
+    ) {}
+
     /**
      * @param  array<int, int|string>  $memberIds
      */
@@ -230,22 +234,27 @@ class InterviewEvaluatorService
     /** @param Collection<int, int> $ids */
     private function assertEligibleUsers(Interview $interview, Collection $ids): void
     {
-        $branchId = $interview->application?->job?->branch_id ?: $interview->application?->branch_id;
+        $interview->loadMissing('application.job');
+        $application = $interview->application;
+        $branchId = $application?->job?->branch_id ?: $application?->branch_id;
+        $allowedRoles = $application
+            ? $this->roundWorkflow->evaluatorRolesForRound($application, (int) $interview->round_number)
+            : ['director', 'pm', 'hr'];
 
         $eligibleCount = User::query()
             ->whereIn('id', $ids)
             ->where('is_active', true)
             ->when($branchId, fn (Builder $query): Builder => $query->where('branch_id', $branchId))
-            ->where(function (Builder $query): void {
+            ->where(function (Builder $query) use ($allowedRoles): void {
                 $query
-                    ->whereIn('role', ['director', 'pm', 'hr'])
-                    ->orWhereHas('roles', fn (Builder $roleQuery): Builder => $roleQuery->whereIn('name', ['director', 'pm', 'hr']));
+                    ->whereIn('role', $allowedRoles)
+                    ->orWhereHas('roles', fn (Builder $roleQuery): Builder => $roleQuery->whereIn('name', $allowedRoles));
             })
             ->count();
 
         if ($eligibleCount !== $ids->count()) {
             throw ValidationException::withMessages([
-                'evaluator_ids' => 'Người phụ trách và người cùng đánh giá phải đang hoạt động, thuộc đúng chi nhánh tuyển dụng.',
+                'evaluator_ids' => 'Người được phân công phải đang hoạt động, thuộc đúng chi nhánh và phù hợp với vai trò của vòng phỏng vấn.',
             ]);
         }
     }

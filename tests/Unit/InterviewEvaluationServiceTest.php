@@ -51,6 +51,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(3),
             'conclusion' => 'fail',
+            'notes' => 'Ứng viên chưa đáp ứng yêu cầu chuyên môn của vị trí.',
             'rejected_reason' => 'Kinh nghiệm thực tế chưa đáp ứng yêu cầu vị trí.',
         ], $hr);
 
@@ -77,6 +78,26 @@ class InterviewEvaluationServiceTest extends TestCase
 
         $this->assertSame('hold', $result['conclusion']);
         $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->status);
+    }
+
+    public function test_submitting_an_evaluation_requires_an_internal_note(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+
+        try {
+            app(InterviewEvaluationService::class)->complete($application, [
+                'template_id' => $this->templateId(),
+                'criteria' => $this->criteria(6),
+                'conclusion' => 'hold',
+            ], $hr);
+
+            $this->fail('An evaluation without notes should not be submitted.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Vui lòng nhập nhận xét nội bộ trước khi gửi phiếu đánh giá.',
+                $exception->errors()['notes'][0],
+            );
+        }
     }
 
     public function test_saving_a_follow_up_note_keeps_a_hold_conclusion(): void
@@ -202,6 +223,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(8),
             'conclusion' => 'pass',
+            'notes' => 'Ứng viên đáp ứng yêu cầu và buổi phỏng vấn đã hoàn tất.',
             'confirm_early_completion' => true,
         ], $hr);
 
@@ -241,6 +263,7 @@ class InterviewEvaluationServiceTest extends TestCase
                 ['name' => 'Giao tiếp với người học', 'score' => 9, 'note' => null],
             ],
             'conclusion' => 'pass',
+            'notes' => 'Ứng viên đáp ứng các tiêu chí của mẫu đã gắn với lịch.',
         ], $hr);
 
         $criteria = $application->scorecards()->firstOrFail()->criteria;
@@ -268,6 +291,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(8),
             'conclusion' => 'pass',
+            'notes' => 'Đáp ứng yêu cầu chuyên môn của vòng.',
         ], $hr);
 
         $this->assertFalse($first['finalized']);
@@ -278,6 +302,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(6),
             'conclusion' => 'hold',
+            'notes' => 'Cần hội đồng trao đổi thêm trước khi chốt.',
         ], $panelist);
 
         $this->assertFalse($second['finalized']);
@@ -299,6 +324,19 @@ class InterviewEvaluationServiceTest extends TestCase
             'user_id' => $panelist->id,
             'type' => 'interview_panel_ready',
         ]);
+
+        try {
+            $service->finalizePanel($application->fresh(), [
+                'conclusion' => 'hold',
+            ], $hr);
+
+            $this->fail('A panel hold conclusion without notes should not be finalized.');
+        } catch (ValidationException $exception) {
+            $this->assertSame(
+                'Vui lòng nhập nhận xét chung trước khi chốt kết quả vòng.',
+                $exception->errors()['notes'][0],
+            );
+        }
 
         $final = $service->finalizePanel($application->fresh(), [
             'conclusion' => 'pass',
@@ -329,6 +367,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(3),
             'conclusion' => 'fail',
+            'notes' => 'Chưa đáp ứng yêu cầu chuyên môn theo phiếu cá nhân.',
         ], $panelist);
 
         $this->assertSame('submitted', $result['completion_state']);
@@ -352,6 +391,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(8),
             'conclusion' => 'pass',
+            'notes' => 'Đáp ứng yêu cầu chuyên môn của vòng.',
         ], $hr);
 
         $evaluatorService->waivePendingEvaluator(
@@ -432,6 +472,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(7),
             'conclusion' => 'pass',
+            'notes' => 'Ứng viên đáp ứng phần lớn tiêu chí đánh giá.',
         ], $panelist);
 
         $this->expectException(ValidationException::class);
@@ -462,6 +503,7 @@ class InterviewEvaluationServiceTest extends TestCase
             'template_id' => $this->templateId(),
             'criteria' => $this->criteria(8),
             'conclusion' => 'pass',
+            'notes' => 'Ứng viên đáp ứng yêu cầu chuyên môn của vòng.',
         ], $hr);
 
         $this->expectException(ValidationException::class);

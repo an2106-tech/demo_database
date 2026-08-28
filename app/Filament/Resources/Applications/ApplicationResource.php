@@ -74,6 +74,11 @@ class ApplicationResource extends Resource
         ];
     }
 
+    public static function getNavigationUrl(): string
+    {
+        return static::getUrl('kanban');
+    }
+
     public static function canCreate(): bool
     {
         $user = Auth::user();

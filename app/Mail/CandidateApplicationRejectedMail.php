@@ -77,7 +77,6 @@ class CandidateApplicationRejectedMail extends Mailable
             }
         }
 
-        $reason = trim((string) ($this->application->rejected_reason ?? ''));
         $updatedAt = $this->application->updated_at;
 
         // Thay thế placeholder (khớp mẫu trong EmailTemplateSeeder type=rejection)
@@ -88,7 +87,8 @@ class CandidateApplicationRejectedMail extends Mailable
             '{{app_name}}' => e((string) config('app.name')),
             '{{application_id}}' => (string) $this->application->id,
             '{{updated_at}}' => e($this->formatDisplayDateTime($updatedAt)),
-            '{{rejected_reason}}' => e($reason !== '' ? $reason : 'Không ghi rõ'),
+            // Keep older database templates safe without exposing internal HR notes.
+            '{{rejected_reason}}' => 'Hồ sơ hiện chưa phù hợp với nhu cầu tuyển dụng tại thời điểm này.',
         ];
 
         return [

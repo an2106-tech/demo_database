@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\StatusApplicationEnum;
+use App\Jobs\ProcessApplicationCvText;
 use App\Livewire\Client\ApplyJob;
 use App\Models\Application;
 use App\Models\Attachment;
@@ -16,6 +17,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -27,6 +29,7 @@ class ApplyJobFlowTest extends TestCase
     public function test_candidate_can_apply_to_job_with_cv(): void
     {
         Mail::fake();
+        Queue::fake();
         Storage::fake('public');
 
         $branch = Branch::query()->create([
@@ -86,6 +89,7 @@ class ApplyJobFlowTest extends TestCase
             'job_id' => $job->id,
             'apply_method' => 'cv',
         ]);
+        Queue::assertPushed(ProcessApplicationCvText::class);
 
         $application = Application::query()->first();
         $submission = CandidateJobSubmission::query()->first();
@@ -309,7 +313,7 @@ class ApplyJobFlowTest extends TestCase
         $this->assertSame('guest-cv.pdf', data_get($application?->profile_snapshot, 'cv.original_filename'));
 
         $verificationUrl = null;
-        Mail::assertSent(GuestApplicationVerificationMail::class, function (GuestApplicationVerificationMail $mail) use (&$verificationUrl, $existingCandidate, $application): bool {
+        Mail::assertQueued(GuestApplicationVerificationMail::class, function (GuestApplicationVerificationMail $mail) use (&$verificationUrl, $existingCandidate, $application): bool {
             $verificationUrl = $mail->verificationUrl;
 
             return $mail->candidate->is($existingCandidate) && $mail->application->is($application);
@@ -482,5 +486,68 @@ class ApplyJobFlowTest extends TestCase
         $this->assertSame($originalAttachmentId, $application->cv_attachment_id);
         $this->assertSame($originalAppliedAt, $application->applied_at?->toDateTimeString());
         $this->assertSame(1, Attachment::query()->where('attachable_type', Application::class)->where('attachable_id', $application->id)->where('type', 'cv')->count());
+    }
+
+    public function test_candidate_cannot_apply_to_draft_or_expired_job(): void
+    {
+        Storage::fake('public');
+
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Can Tho',
+            'code' => 'CT-APPLY-GUARD',
+            'city' => 'Can Tho',
+        ]);
+        $employer = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $candidate = User::factory()->create([
+            'name' => 'Apply Guard Candidate',
+            'email' => 'apply-guard@example.com',
+            'role' => 'candidate',
+            'is_active' => true,
+            'metadata' => ['account_types' => ['candidate']],
+        ]);
+        Candidate::query()->create([
+            'user_id' => $candidate->id,
+            'name' => $candidate->name,
+            'email' => $candidate->email,
+            'phone' => '0901234567',
+            'cv_file' => 'candidates/apply-guard/cv.pdf',
+        ]);
+
+        $draftJob = RecruitmentJob::query()->create([
+            'title' => 'Draft Job',
+            'slug' => 'draft-job-apply-guard',
+            'description' => 'Draft job.',
+            'status' => 'draft',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+        $expiredJob = RecruitmentJob::query()->create([
+            'title' => 'Expired Job',
+            'slug' => 'expired-job-apply-guard',
+            'description' => 'Expired job.',
+            'status' => 'published',
+            'deadline' => now()->subDay(),
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+
+        $this->actingAs($candidate);
+
+        foreach ([$draftJob, $expiredJob] as $job) {
+            Livewire::test(ApplyJob::class, ['job' => $job])
+                ->set('name', $candidate->name)
+                ->set('email', $candidate->email)
+                ->set('cv', UploadedFile::fake()->create('cv.pdf', 120, 'application/pdf'))
+                ->call('submit')
+                ->assertHasErrors(['application']);
+        }
+
+        $this->assertSame(0, Application::query()->count());
     }
 }

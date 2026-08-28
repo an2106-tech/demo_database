@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             EmailTemplateSeeder::class,
             OfferLetterTemplateSeeder::class,
             ScorecardTemplateSeeder::class,
+            InterviewProcessTemplateSeeder::class,
             SkillSeeder::class,
             RecruitmentJobSeeder::class,
             JobSkillSeeder::class,

@@ -3,6 +3,7 @@
 namespace App\Livewire\Client;
 
 use App\Enums\StatusApplicationEnum;
+use App\Jobs\ProcessApplicationCvText;
 use App\Mail\CandidateApplicationReceivedMail;
 use App\Mail\GuestApplicationVerificationMail;
 use App\Mail\HrNewApplicationMail;
@@ -16,12 +17,12 @@ use App\Models\User;
 use App\Rules\CvUploadFile;
 use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
-use App\Services\CvTextExtractor;
+use App\Services\JobApplicationEligibilityService;
+use App\Services\OutboundMailQueue;
 use App\Support\CvUpload;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Route;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -130,6 +131,8 @@ class ApplyJob extends Component
             return null;
         }
 
+        app(JobApplicationEligibilityService::class)->assertCanApply($this->job->fresh());
+
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
@@ -146,6 +149,10 @@ class ApplyJob extends Component
         $this->validate($rules);
 
         $result = DB::transaction(function (): array {
+            $job = RecruitmentJob::query()->lockForUpdate()->findOrFail($this->job->id);
+            app(JobApplicationEligibilityService::class)->assertCanApply($job);
+            $this->job = $job->loadMissing(['branch', 'department', 'workplace', 'skills']);
+
             $candidate = $this->resolveCandidateForApplication();
             $application = Application::withTrashed()
                 ->where('job_id', $this->job->id)
@@ -164,7 +171,6 @@ class ApplyJob extends Component
             $cv = $this->storeSubmittedCv($candidate);
             $cvPath = $cv['path'];
             $cvAttachment = $cv['attachment'];
-            $cvText = $cvPath ? app(CvTextExtractor::class)->extractFromPublicPath($cvPath) : null;
 
             $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
             if ($this->sync_profile_to_candidate) {
@@ -182,7 +188,7 @@ class ApplyJob extends Component
 
             $resumeSnapshot = $this->buildResumeSnapshotForApplication($candidate, $resume);
             $profileSnapshot = $this->buildApplicationSnapshot($candidate, $resumeSnapshot, $cvPath, $cvAttachment);
-            $cvTextSnapshot = is_string($cvText) && $cvText !== '' ? mb_substr($cvText, 0, 200000) : null;
+            $cvTextSnapshot = null;
 
             $application ??= Application::withTrashed()
                 ->firstOrNew([
@@ -278,6 +284,8 @@ class ApplyJob extends Component
         }
 
         if (($result['should_send_received_mail'] ?? false) === true) {
+            ProcessApplicationCvText::dispatch($result['application']->id);
+
             $this->sendApplicationReceivedMail(
                 $result['candidate'],
                 $result['application'],
@@ -537,8 +545,9 @@ class ApplyJob extends Component
         }
 
         try {
-            Mail::to($email)->send(
-                new CandidateApplicationReceivedMail($candidate, $application, $this->job)
+            app(OutboundMailQueue::class)->queue(
+                $email,
+                new CandidateApplicationReceivedMail($candidate, $application, $this->job),
             );
         } catch (\Throwable $exception) {
             Log::warning('Unable to send candidate application confirmation email.', [
@@ -563,8 +572,9 @@ class ApplyJob extends Component
         }
 
         try {
-            Mail::to($email)->send(
-                new GuestApplicationVerificationMail($candidate, $application)
+            app(OutboundMailQueue::class)->queue(
+                $email,
+                new GuestApplicationVerificationMail($candidate, $application),
             );
         } catch (\Throwable $exception) {
             Log::warning('Unable to send guest application verification email.', [
@@ -602,8 +612,9 @@ class ApplyJob extends Component
             }
 
             try {
-                Mail::to($email)->send(
-                    new HrNewApplicationMail($candidate, $application, $this->job)
+                app(OutboundMailQueue::class)->queue(
+                    $email,
+                    new HrNewApplicationMail($candidate, $application, $this->job),
                 );
             } catch (\Throwable $exception) {
                 Log::warning('Unable to send HR new application email.', [

@@ -469,6 +469,76 @@
 
                                     <div class="form-section">
                                         <h2 class="form-section__title">
+                                            <i class="fa fa-users"></i>
+                                            Quy trình phỏng vấn
+                                        </h2>
+                                        <p class="form-section__hint">
+                                            @if($interview_process_locked)
+                                                Quy trình đã được cố định vì tin tuyển dụng đã có ứng viên.
+                                            @else
+                                                Chọn mẫu phù hợp để thống nhất các vòng và nội dung đánh giá.
+                                            @endif
+                                        </p>
+
+                                        <div class="field-card">
+                                            <label for="job-interview-process">Mẫu quy trình</label>
+                                            <select
+                                                id="job-interview-process"
+                                                wire:model.live="interview_process_template_id"
+                                                @disabled($interview_process_locked)
+                                            >
+                                                <option value="">Chọn quy trình phỏng vấn</option>
+                                                @foreach ($interviewProcessTemplates as $template)
+                                                    <option value="{{ $template->id }}">
+                                                        {{ $template->name }} · {{ $template->rounds_count }} vòng
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('interview_process_template_id') <span class="field-error">{{ $message }}</span> @enderror
+
+                                            @if($interviewProcessPreview)
+                                                <div class="mt-3 pt-3 border-top">
+                                                    <div class="d-flex justify-content-between gap-3 align-items-start mb-2">
+                                                        <div>
+                                                            <strong>{{ $interviewProcessPreview['name'] ?? 'Quy trình phỏng vấn' }}</strong>
+                                                            @if(filled($interviewProcessPreview['description'] ?? null))
+                                                                <p class="mb-0 mt-1 text-muted" style="font-size: 13px;">
+                                                                    {{ $interviewProcessPreview['description'] }}
+                                                                </p>
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-muted text-nowrap" style="font-size: 13px;">
+                                                            {{ count($interviewProcessPreview['rounds'] ?? []) }} vòng
+                                                        </span>
+                                                    </div>
+
+                                                    <ol class="list-unstyled mb-0">
+                                                        @foreach(($interviewProcessPreview['rounds'] ?? []) as $round)
+                                                            <li class="py-2 {{ ! $loop->last ? 'border-bottom' : '' }}">
+                                                                <div class="fw-semibold">
+                                                                    Vòng {{ $round['round_number'] ?? $loop->iteration }} · {{ $round['name'] ?? '' }}
+                                                                </div>
+                                                                @if(filled($round['objective'] ?? null))
+                                                                    <div class="text-muted mt-1" style="font-size: 13px;">
+                                                                        {{ $round['objective'] }}
+                                                                    </div>
+                                                                @endif
+                                                                <div class="text-muted mt-1" style="font-size: 12px;">
+                                                                    Ứng viên thấy: {{ $round['candidate_label'] ?? $round['name'] ?? '' }}
+                                                                </div>
+                                                                <div class="text-muted mt-1" style="font-size: 12px;">
+                                                                    Mẫu đánh giá: {{ data_get($round, 'scorecard_template.name', 'Chưa gắn mẫu đánh giá') }}
+                                                                </div>
+                                                            </li>
+                                                        @endforeach
+                                                    </ol>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="form-section">
+                                        <h2 class="form-section__title">
                                             <i class="fa fa-file-text-o"></i>
                                             Nội dung chi tiết
                                         </h2>

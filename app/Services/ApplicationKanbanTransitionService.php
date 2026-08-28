@@ -12,6 +12,7 @@ class ApplicationKanbanTransitionService
         private readonly ApplicationPipelineService $pipelineService,
         private readonly ApplicationWorkflowGuard $workflowGuard,
         private readonly ApplicationPreScreeningService $preScreeningService,
+        private readonly InterviewRoundWorkflowService $roundWorkflow,
     ) {}
 
     /**
@@ -37,7 +38,11 @@ class ApplicationKanbanTransitionService
             return $this->blocked('Hồ sơ đã ở giai đoạn này.');
         }
 
-        if (in_array($currentStatus, [StatusApplicationEnum::HIRED, StatusApplicationEnum::REJECTED], true)) {
+        if (in_array($currentStatus, [
+            StatusApplicationEnum::HIRED,
+            StatusApplicationEnum::REJECTED,
+            StatusApplicationEnum::WITHDRAWN,
+        ], true)) {
             return $this->blocked('Hồ sơ đã kết thúc quy trình, không thể kéo sang giai đoạn khác.');
         }
 
@@ -57,6 +62,17 @@ class ApplicationKanbanTransitionService
             $targetStage === StatusApplicationEnum::OFFERED->getPipelineStageKey()
             && in_array($currentStatus, [StatusApplicationEnum::INTERVIEW_SCHEDULED, StatusApplicationEnum::INTERVIEWING], true)
         ) {
+            $interview = $this->roundWorkflow->latestInterview($application);
+            $nextRound = $interview?->result === 'pass' && $interview->finalized_at
+                ? $this->roundWorkflow->nextRound($application, $interview)
+                : null;
+
+            if ($nextRound) {
+                return $this->blocked(
+                    'Ứng viên còn '.(string) $nextRound['name'].' theo quy trình. Hãy tạo lịch và hoàn tất vòng này trước khi lập đề nghị tuyển dụng.',
+                );
+            }
+
             return $this->requires(
                 StatusApplicationEnum::OFFERED,
                 'interview_evaluation',

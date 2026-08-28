@@ -17,6 +17,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
     case OFFERED = 'offer';
     case HIRED = 'hired';
     case REJECTED = 'rejected';
+    case WITHDRAWN = 'withdrawn';
 
     // Backward-compatible aliases for older workflow code paths.
     public const NEW = self::CV_REVIEWING;
@@ -33,6 +34,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
             self::OFFERED => 'heroicon-o-hand-raised',
             self::HIRED => 'heroicon-o-check-badge',
             self::REJECTED => 'heroicon-o-x-circle',
+            self::WITHDRAWN => 'heroicon-o-arrow-uturn-left',
         };
     }
 
@@ -46,6 +48,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
             self::OFFERED => 'success',
             self::HIRED => 'success',
             self::REJECTED => 'danger',
+            self::WITHDRAWN => 'gray',
         };
     }
 
@@ -59,6 +62,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
             self::OFFERED => 'Đề nghị tuyển dụng',
             self::HIRED => 'Đã tuyển',
             self::REJECTED => 'Từ chối',
+            self::WITHDRAWN => 'Ứng viên rút hồ sơ',
         };
     }
 
@@ -71,6 +75,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
             self::OFFERED => 'offer',
             self::HIRED => 'hired',
             self::REJECTED => 'rejected',
+            self::WITHDRAWN => 'rejected',
         };
     }
 
@@ -150,7 +155,7 @@ enum StatusApplicationEnum: string implements HasIcon, HasColor, HasLabel
                 'label' => 'Từ chối',
                 'icon' => 'heroicon-o-x-circle',
                 'color' => 'danger',
-                'statuses' => [self::REJECTED],
+                'statuses' => [self::REJECTED, self::WITHDRAWN],
             ],
         ];
     }

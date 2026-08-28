@@ -175,12 +175,12 @@ class RecruitmentRoleOverviewStats extends StatsOverviewWidget
                 ->description('Buổi đã đến hạn nhưng chưa có kết quả')
                 ->descriptionIcon('heroicon-o-clipboard-document-check')
                 ->color($overdue > 0 ? 'danger' : 'gray')
-                ->url(ApplicationResource::getUrl('index')),
+                ->url(ApplicationResource::getUrl('kanban')),
             Stat::make('Đã hoàn tất tháng này', number_format($completed))
                 ->description('Buổi phỏng vấn đã ghi nhận kết quả')
                 ->descriptionIcon('heroicon-o-check-circle')
                 ->color('success')
-                ->url(ApplicationResource::getUrl('index')),
+                ->url(ApplicationResource::getUrl('kanban')),
         ];
     }
 
@@ -264,7 +264,7 @@ class RecruitmentRoleOverviewStats extends StatsOverviewWidget
             ->description('Hồ sơ đã hoàn tất tuyển dụng')
             ->descriptionIcon('heroicon-o-check-badge')
             ->color('success')
-            ->url(ApplicationResource::getUrl('index'));
+            ->url(ApplicationResource::getUrl('kanban'));
     }
 
     private function scopeRecruitmentJobs(Builder $query, ?int $branchId): Builder

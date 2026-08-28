@@ -67,7 +67,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 'priority' => 'Cần xử lý',
                 'sort' => 20,
                 'roles' => ['super_admin', 'hr'],
-                'url' => ApplicationResource::getUrl('index'),
+                'url' => ApplicationResource::getUrl('kanban'),
             ],
             [
                 'key' => 'unsent_interviews',
@@ -79,7 +79,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 'priority' => 'Cần gửi',
                 'sort' => 30,
                 'roles' => ['super_admin', 'hr'],
-                'url' => ApplicationResource::getUrl('index'),
+                'url' => ApplicationResource::getUrl('kanban'),
             ],
             [
                 'key' => 'overdue_interviews',
@@ -91,7 +91,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 'priority' => 'Quá hạn',
                 'sort' => 10,
                 'roles' => ['super_admin', 'hr', 'pm'],
-                'url' => ApplicationResource::getUrl('index'),
+                'url' => ApplicationResource::getUrl('kanban'),
             ],
             [
                 'key' => 'draft_offers',
@@ -103,7 +103,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 'priority' => 'Cần gửi',
                 'sort' => 40,
                 'roles' => ['super_admin', 'hr'],
-                'url' => ApplicationResource::getUrl('index'),
+                'url' => ApplicationResource::getUrl('kanban'),
             ],
             [
                 'key' => 'pending_offers',
@@ -127,7 +127,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 'priority' => 'Sắp hết hạn',
                 'sort' => 15,
                 'roles' => ['super_admin', 'hr', 'director'],
-                'url' => ApplicationResource::getUrl('index'),
+                'url' => ApplicationResource::getUrl('kanban'),
             ],
         ];
 
@@ -372,7 +372,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
                 ? 'Lịch phỏng vấn: '.$interview->scheduled_at->copy()->setTimezone($timezone)->format('H:i d/m/Y')
                 : 'Chưa có thời gian phỏng vấn',
             'status' => $status,
-            'url' => $application ? ApplicationResource::getUrl('view', ['record' => $application]) : ApplicationResource::getUrl('index'),
+            'url' => $application ? ApplicationResource::getUrl('view', ['record' => $application]) : ApplicationResource::getUrl('kanban'),
         ];
     }
 
@@ -389,7 +389,7 @@ class RecruitmentWorkload extends Widget implements HasActions, HasSchemas
             'description' => ($application?->job?->title ?? 'Chưa có vị trí').' · '.($application?->job?->branch?->name ?? 'Chưa có chi nhánh'),
             'meta' => $date ? 'Cập nhật: '.$date->copy()->setTimezone($timezone)->format('H:i d/m/Y') : 'Chưa có thời gian cập nhật',
             'status' => $status,
-            'url' => $application ? ApplicationResource::getUrl('view', ['record' => $application]) : ApplicationResource::getUrl('index'),
+            'url' => $application ? ApplicationResource::getUrl('view', ['record' => $application]) : ApplicationResource::getUrl('kanban'),
         ];
     }
 

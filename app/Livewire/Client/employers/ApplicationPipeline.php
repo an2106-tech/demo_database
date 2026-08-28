@@ -11,6 +11,7 @@ use App\Models\Workplace;
 use App\Services\ApplicationPipelineService;
 use App\Services\ApplicationWorkflowGuard;
 use App\Services\InterviewCalendarService;
+use App\Services\OutboundMailQueue;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -427,7 +428,10 @@ class ApplicationPipeline extends Component
 
         foreach ($recipients as $email => $label) {
             try {
-                Mail::to($email)->send(new InterviewScheduledMail($interview, $label));
+                app(OutboundMailQueue::class)->queue(
+                    $email,
+                    new InterviewScheduledMail($interview, $label),
+                );
                 $sentCount++;
             } catch (\Throwable $exception) {
                 Log::warning('Failed to send HR portal interview schedule mail.', [
@@ -565,6 +569,7 @@ class ApplicationPipeline extends Component
             StatusApplicationEnum::OFFERED => 'Đề nghị tuyển dụng',
             StatusApplicationEnum::HIRED => 'Đã tuyển',
             StatusApplicationEnum::REJECTED => 'Từ chối',
+            StatusApplicationEnum::WITHDRAWN => 'Ứng viên rút hồ sơ',
         };
     }
 

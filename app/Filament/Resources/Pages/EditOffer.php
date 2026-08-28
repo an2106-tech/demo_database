@@ -179,8 +179,8 @@ class EditOffer extends EditRecord
                     } else {
                         Notification::make()
                             ->danger()
-                            ->title('Lỗi')
-                            ->body('Có lỗi xảy ra khi duyệt đề nghị tuyển dụng.')
+                            ->title('Chưa thể duyệt đề nghị')
+                            ->body($service->lastError() ?: 'Vui lòng kiểm tra lại thông tin đề nghị và thử lại.')
                             ->send();
                     }
                 }),

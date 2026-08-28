@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\Interview;
 use App\Models\Offer;
 use App\Models\Scorecard;
+use App\Models\User;
 use Carbon\CarbonInterface;
 
 class ApplicationWorkflowSummaryService
@@ -14,7 +15,7 @@ class ApplicationWorkflowSummaryService
     /**
      * @return array{stage_label: string, status_label: string, description: string, color: string, is_terminal: bool}
      */
-    public function summarize(Application $application): array
+    public function summarize(Application $application, ?User $actor = null): array
     {
         $status = $this->status($application);
 
@@ -27,10 +28,19 @@ class ApplicationWorkflowSummaryService
             ),
             StatusApplicationEnum::SCREENING => $this->screeningSummary($application, $status),
             StatusApplicationEnum::INTERVIEW_SCHEDULED,
-            StatusApplicationEnum::INTERVIEWING => $this->interviewSummary($application, $status),
+            StatusApplicationEnum::INTERVIEWING => $this->interviewSummary($application, $status, $actor),
             StatusApplicationEnum::OFFERED => $this->offerSummary($application, $status),
             StatusApplicationEnum::HIRED => $this->hiredSummary($application, $status),
             StatusApplicationEnum::REJECTED => $this->rejectedSummary($application, $status),
+            StatusApplicationEnum::WITHDRAWN => $this->summary(
+                $status,
+                'Ứng viên đã rút hồ sơ',
+                $application->withdrawn_at
+                    ? 'Hồ sơ được ứng viên rút lúc '.$this->formatDateTime($application->withdrawn_at).'.'
+                    : 'Ứng viên đã chủ động dừng tham gia quy trình tuyển dụng.',
+                'gray',
+                true,
+            ),
             default => [
                 'stage_label' => 'Chưa xác định',
                 'status_label' => 'Trạng thái không hợp lệ',
@@ -95,7 +105,7 @@ class ApplicationWorkflowSummaryService
         );
     }
 
-    private function interviewSummary(Application $application, StatusApplicationEnum $status): array
+    private function interviewSummary(Application $application, StatusApplicationEnum $status, ?User $actor): array
     {
         $interview = $this->latestInterview($application);
 
@@ -127,14 +137,55 @@ class ApplicationWorkflowSummaryService
         }
 
         $evaluationProgress = app(InterviewEvaluatorService::class)->progress($interview);
-        if ($evaluationProgress['is_panel'] && ($evaluationProgress['submitted'] > 0 || $evaluationProgress['waived'] > 0)) {
+        $actorAssignment = $actor
+            ? $interview->evaluators()->where('user_id', $actor->id)->first()
+            : null;
+        $actorIsLead = $actor && (int) $interview->interviewer_id === (int) $actor->id;
+
+        if ($evaluationProgress['is_panel'] && ($interview->scheduled_at?->lte(now()) || $evaluationProgress['submitted'] > 0)) {
+            if ($evaluationProgress['all_submitted']) {
+                if (! $actor) {
+                    return $this->summary(
+                        $status,
+                        'Chờ chốt kết quả',
+                        'Đã đủ '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu. Người phụ trách cần chốt kết quả vòng.',
+                        'warning',
+                    );
+                }
+
+                return $this->summary(
+                    $status,
+                    $actorIsLead || $actor?->isSuperAdmin() ? 'Cần chốt kết quả vòng' : 'Đã đủ phiếu đánh giá',
+                    $actorIsLead || $actor?->isSuperAdmin()
+                        ? 'Đã nhận đủ '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu. Kiểm tra và chốt kết quả vòng.'
+                        : 'Đã nhận đủ phiếu, đang chờ người phụ trách chốt kết quả vòng.',
+                    'warning',
+                );
+            }
+
+            if ($actorAssignment?->submitted_at) {
+                return $this->summary(
+                    $status,
+                    'Đã gửi phiếu đánh giá',
+                    'Đang chờ '.$evaluationProgress['pending'].' phiếu còn lại trước khi chốt kết quả vòng.',
+                    'info',
+                );
+            }
+
+            if ($actorAssignment?->is_required) {
+                return $this->summary(
+                    $status,
+                    'Cần gửi phiếu đánh giá',
+                    'Buổi phỏng vấn đã đến hạn và phiếu của bạn chưa được gửi.',
+                    'danger',
+                );
+            }
+
             return $this->summary(
                 $status,
-                $evaluationProgress['all_submitted'] ? 'Chờ chốt kết quả' : 'Đang nhận phiếu đánh giá',
-                $evaluationProgress['all_submitted']
-                    ? 'Đã đủ '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu. Người phụ trách cần chốt kết quả vòng.'
-                    : 'Đã nhận '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu, còn '.$evaluationProgress['pending'].' phiếu.',
-                $evaluationProgress['all_submitted'] ? 'warning' : 'info',
+                'Đang nhận phiếu đánh giá',
+                'Đã nhận '.$evaluationProgress['submitted'].'/'.$evaluationProgress['required'].' phiếu, còn '.$evaluationProgress['pending'].' phiếu.',
+                'info',
             );
         }
 
@@ -172,6 +223,19 @@ class ApplicationWorkflowSummaryService
         }
 
         if (($interview->result ?? 'pending') !== 'pending') {
+            if ($interview->result === 'pass' && $interview->finalized_at) {
+                $nextRound = app(InterviewRoundWorkflowService::class)->nextRound($application, $interview);
+
+                if ($nextRound) {
+                    return $this->summary(
+                        $status,
+                        'Đã đạt vòng '.(int) $interview->round_number,
+                        'Sẵn sàng tạo lịch cho '.mb_strtolower((string) $nextRound['name']).'.',
+                        'success',
+                    );
+                }
+            }
+
             return $this->summary(
                 $status,
                 'Đã có kết quả phỏng vấn',
@@ -181,10 +245,19 @@ class ApplicationWorkflowSummaryService
         }
 
         if ($interview->scheduled_at?->lte(now())) {
+            if ($actor && ! $actorIsLead) {
+                return $this->summary(
+                    $status,
+                    'Chờ người phụ trách đánh giá',
+                    'Đang chờ '.($interview->interviewer?->name ?: 'người phụ trách vòng').' ghi nhận kết quả phỏng vấn.',
+                    'info',
+                );
+            }
+
             return $this->summary(
                 $status,
-                'Chưa đánh giá',
-                'Buổi phỏng vấn đã đến hạn, cần ghi nhận scorecard.',
+                'Cần đánh giá phỏng vấn',
+                'Buổi phỏng vấn đã đến hạn và cần hoàn tất phiếu đánh giá.',
                 'danger',
             );
         }
@@ -364,11 +437,7 @@ class ApplicationWorkflowSummaryService
 
     private function latestInterview(Application $application): ?Interview
     {
-        if ($application->relationLoaded('latestInterview')) {
-            return $application->latestInterview;
-        }
-
-        return $application->interviews()->latest('id')->first();
+        return app(InterviewRoundWorkflowService::class)->latestInterview($application);
     }
 
     private function latestOffer(Application $application): ?Offer

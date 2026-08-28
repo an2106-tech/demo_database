@@ -58,7 +58,8 @@ class ApplicationStatusNotificationTest extends TestCase
         ]);
 
         Mail::assertQueued(CandidateApplicationRejectedMail::class, function (CandidateApplicationRejectedMail $mail) use ($application): bool {
-            return $mail->application->is($application);
+            return $mail->application->is($application)
+                && ! str_contains($mail->render(), 'Không phù hợp với yêu cầu vị trí.');
         });
         Mail::assertNotSent(CandidateApplicationStatusChangeMail::class);
         Mail::assertNotSent(HrApplicationStatusChangeMail::class);

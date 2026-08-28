@@ -295,6 +295,8 @@ class ApplicationForm
         $currentIndex = static::getStatusIndex($currentStatus ?? StatusApplicationEnum::NEW);
 
         return collect(StatusApplicationEnum::cases())
+            ->filter(fn (StatusApplicationEnum $status): bool => $status !== StatusApplicationEnum::WITHDRAWN
+                || $currentStatus === StatusApplicationEnum::WITHDRAWN)
             ->filter(fn (StatusApplicationEnum $status): bool => static::getStatusIndex($status) >= $currentIndex)
             ->mapWithKeys(fn (StatusApplicationEnum $status): array => [
                 $status->value => (string) $status->getLabel(),
@@ -317,6 +319,10 @@ class ApplicationForm
             return true;
         }
 
+        if ($toEnum === StatusApplicationEnum::WITHDRAWN && $fromEnum !== StatusApplicationEnum::WITHDRAWN) {
+            return false;
+        }
+
         return static::getStatusIndex($toEnum) >= static::getStatusIndex($fromEnum);
     }
 
@@ -330,6 +336,7 @@ class ApplicationForm
             StatusApplicationEnum::OFFER => 40,
             StatusApplicationEnum::HIRED => 50,
             StatusApplicationEnum::REJECTED => 60,
+            StatusApplicationEnum::WITHDRAWN => 60,
         };
     }
 }

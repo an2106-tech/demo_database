@@ -10,7 +10,6 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use App\Mail\OfferApprovalRequestMail;
 
@@ -132,7 +131,10 @@ class OfferWorkflowService
 
         foreach ($directors as $director) {
             try {
-                Mail::to($director->email)->queue(new OfferApprovalRequestMail($offer, $application, $application->job, $director));
+                app(OutboundMailQueue::class)->queue(
+                    $director->email,
+                    new OfferApprovalRequestMail($offer, $application, $application->job, $director),
+                );
                 $sent++;
             } catch (\Throwable $exception) {
                 $failed++;

@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'candidate.account' => \App\Http\Middleware\EnsureCandidateAccount::class,
             'candidate.profile.complete' => \App\Http\Middleware\EnsureCandidateProfileComplete::class,
             'employer.account' => \App\Http\Middleware\EnsureEmployerAccount::class,
+            'applications.kanban-only' => \App\Http\Middleware\RedirectLegacyApplicationPipeline::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

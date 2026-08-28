@@ -18,6 +18,7 @@ class InterviewEvaluationService
         private readonly ApplicationWorkflowGuard $workflowGuard,
         private readonly InterviewEvaluatorService $evaluatorService,
         private readonly RecruitmentInternalNotificationService $internalNotifications,
+        private readonly InterviewRoundWorkflowService $roundWorkflow,
     ) {}
 
     /**
@@ -158,7 +159,7 @@ class InterviewEvaluationService
         }
 
         /** @var Interview|null $interview */
-        $interview = $application->interviews()->latest('id')->first();
+        $interview = $this->roundWorkflow->latestInterview($application);
         if (! $interview) {
             throw ValidationException::withMessages([
                 'interview' => 'Chưa có lịch phỏng vấn để đánh giá.',
@@ -250,7 +251,7 @@ class InterviewEvaluationService
         }
 
         /** @var Interview|null $interview */
-        $interview = $application->interviews()->latest('id')->first();
+        $interview = $this->roundWorkflow->latestInterview($application);
         if (! $interview) {
             throw ValidationException::withMessages([
                 'interview' => 'Chưa có lịch phỏng vấn để hoàn tất đánh giá.',
@@ -285,6 +286,13 @@ class InterviewEvaluationService
         if (! in_array($conclusion, ['pass', 'hold', 'fail'], true)) {
             throw ValidationException::withMessages([
                 'conclusion' => 'Vui lòng chọn kết luận phỏng vấn hợp lệ.',
+            ]);
+        }
+
+        $notes = trim((string) ($data['notes'] ?? ''));
+        if ($notes === '') {
+            throw ValidationException::withMessages([
+                'notes' => 'Vui lòng nhập nhận xét nội bộ trước khi gửi phiếu đánh giá.',
             ]);
         }
 
@@ -343,7 +351,10 @@ class InterviewEvaluationService
             ];
         }
 
-        DB::transaction(function () use ($application, $interview, $actor, $template, $criteria, $average, $recommendedConclusion, $conclusion, $data, $overrideReason, $rejectedReason, $comment, $finishedEarly): void {
+        $isFinalRound = $this->roundWorkflow->isFinalRound($application, $interview);
+        $nextRound = $this->roundWorkflow->nextRound($application, $interview);
+
+        DB::transaction(function () use ($application, $interview, $actor, $template, $criteria, $average, $recommendedConclusion, $conclusion, $data, $overrideReason, $rejectedReason, $comment, $finishedEarly, $isFinalRound): void {
             $isFinalDecision = in_array($conclusion, ['pass', 'fail'], true);
             $this->persistScorecard(
                 $application,
@@ -373,43 +384,31 @@ class InterviewEvaluationService
                 'final_notes' => filled($data['notes'] ?? null) ? trim((string) $data['notes']) : null,
             ])->save();
 
-            $currentStatus = $this->pipelineService->normalizeStatus($application->status);
-            $transitionedToInterview = false;
-            if ($currentStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED) {
-                $this->pipelineService->transition(
-                    $application,
-                    StatusApplicationEnum::INTERVIEWING,
-                    $actor,
-                    $conclusion === 'hold' ? $comment : 'Đã hoàn tất đánh giá phỏng vấn trước khi chuyển bước tiếp theo.',
-                );
-                $application->refresh();
-                $transitionedToInterview = true;
-            }
-
-            if ($conclusion === 'pass') {
-                $application->forceFill(['rejected_reason' => null])->save();
-                $this->pipelineService->transition($application, StatusApplicationEnum::OFFERED, $actor, $comment);
-            } elseif ($conclusion === 'fail') {
-                $application->forceFill([
-                    'rejected_stage' => 'interview',
-                    'rejected_reason' => $rejectedReason,
-                ])->save();
-                $this->pipelineService->transition($application, StatusApplicationEnum::REJECTED, $actor, $comment.' Lý do từ chối: '.$rejectedReason);
-            } elseif (! $transitionedToInterview) {
-                $application->recordStatusHistory(
-                    StatusApplicationEnum::INTERVIEWING->value,
-                    StatusApplicationEnum::INTERVIEWING->value,
-                    $comment,
-                );
-            }
+            $this->applyRoundOutcome(
+                $application,
+                $interview,
+                $actor,
+                $conclusion,
+                $rejectedReason,
+                $comment,
+                $isFinalRound,
+            );
         });
+
+        if ($conclusion === 'pass') {
+            $this->internalNotifications->notifyInterviewRoundHandoff($interview->refresh(), ! $isFinalRound);
+        }
 
         return [
             'conclusion' => $conclusion,
             'average' => $average,
             'recommended_conclusion' => $recommendedConclusion,
             'finalized' => in_array($conclusion, ['pass', 'fail'], true),
-            'completion_state' => in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held',
+            'completion_state' => $conclusion === 'pass' && ! $isFinalRound
+                ? 'round_passed'
+                : (in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held'),
+            'process_completed' => $conclusion === 'fail' || ($conclusion === 'pass' && $isFinalRound),
+            'next_round' => $conclusion === 'pass' && ! $isFinalRound ? $nextRound : null,
             'progress' => $this->evaluatorService->progress($interview),
         ];
     }
@@ -427,7 +426,12 @@ class InterviewEvaluationService
             ]);
         }
 
-        $interview = $application->interviews()->latest('id')->firstOrFail();
+        $interview = $this->roundWorkflow->latestInterview($application);
+        if (! $interview) {
+            throw ValidationException::withMessages([
+                'interview' => 'Chưa có vòng phỏng vấn để chốt kết quả.',
+            ]);
+        }
         $scorecards = $interview->scorecards()->whereNotNull('submitted_at')->get();
         $average = $scorecards->whereNotNull('average_score')->avg('average_score');
         $average = $average !== null ? round((float) $average, 2) : null;
@@ -437,6 +441,13 @@ class InterviewEvaluationService
         if (! in_array($conclusion, ['pass', 'hold', 'fail'], true)) {
             throw ValidationException::withMessages([
                 'conclusion' => 'Vui lòng chọn kết luận chung của vòng phỏng vấn.',
+            ]);
+        }
+
+        $notes = trim((string) ($data['notes'] ?? ''));
+        if ($notes === '') {
+            throw ValidationException::withMessages([
+                'notes' => 'Vui lòng nhập nhận xét chung trước khi chốt kết quả vòng.',
             ]);
         }
 
@@ -459,7 +470,10 @@ class InterviewEvaluationService
             .' Kết luận: '.$this->conclusionLabel($conclusion).'.'
             .(filled($data['notes'] ?? null) ? ' Nhận xét chung: '.trim((string) $data['notes']) : '');
 
-        DB::transaction(function () use ($application, $interview, $actor, $conclusion, $data, $rejectedReason, $comment): void {
+        $isFinalRound = $this->roundWorkflow->isFinalRound($application, $interview);
+        $nextRound = $this->roundWorkflow->nextRound($application, $interview);
+
+        DB::transaction(function () use ($application, $interview, $actor, $conclusion, $data, $rejectedReason, $comment, $isFinalRound): void {
             $isFinalDecision = in_array($conclusion, ['pass', 'fail'], true);
             $interview->forceFill([
                 'result' => $conclusion === 'hold' ? 'pending' : $conclusion,
@@ -469,34 +483,103 @@ class InterviewEvaluationService
                 'final_notes' => filled($data['notes'] ?? null) ? trim((string) $data['notes']) : null,
             ])->save();
 
-            $currentStatus = $this->pipelineService->normalizeStatus($application->status);
-            if ($currentStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED) {
-                $this->pipelineService->transition($application, StatusApplicationEnum::INTERVIEWING, $actor, 'Đã hoàn tất các phiếu đánh giá của vòng phỏng vấn.');
-                $application->refresh();
-            }
-
-            if ($conclusion === 'pass') {
-                $application->forceFill(['rejected_reason' => null])->save();
-                $this->pipelineService->transition($application, StatusApplicationEnum::OFFERED, $actor, $comment);
-            } elseif ($conclusion === 'fail') {
-                $application->forceFill([
-                    'rejected_stage' => 'interview',
-                    'rejected_reason' => $rejectedReason,
-                ])->save();
-                $this->pipelineService->transition($application, StatusApplicationEnum::REJECTED, $actor, $comment.' Lý do từ chối: '.$rejectedReason);
-            } else {
-                $application->recordStatusHistory(StatusApplicationEnum::INTERVIEWING->value, StatusApplicationEnum::INTERVIEWING->value, $comment);
-            }
+            $this->applyRoundOutcome(
+                $application,
+                $interview,
+                $actor,
+                $conclusion,
+                $rejectedReason,
+                $comment,
+                $isFinalRound,
+            );
         });
+
+        if ($conclusion === 'pass') {
+            $this->internalNotifications->notifyInterviewRoundHandoff($interview->refresh(), ! $isFinalRound);
+        }
 
         return [
             'conclusion' => $conclusion,
             'average' => $average,
             'recommended_conclusion' => $recommendedConclusion,
             'finalized' => in_array($conclusion, ['pass', 'fail'], true),
-            'completion_state' => in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held',
+            'completion_state' => $conclusion === 'pass' && ! $isFinalRound
+                ? 'round_passed'
+                : (in_array($conclusion, ['pass', 'fail'], true) ? 'finalized' : 'held'),
+            'process_completed' => $conclusion === 'fail' || ($conclusion === 'pass' && $isFinalRound),
+            'next_round' => $conclusion === 'pass' && ! $isFinalRound ? $nextRound : null,
             'progress' => $this->evaluatorService->progress($interview),
         ];
+    }
+
+    private function applyRoundOutcome(
+        Application $application,
+        Interview $interview,
+        ?User $actor,
+        string $conclusion,
+        string $rejectedReason,
+        string $comment,
+        bool $isFinalRound,
+    ): void {
+        $currentStatus = $this->pipelineService->normalizeStatus($application->status);
+        $transitionedToInterview = false;
+
+        if ($currentStatus === StatusApplicationEnum::INTERVIEW_SCHEDULED) {
+            $this->pipelineService->transition(
+                $application,
+                StatusApplicationEnum::INTERVIEWING,
+                $actor,
+                'Đã hoàn tất đánh giá '.$interview->round_name.'.',
+            );
+            $application->refresh();
+            $transitionedToInterview = true;
+        }
+
+        if ($conclusion === 'pass') {
+            $application->forceFill([
+                'rejected_stage' => null,
+                'rejected_reason' => null,
+            ])->save();
+
+            if ($isFinalRound) {
+                $this->pipelineService->transition($application, StatusApplicationEnum::OFFERED, $actor, $comment);
+
+                return;
+            }
+
+            $nextRound = $this->roundWorkflow->nextRound($application, $interview);
+            $nextRoundName = (string) ($nextRound['name'] ?? 'vòng phỏng vấn tiếp theo');
+            $application->recordStatusHistory(
+                StatusApplicationEnum::INTERVIEWING->value,
+                StatusApplicationEnum::INTERVIEWING->value,
+                $comment.' Ứng viên đủ điều kiện chuyển sang '.$nextRoundName.'.',
+            );
+
+            return;
+        }
+
+        if ($conclusion === 'fail') {
+            $application->forceFill([
+                'rejected_stage' => 'interview',
+                'rejected_reason' => $rejectedReason,
+            ])->save();
+            $this->pipelineService->transition(
+                $application,
+                StatusApplicationEnum::REJECTED,
+                $actor,
+                $comment.' Không đạt vòng '.(int) $interview->round_number.'. Lý do từ chối: '.$rejectedReason,
+            );
+
+            return;
+        }
+
+        if (! $transitionedToInterview) {
+            $application->recordStatusHistory(
+                StatusApplicationEnum::INTERVIEWING->value,
+                StatusApplicationEnum::INTERVIEWING->value,
+                $comment,
+            );
+        }
     }
 
     /**

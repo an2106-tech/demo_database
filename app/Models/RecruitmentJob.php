@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Enums\StatusRecruitmentJobsEnum;
+use App\Services\InterviewProcessTemplateService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Validation\ValidationException;
 
 class RecruitmentJob extends Model
 {
@@ -20,8 +22,29 @@ class RecruitmentJob extends Model
             if (filled($job->slug)) {
                 $job->public_url = route('jobs.public', ['slug' => $job->slug]);
             }
+
+            $processFieldsChanged = $job->isDirty([
+                'interview_process_template_id',
+                'interview_process_snapshot',
+            ]);
+
+            if (! $processFieldsChanged) {
+                return;
+            }
+
+            if ($job->exists && $job->applications()->exists()) {
+                throw ValidationException::withMessages([
+                    'interview_process_template_id' => 'Không thể đổi quy trình khi tin tuyển dụng đã có ứng viên.',
+                ]);
+            }
+
+            $job->interview_process_snapshot = filled($job->interview_process_template_id)
+                ? app(InterviewProcessTemplateService::class)
+                    ->snapshotFromTemplateId((int) $job->interview_process_template_id)
+                : null;
         });
     }
+
     protected $fillable = [
         'title',
         'slug',
@@ -35,13 +58,16 @@ class RecruitmentJob extends Model
         'public_url',
         'thumbnail',
         'department_id',
+        'interview_process_template_id',
+        'interview_process_snapshot',
         'created_by',
     ];
 
     protected $casts = [
         'salary_range' => 'array',
-        'deadline'     => 'date',
-        'status'       => StatusRecruitmentJobsEnum::class,
+        'deadline' => 'date',
+        'status' => StatusRecruitmentJobsEnum::class,
+        'interview_process_snapshot' => 'array',
     ];
 
     public function getFormattedSalaryAttribute(): string
@@ -79,20 +105,21 @@ class RecruitmentJob extends Model
             }
 
             if ($isUsd) {
-                return '$' . number_format($num, 0, ',', '.');
+                return '$'.number_format($num, 0, ',', '.');
             }
 
             if ($num >= 1000000) {
                 $million = $num / 1000000;
                 $formatted = round($million, 1);
-                return rtrim(rtrim(number_format($formatted, 1, ',', '.'), '0'), ',') . ' triệu';
+
+                return rtrim(rtrim(number_format($formatted, 1, ',', '.'), '0'), ',').' triệu';
             }
 
             if ($num >= 1000) {
-                return number_format($num, 0, ',', '.') . ' đ';
+                return number_format($num, 0, ',', '.').' đ';
             }
 
-            return $num . ' triệu';
+            return $num.' triệu';
         };
 
         $minStr = $formatNumber($minVal);
@@ -100,22 +127,23 @@ class RecruitmentJob extends Model
 
         if ($minStr && $maxStr) {
             if ($isUsd) {
-                return $minStr . ' - ' . $maxStr;
+                return $minStr.' - '.$maxStr;
             }
 
             $cleanMin = str_replace(' triệu', '', $minStr);
             if (str_contains($maxStr, 'triệu')) {
-                return $cleanMin . ' - ' . $maxStr . ' VNĐ';
+                return $cleanMin.' - '.$maxStr.' VNĐ';
             }
-            return $minStr . ' - ' . $maxStr;
+
+            return $minStr.' - '.$maxStr;
         }
 
         if ($minStr) {
-            return 'Từ ' . $minStr . ($isUsd ? '' : ' VNĐ');
+            return 'Từ '.$minStr.($isUsd ? '' : ' VNĐ');
         }
 
         if ($maxStr) {
-            return 'Lên đến ' . $maxStr . ($isUsd ? '' : ' VNĐ');
+            return 'Lên đến '.$maxStr.($isUsd ? '' : ' VNĐ');
         }
 
         return 'Thỏa thuận';
@@ -155,5 +183,23 @@ class RecruitmentJob extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(Application::class, 'job_id');
+    }
+
+    public function interviewProcessTemplate(): BelongsTo
+    {
+        return $this->belongsTo(InterviewProcessTemplate::class);
+    }
+
+    public function hasLockedInterviewProcess(): bool
+    {
+        return $this->exists && $this->applications()->exists();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function resolvedInterviewProcess(): array
+    {
+        return app(InterviewProcessTemplateService::class)->resolveForJob($this);
     }
 }

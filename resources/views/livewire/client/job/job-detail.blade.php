@@ -867,44 +867,105 @@
         }
 
         /* === Recruitment Process Steps === */
+        .fpt-process-card {
+            padding: 26px 28px;
+        }
+
+        .fpt-process-card-header {
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .fpt-process-heading {
+            flex: 1;
+            min-width: 150px;
+        }
+
         .fpt-steps-list {
             display: flex;
             flex-direction: column;
-            gap: 14px;
             position: relative;
         }
 
+        .fpt-steps-list::before {
+            background: #dbe3ec;
+            bottom: 14px;
+            content: '';
+            left: 13px;
+            position: absolute;
+            top: 14px;
+            width: 2px;
+        }
+
         .fpt-step-item {
-            display: flex;
-            gap: 12px;
             align-items: flex-start;
+            display: flex;
+            gap: 14px;
+            padding-bottom: 18px;
+            position: relative;
+        }
+
+        .fpt-step-item:last-child {
+            padding-bottom: 0;
         }
 
         .fpt-step-num {
             align-items: center;
-            background: var(--fpt-orange-light);
-            border: 1px solid var(--fpt-orange-border);
+            background: #ffffff;
+            border: 1.5px solid var(--fpt-orange-border);
             border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(249, 115, 22, 0.08);
             color: var(--fpt-orange);
             display: flex;
             flex-shrink: 0;
             font-size: 12px;
             font-weight: 800;
-            height: 26px;
+            height: 28px;
             justify-content: center;
-            width: 26px;
+            position: relative;
+            width: 28px;
+            z-index: 1;
+        }
+
+        .fpt-step-content {
+            flex: 1;
+            min-width: 0;
+            padding-top: 3px;
         }
 
         .fpt-step-text {
-            font-size: 13.5px;
-            font-weight: 600;
             color: var(--fpt-slate-800);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.45;
         }
 
-        .fpt-step-desc {
-            font-size: 12px;
-            color: var(--fpt-slate-500);
-            margin-top: 2px;
+        .fpt-interview-rounds {
+            display: grid;
+            gap: 6px;
+            margin-top: 9px;
+            padding-left: 2px;
+        }
+
+        .fpt-interview-round {
+            align-items: flex-start;
+            color: var(--fpt-slate-600);
+            display: flex;
+            font-size: 12.5px;
+            gap: 8px;
+            line-height: 1.5;
+        }
+
+        .fpt-interview-round span {
+            color: var(--fpt-orange);
+            flex-shrink: 0;
+            font-weight: 700;
+            min-width: 42px;
+        }
+
+        .fpt-interview-round div {
+            flex: 1;
+            min-width: 0;
         }
 
         /* === Share Toast / Action === */
@@ -1302,34 +1363,47 @@
                     </div>
 
                     {{-- Work Environment & Process Card --}}
-                    <div class="fpt-card">
-                        <div class="fpt-card-header" style="margin-bottom: 16px; padding-bottom: 12px;">
+                    <div class="fpt-card fpt-process-card">
+                        <div class="fpt-card-header fpt-process-card-header" style="margin-bottom: 16px; padding-bottom: 12px;">
                             <div class="fpt-card-icon" style="width: 32px; height: 32px; font-size: 14px;">
                                 <i class="fa fa-sliders"></i>
                             </div>
-                            <h3 class="fpt-card-title" style="font-size: 17px;">Quy trình tuyển dụng</h3>
+                            <div class="fpt-process-heading">
+                                <h3 class="fpt-card-title" style="font-size: 17px; letter-spacing: 0;">Quy trình tuyển dụng dự kiến</h3>
+                            </div>
                         </div>
 
                         <div class="fpt-steps-list">
                             <div class="fpt-step-item">
                                 <div class="fpt-step-num">1</div>
-                                <div>
-                                    <div class="fpt-step-text">Nộp hồ sơ trực tuyến</div>
-                                    <div class="fpt-step-desc">Điền thông tin và đính kèm CV qua hệ thống.</div>
+                                <div class="fpt-step-content">
+                                    <div class="fpt-step-text">Nộp hồ sơ</div>
                                 </div>
                             </div>
                             <div class="fpt-step-item">
                                 <div class="fpt-step-num">2</div>
-                                <div>
-                                    <div class="fpt-step-text">Sàng lọc & Phỏng vấn</div>
-                                    <div class="fpt-step-desc">HR liên hệ sắp xếp lịch trao đổi chuyên môn.</div>
+                                <div class="fpt-step-content">
+                                    <div class="fpt-step-text">Sàng lọc và trao đổi sơ bộ</div>
                                 </div>
                             </div>
                             <div class="fpt-step-item">
                                 <div class="fpt-step-num">3</div>
-                                <div>
-                                    <div class="fpt-step-text">Thư mời nhận việc (Offer)</div>
-                                    <div class="fpt-step-desc">Gửi thông báo kết quả và chính sách đãi ngộ.</div>
+                                <div class="fpt-step-content">
+                                    <div class="fpt-step-text">Phỏng vấn</div>
+                                    <div class="fpt-interview-rounds">
+                                        @foreach($publicInterviewProcess['rounds'] as $round)
+                                            <div class="fpt-interview-round">
+                                                <span>Vòng {{ $round['number'] }}</span>
+                                                <div>{{ $round['label'] }}</div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="fpt-step-item">
+                                <div class="fpt-step-num">4</div>
+                                <div class="fpt-step-content">
+                                    <div class="fpt-step-text">Phản hồi kết quả</div>
                                 </div>
                             </div>
                         </div>

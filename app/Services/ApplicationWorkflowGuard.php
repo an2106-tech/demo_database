@@ -7,6 +7,7 @@ use App\Models\Application;
 use App\Models\Interview;
 use App\Models\Offer;
 use App\Models\User;
+use Illuminate\Validation\ValidationException;
 
 class ApplicationWorkflowGuard
 {
@@ -87,7 +88,21 @@ class ApplicationWorkflowGuard
 
         $interview = $this->latestInterview($application);
 
-        if (! $interview || $interview->result !== 'pending' || $interview->scorecards()->exists()) {
+        if (! $interview) {
+            return false;
+        }
+
+        if ($interview->result === 'pass' && $interview->finalized_at) {
+            try {
+                $schedule = app(InterviewRoundWorkflowService::class)->schedulingContext($application);
+
+                return ! $schedule['is_update'];
+            } catch (ValidationException) {
+                return false;
+            }
+        }
+
+        if ($interview->result !== 'pending' || $interview->scorecards()->exists()) {
             return false;
         }
 
@@ -278,6 +293,6 @@ class ApplicationWorkflowGuard
 
     private function latestInterview(Application $application): ?Interview
     {
-        return $application->latestInterview ?? $application->interviews()->latest('id')->first();
+        return app(InterviewRoundWorkflowService::class)->latestInterview($application);
     }
 }

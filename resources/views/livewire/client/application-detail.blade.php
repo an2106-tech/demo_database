@@ -8,6 +8,7 @@
         'interview_scheduled', 'interview', 'offer' => 'chip chip--accent',
         'hired' => 'chip chip--success',
         'rejected' => 'chip chip--danger',
+        'withdrawn' => 'chip',
         default => 'chip',
     };
     $snapshot = $application->profile_snapshot ?? [];
@@ -61,10 +62,11 @@
                                 </div>
 
                                 <div class="application-actions">
-                                    @if (! $application->trashed())
+                                    @if (! $application->trashed() && ! in_array($statusValue, ['rejected', 'hired', 'withdrawn'], true))
                                         <button
                                             type="button"
                                             wire:click="withdraw"
+                                            wire:confirm="Bạn có chắc muốn rút hồ sơ? Hồ sơ sẽ dừng tham gia quy trình tuyển dụng."
                                             wire:loading.attr="disabled"
                                             wire:target="withdraw"
                                             class="jobguru-btn-2"
@@ -187,11 +189,6 @@
                             </div>
                         </div>
 
-                        @if ($statusValue === 'rejected' && filled($application->rejected_reason))
-                            <div class="application-note application-note--danger">
-                                <strong>Lý do từ chối:</strong> {{ $application->rejected_reason }}
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>

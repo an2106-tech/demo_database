@@ -6,7 +6,6 @@ use App\Enums\StatusApplicationEnum;
 use App\Mail\InterviewScheduledMail;
 use App\Models\Application;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class InterviewScheduleDeliveryService
 {
@@ -93,7 +92,10 @@ class InterviewScheduleDeliveryService
 
         foreach ($recipients as $email => $recipientLabel) {
             try {
-                Mail::to($email)->queue(new InterviewScheduledMail($interview, $recipientLabel, $isUpdate));
+                app(OutboundMailQueue::class)->queue(
+                    $email,
+                    new InterviewScheduledMail($interview, $recipientLabel, $isUpdate),
+                );
                 $sentCount++;
                 $candidateSent = $candidateSent || $recipientLabel === 'candidate';
             } catch (\Throwable $exception) {
