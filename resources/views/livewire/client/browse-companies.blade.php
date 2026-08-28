@@ -1034,5 +1034,58 @@
             display: flex;
             justify-content: center;
         }
+
+        .fpt-pagination-wrap .pagination {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .fpt-pagination-wrap .page-link {
+            min-width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 12px;
+            border: 1px solid var(--fpt-line);
+            border-radius: 9px !important;
+            background: var(--fpt-surface);
+            color: #475569;
+            font-size: 13px;
+            font-weight: 650;
+            line-height: 1;
+            text-decoration: none;
+            transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        }
+
+        .fpt-pagination-wrap .page-link:hover {
+            border-color: var(--fpt-primary);
+            background: var(--fpt-primary-soft);
+            color: var(--fpt-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .fpt-pagination-wrap .page-link:focus-visible {
+            outline: 3px solid var(--fpt-primary-glow);
+            outline-offset: 2px;
+            box-shadow: none;
+        }
+
+        .fpt-pagination-wrap .page-item.active .page-link {
+            border-color: var(--fpt-primary);
+            background: var(--fpt-primary);
+            color: #ffffff;
+            box-shadow: 0 5px 14px var(--fpt-primary-glow);
+        }
+
+        .fpt-pagination-wrap .page-item.disabled .page-link {
+            border-color: var(--fpt-line-subtle);
+            background: #f8fafc;
+            color: #94a3b8;
+            transform: none;
+        }
     </style>
 </div>

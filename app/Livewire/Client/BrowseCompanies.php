@@ -16,6 +16,8 @@ class BrowseCompanies extends Component
 {
     use WithPagination;
 
+    protected string $paginationTheme = 'bootstrap';
+
     public $search = '';
 
     public $date_filter = 'all';
