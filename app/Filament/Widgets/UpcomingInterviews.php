@@ -2,9 +2,9 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Pages\InterviewSchedule;
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Models\Interview;
+use App\Services\InterviewSchedulePresentationService;
 use App\Services\RecruitmentDashboardContext;
 use Carbon\CarbonInterface;
 use Filament\Widgets\Widget;
@@ -12,7 +12,9 @@ use Illuminate\Database\Eloquent\Builder;
 
 class UpcomingInterviews extends Widget
 {
-    protected static ?int $sort = -2;
+    private const DISPLAY_LIMIT = 3;
+
+    protected static ?int $sort = -5;
 
     protected string $view = 'filament.widgets.upcoming-interviews';
 
@@ -27,37 +29,52 @@ class UpcomingInterviews extends Widget
         $now = now($timezone);
         $until = $now->copy()->addDays(7)->endOfDay();
         $query = $this->upcomingQuery($now, $until);
-        $total = (clone $query)->count();
+
+        $query->with([
+            'application.candidate',
+            'application.job.branch',
+            'interviewer',
+            'workplace',
+        ]);
+        $this->applySecondaryOrdering($query);
 
         $interviews = $query
-            ->with([
-                'application.candidate',
-                'application.job.branch',
-                'interviewer',
-                'workplace',
-            ])
-            ->orderBy('scheduled_at')
-            ->limit(5)
+            ->limit(self::DISPLAY_LIMIT + 1)
             ->get();
 
+        $hasMore = $interviews->count() > self::DISPLAY_LIMIT;
+
         return [
-            'interviews' => $interviews->map(fn (Interview $interview): array => $this->interviewRow($interview, $now))->all(),
-            'total' => $total,
-            'calendarUrl' => InterviewSchedule::getUrl(),
+            'interviews' => $interviews
+                ->take(self::DISPLAY_LIMIT)
+                ->map(fn (Interview $interview): array => $this->interviewRow($interview, $now))
+                ->all(),
+            'hasMore' => $hasMore,
+            'kanbanUrl' => ApplicationResource::getUrl('kanban'),
             'scopeLabel' => $this->scopeLabel(),
         ];
     }
 
     protected function upcomingQuery(CarbonInterface $now, CarbonInterface $until): Builder
     {
-        $context = RecruitmentDashboardContext::current();
-
         $query = Interview::query()
             ->where('result', 'pending')
-            ->whereBetween('scheduled_at', [
-                $now->format('Y-m-d H:i:s'),
-                $until->format('Y-m-d H:i:s'),
-            ]);
+            ->where('scheduled_at', '<=', $until->format('Y-m-d H:i:s'));
+
+        $this->applyVisibilityScope($query);
+
+        $nowValue = $now->format('Y-m-d H:i:s');
+
+        return $query
+            ->orderByRaw(
+                'CASE WHEN invite_sent_at IS NULL AND scheduled_at < ? THEN 0 WHEN invite_sent_at IS NOT NULL AND scheduled_at < ? THEN 1 ELSE 2 END',
+                [$nowValue, $nowValue],
+            );
+    }
+
+    protected function applyVisibilityScope(Builder $query): void
+    {
+        $context = RecruitmentDashboardContext::current();
 
         if ($context->branchId()) {
             $query->whereHas('application.job', function (Builder $jobQuery) use ($context): void {
@@ -66,10 +83,22 @@ class UpcomingInterviews extends Widget
         }
 
         if ($context->isPm()) {
-            $query->where('interviewer_id', $context->user()?->getKey());
-        }
+            $userId = $context->user()?->getKey();
 
-        return $query;
+            $query->where(function (Builder $assignmentQuery) use ($userId): void {
+                $assignmentQuery
+                    ->where('interviewer_id', $userId)
+                    ->orWhereHas(
+                        'evaluators',
+                        fn (Builder $evaluatorQuery): Builder => $evaluatorQuery->where('user_id', $userId),
+                    );
+            });
+        }
+    }
+
+    protected function applySecondaryOrdering(Builder $query): void
+    {
+        $query->orderBy('scheduled_at');
     }
 
     /**
@@ -92,6 +121,8 @@ class UpcomingInterviews extends Widget
             'offline' => 'Tại cơ sở',
             default => 'Chưa xác định',
         };
+        $presentation = app(InterviewSchedulePresentationService::class)
+            ->present($interview, RecruitmentDashboardContext::current()->user());
 
         return [
             'dayLabel' => $dayLabel,
@@ -101,12 +132,12 @@ class UpcomingInterviews extends Widget
             'job' => $application?->job?->title ?? 'Chưa có vị trí',
             'branch' => $application?->job?->branch?->name ?? 'Chưa có chi nhánh',
             'interviewer' => $interview->interviewer?->name ?? 'Chưa phân công',
+            'round' => 'Vòng '.max(1, (int) $interview->round_number),
             'type' => $typeLabel,
-            'inviteStatus' => $interview->invite_sent_at ? 'Đã gửi lịch' : 'Chưa gửi lịch',
-            'inviteColor' => $interview->invite_sent_at ? 'success' : 'warning',
-            'url' => $application
-                ? ApplicationResource::getUrl('view', ['record' => $application])
-                : ApplicationResource::getUrl('kanban'),
+            'status' => $presentation['status'],
+            'action' => $presentation['action'],
+            'statusColor' => $presentation['badge_color'],
+            'url' => $presentation['url'],
         ];
     }
 
@@ -115,11 +146,11 @@ class UpcomingInterviews extends Widget
         $context = RecruitmentDashboardContext::current();
 
         if ($context->isPm()) {
-            return 'Lịch được phân công cho bạn trong 7 ngày tới';
+            return 'Ưu tiên lịch bạn cần xử lý, sau đó là lịch 7 ngày tới';
         }
 
         return $context->branchId()
-            ? 'Lịch của chi nhánh trong 7 ngày tới'
-            : 'Lịch toàn hệ thống trong 7 ngày tới';
+            ? 'Ưu tiên lịch cần xử lý của chi nhánh, sau đó là lịch 7 ngày tới'
+            : 'Ưu tiên lịch cần xử lý toàn hệ thống, sau đó là lịch 7 ngày tới';
     }
 }

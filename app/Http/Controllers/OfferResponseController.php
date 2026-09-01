@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\StatusApplicationEnum;
 use App\Models\Offer;
 use App\Services\ApplicationPipelineService;
-use App\Services\RecruitmentInternalNotificationService;
+use Carbon\Carbon;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +16,13 @@ class OfferResponseController extends Controller
 {
     public function accept(Request $request, Offer $offer): View
     {
-        $context = $this->resolveActionableOffer($request, $offer);
-
-        if ($context instanceof View) {
-            return $context;
-        }
-
         if ($request->isMethod('get')) {
+            $context = $this->resolveActionableOffer($request, $offer);
+
+            if ($context instanceof View) {
+                return $context;
+            }
+
             return view('offers.accept-confirm', [
                 'offer' => $offer,
                 'application' => $context['application'],
@@ -56,19 +56,12 @@ class OfferResponseController extends Controller
                 'Ứng viên đã đồng ý đề nghị tuyển dụng qua email.',
             );
 
-            $offer->forceFill([
-                'status' => 'accepted',
-                'response_at' => now(),
-                'accepted_at' => now(),
-            ])->save();
-
-
             return $this->resultView(
                 title: 'Đã xác nhận đồng ý đề nghị tuyển dụng',
                 message: "Cảm ơn {$candidateName}. Bạn đã đồng ý đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ liên hệ để hướng dẫn thủ tục nhận việc tiếp theo.",
                 status: 'success',
                 offer: $offer,
-                application: $application->fresh(['candidate', 'job.branch']) ?? $application,
+                application: $application->loadMissing(['candidate', 'job.branch']),
             );
         });
     }
@@ -90,58 +83,52 @@ class OfferResponseController extends Controller
 
     public function submitDecline(Request $request, Offer $offer): View
     {
-        $context = $this->resolveActionableOffer($request, $offer);
-
-        if ($context instanceof View) {
-            return $context;
-        }
-
-        $validated = $request->validate([
-            'decline_reason' => ['required', Rule::in(array_keys($this->declineReasons()))],
-            'expected_compensation' => [
-                Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'compensation'),
-                'nullable',
-                'string',
-                'max:120',
-            ],
-            'preferred_start_date' => [
-                Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'start_date'),
-                'nullable',
-                'date',
-                'after_or_equal:today',
-            ],
-            'decline_note' => [
-                Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'other'),
-                'nullable',
-                'string',
-                'max:1000',
-            ],
-        ], [
-            'decline_reason.required' => 'Vui lòng chọn lý do từ chối.',
-            'decline_reason.in' => 'Lý do từ chối không hợp lệ.',
-            'expected_compensation.required' => 'Vui lòng nhập mức đãi ngộ mong muốn.',
-            'expected_compensation.max' => 'Mức đãi ngộ mong muốn không được vượt quá 120 ký tự.',
-            'preferred_start_date.required' => 'Vui lòng chọn thời gian bắt đầu phù hợp hơn.',
-            'preferred_start_date.date' => 'Thời gian bắt đầu không hợp lệ.',
-            'preferred_start_date.after_or_equal' => 'Thời gian bắt đầu phù hợp hơn không được ở quá khứ.',
-            'decline_note.required' => 'Vui lòng nhập ghi chú khi chọn lý do khác.',
-            'decline_note.max' => 'Ghi chú không được vượt quá 1000 ký tự.',
-        ]);
-
-        $reasonText = $this->formatDeclineReason(
-            $validated['decline_reason'],
-            $validated['expected_compensation'] ?? null,
-            $validated['preferred_start_date'] ?? null,
-            $validated['decline_note'] ?? null,
-        );
-
-        return DB::transaction(function () use ($request, $offer, $reasonText): View {
+        return DB::transaction(function () use ($request, $offer): View {
             $offer = Offer::query()->lockForUpdate()->findOrFail($offer->id);
             $lockedContext = $this->resolveActionableOffer($request, $offer);
 
             if ($lockedContext instanceof View) {
                 return $lockedContext;
             }
+
+            $validated = $request->validate([
+                'decline_reason' => ['required', Rule::in(array_keys($this->declineReasons()))],
+                'expected_compensation' => [
+                    Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'compensation'),
+                    'nullable',
+                    'string',
+                    'max:120',
+                ],
+                'preferred_start_date' => [
+                    Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'start_date'),
+                    'nullable',
+                    'date',
+                    'after_or_equal:today',
+                ],
+                'decline_note' => [
+                    Rule::requiredIf(fn (): bool => $request->input('decline_reason') === 'other'),
+                    'nullable',
+                    'string',
+                    'max:1000',
+                ],
+            ], [
+                'decline_reason.required' => 'Vui lòng chọn lý do từ chối.',
+                'decline_reason.in' => 'Lý do từ chối không hợp lệ.',
+                'expected_compensation.required' => 'Vui lòng nhập mức đãi ngộ mong muốn.',
+                'expected_compensation.max' => 'Mức đãi ngộ mong muốn không được vượt quá 120 ký tự.',
+                'preferred_start_date.required' => 'Vui lòng chọn thời gian bắt đầu phù hợp hơn.',
+                'preferred_start_date.date' => 'Thời gian bắt đầu không hợp lệ.',
+                'preferred_start_date.after_or_equal' => 'Thời gian bắt đầu phù hợp hơn không được ở quá khứ.',
+                'decline_note.required' => 'Vui lòng nhập ghi chú khi chọn lý do khác.',
+                'decline_note.max' => 'Ghi chú không được vượt quá 1000 ký tự.',
+            ]);
+
+            $reasonText = $this->formatDeclineReason(
+                $validated['decline_reason'],
+                $validated['expected_compensation'] ?? null,
+                $validated['preferred_start_date'] ?? null,
+                $validated['decline_note'] ?? null,
+            );
 
             $application = $lockedContext['application'];
             $jobTitle = $application->job?->title ?? 'vị trí ứng tuyển';
@@ -169,7 +156,7 @@ class OfferResponseController extends Controller
                 message: "Cảm ơn bạn đã phản hồi đề nghị tuyển dụng cho vị trí {$jobTitle}. Bộ phận tuyển dụng sẽ xem xét thông tin và liên hệ lại nếu cần.",
                 status: 'warning',
                 offer: $offer,
-                application: $application->fresh(['candidate', 'job.branch']) ?? $application,
+                application: $application->loadMissing(['candidate', 'job.branch']),
             );
         });
     }
@@ -178,7 +165,10 @@ class OfferResponseController extends Controller
     {
         abort_unless(URL::hasCorrectSignature($request, false), 403);
 
-        $application = $offer->application()->with(['candidate', 'job.branch'])->firstOrFail();
+        $offer->loadMissing(['application.candidate', 'application.job.branch']);
+        $application = $offer->application;
+
+        abort_unless($application, 404);
 
         if (! $this->isCurrentOfferResponseLink($request->query('sent'), $offer->sent_at)) {
             return $this->resultView(
@@ -261,8 +251,7 @@ class OfferResponseController extends Controller
         ?string $expectedCompensation = null,
         ?string $preferredStartDate = null,
         ?string $note = null,
-    ): string
-    {
+    ): string {
         $reasonText = $this->declineReasons()[$reason] ?? 'Lý do khác';
         $details = [];
 
@@ -271,7 +260,7 @@ class OfferResponseController extends Controller
         }
 
         if ($reason === 'start_date' && filled($preferredStartDate)) {
-            $details[] = 'Thời gian bắt đầu phù hợp hơn: '.\Carbon\Carbon::parse((string) $preferredStartDate)->format('d/m/Y');
+            $details[] = 'Thời gian bắt đầu phù hợp hơn: '.Carbon::parse((string) $preferredStartDate)->format('d/m/Y');
         }
 
         $noteText = trim((string) $note);

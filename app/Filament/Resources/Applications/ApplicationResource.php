@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Applications;
 
-use App\Filament\Resources\Applications\Pages\EditApplication;
 use App\Filament\Resources\Applications\Pages\CreateApplication;
+use App\Filament\Resources\Applications\Pages\EditApplication;
 use App\Filament\Resources\Applications\Pages\KanbanApplications;
 use App\Filament\Resources\Applications\Pages\ListApplications;
 use App\Filament\Resources\Applications\Pages\ViewApplication;
+use App\Filament\Resources\Applications\Schemas\ApplicationDetailInfolist;
 use App\Filament\Resources\Applications\Schemas\ApplicationForm;
-use App\Filament\Resources\Applications\Schemas\ApplicationInfolist;
 use App\Filament\Resources\Applications\Tables\ApplicationsTable;
 use App\Models\Application;
 use App\Models\User;
@@ -26,9 +26,13 @@ class ApplicationResource extends Resource
 {
     protected static ?string $model = Application::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedViewColumns;
 
     protected static ?string $navigationLabel = 'Ứng tuyển';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Vận hành tuyển dụng';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $modelLabel = 'ứng tuyển';
 
@@ -55,7 +59,7 @@ class ApplicationResource extends Resource
 
     public static function infolist(Schema $schema): Schema
     {
-        return ApplicationInfolist::configure($schema);
+        return ApplicationDetailInfolist::configure($schema);
     }
 
     public static function getRelations(): array
@@ -163,6 +167,7 @@ class ApplicationResource extends Resource
                 'job.department',
                 'latestInterview.interviewer',
                 'latestInterview.workplace',
+                'latestInterview.evaluators',
                 'latestInterview.scorecards',
                 'latestOffer.approvedByUser',
                 'latestOffer.letterTemplate',

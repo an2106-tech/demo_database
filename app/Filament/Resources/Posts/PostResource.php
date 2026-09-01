@@ -22,11 +22,15 @@ class PostResource extends Resource
 
     protected static ?string $navigationLabel = 'Bài viết';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Nội dung';
+
+    protected static ?int $navigationSort = 2;
+
     protected static ?string $pluralModelLabel = 'Quản lý bài viết';
 
     protected static ?string $modelLabel = 'bài viết';
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedNewspaper;
 
     protected static ?string $recordTitleAttribute = 'title';
 

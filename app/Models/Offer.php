@@ -19,13 +19,25 @@ class Offer extends Model
             }
 
             if ($offer->status === 'accepted') {
+                $offer->loadMissing([
+                    'application.candidate',
+                    'application.job.branch',
+                    'application.assignedHr',
+                    'application.job.creator',
+                ]);
                 app(RecruitmentInternalNotificationService::class)
-                    ->notifyOfferAcceptedByCandidate($offer->fresh(['application.candidate', 'application.job.branch']));
+                    ->notifyOfferAcceptedByCandidate($offer);
             }
 
             if ($offer->status === 'declined') {
+                $offer->loadMissing([
+                    'application.candidate',
+                    'application.job.branch',
+                    'application.assignedHr',
+                    'application.job.creator',
+                ]);
                 app(RecruitmentInternalNotificationService::class)
-                    ->notifyOfferDeclinedByCandidate($offer->fresh(['application.candidate', 'application.job.branch']));
+                    ->notifyOfferDeclinedByCandidate($offer);
             }
         });
     }

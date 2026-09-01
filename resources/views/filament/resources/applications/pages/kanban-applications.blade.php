@@ -372,18 +372,17 @@
         .kanban-card {
             display: block;
             border: 1px solid var(--kanban-border);
-            border-radius: 12px;
+            border-radius: 8px;
             background: var(--kanban-card);
             cursor: grab;
-            padding: 9px 10px;
-            box-shadow: 0 6px 14px rgb(15 23 42 / 0.045);
-            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+            padding: 10px;
+            box-shadow: 0 3px 10px rgb(15 23 42 / 0.04);
+            transition: border-color 140ms ease, box-shadow 140ms ease;
         }
 
         .kanban-card:hover {
-            transform: translateY(-2px);
             border-color: rgb(251 146 60);
-            box-shadow: 0 12px 24px rgb(15 23 42 / 0.09);
+            box-shadow: 0 6px 16px rgb(15 23 42 / 0.075);
         }
 
         .kanban-card:active {
@@ -411,8 +410,8 @@
         .kanban-card__candidate {
             margin: 0;
             color: var(--kanban-text);
-            font-size: 13.25px;
-            font-weight: 750;
+            font-size: 13.5px;
+            font-weight: 760;
             line-height: 1.3;
             overflow-wrap: anywhere;
         }
@@ -421,43 +420,6 @@
             color: var(--kanban-muted);
             font-size: 12px;
             font-weight: 650;
-        }
-
-        .kanban-card__toggle {
-            width: 24px;
-            height: 24px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--kanban-border);
-            border-radius: 999px;
-            background: transparent;
-            color: var(--kanban-muted);
-            cursor: pointer;
-            transition: background 140ms ease, color 140ms ease, transform 140ms ease;
-        }
-
-        .kanban-card__toggle:hover {
-            background: rgb(255 247 237);
-            color: var(--kanban-orange);
-        }
-
-        .kanban-card__toggle svg {
-            width: 13px;
-            height: 13px;
-            transition: transform 140ms ease;
-        }
-
-        .kanban-card.is-compact .kanban-card__toggle svg {
-            transform: rotate(180deg);
-        }
-
-        .kanban-card__actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            margin-top: 7px;
         }
 
         .kanban-card__job {
@@ -477,9 +439,10 @@
 
         .kanban-card__badges {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 5px;
-            margin-top: 7px;
+            margin-top: 8px;
+            min-width: 0;
         }
 
         .kanban-badge {
@@ -492,6 +455,16 @@
             font-weight: 700;
             line-height: 1;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .kanban-badge:first-child {
+            min-width: 0;
+        }
+
+        .kanban-badge.is-ai {
+            flex: 0 0 auto;
         }
 
         .kanban-badge.is-gray { background: rgb(241 245 249); color: rgb(51 65 85); }
@@ -515,59 +488,40 @@
             text-align: center;
         }
 
-        .kanban-card__description {
-            margin: 7px 0 0;
-            color: var(--kanban-muted);
-            font-size: 12.25px;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .kanban-card__details {
-            overflow: hidden;
-            transform-origin: top;
-        }
-
-        .kanban-card__footer {
+        .kanban-card__meta {
             display: flex;
             flex-direction: column;
-            gap: 3px;
-            margin-top: 7px;
-            padding-top: 7px;
-            border-top: 1px solid color-mix(in srgb, var(--kanban-border) 72%, transparent);
+            gap: 4px;
+            margin-top: 8px;
             color: var(--kanban-muted);
             font-size: 11.75px;
             line-height: 1.3;
         }
 
-        .kanban-card__footer span {
+        .kanban-card__meta span {
+            display: block;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
+        .kanban-card__context {
+            color: color-mix(in srgb, var(--kanban-text) 78%, var(--kanban-muted));
+            font-weight: 650;
+        }
+
         .kanban-card__quick-actions {
-            display: grid;
-            gap: 7px;
-            margin-top: 8px;
+            margin-top: 9px;
             padding-top: 8px;
             border-top: 1px solid color-mix(in srgb, var(--kanban-border) 72%, transparent);
         }
 
-        .kanban-card__hint {
-            margin: 0;
-            color: var(--kanban-muted);
-            font-size: 11.6px;
-            line-height: 1.35;
-        }
-
         .kanban-card__buttons {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            align-items: center;
             gap: 6px;
+            width: 100%;
         }
 
         .kanban-card__button {
@@ -576,7 +530,7 @@
             justify-content: center;
             min-height: 28px;
             border: 1px solid var(--kanban-border);
-            border-radius: 999px;
+            border-radius: 7px;
             background: transparent;
             color: var(--kanban-text);
             cursor: pointer;
@@ -595,6 +549,8 @@
         }
 
         .kanban-card__button.is-primary {
+            flex: 1 1 auto;
+            min-width: 0;
             border-color: rgb(251 146 60);
             background: rgb(234 88 12);
             color: #ffffff;
@@ -606,8 +562,9 @@
         }
 
         .kanban-card__button.is-icon {
-            width: 28px;
-            min-width: 28px;
+            width: 30px;
+            min-width: 30px;
+            height: 28px;
             padding: 0;
         }
 
@@ -617,20 +574,22 @@
         }
 
         .kanban-card__button.is-danger {
+            width: 30px;
+            min-width: 30px;
+            height: 28px;
+            padding: 0;
             color: rgb(185 28 28);
+        }
+
+        .kanban-card__button.is-danger svg {
+            width: 15px;
+            height: 15px;
         }
 
         .kanban-card__button.is-danger:hover {
             border-color: rgb(252 165 165);
             background: rgb(254 242 242);
             color: rgb(153 27 27);
-        }
-
-        .kanban-card__date {
-            margin: 0;
-            color: var(--kanban-muted);
-            font-size: 11.75px;
-            line-height: 1.3;
         }
 
         .kanban-transition-enter,
@@ -837,6 +796,43 @@
             min-width: 0;
             max-width: 100%;
             box-sizing: border-box;
+        }
+
+        .kanban-offer-form .kanban-modal__grid {
+            align-items: start;
+        }
+
+        .kanban-offer-deadline-presets {
+            display: flex;
+            min-height: 28px;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .kanban-offer-deadline-presets__label {
+            color: var(--kanban-muted);
+            font-size: 11.5px;
+            line-height: 1.35;
+        }
+
+        .kanban-offer-deadline-presets__button {
+            min-height: 28px;
+            border: 1px solid var(--kanban-border);
+            border-radius: 8px;
+            background: var(--kanban-card);
+            color: var(--kanban-text);
+            cursor: pointer;
+            font-size: 11.5px;
+            font-weight: 700;
+            padding: 4px 9px;
+        }
+
+        .kanban-offer-deadline-presets__button:hover,
+        .kanban-offer-deadline-presets__button:focus-visible {
+            border-color: rgb(251 146 60);
+            color: rgb(234 88 12);
+            outline: none;
         }
 
         .kanban-offer-preview {
@@ -2649,10 +2645,9 @@
                     <div class="kanban-column__body">
                         @forelse ($column['cards'] as $card)
                             <article
-                                x-data="{ expanded: false }"
                                 class="kanban-card"
                                 draggable="true"
-                                x-bind:class="{ 'is-compact': ! expanded, 'is-dragging': draggingCardId === {{ $card['id'] }} }"
+                                x-bind:class="{ 'is-dragging': draggingCardId === {{ $card['id'] }} }"
                                 x-on:dragstart="startDrag($event, {{ $card['id'] }}, '{{ $column['key'] }}')"
                                 x-on:dragend="endDrag()"
                             >
@@ -2676,53 +2671,27 @@
                                         @endif
                                     </div>
 
-                                    <div
-                                        x-show="expanded"
-                                        x-transition:enter="kanban-transition-enter"
-                                        x-transition:enter-start="kanban-transition-enter-start"
-                                        x-transition:enter-end="kanban-transition-enter-end"
-                                        x-transition:leave="kanban-transition-leave"
-                                        x-transition:leave-start="kanban-transition-leave-start"
-                                        x-transition:leave-end="kanban-transition-leave-end"
-                                        class="kanban-card__details"
-                                    >
-                                        @if ($card['description'])
-                                            <p class="kanban-card__description">{{ $card['description'] }}</p>
-                                        @endif
-
-                                        <div class="kanban-card__footer">
-                                            @if ($card['branch'])
-                                                <span>{{ $card['branch'] }}</span>
+                                    @if ($card['context'] || $card['location'])
+                                        <div class="kanban-card__meta">
+                                            @if ($card['context'])
+                                                <span class="kanban-card__context">{{ $card['context'] }}</span>
                                             @endif
 
-                                            @if ($card['department'])
-                                                <span>{{ $card['department'] }}</span>
+                                            @if ($card['location'])
+                                                <span title="{{ $card['location'] }}">{{ $card['location'] }}</span>
                                             @endif
                                         </div>
-                                    </div>
+                                    @endif
                                 </a>
 
-                                <div
-                                    x-show="expanded"
-                                    x-transition:enter="kanban-transition-enter"
-                                    x-transition:enter-start="kanban-transition-enter-start"
-                                    x-transition:enter-end="kanban-transition-enter-end"
-                                    x-transition:leave="kanban-transition-leave"
-                                    x-transition:leave-start="kanban-transition-leave-start"
-                                    x-transition:leave-end="kanban-transition-leave-end"
-                                    class="kanban-card__quick-actions"
-                                >
-                                    @if (! empty($card['stage_actions']))
-                                        <p class="kanban-card__hint">{{ $card['stage_actions'][0]['hint'] }}</p>
-                                    @endif
-
-                                    @if (! empty($card['stage_actions']) || $card['can_reject'])
+                                @if (! empty($card['stage_actions']) || $card['can_reject'])
+                                    <div class="kanban-card__quick-actions">
                                         <div class="kanban-card__buttons">
                                             @foreach ($card['stage_actions'] as $action)
                                                 <button
                                                     type="button"
-                                                    class="kanban-card__button {{ $action['primary'] ? 'is-primary' : '' }} {{ $action['key'] === 'update_interview_schedule' ? 'is-icon' : '' }}"
-                                                    @if ($action['key'] === 'update_interview_schedule')
+                                                    class="kanban-card__button {{ $action['primary'] ? 'is-primary' : 'is-icon' }}"
+                                                    @if (! $action['primary'])
                                                         aria-label="{{ $action['label'] }}"
                                                         title="{{ $action['label'] }}"
                                                     @endif
@@ -2740,10 +2709,10 @@
                                                         wire:click="requestOfferApprovalFromKanban({{ $card['id'] }})"
                                                     @endif
                                                 >
-                                                    @if ($action['key'] === 'update_interview_schedule')
-                                                        <x-filament::icon icon="heroicon-m-pencil-square" />
-                                                    @else
+                                                    @if ($action['primary'])
                                                         {{ $action['label'] }}
+                                                    @else
+                                                        <x-filament::icon :icon="$action['icon']" />
                                                     @endif
                                                 </button>
                                             @endforeach
@@ -2753,32 +2722,15 @@
                                                     type="button"
                                                     class="kanban-card__button is-danger"
                                                     wire:click="openKanbanRejectionFromCard({{ $card['id'] }})"
+                                                    aria-label="Từ chối hồ sơ"
+                                                    title="Từ chối hồ sơ"
                                                 >
-                                                    Từ chối
+                                                    <x-filament::icon icon="heroicon-m-x-mark" />
                                                 </button>
                                             @endif
                                         </div>
-                                    @endif
-                                </div>
-
-                                <div class="kanban-card__actions">
-                                    @if ($card['applied_at'])
-                                        <p class="kanban-card__date">Nộp: {{ $card['applied_at'] }}</p>
-                                    @else
-                                        <span></span>
-                                    @endif
-
-                                    <button
-                                        type="button"
-                                        class="kanban-card__toggle"
-                                        x-on:click="expanded = ! expanded"
-                                        x-bind:aria-label="expanded ? 'Thu gọn thẻ hồ sơ' : 'Mở rộng thẻ hồ sơ'"
-                                    >
-                                        <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M14.77 12.79a.75.75 0 0 1-1.06-.02L10 8.83l-3.71 3.94a.75.75 0 1 1-1.08-1.04l4.25-4.5a.75.75 0 0 1 1.08 0l4.25 4.5a.75.75 0 0 1-.02 1.06Z" clip-rule="evenodd" />
-                                        </svg>
-                                    </button>
-                                </div>
+                                    </div>
+                                @endif
                             </article>
                         @empty
                             <div class="kanban-empty">
@@ -3719,6 +3671,18 @@
                                         <label class="kanban-modal__field">
                                             <span class="kanban-modal__label">Hạn ứng viên phản hồi</span>
                                             <input class="kanban-modal__input" type="datetime-local" required wire:model.live="kanbanOfferForm.expires_at">
+                                            <span class="kanban-offer-deadline-presets">
+                                                <span class="kanban-offer-deadline-presets__label">Chọn nhanh:</span>
+                                                @foreach ([3, 5, 7] as $days)
+                                                    <button
+                                                        type="button"
+                                                        class="kanban-offer-deadline-presets__button"
+                                                        wire:click="setOfferResponseDeadline({{ $days }})"
+                                                        wire:loading.attr="disabled"
+                                                        wire:target="setOfferResponseDeadline"
+                                                    >Sau {{ $days }} ngày</button>
+                                                @endforeach
+                                            </span>
                                             @error('kanbanOfferForm.expires_at') <span class="kanban-modal__field-error">{{ $message }}</span> @enderror
                                         </label>
                                     </div>

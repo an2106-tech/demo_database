@@ -12,14 +12,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Throwable;
 
 class CvBuilder extends Component
 {
     use WithFileUploads;
 
+    private const TEMPLATES = ['fpt-modern', 'ats-classic', 'tech-executive'];
+
+    #[Locked]
     public int $candidateId;
     public string $name = '';
     public string $email = '';
@@ -60,9 +66,11 @@ class CvBuilder extends Component
     public array $references = [];
 
     // UI & Template settings
+    #[Locked]
     public string $selectedTemplate = 'fpt-modern';
     public string $activeTab = 'personal';
     public $uploadedCvFile = null;
+    public ?string $lastSavedAt = null;
 
     // AI States
     public bool $isProcessingAi = false;
@@ -106,6 +114,23 @@ class CvBuilder extends Component
         $this->activities = is_array($resume->activities) ? $resume->activities : [];
         $this->references = is_array($resume->references) ? $resume->references : [];
 
+        $metadata = is_array($candidate->metadata) ? $candidate->metadata : [];
+        $primaryCv = is_array($metadata['primary_cv'] ?? null) ? $metadata['primary_cv'] : [];
+        $resumeExtra = is_array($resume->extra) ? $resume->extra : [];
+        $requestedTemplate = request()->query('template');
+        $primaryTemplate = ($primaryCv['type'] ?? null) === 'online'
+            ? ($primaryCv['template'] ?? null)
+            : null;
+
+        $this->selectedTemplate = $this->normalizeTemplate(
+            is_string($requestedTemplate) && $requestedTemplate !== ''
+                ? $requestedTemplate
+                : ($primaryTemplate ?? $resumeExtra['builder_template'] ?? null),
+        );
+        $this->lastSavedAt = $resume->wasRecentlyCreated
+            ? null
+            : $resume->updated_at?->timezone(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y');
+
         // Load existing AI evaluations if available
         if ($candidate->match_score) {
             $this->aiScore = (int) $candidate->match_score;
@@ -121,7 +146,7 @@ class CvBuilder extends Component
 
     public function setTemplate(string $template): void
     {
-        if (in_array($template, ['fpt-modern', 'ats-classic', 'tech-executive'], true)) {
+        if (in_array($template, self::TEMPLATES, true)) {
             $this->selectedTemplate = $template;
         }
     }
@@ -415,67 +440,197 @@ class CvBuilder extends Component
 
     public function save(): void
     {
-        $this->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255'],
-            'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
-        ]);
+        if (! $this->persistCv()) {
+            return;
+        }
+
+        $this->dispatch('app-notify', message: 'Đã lưu CV thành công.', type: 'success');
+    }
+
+    public function downloadPdf(): void
+    {
+        if (! $this->persistCv()) {
+            return;
+        }
+
+        $this->dispatch(
+            'download-cv-file',
+            url: route('candidates.cv.download', ['template' => $this->selectedTemplate, 't' => time()]),
+        );
+    }
+
+    public function openPdf(): void
+    {
+        if (! $this->persistCv()) {
+            return;
+        }
+
+        $this->dispatch(
+            'open-pdf-window',
+            url: route('candidates.cv.download', [
+                'template' => $this->selectedTemplate,
+                'mode' => 'stream',
+                't' => time(),
+            ]),
+        );
+    }
+
+    private function persistCv(): bool
+    {
+        try {
+            $this->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'email', 'max:255'],
+                'profile_title' => ['required', 'string', 'max:255'],
+                'avatar' => ['nullable', 'image', 'max:5120', 'mimes:jpg,jpeg,png,webp'],
+            ], [
+                'name.required' => 'Vui lòng nhập họ và tên.',
+                'email.required' => 'Vui lòng nhập email liên hệ.',
+                'email.email' => 'Email liên hệ chưa đúng định dạng.',
+                'profile_title.required' => 'Vui lòng nhập chức danh hoặc vị trí chuyên môn.',
+            ]);
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $field => $messages) {
+                foreach ($messages as $message) {
+                    $this->addError($field, $message);
+                }
+            }
+
+            $this->dispatch('cv-action-failed');
+            $this->dispatch('app-notify', message: 'CV chưa được lưu. Vui lòng kiểm tra các trường bắt buộc.', type: 'error');
+
+            return false;
+        }
 
         $user = Auth::user();
-        if ($this->avatar && $user) {
-            $oldAvatar = $user->avatar;
-            $avatarPath = $this->avatar->storePublicly("users/{$user->id}/avatar", 'public');
-            $user->avatar = $avatarPath;
-            $user->save();
+        abort_unless($user, 401);
 
-            if ($oldAvatar && $oldAvatar !== $avatarPath && Storage::disk('public')->exists($oldAvatar)) {
-                Storage::disk('public')->delete($oldAvatar);
+        $candidate = app(CandidateAccountService::class)->resolveFor($user);
+        abort_unless($candidate->id === $this->candidateId, 403);
+
+        $this->selectedTemplate = $this->normalizeTemplate($this->selectedTemplate);
+        $oldAvatarPath = is_string($user->avatar) ? $user->avatar : null;
+        $newAvatarPath = null;
+
+        try {
+            if ($this->avatar) {
+                $newAvatarPath = $this->avatar->storePublicly("users/{$user->id}/avatar", 'public');
             }
-            $this->currentAvatar = $avatarPath;
+
+            DB::transaction(function () use ($candidate, $newAvatarPath, $user): void {
+                if ($newAvatarPath) {
+                    $user->avatar = $newAvatarPath;
+                    $user->save();
+                }
+
+                $candidate->refresh();
+                $metadata = is_array($candidate->metadata) ? $candidate->metadata : [];
+                $primaryCv = is_array($metadata['primary_cv'] ?? null) ? $metadata['primary_cv'] : [];
+
+                $candidate->fill([
+                    'name' => $this->name,
+                    'email' => $this->email,
+                    'phone' => $this->phone,
+                    'experience_years' => $this->experience_years,
+                ]);
+
+                if (($primaryCv['type'] ?? 'online') !== 'attachment') {
+                    $metadata['primary_cv'] = [
+                        'type' => 'online',
+                        'template' => $this->selectedTemplate,
+                        'attachment_id' => null,
+                        'title' => 'CV Online ('.$this->templateName($this->selectedTemplate).')',
+                        'updated_at' => now()->toIso8601String(),
+                    ];
+                    $candidate->metadata = $metadata;
+                }
+
+                $candidate->save();
+
+                $resume = CandidateResume::firstOrCreate(['candidate_id' => $candidate->id]);
+                $extra = is_array($resume->extra) ? $resume->extra : [];
+                $extra['builder_template'] = $this->selectedTemplate;
+
+                $resume->fill([
+                    'profile_title' => $this->profile_title,
+                    'career_objective' => $this->career_objective,
+                    'personal_info' => $this->personal_info,
+                    'desired_job' => $this->desired_job,
+                    'experiences' => $this->experiences,
+                    'educations' => $this->educations,
+                    'certifications' => $this->certifications,
+                    'languages' => $this->languages,
+                    'skills' => $this->skills,
+                    'achievements' => $this->achievements,
+                    'activities' => $this->activities,
+                    'references' => $this->references,
+                    'extra' => $extra,
+                ]);
+                $resume->save();
+            });
+        } catch (Throwable $exception) {
+            try {
+                if ($newAvatarPath && Storage::disk('public')->exists($newAvatarPath)) {
+                    Storage::disk('public')->delete($newAvatarPath);
+                }
+            } catch (Throwable $cleanupException) {
+                Log::warning('Failed to clean up an unused CV avatar.', [
+                    'candidate_id' => $this->candidateId,
+                    'path' => $newAvatarPath,
+                    'exception' => $cleanupException,
+                ]);
+            }
+
+            $user->refresh();
+
+            Log::error('Failed to save online CV.', [
+                'candidate_id' => $this->candidateId,
+                'exception' => $exception,
+            ]);
+            $this->addError('save', 'Không thể lưu CV lúc này. Vui lòng thử lại.');
+            $this->dispatch('cv-action-failed');
+            $this->dispatch('app-notify', message: 'Không thể lưu CV lúc này. Vui lòng thử lại.', type: 'error');
+
+            return false;
+        }
+
+        if ($newAvatarPath) {
+            try {
+                if ($oldAvatarPath && $oldAvatarPath !== $newAvatarPath && Storage::disk('public')->exists($oldAvatarPath)) {
+                    Storage::disk('public')->delete($oldAvatarPath);
+                }
+            } catch (Throwable $cleanupException) {
+                Log::warning('Failed to delete the previous CV avatar.', [
+                    'candidate_id' => $this->candidateId,
+                    'path' => $oldAvatarPath,
+                    'exception' => $cleanupException,
+                ]);
+            }
+
+            $this->currentAvatar = $newAvatarPath;
             $this->avatar = null;
         }
 
-        DB::transaction(function () {
-            $candidate = Candidate::findOrFail($this->candidateId);
-            $candidate->update([
-                'name' => $this->name,
-                'email' => $this->email,
-                'phone' => $this->phone,
-                'experience_years' => $this->experience_years,
-            ]);
+        $this->lastSavedAt = now(config('app.interview_timezone', 'Asia/Ho_Chi_Minh'))->format('H:i, d/m/Y');
+        $this->resetErrorBag();
 
-            $resume = CandidateResume::firstOrCreate(['candidate_id' => $this->candidateId]);
-            $resume->fill([
-                'profile_title' => $this->profile_title,
-                'career_objective' => $this->career_objective,
-                'personal_info' => $this->personal_info,
-                'desired_job' => $this->desired_job,
-                'experiences' => $this->experiences,
-                'educations' => $this->educations,
-                'certifications' => $this->certifications,
-                'languages' => $this->languages,
-                'skills' => $this->skills,
-                'achievements' => $this->achievements,
-                'activities' => $this->activities,
-                'references' => $this->references,
-            ]);
-            $resume->save();
-        });
-
-        $this->dispatch('app-notify', message: 'Đã lưu toàn bộ thông tin CV thành công!', type: 'success');
+        return true;
     }
 
-    public function downloadPdf()
+    private function normalizeTemplate(mixed $template): string
     {
-        $this->save();
-        return redirect()->route('candidates.cv.download', ['template' => $this->selectedTemplate]);
+        return is_string($template) && in_array($template, self::TEMPLATES, true)
+            ? $template
+            : 'fpt-modern';
     }
 
-    public function openPdf()
+    private function templateName(string $template): string
     {
-        $this->save();
-        $url = route('candidates.cv.download', ['template' => $this->selectedTemplate, 'mode' => 'stream', 't' => time()]);
-        $this->dispatch('open-pdf-window', url: $url);
+        return match ($template) {
+            'ats-classic' => 'ATS Classic Clean',
+            'tech-executive' => 'Tech Executive',
+            default => 'FPT Modern Pro',
+        };
     }
 
     #[Layout('layouts.client')]

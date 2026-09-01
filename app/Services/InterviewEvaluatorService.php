@@ -94,6 +94,13 @@ class InterviewEvaluatorService
             return true;
         }
 
+        if ($interview->relationLoaded('evaluators')) {
+            return $interview->evaluators->contains(
+                fn (InterviewEvaluator $assignment): bool => (int) $assignment->user_id === (int) $user->id
+                    && (bool) $assignment->is_required,
+            );
+        }
+
         return $interview->evaluators()
             ->where('user_id', $user->id)
             ->where('is_required', true)
@@ -204,6 +211,43 @@ class InterviewEvaluatorService
             ->whereNotNull('submitted_at')
             ->count();
         $waived = $interview->evaluators()
+            ->where('is_required', false)
+            ->whereNotNull('waived_at')
+            ->count();
+
+        return [
+            'assigned' => $assigned,
+            'required' => $required,
+            'submitted' => $submitted,
+            'pending' => max(0, $required - $submitted),
+            'waived' => $waived,
+            'is_panel' => $assigned > 1,
+            'all_submitted' => $required > 0 && $required === $submitted,
+        ];
+    }
+
+    /**
+     * Read evaluation progress without normalizing assignments while rendering UI.
+     *
+     * @return array{assigned: int, required: int, submitted: int, pending: int, waived: int, is_panel: bool, all_submitted: bool}
+     */
+    public function progressForDisplay(Interview $interview): array
+    {
+        $assignments = $interview->relationLoaded('evaluators')
+            ? $interview->evaluators
+            : $interview->evaluators()->get();
+        $leadIsMissing = filled($interview->interviewer_id)
+            && ! $assignments->contains(
+                fn (InterviewEvaluator $assignment): bool => (int) $assignment->user_id === (int) $interview->interviewer_id,
+            );
+
+        $assigned = $assignments->count() + (int) $leadIsMissing;
+        $required = $assignments->where('is_required', true)->count() + (int) $leadIsMissing;
+        $submitted = $assignments
+            ->where('is_required', true)
+            ->whereNotNull('submitted_at')
+            ->count();
+        $waived = $assignments
             ->where('is_required', false)
             ->whereNotNull('waived_at')
             ->count();

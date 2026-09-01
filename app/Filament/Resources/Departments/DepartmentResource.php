@@ -12,6 +12,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -21,9 +22,13 @@ class DepartmentResource extends Resource
 {
     protected static ?string $model = Department::class;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedBriefcase;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBuildingOffice;
 
     protected static ?string $navigationLabel = 'Phòng ban';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Cơ cấu tổ chức';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $modelLabel = 'phòng ban';
 

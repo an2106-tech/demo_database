@@ -4,9 +4,10 @@ namespace App\Services;
 
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Filament\Resources\OfferResource;
-use App\Models\Application;
+use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
 use App\Models\Interview;
 use App\Models\Offer;
+use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Models\UserNotification;
 use Illuminate\Database\Eloquent\Builder;
@@ -14,6 +15,32 @@ use Illuminate\Support\Collection;
 
 class RecruitmentInternalNotificationService
 {
+    public function notifyRecruitmentJobSubmittedForApproval(RecruitmentJob $job, ?User $submitter = null): void
+    {
+        $job->loadMissing(['branch', 'department']);
+
+        $this->branchUsers($job->branch_id, ['director'])
+            ->reject(fn (User $user): bool => $submitter?->is($user) ?? false)
+            ->each(function (User $user) use ($job, $submitter): void {
+                UserNotification::create([
+                    'user_id' => $user->id,
+                    'type' => 'job_pending_approval',
+                    'data' => array_filter([
+                        'title' => 'Tin tuyển dụng chờ phê duyệt',
+                        'message' => ($submitter?->name ?? 'HR').' vừa gửi một tin tuyển dụng cần xử lý.',
+                        'url' => RecruitmentJobResource::getUrl('view', ['record' => $job]),
+                        'job_id' => $job->id,
+                        'subject' => $job->title,
+                        'context' => collect([
+                            $job->branch?->name,
+                            $job->department?->name,
+                        ])->filter()->join(' · '),
+                        'action_label' => 'Xem và phê duyệt',
+                    ], fn (mixed $value): bool => $value !== null && $value !== ''),
+                ]);
+            });
+    }
+
     public function notifyInterviewPanelAssigned(Interview $interview, bool $isUpdate = false): void
     {
         $interview->loadMissing([

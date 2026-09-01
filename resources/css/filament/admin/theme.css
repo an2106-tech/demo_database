@@ -28,51 +28,63 @@
     overflow: visible !important;
 }
 
-/* EventCalendar (Guava Calendar uses ec-* classes) – allow event text to wrap fully without truncation */
-.ec-day-grid .ec-event,
-.ec-time-grid .ec-event {
-    overflow: visible !important;
+/* Scope interview calendar styling so future admin calendars remain unaffected. */
+.ec-event.interview-calendar-event-block {
+    overflow: hidden !important;
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: filter 120ms ease, box-shadow 120ms ease;
 }
 
-.ec-day-grid .ec-event .ec-event-body,
-.ec-time-grid .ec-event .ec-event-body {
-    overflow: visible !important;
+.ec-event.interview-calendar-event-block:hover {
+    filter: brightness(0.96);
+    box-shadow: 0 1px 3px rgb(15 23 42 / 20%);
 }
 
-.ec-day-grid .ec-event .ec-event-title,
-.ec-time-grid .ec-event .ec-event-title {
+.ec-event.interview-calendar-event-block .ec-event-body {
+    overflow: hidden !important;
+}
+
+.ec-event.interview-calendar-event-block .ec-event-title {
     display: block;
     white-space: normal !important;
-    overflow: visible !important;
-    text-overflow: unset !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     -webkit-line-clamp: unset !important;
     line-clamp: unset !important;
-    max-height: none !important;
     overflow-wrap: anywhere;
     word-break: break-word;
     line-height: 1.3;
 }
 
-.ec-day-grid .ec-event .ec-event-time,
-.ec-time-grid .ec-event .ec-event-time {
+.ec-event.interview-calendar-event-block .ec-event-time {
     white-space: nowrap;
     font-size: 0.75rem;
     opacity: 0.85;
 }
 
-/* Time grid events have a fixed height (duration-based). Keep time visible but tighten typography so text fits. */
-.ec-time-grid .ec-event .ec-event-body {
-    padding: 2px 4px;
+.ec-time-grid .ec-event.interview-calendar-event-block .ec-event-body {
+    padding: 0;
 }
 
-.ec-time-grid .ec-event .ec-event-time {
+.ec-time-grid .interview-calendar-event-list,
+.ec-day-grid .interview-calendar-event-list {
+    display: none;
+}
+
+.ec-list .interview-calendar-event-compact {
+    display: none;
+}
+
+.ec-time-grid .ec-event.interview-calendar-event-block .ec-event-time {
     display: block;
     margin: 0;
     line-height: 1.1;
     font-size: 0.65rem;
 }
 
-.ec-time-grid .ec-event .ec-event-title {
+.ec-time-grid .ec-event.interview-calendar-event-block .ec-event-title {
     margin: 0;
     line-height: 1.1;
     font-size: 0.7rem;

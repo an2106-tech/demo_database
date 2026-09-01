@@ -136,9 +136,11 @@ class ApplicationWorkflowSummaryService
             );
         }
 
-        $evaluationProgress = app(InterviewEvaluatorService::class)->progress($interview);
+        $evaluationProgress = app(InterviewEvaluatorService::class)->progressForDisplay($interview);
         $actorAssignment = $actor
-            ? $interview->evaluators()->where('user_id', $actor->id)->first()
+            ? ($interview->relationLoaded('evaluators')
+                ? $interview->evaluators->firstWhere('user_id', $actor->id)
+                : $interview->evaluators()->where('user_id', $actor->id)->first())
             : null;
         $actorIsLead = $actor && (int) $interview->interviewer_id === (int) $actor->id;
 

@@ -25,6 +25,10 @@ class BranchResource extends Resource
 
     protected static ?string $navigationLabel = 'Chi nhánh';
 
+    protected static string|\UnitEnum|null $navigationGroup = 'Cơ cấu tổ chức';
+
+    protected static ?int $navigationSort = 1;
+
     protected static ?string $pluralModelLabel = 'Quản lý chi nhánh';
 
     protected static ?string $modelLabel = 'chi nhánh';

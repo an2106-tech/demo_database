@@ -13,43 +13,56 @@ use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class CandidateOfferMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected string $subjectLine;
-    protected string $htmlBody;
+    protected ?string $subjectLine = null;
+
+    protected ?string $htmlBody = null;
 
     public function __construct(
         public Candidate $candidate,
         public Application $application,
         public RecruitmentJob $job,
         public Offer $offer,
-    ) {
-        [$this->subjectLine, $this->htmlBody] = $this->resolveTemplate();
-    }
+    ) {}
 
     public function envelope(): Envelope
     {
+        [$subjectLine] = $this->resolvedContent();
+
         return new Envelope(
-            subject: $this->subjectLine,
+            subject: $subjectLine,
         );
     }
 
     public function content(): Content
     {
+        [$subjectLine, $htmlBody] = $this->resolvedContent();
+
         return new Content(
             view: 'emails.candidate-offer',
             with: [
-                'subjectLine' => $this->subjectLine,
-                'htmlBody' => $this->htmlBody,
+                'subjectLine' => $subjectLine,
+                'htmlBody' => $htmlBody,
             ],
         );
+    }
+
+    /** @return array{0: string, 1: string} */
+    protected function resolvedContent(): array
+    {
+        if ($this->subjectLine === null || $this->htmlBody === null) {
+            [$this->subjectLine, $this->htmlBody] = $this->resolveTemplate();
+        }
+
+        return [$this->subjectLine, $this->htmlBody];
     }
 
     /**
@@ -67,7 +80,7 @@ class CandidateOfferMail extends Mailable
 
         return [
             Attachment::fromPath($absolutePath)
-                ->as('Thu-moi-nhan-viec-' . \Illuminate\Support\Str::slug($this->candidate->name) . '.pdf')
+                ->as('Thu-moi-nhan-viec-'.Str::slug($this->candidate->name).'.pdf')
                 ->withMime('application/pdf'),
         ];
     }
@@ -76,7 +89,7 @@ class CandidateOfferMail extends Mailable
     {
         // Nội dung dự phòng khi chưa cấu hình mẫu email thư mời nhận việc.
         $fallbackSubject = 'Đề nghị tuyển dụng - Vị trí {{job_title}} - {{app_name}}';
-        
+
         $fallbackBody = implode("\n", [
             '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
             '<p><strong>{{app_name}}</strong> trân trọng gửi đến bạn đề nghị tuyển dụng cho vị trí <strong>{{job_title}}</strong>.</p>',
@@ -141,7 +154,7 @@ class CandidateOfferMail extends Mailable
         $content = trim((string) $this->offer->content);
 
         if ($content !== '') {
-            return '<div style="margin: 15px 0; padding: 10px; border-left: 4px solid #eee;">' . nl2br(e($content)) . '</div>';
+            return '<div style="margin: 15px 0; padding: 10px; border-left: 4px solid #eee;">'.nl2br(e($content)).'</div>';
         }
 
         return '';
@@ -169,15 +182,15 @@ class CandidateOfferMail extends Mailable
             absolute: false,
         );
 
-        $acceptUrl = $baseUrl . $acceptPath;
-        $declineUrl = $baseUrl . $declinePath;
+        $acceptUrl = $baseUrl.$acceptPath;
+        $declineUrl = $baseUrl.$declinePath;
 
         return implode('', [
             '<div style="margin: 24px 0; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">',
             '<p style="margin: 0 0 16px;"><strong>Phản hồi thư mời nhận việc</strong></p>',
-            '<a href="' . e($acceptUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #16a34a; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Đồng ý nhận việc</a>',
-            '<a href="' . e($declineUrl) . '" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Từ chối thư mời</a>',
-            '<p style="margin: 12px 0 0; color: #475569; font-size: 13px;">Liên kết có hiệu lực đến ' . e($expiresAt->format('d/m/Y H:i')) . '.</p>',
+            '<a href="'.e($acceptUrl).'" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #16a34a; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Đồng ý nhận việc</a>',
+            '<a href="'.e($declineUrl).'" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Từ chối thư mời</a>',
+            '<p style="margin: 12px 0 0; color: #475569; font-size: 13px;">Liên kết có hiệu lực đến '.e($expiresAt->format('d/m/Y H:i')).'.</p>',
             '</div>',
         ]);
     }

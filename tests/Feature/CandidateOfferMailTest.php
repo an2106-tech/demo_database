@@ -11,7 +11,10 @@ use App\Models\EmailTemplate;
 use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
+use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -56,7 +59,30 @@ class CandidateOfferMailTest extends TestCase
         $this->assertCount(1, $attachments);
     }
 
-    private function makeOffer(): array
+    public function test_offer_mail_displays_the_exact_vietnam_response_deadline(): void
+    {
+        $deadline = Carbon::create(2026, 8, 31, 17, 0, 0, 'Asia/Ho_Chi_Minh');
+        [$candidate, $application, $job, $offer] = $this->makeOffer($deadline);
+
+        $html = (new CandidateOfferMail($candidate, $application, $job, $offer->fresh()))->render();
+
+        $this->assertGreaterThanOrEqual(2, substr_count($html, '31/08/2026 17:00'));
+    }
+
+    public function test_constructing_queued_offer_mail_does_not_query_the_database(): void
+    {
+        [$candidate, $application, $job, $offer] = $this->makeOffer();
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+
+        $mail = new CandidateOfferMail($candidate, $application, $job, $offer);
+
+        $this->assertSame([], DB::getQueryLog());
+        $this->assertStringContainsString('Phản hồi thư mời', $mail->render());
+    }
+
+    private function makeOffer(?CarbonInterface $deadline = null): array
     {
         $branch = Branch::query()->create([
             'name' => 'Offer Branch',
@@ -103,7 +129,7 @@ class CandidateOfferMailTest extends TestCase
             'salary_offered' => 5000000,
             'start_date' => now()->addWeek()->toDateString(),
             'probation_months' => 2,
-            'expires_at' => now()->addDays(3),
+            'expires_at' => $deadline ?? now()->addDays(3),
             'status' => 'pending',
             'content' => 'Offer content.',
         ]);

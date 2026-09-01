@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Pages\EditOffer;
+use App\Filament\Resources\Pages\ListOffers;
 use App\Models\Offer;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -18,9 +20,13 @@ class OfferResource extends Resource
 {
     protected static ?string $model = Offer::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedHandRaised;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedDocumentCheck;
 
     protected static ?string $navigationLabel = 'Duyệt đề nghị';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Vận hành tuyển dụng';
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'đề nghị tuyển dụng';
 
@@ -69,15 +75,6 @@ class OfferResource extends Resource
     {
         return $table
             ->modifyQueryUsing(function (Builder $query) {
-                $user = Auth::user();
-                
-                // Only show offers awaiting approval for this branch director
-                if ($user && ($user->hasRole('director') || $user->role === 'director') && $user->branchScopeId()) {
-                    $query->whereHas('application.job', fn ($q) => 
-                        $q->where('branch_id', $user->branchScopeId())
-                    );
-                }
-
                 return $query->where('status', 'awaiting_approval');
             })
             ->columns([
@@ -86,32 +83,32 @@ class OfferResource extends Resource
                     ->formatStateUsing(fn ($state) => 'OFF-'.str_pad((string) $state, 6, '0', STR_PAD_LEFT))
                     ->sortable()
                     ->searchable(),
-                
+
                 TextColumn::make('application.candidate.name')
                     ->label('Ứng viên')
                     ->formatStateUsing(fn ($record): string => $record->application?->snapshotCandidateName() ?? 'Ứng viên')
                     ->sortable()
                     ->searchable(),
-                
+
                 TextColumn::make('application.job.title')
                     ->label('Vị trí')
                     ->sortable(),
-                
+
                 TextColumn::make('salary_offered')
                     ->label('Mức lương')
-                    ->formatStateUsing(fn ($state) => number_format((float) $state, 0, ',', '.') . ' VND')
+                    ->formatStateUsing(fn ($state) => number_format((float) $state, 0, ',', '.').' VND')
                     ->sortable(),
-                
+
                 TextColumn::make('start_date')
                     ->label('Ngày bắt đầu')
                     ->date('d/m/Y')
                     ->sortable(),
-                
+
                 TextColumn::make('probation_months')
                     ->label('Thử việc')
                     ->suffix(' tháng')
                     ->sortable(),
-                
+
                 TextColumn::make('status')
                     ->label('Trạng thái')
                     ->badge()
@@ -129,7 +126,7 @@ class OfferResource extends Resource
                         'rejected' => 'Đã từ chối',
                         default => $state,
                     }),
-                
+
                 TextColumn::make('created_at')
                     ->label('Ngày tạo')
                     ->dateTime('d/m/Y H:i')
@@ -149,23 +146,25 @@ class OfferResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => \App\Filament\Resources\Pages\ListOffers::route('/'),
-            'edit' => \App\Filament\Resources\Pages\EditOffer::route('/{record}/edit'),
+            'index' => ListOffers::route('/'),
+            'edit' => EditOffer::route('/{record}/edit'),
         ];
     }
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with([
+            'application.candidate',
+            'application.job',
+        ]);
         $user = Auth::user();
 
         // Only show to directors for their branches
-        if ($user && !$user->hasRole('super_admin')) {
+        if ($user && ! $user->hasRole('super_admin')) {
             $isDirector = $user->hasRole('director') || $user->role === 'director';
 
             if ($isDirector && $user->branchScopeId()) {
-                $query->whereHas('application.job', fn ($q) => 
-                    $q->where('branch_id', $user->branchScopeId())
+                $query->whereHas('application.job', fn ($q) => $q->where('branch_id', $user->branchScopeId())
                 );
             } else {
                 // Non-director users shouldn't see this resource

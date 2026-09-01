@@ -9,7 +9,9 @@ use App\Models\Candidate;
 use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
 use Tests\TestCase;
 
@@ -39,6 +41,9 @@ class OfferResponseTest extends TestCase
         $this->assertSame('pending', $offer->status);
         $this->assertSame(StatusApplicationEnum::OFFER, $application->status);
 
+        DB::enableQueryLog();
+        DB::flushQueryLog();
+
         $response = $this->post(URL::temporarySignedRoute(
             'offers.respond.accept.submit',
             now()->addDays(3),
@@ -57,6 +62,7 @@ class OfferResponseTest extends TestCase
         $this->assertSame('accepted', $offer->status);
         $this->assertNotNull($offer->accepted_at);
         $this->assertSame(StatusApplicationEnum::HIRED, $application->status);
+        $this->assertSame(1, $this->offerUpdateCount());
     }
 
     public function test_candidate_declines_offer_from_signed_link_without_rejecting_application(): void
@@ -74,6 +80,9 @@ class OfferResponseTest extends TestCase
         ));
 
         $formResponse->assertOk();
+
+        DB::enableQueryLog();
+        DB::flushQueryLog();
 
         $response = $this->post(URL::temporarySignedRoute(
             'offers.respond.decline.submit',
@@ -94,9 +103,31 @@ class OfferResponseTest extends TestCase
 
         $this->assertSame('declined', $offer->status);
         $this->assertSame(StatusApplicationEnum::OFFER, $application->status);
+        $this->assertSame(1, $this->offerUpdateCount());
     }
 
-    private function makeOffer(): array
+    public function test_offer_response_link_expires_at_the_vietnam_deadline(): void
+    {
+        $deadline = Carbon::create(2026, 8, 31, 17, 0, 0, 'Asia/Ho_Chi_Minh');
+        $this->travelTo($deadline->copy()->addMinute());
+        [$application, $offer] = $this->makeOffer($deadline);
+
+        $response = $this->get(URL::temporarySignedRoute(
+            'offers.respond.accept',
+            now()->addDay(),
+            [
+                'offer' => $offer->id,
+                'sent' => $offer->sent_at->getTimestamp(),
+            ],
+            absolute: false,
+        ));
+
+        $response->assertOk()->assertSee('Thư mời đã hết hạn');
+        $this->assertSame('expired', $offer->fresh()->status);
+        $this->assertSame(StatusApplicationEnum::OFFER, $application->fresh()->status);
+    }
+
+    private function makeOffer(?Carbon $deadline = null): array
     {
         $branch = Branch::query()->create([
             'name' => 'Offer Response Branch',
@@ -143,12 +174,19 @@ class OfferResponseTest extends TestCase
             'salary_offered' => 5000000,
             'start_date' => now()->addWeek()->toDateString(),
             'probation_months' => 2,
-            'expires_at' => now()->addDays(3),
+            'expires_at' => $deadline ?? now()->addDays(3),
             'sent_at' => now(),
             'status' => 'pending',
             'content' => 'Offer content.',
         ]);
 
         return [$application, $offer];
+    }
+
+    private function offerUpdateCount(): int
+    {
+        return collect(DB::getQueryLog())
+            ->filter(fn (array $query): bool => str_contains(strtolower($query['query']), 'update "offers"'))
+            ->count();
     }
 }

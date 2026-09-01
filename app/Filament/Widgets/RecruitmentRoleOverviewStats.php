@@ -4,7 +4,6 @@ namespace App\Filament\Widgets;
 
 use App\Enums\StatusApplicationEnum;
 use App\Enums\StatusRecruitmentJobsEnum;
-use App\Filament\Pages\InterviewSchedule;
 use App\Filament\Resources\Applications\ApplicationResource;
 use App\Filament\Resources\OfferResource;
 use App\Filament\Resources\RecruitmentJobs\RecruitmentJobResource;
@@ -170,7 +169,7 @@ class RecruitmentRoleOverviewStats extends StatsOverviewWidget
                 ->description('Phỏng vấn trong 7 ngày tới')
                 ->descriptionIcon('heroicon-o-calendar-days')
                 ->color('info')
-                ->url(InterviewSchedule::getUrl()),
+                ->url(ApplicationResource::getUrl('kanban')),
             Stat::make('Chờ chấm phỏng vấn', number_format($overdue))
                 ->description('Buổi đã đến hạn nhưng chưa có kết quả')
                 ->descriptionIcon('heroicon-o-clipboard-document-check')
@@ -246,7 +245,7 @@ class RecruitmentRoleOverviewStats extends StatsOverviewWidget
             ->description('Lịch cần theo dõi')
             ->descriptionIcon('heroicon-o-calendar-days')
             ->color('warning')
-            ->url(InterviewSchedule::getUrl());
+            ->url(ApplicationResource::getUrl('kanban'));
     }
 
     private function pendingOffersStat(int $count): Stat

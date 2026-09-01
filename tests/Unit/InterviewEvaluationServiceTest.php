@@ -533,6 +533,24 @@ class InterviewEvaluationServiceTest extends TestCase
         $this->assertSame(StatusApplicationEnum::INTERVIEWING, $application->fresh()->status);
     }
 
+    public function test_display_progress_does_not_create_a_missing_lead_assignment(): void
+    {
+        [$hr, $application] = $this->makeInterviewApplication(StatusApplicationEnum::INTERVIEWING);
+        $interview = $application->interviews()->latest('id')->firstOrFail()->load('evaluators');
+
+        $progress = app(InterviewEvaluatorService::class)->progressForDisplay($interview);
+
+        $this->assertSame(1, $progress['assigned']);
+        $this->assertSame(1, $progress['required']);
+        $this->assertSame(0, $progress['submitted']);
+        $this->assertSame(1, $progress['pending']);
+        $this->assertFalse($progress['all_submitted']);
+        $this->assertDatabaseMissing('interview_evaluators', [
+            'interview_id' => $interview->id,
+            'user_id' => $hr->id,
+        ]);
+    }
+
     /**
      * @return array{0: User, 1: Application}
      */

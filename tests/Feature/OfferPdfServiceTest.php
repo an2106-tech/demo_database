@@ -10,6 +10,7 @@ use App\Models\Offer;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use App\Services\OfferPdfService;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
@@ -35,10 +36,11 @@ class OfferPdfServiceTest extends TestCase
             'apply_method' => 'cv', 'source' => 'website', 'status' => StatusApplicationEnum::OFFER,
             'branch_id' => $branch->id, 'applied_at' => now(),
         ]);
+        $responseDeadline = Carbon::create(2026, 8, 31, 17, 0, 0, 'Asia/Ho_Chi_Minh');
         $offer = Offer::query()->create([
             'application_id' => $application->id, 'content' => 'Nội dung đề nghị tuyển dụng.', 'salary_offered' => 5000000,
             'start_date' => now()->addWeek()->toDateString(), 'probation_months' => 2,
-            'expires_at' => now()->addDays(3), 'status' => 'draft', 'approved_by_user_id' => $director->id,
+            'expires_at' => $responseDeadline, 'status' => 'draft', 'approved_by_user_id' => $director->id,
         ]);
 
         $issuedAt = now();
@@ -64,5 +66,6 @@ class OfferPdfServiceTest extends TestCase
         $this->assertStringContainsString('THƯ MỜI NHẬN VIỆC', $html);
         $this->assertStringContainsString('OFR-'.$issuedAt->format('Y').'-'.str_pad((string) $offer->id, 6, '0', STR_PAD_LEFT), $html);
         $this->assertStringContainsString('Giám đốc PDF', $html);
+        $this->assertStringContainsString('17:00, 31/08/2026', $html);
     }
 }

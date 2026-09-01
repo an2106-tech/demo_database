@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\StatusApplicationEnum;
 use App\Mail\CandidateOfferMail;
 use App\Mail\OfferApprovedNotificationMail;
 use App\Models\Offer;
@@ -62,9 +63,10 @@ class OfferApprovalService
 
             // Send to candidate
             $candidate = $offer->application?->candidate;
-            if (!$candidate?->email) {
+            if (! $candidate?->email) {
                 $this->lastError = 'Ứng viên chưa có địa chỉ email để nhận thư mời.';
                 Log::warning('Cannot send offer to candidate - no email', ['offer_id' => $offer->id]);
+
                 return false;
             }
 
@@ -78,7 +80,6 @@ class OfferApprovalService
                 responseDeadline: $responseDeadline,
                 approver: $approver,
             );
-            $offer->refresh();
 
             // Claim the approval atomically. A second director click must not send
             // another invitation while the first request is handing off the email.
@@ -100,7 +101,14 @@ class OfferApprovalService
                 return false;
             }
 
-            $offer->refresh();
+            $offer->forceFill([
+                'status' => 'pending',
+                'sent_at' => $sentAt,
+                'expires_at' => $responseDeadline,
+                'approved_by_user_id' => $approver->id,
+                'approved_at' => $sentAt,
+                'updated_at' => $sentAt,
+            ])->syncOriginal();
 
             app(OutboundMailQueue::class)->queue(
                 $candidate->email,
@@ -196,11 +204,10 @@ class OfferApprovalService
                 'approved_at' => now(),
                 'approval_notes' => $notes,
             ])->save();
-            $offer->refresh();
 
             $application = $offer->application;
             if ($application) {
-                $status = $application->status instanceof \App\Enums\StatusApplicationEnum
+                $status = $application->status instanceof StatusApplicationEnum
                     ? $application->status->value
                     : (string) $application->status;
                 $application->recordStatusHistory(
@@ -257,7 +264,7 @@ class OfferApprovalService
         $offer->loadMissing(['application.job.branch']);
         $branchId = $offer->application?->job?->branch_id;
 
-        if (!$branchId) {
+        if (! $branchId) {
             return;
         }
 
@@ -275,7 +282,7 @@ class OfferApprovalService
 
         /** @var User $user */
         foreach ($teamMembers as $user) {
-            if (!$user->email) {
+            if (! $user->email) {
                 continue;
             }
 

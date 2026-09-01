@@ -53,6 +53,13 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->navigationGroups([
+                'Vận hành tuyển dụng',
+                'Quản lý tuyển dụng',
+                'Cơ cấu tổ chức',
+                'Quản trị hệ thống',
+                'Nội dung',
+            ])
             ->resources([
                 ApplicationResource::class,
                 BranchResource::class,
@@ -100,31 +107,6 @@ class AdminPanelProvider extends PanelProvider
                 fn (): HtmlString => Auth::check()
                     ? new HtmlString(Blade::render('@livewire(\App\Livewire\Admin\NotificationsBell::class)'))
                     : new HtmlString('')
-            )
-            ->renderHook(
-                'panels::body.end',
-                fn (): HtmlString => new HtmlString(<<<'HTML'
-                <script>
-                (function () {
-                    function attachCalendarTooltips() {
-                        document.querySelectorAll(".fc-timegrid-event:not([data-fc-tip])").forEach(function (el) {
-                            var time  = el.querySelector(".fc-event-time")?.textContent?.trim() ?? "";
-                            var title = el.querySelector(".fc-event-title")?.textContent?.trim() ?? "";
-                            if (title) {
-                                el.setAttribute("title", time ? time + "\n" + title : title);
-                                el.setAttribute("data-fc-tip", "1");
-                                el.style.cursor = "default";
-                            }
-                        });
-                    }
-                    var observer = new MutationObserver(attachCalendarTooltips);
-                    document.addEventListener("DOMContentLoaded", function () {
-                        observer.observe(document.body, { childList: true, subtree: true });
-                        attachCalendarTooltips();
-                    });
-                })();
-                </script>
-                HTML)
             );
     }
 }

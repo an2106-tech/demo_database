@@ -17,6 +17,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -27,9 +28,13 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedUsers;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUsers;
 
     protected static ?string $navigationLabel = 'Người dùng';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Quản trị hệ thống';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $modelLabel = 'người dùng';
 
@@ -75,7 +80,7 @@ class UserResource extends Resource
                                     return $avatar;
                                 }
 
-                                return asset('storage/' . ltrim($avatar, '/'));
+                                return asset('storage/'.ltrim($avatar, '/'));
                             }),
                     ]),
 
@@ -95,7 +100,7 @@ class UserResource extends Resource
                             ->label('Vai trò')
                             ->badge()
                             ->color('warning')
-                            ->formatStateUsing(fn($state) => match ($state) {
+                            ->formatStateUsing(fn ($state) => match ($state) {
                                 'admin' => 'Super Admin',
                                 'hr' => 'Nhân sự',
                                 'director' => 'Giám đốc',
@@ -129,7 +134,7 @@ class UserResource extends Resource
                     TextEntry::make('metadata.approval_status')
                         ->label('Trạng thái duyệt')
                         ->badge()
-                        ->formatStateUsing(fn($state) => match ($state) {
+                        ->formatStateUsing(fn ($state) => match ($state) {
                             'pending' => 'Chờ duyệt',
                             'approved' => 'Đã duyệt',
                             'rejected' => 'Từ chối',
@@ -143,15 +148,13 @@ class UserResource extends Resource
                     TextEntry::make('metadata.approved_at')
                         ->label('Duyệt lúc')
                         ->formatStateUsing(
-                            fn($state) =>
-                            blank($state) ? '-' : Carbon::parse($state)->format('d/m/Y H:i')
+                            fn ($state) => blank($state) ? '-' : Carbon::parse($state)->format('d/m/Y H:i')
                         ),
 
                     TextEntry::make('metadata.rejected_at')
                         ->label('Từ chối lúc')
                         ->formatStateUsing(
-                            fn($state) =>
-                            blank($state) ? '-' : Carbon::parse($state)->format('d/m/Y H:i')
+                            fn ($state) => blank($state) ? '-' : Carbon::parse($state)->format('d/m/Y H:i')
                         ),
 
                     TextEntry::make('metadata')
@@ -159,8 +162,7 @@ class UserResource extends Resource
                         ->columnSpanFull()
                         ->prose()
                         ->formatStateUsing(
-                            fn($state) =>
-                            blank($state)
+                            fn ($state) => blank($state)
                                 ? '-'
                                 : json_encode($state, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
                         ),

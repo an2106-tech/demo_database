@@ -102,7 +102,11 @@ class ApplicationWorkflowGuard
             }
         }
 
-        if ($interview->result !== 'pending' || $interview->scorecards()->exists()) {
+        $hasScorecards = $interview->relationLoaded('scorecards')
+            ? $interview->scorecards->isNotEmpty()
+            : $interview->scorecards()->exists();
+
+        if ($interview->result !== 'pending' || $hasScorecards) {
             return false;
         }
 
@@ -202,7 +206,7 @@ class ApplicationWorkflowGuard
             return false;
         }
 
-        if (! app(InterviewEvaluatorService::class)->progress($interview)['all_submitted']) {
+        if (! app(InterviewEvaluatorService::class)->progressForDisplay($interview)['all_submitted']) {
             return false;
         }
 

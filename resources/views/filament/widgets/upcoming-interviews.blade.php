@@ -1,19 +1,19 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <x-slot name="heading">Lịch phỏng vấn sắp tới</x-slot>
+        <x-slot name="heading">Lịch phỏng vấn cần theo dõi</x-slot>
         <x-slot name="description">{{ $scopeLabel }}</x-slot>
 
         <x-slot name="afterHeader">
             <a
-                href="{{ $calendarUrl }}"
+                href="{{ $kanbanUrl }}"
                 class="inline-flex items-center gap-1.5 text-sm font-medium text-primary-600 transition hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-                <span>Xem toàn bộ lịch</span>
+                <span>Mở Kanban</span>
                 <x-filament::icon icon="heroicon-m-arrow-right" class="h-4 w-4" />
             </a>
         </x-slot>
 
-        @if ($total > 0)
+        @if (count($interviews) > 0)
             <div class="divide-y divide-gray-200 dark:divide-white/10">
                 @foreach ($interviews as $interview)
                     <a
@@ -35,23 +35,24 @@
                         </div>
 
                         <div class="min-w-0 text-sm">
-                            <p class="truncate text-gray-700 dark:text-gray-300">{{ $interview['type'] }}</p>
+                            <p class="truncate text-gray-700 dark:text-gray-300">{{ $interview['round'] }} · {{ $interview['type'] }}</p>
                             <p class="truncate text-gray-500 dark:text-gray-400">{{ $interview['interviewer'] }}</p>
                         </div>
 
                         <div class="flex items-center justify-between gap-3 sm:justify-end">
-                            <x-filament::badge :color="$interview['inviteColor']">
-                                {{ $interview['inviteStatus'] }}
+                            <x-filament::badge :color="$interview['statusColor']">
+                                {{ $interview['status'] }}
                             </x-filament::badge>
+                            <span class="text-sm font-semibold text-primary-600 dark:text-primary-400">{{ $interview['action'] }}</span>
                             <x-filament::icon icon="heroicon-m-chevron-right" class="h-4 w-4 text-gray-400 transition group-hover:translate-x-0.5 group-hover:text-primary-500" />
                         </div>
                     </a>
                 @endforeach
             </div>
 
-            @if ($total > count($interviews))
+            @if ($hasMore)
                 <div class="mt-4 border-t border-gray-200 pt-3 text-sm text-gray-500 dark:border-white/10 dark:text-gray-400">
-                    Còn {{ number_format($total - count($interviews)) }} lịch khác trong 7 ngày tới.
+                    Còn lịch cần theo dõi trong Kanban ứng tuyển.
                 </div>
             @endif
         @else

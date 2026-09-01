@@ -39,7 +39,7 @@ class ExpirePendingOffers extends Command
                     );
                 }
 
-                $notifications->notifyOfferExpired($offer->fresh(['application.candidate', 'application.job.branch', 'application.assignedHr', 'application.job.creator']));
+                $notifications->notifyOfferExpired($offer);
                 $expired++;
             });
 

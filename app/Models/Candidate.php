@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 
 class Candidate extends Model
 {
@@ -56,6 +58,16 @@ class Candidate extends Model
         return $this->hasMany(Application::class);
     }
 
+    public function latestVisibleApplication(): BelongsTo
+    {
+        return $this->belongsTo(Application::class, 'latest_visible_application_id');
+    }
+
+    public function blacklistedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'blacklisted_by');
+    }
+
     public function submissions(): HasMany
     {
         return $this->hasMany(CandidateJobSubmission::class);
@@ -64,5 +76,18 @@ class Candidate extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');
+    }
+
+    public function currentCvUrl(): ?string
+    {
+        if (! $this->cv_file) {
+            return null;
+        }
+
+        if (Route::has('public-file.preview') && Storage::disk('public')->exists($this->cv_file)) {
+            return route('public-file.preview', ['path' => $this->cv_file]);
+        }
+
+        return asset('storage/'.ltrim($this->cv_file, '/'));
     }
 }

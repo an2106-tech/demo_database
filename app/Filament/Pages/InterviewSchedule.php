@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\InterviewCalendar;
+use App\Filament\Widgets\InterviewScheduleAgenda;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Enums\Width;
@@ -18,7 +19,14 @@ class InterviewSchedule extends Page
 
     protected static ?string $navigationLabel = 'Lịch phỏng vấn';
 
-    protected static ?int $navigationSort = 3;
+    protected static string|\UnitEnum|null $navigationGroup = 'Vận hành tuyển dụng';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
 
     public function getTitle(): string|Htmlable
     {
@@ -33,6 +41,7 @@ class InterviewSchedule extends Page
     protected function getHeaderWidgets(): array
     {
         return [
+            InterviewScheduleAgenda::class,
             InterviewCalendar::class,
         ];
     }

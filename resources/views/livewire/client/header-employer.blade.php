@@ -193,7 +193,7 @@
         }
 
         .employer-user-dropdown-item {
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: space-between;
             padding: 8px 10px;
@@ -204,6 +204,11 @@
             text-decoration: none !important;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             cursor: pointer;
+        }
+
+        .employer-user-dropdown-item > .fa-angle-right {
+            flex: 0 0 auto;
+            margin: 0 0 0 10px !important;
         }
 
         .employer-user-dropdown-item:hover {

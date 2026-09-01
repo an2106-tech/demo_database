@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Enums\StatusApplicationEnum;
+use App\Mail\OfferApprovalRequestMail;
 use App\Models\Application;
 use App\Models\Offer;
 use App\Models\OfferLetterTemplate;
@@ -11,7 +13,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use App\Mail\OfferApprovalRequestMail;
 
 class OfferWorkflowService
 {
@@ -76,17 +77,34 @@ class OfferWorkflowService
                 'response_at' => null,
                 'accepted_at' => null,
                 'declined_reason' => null,
-            ])->save();
+            ]);
+
+            $pdfNeedsRefresh = ! $offer->exists
+                || $offer->isDirty([
+                    'application_id',
+                    'offer_letter_template_id',
+                    'letter_template_snapshot',
+                    'content',
+                    'salary_offered',
+                    'start_date',
+                    'probation_months',
+                    'expires_at',
+                ])
+                || ! $this->pdfService->hasValidPdf($offer);
+
+            $offer->save();
 
             try {
-                $this->pdfService->refreshForOffer($offer);
+                if ($pdfNeedsRefresh) {
+                    $this->pdfService->refreshForOffer($offer);
+                }
             } catch (\Throwable) {
                 throw ValidationException::withMessages([
                     'offer' => 'Chưa thể tạo PDF đề nghị. Vui lòng kiểm tra lại mẫu và thử lại.',
                 ]);
             }
 
-            return $offer->fresh();
+            return $offer;
         });
     }
 
@@ -119,12 +137,11 @@ class OfferWorkflowService
         $resubmitted = filled($offer->approval_requested_at) || $wasRevision;
         $previousStatus = $offer->status;
         $previousApprovalRequestedAt = $offer->approval_requested_at;
-        $this->pdfService->refreshForOffer($offer);
+        $this->pdfService->ensureForOffer($offer);
         $offer->forceFill([
             'status' => 'awaiting_approval',
             'approval_requested_at' => now(),
         ])->save();
-        $offer->refresh();
 
         $sent = 0;
         $failed = 0;
@@ -167,7 +184,13 @@ class OfferWorkflowService
         }
 
         $offer->forceFill(['approval_notes' => null])->save();
-        $this->internalNotifications->notifyOfferSubmittedForApproval($offer->fresh(['application.candidate', 'application.job.branch']));
+        $offer->loadMissing([
+            'application.candidate',
+            'application.job.branch',
+            'application.assignedHr',
+            'application.job.creator',
+        ]);
+        $this->internalNotifications->notifyOfferSubmittedForApproval($offer);
 
         return ['sent' => $sent, 'failed' => $failed, 'resubmitted' => $resubmitted];
     }
@@ -296,7 +319,7 @@ class OfferWorkflowService
 
     private function statusValue(Application $application): string
     {
-        return $application->status instanceof \App\Enums\StatusApplicationEnum
+        return $application->status instanceof StatusApplicationEnum
             ? $application->status->value
             : (string) $application->status;
     }

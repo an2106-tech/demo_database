@@ -16,6 +16,24 @@ class OfferPdfService
         private OfferLetterMergeService $merge,
     ) {}
 
+    public function hasValidPdf(Offer $offer): bool
+    {
+        $path = $offer->pdf_path;
+
+        return filled($path)
+            && Storage::disk('local')->exists($path)
+            && Storage::disk('local')->size($path) > 0;
+    }
+
+    public function ensureForOffer(Offer $offer): void
+    {
+        if ($this->hasValidPdf($offer)) {
+            return;
+        }
+
+        $this->refreshForOffer($offer);
+    }
+
     /**
      * Generate the candidate-facing PDF before the offer can be submitted or sent.
      * A temporary file prevents an incomplete render from replacing a valid document.
@@ -25,8 +43,7 @@ class OfferPdfService
         ?CarbonInterface $issuedAt = null,
         ?CarbonInterface $responseDeadline = null,
         ?User $approver = null,
-    ): void
-    {
+    ): void {
         $offer->loadMissing(['letterTemplate', 'approvedByUser', 'application.candidate', 'application.job.branch']);
 
         $issuedAt ??= $offer->approved_at ?? $offer->sent_at ?? $offer->created_at ?? now();

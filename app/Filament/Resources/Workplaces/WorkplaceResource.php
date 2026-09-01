@@ -16,6 +16,7 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -25,9 +26,13 @@ class WorkplaceResource extends Resource
 {
     protected static ?string $model = Workplace::class;
 
-    protected static string|BackedEnum|null $navigationIcon = \Filament\Support\Icons\Heroicon::OutlinedMapPin;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedMapPin;
 
     protected static ?string $navigationLabel = 'Địa điểm làm việc';
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Cơ cấu tổ chức';
+
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $modelLabel = 'địa điểm làm việc';
 

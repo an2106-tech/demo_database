@@ -132,6 +132,48 @@
             background: #e05f12;
             transform: translateY(-1px);
         }
+        .cv-action-stack {
+            display: grid;
+            justify-items: end;
+            gap: 8px;
+        }
+        .cv-save-state {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 650;
+        }
+        .cv-save-state.is-dirty {
+            color: #b45309;
+        }
+        .cv-form-errors {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: -12px 0 20px;
+            border: 1px solid #fecaca;
+            border-radius: 10px;
+            background: #fef2f2;
+            padding: 11px 14px;
+            color: #991b1b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .cv-field-error {
+            display: block;
+            margin-top: 5px;
+            color: #dc2626;
+            font-size: 12px;
+            font-weight: 650;
+        }
+        .cv-builder-page button:disabled,
+        .cv-builder-page label[aria-disabled="true"] {
+            cursor: wait;
+            opacity: 0.7;
+            transform: none !important;
+        }
 
         /* 2 Columns Workspace */
         .cv-main-grid {
@@ -399,26 +441,48 @@
             </div>
 
             <!-- Action Buttons -->
-            <div class="d-flex align-items-center gap-2 flex-wrap">
-                <label for="cv_upload_ai_clean" class="btn-cv-ai mb-0" title="Tải file PDF/DOCX cũ để AI tự điền">
-                    <i class="fa fa-magic"></i> AI Auto-Fill từ CV
-                    <input type="file" id="cv_upload_ai_clean" wire:model="uploadedCvFile" class="d-none" accept=".pdf,.docx">
-                </label>
+            <div class="cv-action-stack">
+                <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                    <label for="cv_upload_ai_clean" class="btn-cv-ai mb-0" title="Tải file PDF/DOCX cũ để AI tự điền">
+                        <i class="fa fa-magic"></i> AI Auto-Fill từ CV
+                        <input type="file" id="cv_upload_ai_clean" wire:model="uploadedCvFile" class="d-none" accept=".pdf,.docx">
+                    </label>
 
-                <button type="button" wire:click="runAiAudit" class="btn-cv-ai" style="background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%); box-shadow: 0 3px 12px rgba(2, 132, 199, 0.25);" wire:loading.attr="disabled">
-                    <i class="fa fa-bar-chart"></i> AI Chấm điểm ATS
-                </button>
+                    <button type="button" wire:click="runAiAudit" class="btn-cv-ai" style="background: #0284c7; box-shadow: 0 3px 12px rgba(2, 132, 199, 0.25);" wire:loading.attr="disabled" wire:target="runAiAudit">
+                        <span wire:loading.remove wire:target="runAiAudit"><i class="fa fa-bar-chart"></i> AI Chấm điểm ATS</span>
+                        <span wire:loading wire:target="runAiAudit"><i class="fa fa-spinner fa-spin"></i> Đang phân tích...</span>
+                    </button>
 
-                <button type="button" wire:click="save" class="btn-cv-save" wire:loading.attr="disabled">
-                    <i class="fa fa-save"></i> Lưu hồ sơ
-                </button>
+                    <button type="button" wire:click="save" class="btn-cv-save" wire:loading.attr="disabled" wire:target="save">
+                        <span wire:loading.remove wire:target="save"><i class="fa fa-save"></i> Lưu CV</span>
+                        <span wire:loading wire:target="save"><i class="fa fa-spinner fa-spin"></i> Đang lưu...</span>
+                    </button>
 
-                <button type="button" wire:click="downloadPdf" class="btn-cv-download" wire:loading.attr="disabled" wire:target="downloadPdf">
-                    <span wire:loading.remove wire:target="downloadPdf"><i class="fa fa-download"></i> Tải CV PDF</span>
-                    <span wire:loading wire:target="downloadPdf"><i class="fa fa-spinner fa-spin"></i> Đang tải...</span>
-                </button>
+                    <button type="button" wire:click="downloadPdf" class="btn-cv-download" wire:loading.attr="disabled" wire:target="downloadPdf">
+                        <span wire:loading.remove wire:target="downloadPdf"><i class="fa fa-download"></i> Tải CV PDF</span>
+                        <span wire:loading wire:target="downloadPdf"><i class="fa fa-spinner fa-spin"></i> Đang chuẩn bị...</span>
+                    </button>
+                </div>
+
+                <span class="cv-save-state is-dirty" wire:dirty>
+                    <i class="fa fa-exclamation-circle"></i> Có thay đổi chưa lưu
+                </span>
+                <span class="cv-save-state" wire:dirty.remove>
+                    <i class="fa fa-check-circle"></i>
+                    {{ $lastSavedAt ? 'Đã lưu lúc '.$lastSavedAt : 'Chưa có lần lưu hoàn chỉnh' }}
+                </span>
             </div>
         </div>
+
+        @if($errors->any())
+            <div class="cv-form-errors" role="alert">
+                <i class="fa fa-exclamation-circle" style="margin-top: 2px;"></i>
+                <div>
+                    <strong>CV chưa được lưu.</strong>
+                    {{ $errors->first() }}
+                </div>
+            </div>
+        @endif
 
         <!-- AI Upload Notice -->
         @if($uploadedCvFile)
@@ -579,14 +643,17 @@
                         <div class="col-md-6 form-group-clean">
                             <label>Họ và tên <span class="text-danger">*</span></label>
                             <input type="text" wire:model.live.debounce.300ms="name" class="form-control-clean" placeholder="Nguyễn Văn A">
+                            @error('name') <span class="cv-field-error">{{ $message }}</span> @enderror
                         </div>
                         <div class="col-md-6 form-group-clean">
                             <label>Chức danh / Vị trí chuyên môn <span class="text-danger">*</span></label>
                             <input type="text" wire:model.live.debounce.300ms="profile_title" class="form-control-clean" placeholder="Senior Backend Developer">
+                            @error('profile_title') <span class="cv-field-error">{{ $message }}</span> @enderror
                         </div>
                         <div class="col-md-6 form-group-clean">
                             <label>Email liên hệ <span class="text-danger">*</span></label>
                             <input type="email" wire:model.live.debounce.300ms="email" class="form-control-clean" placeholder="email@example.com">
+                            @error('email') <span class="cv-field-error">{{ $message }}</span> @enderror
                         </div>
                         <div class="col-md-6 form-group-clean">
                             <label>Số điện thoại</label>
@@ -817,7 +884,16 @@
                     <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-size: 14px; font-weight: 700; color: #0f172a;">
                         Xem trước trực tiếp ({{ str_replace('-', ' ', ucwords($selectedTemplate, '-')) }})
                     </span>
-                    <button type="button" wire:click="openPdf" class="btn btn-sm" style="background: #f1f5f9; color: #0f172a; font-weight: 700; border-radius: 6px; font-size: 12.5px; border: 1px solid #e2e8f0; cursor: pointer; padding: 5px 12px; transition: all 0.2s;" title="Xem toàn bộ CV trên tab mới" wire:loading.attr="disabled" wire:target="openPdf">
+                    <button
+                        type="button"
+                        wire:click="openPdf"
+                        x-on:click="window.__cvPdfPreviewWindow = window.open('about:blank', '_blank')"
+                        class="btn btn-sm"
+                        style="background: #f1f5f9; color: #0f172a; font-weight: 700; border-radius: 6px; font-size: 12.5px; border: 1px solid #e2e8f0; cursor: pointer; padding: 5px 12px; transition: all 0.2s;"
+                        title="Xem toàn bộ CV trên tab mới"
+                        wire:loading.attr="disabled"
+                        wire:target="openPdf"
+                    >
                         <span wire:loading.remove wire:target="openPdf"><i class="fa fa-external-link me-1"></i> Mở xem toàn bộ (PDF)</span>
                         <span wire:loading wire:target="openPdf"><i class="fa fa-spinner fa-spin me-1"></i> Đang mở...</span>
                     </button>
@@ -836,13 +912,67 @@
     </div>
 
     <script>
-        document.addEventListener('livewire:initialized', () => {
-            Livewire.on('open-pdf-window', (event) => {
-                const url = event.url || (event[0] && event[0].url);
-                if (url) {
-                    window.open(url, '_blank');
+        (() => {
+            const eventDetail = (event) => Array.isArray(event) ? (event[0] || {}) : (event || {});
+            const notify = (message) => window.dispatchEvent(new CustomEvent('app-notify', {
+                detail: { message, type: 'error' },
+            }));
+            const registerCvBuilderActions = () => {
+                if (window.__cvBuilderActionsRegistered) {
+                    return;
                 }
-            });
-        });
+
+                window.__cvBuilderActionsRegistered = true;
+
+                Livewire.on('open-pdf-window', (event) => {
+                    const { url } = eventDetail(event);
+                    const previewWindow = window.__cvPdfPreviewWindow;
+
+                    if (!url) {
+                        previewWindow?.close();
+                        return;
+                    }
+
+                    if (previewWindow && !previewWindow.closed) {
+                        previewWindow.location.href = url;
+                    } else {
+                        const openedWindow = window.open(url, '_blank');
+                        if (!openedWindow) {
+                            notify('Trình duyệt đang chặn tab PDF. Vui lòng cho phép mở cửa sổ bật lên.');
+                        }
+                    }
+
+                    window.__cvPdfPreviewWindow = null;
+                });
+
+                Livewire.on('download-cv-file', (event) => {
+                    const { url } = eventDetail(event);
+                    if (!url) {
+                        return;
+                    }
+
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = '';
+                    link.style.display = 'none';
+                    document.body.appendChild(link);
+                    link.click();
+                    link.remove();
+                });
+
+                Livewire.on('cv-action-failed', () => {
+                    if (window.__cvPdfPreviewWindow && !window.__cvPdfPreviewWindow.closed) {
+                        window.__cvPdfPreviewWindow.close();
+                    }
+                    window.__cvPdfPreviewWindow = null;
+                });
+            };
+
+            if (window.Livewire) {
+                registerCvBuilderActions();
+            } else {
+                document.addEventListener('livewire:init', registerCvBuilderActions, { once: true });
+            }
+        })();
     </script>
 </div>

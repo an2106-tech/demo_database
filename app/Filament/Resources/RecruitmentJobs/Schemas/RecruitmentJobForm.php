@@ -55,12 +55,8 @@ class RecruitmentJobForm
                                         'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/',
                                     ])
                                     ->dehydrateStateUsing(fn ($state) => trim($state)),
-                                Select::make('status')
-                                    ->label('Trạng thái')
-                                    ->options(StatusRecruitmentJobsEnum::class)
-                                    ->default(StatusRecruitmentJobsEnum::DRAFT)
-                                    ->required()
-                                    ->enum(StatusRecruitmentJobsEnum::class),
+                                Hidden::make('status')
+                                    ->default(StatusRecruitmentJobsEnum::DRAFT->value),
                             ]),
                         Fieldset::make('Tổ chức')
                             ->columns(2)
