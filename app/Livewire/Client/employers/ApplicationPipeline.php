@@ -23,6 +23,10 @@ class ApplicationPipeline extends Component
 {
     public ?int $selectedJobId = null;
 
+    public string $search = '';
+
+    public string $viewMode = 'kanban';
+
     public bool $showInterviewModal = false;
 
     public ?int $interviewApplicationId = null;
@@ -285,6 +289,18 @@ class ApplicationPipeline extends Component
             ->with(['candidate.user', 'job.branch', 'cvAttachment', 'latestInterview', 'latestOffer', 'latestScorecard'])
             ->whereIn('status', $statusValues)
             ->when($this->selectedJobId, fn ($q) => $q->where('job_id', $this->selectedJobId))
+            ->when(filled($this->search), function (Builder $query): void {
+                $search = trim($this->search);
+                $query->where(function (Builder $q) use ($search): void {
+                    $q->whereHas('candidate', function (Builder $cq) use ($search): void {
+                        $cq->where('name', 'like', "%{$search}%")
+                           ->orWhere('email', 'like', "%{$search}%")
+                           ->orWhere('phone', 'like', "%{$search}%");
+                    })->orWhereHas('job', function (Builder $jq) use ($search): void {
+                        $jq->where('title', 'like', "%{$search}%");
+                    });
+                });
+            })
             ->when($user->branchScopeId(), function (Builder $query, int $branchId): void {
                 $query->where(function (Builder $query) use ($branchId): void {
                     $query

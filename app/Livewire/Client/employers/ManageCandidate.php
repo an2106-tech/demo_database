@@ -10,9 +10,21 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class ManageCandidate extends Component
 {
+    use WithPagination;
+
+    public string $search = '';
+
+    protected $paginationTheme = 'bootstrap';
+
+    public function updatingSearch()
+    {
+        $this->resetPage();
+    }
+
     #[Layout('layouts.employer')]
     public function analyzeWithAi($submissionId, AiMatchingService $aiService)
     {
@@ -23,9 +35,9 @@ class ManageCandidate extends Component
         $success = $aiService->calculateMatch($submission);
 
         if ($success) {
-            session()->flash('message', 'Phân tích AI hoàn tất cho '.$submission->candidate->name);
+            $this->dispatch('app-notify', message: 'Phân tích AI hoàn tất cho '.$submission->candidate->name);
         } else {
-            session()->flash('error', $aiService->getLastError() ?: 'Không thể phân tích AI. Vui lòng kiểm tra lại API key hoặc nội dung CV.');
+            $this->dispatch('app-notify', message: $aiService->getLastError() ?: 'Không thể phân tích AI. Vui lòng kiểm tra lại API key hoặc nội dung CV.', type: 'error');
         }
     }
 
@@ -34,11 +46,11 @@ class ManageCandidate extends Component
         /** @var User|null $user */
         $user = Auth::user();
 
-        $candidates = Candidate::query()
+        $candidatesQuery = Candidate::query()
             ->with([
                 'user',
                 'applications' => fn ($query) => $query
-                    ->with('job')
+                    ->with('job.branch')
                     ->when($user?->branchScopeId(), function (Builder $query, int $branchId) {
                         $query->where(function (Builder $query) use ($branchId) {
                             $query
@@ -66,10 +78,22 @@ class ManageCandidate extends Component
                         ->orWhereHas('submissions.job', fn (Builder $jobQuery) => $jobQuery->where('branch_id', $branchId));
                 });
             })
-            ->latest()
-            ->get();
+            ->when(filled($this->search), function (Builder $query) {
+                $search = trim($this->search);
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('title', 'like', "%{$search}%");
+                });
+            })
+            ->latest();
 
-        return view('livewire.client.employers.manage_candidate', ['candidates' => $candidates]);
+        $candidates = $candidatesQuery->paginate(9);
+
+        return view('livewire.client.employers.manage_candidate', [
+            'candidates' => $candidates,
+        ]);
     }
 
     private function canManageSubmission(?User $user, CandidateJobSubmission $submission): bool

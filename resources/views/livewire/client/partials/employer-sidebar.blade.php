@@ -5,7 +5,7 @@
         </div>
         <div>
             <h3>Nhà tuyển dụng</h3>
-            <p>Điều hướng hồ sơ, tin đăng và pipeline</p>
+            <p>FPT Education Recruiting Hub</p>
         </div>
     </div>
 
@@ -18,9 +18,51 @@
         </li>
 
         <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.application_pipeline') ? 'is-active' : '' }}" href="{{ route('employers.application_pipeline') }}">
+                <i class="fa fa-columns"></i>
+                <span>Pipeline ứng viên</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.manage_jobs') ? 'is-active' : '' }}" href="{{ route('employers.manage_jobs') }}">
+                <i class="fa fa-briefcase"></i>
+                <span>Quản lý tin đăng</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.post_job') ? 'is-active' : '' }}" href="{{ route('employers.post_job') }}">
+                <i class="fa fa-plus-circle"></i>
+                <span>Đăng tin tuyển dụng</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.manage_candidates') ? 'is-active' : '' }}" href="{{ route('employers.manage_candidates') }}">
+                <i class="fa fa-users"></i>
+                <span>Quản lý ứng viên</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.browse') ? 'is-active' : '' }}" href="{{ route('employers.browse') }}">
+                <i class="fa fa-search"></i>
+                <span>Tìm kiếm nhân tài</span>
+            </a>
+        </li>
+
+        <li>
             <a class="sidebar-nav__link {{ request()->routeIs('employers.company_profile') ? 'is-active' : '' }}" href="{{ route('employers.company_profile') }}">
                 <i class="fa fa-building"></i>
                 <span>Hồ sơ chi nhánh</span>
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.message') ? 'is-active' : '' }}" href="{{ route('employers.message') }}">
+                <i class="fa fa-comments"></i>
+                <span>Tin nhắn & Trợ lý</span>
             </a>
         </li>
 
@@ -36,40 +78,6 @@
         @endauth
 
         <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('employers.post_job') ? 'is-active' : '' }}" href="{{ route('employers.post_job') }}">
-                <i class="fa fa-bullhorn"></i>
-                <span>Đăng tin tuyển dụng</span>
-            </a>
-        </li>
-
-        <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('employers.manage_jobs') ? 'is-active' : '' }}" href="{{ route('employers.manage_jobs') }}">
-                <i class="fa fa-briefcase"></i>
-                <span>Quản lý tin đăng</span>
-            </a>
-        </li>
-
-        <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('employers.manage_candidates') ? 'is-active' : '' }}" href="{{ route('employers.manage_candidates') }}">
-                <i class="fa fa-user-circle"></i>
-                <span>Quản lý ứng viên</span>
-            </a>
-        </li>
-
-        <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('employers.application_pipeline') ? 'is-active' : '' }}" href="{{ route('employers.application_pipeline') }}">
-                <i class="fa fa-columns"></i>
-                <span>Pipeline ứng viên</span>
-            </a>
-        </li>
-
-        <li>
-            <a class="sidebar-nav__link {{ request()->routeIs('employers.change_password') ? 'is-active' : '' }}" href="{{ route('employers.change_password') }}">
-                <i class="fa fa-lock"></i>
-                <span>Đổi mật khẩu</span>
-            </a>
-        </li>
-        <li>
             @php
                 $unreadEmpNotifs = Auth::check() ? \App\Models\UserNotification::where('user_id', Auth::id())->whereNull('read_at')->count() : 0;
             @endphp
@@ -79,6 +87,13 @@
                 @if($unreadEmpNotifs > 0)
                     <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 10.5px; padding: 2px 6px; font-weight: 800;">{{ $unreadEmpNotifs }}</span>
                 @endif
+            </a>
+        </li>
+
+        <li>
+            <a class="sidebar-nav__link {{ request()->routeIs('employers.change_password') ? 'is-active' : '' }}" href="{{ route('employers.change_password') }}">
+                <i class="fa fa-lock"></i>
+                <span>Đổi mật khẩu</span>
             </a>
         </li>
     </ul>

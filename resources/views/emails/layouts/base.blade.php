@@ -1,7 +1,7 @@
 @php
     $brandName = config('mail.from.name', config('app.name', 'FPT Career'));
     $pageTitle = $title ?? $brandName;
-    $eyebrowText = $eyebrow ?? 'FPT Career';
+    $eyebrowText = $eyebrow ?? null;
     $previewText = $preview ?? 'Thông báo từ hệ thống tuyển dụng.';
 @endphp
 <!DOCTYPE html>
@@ -14,158 +14,115 @@
         body {
             margin: 0;
             padding: 0;
-            background: #f7f3ec;
-            color: #283044;
-            font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
-            line-height: 1.6;
+            background-color: #ffffff;
+            color: #171717;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 14px;
+            line-height: 1.65;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         a {
-            color: #f37021;
+            color: #171717;
+            text-decoration: underline;
+            text-underline-offset: 3px;
         }
 
         .mail-wrapper {
             width: 100%;
-            padding: 36px 18px 42px;
-            background: #f7f3ec;
+            background-color: #ffffff;
+            padding: 40px 16px;
+            box-sizing: border-box;
         }
 
         .mail-preheader {
-            display: none;
+            display: none !important;
             max-height: 0;
             overflow: hidden;
             opacity: 0;
             color: transparent;
+            mso-hide: all;
         }
 
-        .brand-pill {
-            display: table;
-            margin: 0 auto 24px;
-            padding: 8px 16px 8px 8px;
-            border: 1px solid #f0e5d8;
-            border-radius: 999px;
-            background: #ffffff;
-            color: #111827;
-            text-decoration: none;
-        }
-
-        .brand-mark {
-            display: inline-block;
-            width: 34px;
-            height: 34px;
-            margin-right: 10px;
-            border-radius: 999px;
-            background: #f37021;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: 900;
-            line-height: 34px;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .brand-copy {
-            display: inline-block;
-            vertical-align: middle;
-            line-height: 1.1;
-        }
-
-        .brand-copy strong {
-            display: block;
-            color: #111827;
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .brand-copy small {
-            display: block;
-            margin-top: 3px;
-            color: #8a7160;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .16em;
-            text-transform: uppercase;
-        }
-
-        .mail-shell {
-            max-width: 640px;
+        .mail-container {
+            max-width: 560px;
             margin: 0 auto;
-            padding: 8px;
-            border-radius: 30px;
-            background: #efe7dc;
         }
 
-        .mail-card {
-            overflow: hidden;
-            border: 1px solid #f4eadf;
-            border-radius: 24px;
-            background: #ffffff;
-            box-shadow: 0 22px 70px rgba(81, 52, 28, .12);
+        .mail-header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ebebeb;
+            margin-bottom: 28px;
         }
 
-        .mail-hero {
-            padding: 38px 44px 20px;
+        .brand-logo {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #171717;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .mail-eyebrow {
-            display: inline-block;
-            margin-bottom: 16px;
-            padding: 7px 12px;
-            border-radius: 999px;
-            background: #fff7ed;
-            color: #9a3412;
-            font-size: 10px;
-            font-weight: 900;
-            letter-spacing: .16em;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
             text-transform: uppercase;
+            color: #737373;
+            margin-bottom: 8px;
         }
 
         .mail-title {
-            margin: 0;
-            color: #111827;
-            font-size: 25px;
-            font-weight: 850;
-            letter-spacing: -.02em;
-            line-height: 1.22;
+            margin: 0 0 20px 0;
+            color: #111111;
+            font-size: 20px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.35;
         }
 
         .mail-body {
-            padding: 0 44px 42px;
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.7;
         }
 
         .mail-body p {
-            margin: 0 0 18px;
-            color: #475569;
-            font-size: 15px;
-            line-height: 1.72;
+            margin: 0 0 16px 0;
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.7;
         }
 
         .mail-body strong {
-            color: #111827;
-            font-weight: 850;
+            color: #111111;
+            font-weight: 600;
         }
 
         .mail-body ul {
-            margin: 20px 0;
+            margin: 16px 0;
             padding-left: 20px;
-            color: #475569;
+            color: #333333;
         }
 
         .mail-body li {
-            margin-bottom: 9px;
-            color: #475569;
-            font-size: 15px;
-            line-height: 1.62;
+            margin-bottom: 8px;
+            color: #333333;
+            font-size: 14px;
+            line-height: 1.65;
         }
 
         .mail-panel,
         .job-card,
         .info-card {
             margin: 24px 0;
-            padding: 20px;
-            border: 1px solid #fed7aa;
-            border-radius: 18px;
-            background: #fff7ed;
+            padding: 18px 20px;
+            border: 1px solid #ebebeb;
+            border-radius: 8px;
+            background-color: #fafafa;
         }
 
         .mail-panel p:last-child,
@@ -177,109 +134,87 @@
         .info-item,
         .job-detail {
             display: block;
-            margin-bottom: 8px;
-            color: #7c6b5d;
-            font-size: 14px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            color: #737373;
+            font-size: 13px;
             line-height: 1.5;
         }
 
+        .info-item:first-child,
+        .job-detail:first-child {
+            padding-top: 0;
+        }
+
+        .info-item:last-child,
+        .job-detail:last-child {
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
         .info-value {
-            color: #111827;
-            font-weight: 850;
+            color: #111111;
+            font-weight: 600;
+            float: right;
         }
 
         .mail-actions {
-            margin: 30px 0 8px;
-            text-align: center;
+            margin: 28px 0 12px;
         }
 
         .mail-button {
             display: inline-block;
-            padding: 6px 7px 6px 22px;
-            border-radius: 999px;
-            background: #111827;
+            padding: 11px 24px;
+            border-radius: 6px;
+            background-color: #111111;
             color: #ffffff !important;
-            font-size: 14px;
-            font-weight: 900;
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
             text-decoration: none;
-        }
-
-        .mail-button--orange {
-            background: #f37021;
-        }
-
-        .mail-button--green {
-            background: #166534;
-        }
-
-        .mail-button--red {
-            background: #b91c1c;
+            text-align: center;
         }
 
         .mail-button span {
             display: inline-block;
-            padding-right: 14px;
-            line-height: 34px;
             vertical-align: middle;
         }
 
         .mail-button i {
-            display: inline-block;
-            width: 34px;
-            height: 34px;
-            border-radius: 999px;
-            background: rgba(255, 255, 255, .16);
-            color: #ffffff;
-            font-style: normal;
-            font-size: 17px;
-            line-height: 34px;
-            text-align: center;
-            vertical-align: middle;
+            display: none;
         }
 
-        .mail-muted-link {
-            color: #7c6b5d;
-            font-size: 13px;
+        .mail-button--orange,
+        .mail-button--green,
+        .mail-button--red {
+            background-color: #111111;
+            color: #ffffff !important;
         }
 
         .mail-footer {
-            max-width: 600px;
-            margin: 22px auto 0;
-            color: #9b8b7d;
+            margin-top: 36px;
+            padding-top: 20px;
+            border-top: 1px solid #ebebeb;
+            color: #8c8c8c;
             font-size: 12px;
             line-height: 1.6;
-            text-align: center;
         }
 
-        @media only screen and (max-width: 620px) {
+        @media only screen and (max-width: 600px) {
             .mail-wrapper {
-                padding: 26px 12px 34px;
+                padding: 24px 16px;
             }
 
-            .mail-shell {
-                padding: 5px;
-                border-radius: 24px;
-            }
-
-            .mail-card {
-                border-radius: 20px;
-            }
-
-            .mail-hero {
-                padding: 30px 24px 16px;
-            }
-
-            .mail-body {
-                padding: 0 24px 32px;
-            }
-
-            .mail-title {
-                font-size: 22px;
+            .info-value {
+                float: none;
+                display: block;
+                margin-top: 2px;
             }
 
             .mail-button {
                 display: block;
-                text-align: center;
+                width: 100%;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -287,29 +222,26 @@
 <body>
     <div class="mail-preheader">{{ $previewText }}</div>
     <div class="mail-wrapper">
-        <a href="{{ config('app.url') }}" class="brand-pill" target="_blank" rel="noopener">
-            <span class="brand-mark">F</span>
-            <span class="brand-copy">
-                <strong>{{ $brandName }}</strong>
-                <small>Careers Operations</small>
-            </span>
-        </a>
-
-        <div class="mail-shell">
-            <div class="mail-card">
-                <div class="mail-hero">
-                    <div class="mail-eyebrow">{{ $eyebrowText }}</div>
-                    <h1 class="mail-title">{{ $pageTitle }}</h1>
-                </div>
-
-                <div class="mail-body">
-                    {{ $slot }}
-                </div>
+        <div class="mail-container">
+            <div class="mail-header">
+                <a href="{{ config('app.url') }}" class="brand-logo" target="_blank" rel="noopener">
+                    {{ strtoupper($brandName) }}
+                </a>
             </div>
-        </div>
 
-        <div class="mail-footer">
-            © {{ date('Y') }} {{ $brandName }}. Email này được gửi tự động từ hệ thống tuyển dụng.
+            @if($eyebrowText)
+                <div class="mail-eyebrow">{{ $eyebrowText }}</div>
+            @endif
+
+            <h1 class="mail-title">{{ $pageTitle }}</h1>
+
+            <div class="mail-body">
+                {{ $slot }}
+            </div>
+
+            <div class="mail-footer">
+                © {{ date('Y') }} {{ $brandName }}. Đây là email tự động từ hệ thống tuyển dụng.
+            </div>
         </div>
     </div>
 </body>

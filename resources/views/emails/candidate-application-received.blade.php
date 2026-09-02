@@ -7,9 +7,10 @@
 
     @if (Route::has('candidates.candidate_dashboard'))
         <div class="mail-actions">
-            <a href="{{ route('candidates.candidate_dashboard') }}" class="mail-button mail-button--orange">
-                <span>Truy cập Dashboard</span><i>→</i>
+            <a href="{{ route('candidates.candidate_dashboard') }}" class="mail-button">
+                <span>Truy cập Dashboard</span>
             </a>
         </div>
     @endif
 @endcomponent
+

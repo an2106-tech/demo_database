@@ -1,176 +1,151 @@
-<div>
-    @php
-        $candidateCount = $candidates->count();
-        $submissionCount = $candidates->sum(fn ($candidate) => $candidate->submissions->count());
-        $applicationCount = $candidates->sum(fn ($candidate) => $candidate->applications->count());
-    @endphp
-
-    <div class="dashboard-breadcrumb">
-        <ul>
-            <li><a href="{{ route('home') }}">Trang chủ</a></li>
-            <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-            <li class="active">Quản lý ứng viên</li>
-        </ul>
-    </div>
-
-    <section class="candidate-dashboard-area section_70">
+<div class="premium-dashboard-container">
+    <section class="candidate-dashboard-area section_70" style="padding: 28px 0 60px 0; background: #f8fafc; min-height: 85vh;">
         <div class="container-fluid px-lg-5">
             <div class="row g-4">
-                <div class="col-lg-3 col-xl-3 dashboard-left-border">
+                <div class="col-md-4 col-lg-3 dashboard-left-border">
                     @include('livewire.client.partials.employer-sidebar')
                 </div>
 
-                <div class="col-lg-9 col-xl-9">
-                    <div class="portal-grid">
-                        @if (session()->has('message'))
-                            <div class="alert alert-success mb-0">{{ session('message') }}</div>
-                        @endif
-
-                        @if (session()->has('error'))
-                            <div class="alert alert-danger mb-0">{{ session('error') }}</div>
-                        @endif
-
-                        <div class="portal-shell portal-shell--subtle p-4 p-lg-5">
-                            <div class="d-flex flex-column flex-lg-row align-items-lg-end justify-content-between gap-3">
-                                <div>
-                                    <span class="portal-eyebrow">Quản lý ứng viên</span>
-                                    <h1 class="portal-title">Danh sách hồ sơ đang được theo dõi</h1>
-                                    <p class="portal-subtitle">
-                                        Xem nhanh trạng thái hồ sơ, lượt ứng tuyển và phân tích AI gần nhất trong một bố cục gọn, rõ và dễ quét.
-                                    </p>
+                <div class="col-md-8 col-lg-9">
+                    <div class="dashboard-right d-flex flex-column gap-4">
+                        <!-- Top Header & Search Outer Double-Bezel Shell -->
+                        <div class="p-4 rounded-4 shadow-sm bg-white border d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                            <div>
+                                <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill mb-2" style="background: rgba(243, 112, 33, 0.1); color: #f37021; font-size: 11.5px; font-weight: 700;">
+                                    <i class="fa fa-users"></i> Quản lý nhân tài
                                 </div>
-                                <div class="portal-stats flex-grow-1" style="max-width: 520px;">
-                                    <div class="portal-stat">
-                                        <span class="portal-stat__value">{{ $candidateCount }}</span>
-                                        <span class="portal-stat__label">Ứng viên</span>
-                                    </div>
-                                    <div class="portal-stat">
-                                        <span class="portal-stat__value">{{ $applicationCount }}</span>
-                                        <span class="portal-stat__label">Lượt ứng tuyển</span>
-                                    </div>
-                                    <div class="portal-stat">
-                                        <span class="portal-stat__value">{{ $submissionCount }}</span>
-                                        <span class="portal-stat__label">Submission</span>
-                                    </div>
-                                </div>
+                                <h3 class="fw-bold mb-1" style="font-size: 20px; color: #0f172a;">
+                                    Hồ sơ ứng viên đang theo dõi
+                                </h3>
+                                <p class="mb-0 text-muted" style="font-size: 13px;">
+                                    Xem nhanh trạng thái hồ sơ, lượt ứng tuyển và phân tích độ phù hợp AI.
+                                </p>
+                            </div>
+                            <div class="position-relative" style="min-width: 280px;">
+                                <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo tên, email, kỹ năng..." class="form-control rounded-pill ps-5 pe-4" style="font-size: 13px; height: 42px; border-color: #e2e8f0;">
+                                <i class="fa fa-search position-absolute text-muted" style="left: 16px; top: 14px; font-size: 13px;"></i>
+                                @if(filled($search))
+                                    <button type="button" wire:click="$set('search', '')" class="btn btn-link position-absolute p-0 text-muted" style="right: 14px; top: 9px; font-size: 15px;">&times;</button>
+                                @endif
                             </div>
                         </div>
 
-                        <div class="candidate-grid">
+                        <!-- Candidates Bento Grid (Double Bezel Cards) -->
+                        <div class="row g-3">
                             @forelse ($candidates as $candidate)
                                 @php
                                     $latestApplication = $candidate->applications->sortByDesc('created_at')->first();
                                     $latestSubmission = $candidate->submissions->sortByDesc('created_at')->first();
-                                    $applicationJobs = $candidate->applications
-                                        ->sortByDesc(fn ($application) => $application->applied_at ?? $application->created_at)
-                                        ->take(4);
                                     $jobTitle = $latestApplication?->job?->title
                                         ?? $latestSubmission?->job?->title
-                                        ?? 'Chưa có vị trí';
+                                        ?? $candidate->title
+                                        ?? 'Ứng viên tiềm năng';
                                     $appliedAt = $latestApplication?->created_at ?? $latestSubmission?->created_at;
                                     $aiScore = $latestSubmission?->ai_matching_score;
-                                    $aiChip = match (true) {
-                                        $aiScore !== null && $aiScore >= 80 => 'chip chip--success',
-                                        $aiScore !== null && $aiScore >= 50 => 'chip chip--warning',
-                                        $aiScore !== null => 'chip chip--danger',
-                                        default => 'chip',
+                                    $aiBadgeStyle = match (true) {
+                                        $aiScore !== null && $aiScore >= 80 => 'background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0;',
+                                        $aiScore !== null && $aiScore >= 50 => 'background: #fffbeb; color: #b45309; border: 1px solid #fde68a;',
+                                        $aiScore !== null => 'background: #fef2f2; color: #dc2626; border: 1px solid #fecaca;',
+                                        default => 'background: #f1f5f9; color: #64748b; border: 1px solid #e2e8f0;',
                                     };
                                 @endphp
 
-                                <article class="candidate-card">
-                                    <div class="candidate-card__head">
-                                        <div class="d-flex gap-3 align-items-start flex-grow-1">
-                                            <div class="candidate-card__avatar">
-                                                @if ($candidate->user?->avatar && file_exists(public_path('storage/' . $candidate->user->avatar)))
-                                                    <img src="{{ asset('storage/' . $candidate->user->avatar) }}" alt="{{ $candidate->name }}">
-                                                @else
-                                                    <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="{{ $candidate->name }}">
+                                <div class="col-md-6 col-xl-6" wire:key="candidate-card-{{ $candidate->id }}">
+                                    <!-- Double-Bezel Card Outer Shell -->
+                                    <div class="p-3.5 p-md-4 rounded-4 bg-white shadow-sm border h-100 d-flex flex-column justify-content-between" style="transition: all 0.25s cubic-bezier(0.32,0.72,0,1);">
+                                        <div>
+                                            <!-- Card Header -->
+                                            <div class="d-flex align-items-start gap-3 mb-3">
+                                                <div class="position-relative flex-shrink-0">
+                                                    <img src="{{ $candidate->user?->avatar_url ?? asset('assets/img/candidate-default.png') }}" 
+                                                         alt="{{ $candidate->name }}" 
+                                                         class="rounded-circle object-fit-cover border shadow-sm" 
+                                                         style="width: 52px; height: 52px; background: #fff;">
+                                                    <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                                                </div>
+
+                                                <div class="min-w-0 flex-grow-1">
+                                                    <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}" class="fw-bold text-dark text-decoration-none text-truncate d-block" style="font-size: 15px;">
+                                                        {{ $candidate->name }}
+                                                    </a>
+                                                    <div class="text-muted text-truncate" style="font-size: 12.5px; margin-top: 2px;">
+                                                        {{ $jobTitle }}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Meta Chips -->
+                                            <div class="d-flex align-items-center gap-1.5 flex-wrap mb-3">
+                                                @if ($aiScore !== null)
+                                                    <span class="badge rounded-pill px-2.5 py-1" style="{{ $aiBadgeStyle }} font-size: 11px; font-weight: 700;">
+                                                        <i class="fa fa-bolt me-1"></i> AI Match {{ $aiScore }}%
+                                                    </span>
+                                                @endif
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                                    <i class="fa fa-briefcase me-1 text-primary"></i> {{ ($candidate->experience_years ?? 0) }} năm KN
+                                                </span>
+                                                @if ($appliedAt)
+                                                    <span class="badge bg-light text-muted border rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                                        <i class="fa fa-clock-o me-1"></i> {{ $appliedAt->format('d/m/Y') }}
+                                                    </span>
                                                 @endif
                                             </div>
 
-                                            <div class="candidate-card__identity">
-                                                <h3>
-                                                    <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}">
-                                                        {{ $candidate->name }}
-                                                    </a>
-                                                </h3>
-                                                <p>{{ $jobTitle }}</p>
+                                            <!-- Inner Core Details Box -->
+                                            <div class="p-3 rounded-3 mb-3" style="background: #f8fafc; border: 1px solid #eef2f6; font-size: 12.5px;">
+                                                <div class="d-flex align-items-center justify-content-between text-muted mb-1.5">
+                                                    <span>Email:</span>
+                                                    <strong class="text-dark text-truncate" style="max-width: 180px;">{{ $candidate->email ?? 'Chưa cập nhật' }}</strong>
+                                                </div>
+                                                <div class="d-flex align-items-center justify-content-between text-muted">
+                                                    <span>Điện thoại:</span>
+                                                    <strong class="text-dark">{{ $candidate->phone ?? 'Chưa cập nhật' }}</strong>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div class="candidate-card__meta">
-                                            <span class="chip chip--accent">Việt Nam</span>
-                                            @if ($appliedAt)
-                                                <span class="chip">Nộp {{ $appliedAt->format('d/m/Y') }}</span>
-                                            @endif
-                                            @if ($aiScore !== null)
-                                                <span class="{{ $aiChip }}">AI Match {{ $aiScore }}%</span>
-                                            @endif
-                                        </div>
-                                    </div>
+                                        <!-- Card Footer Actions (Button-in-Button architecture) -->
+                                        <div class="d-flex align-items-center gap-2 pt-3 border-top">
+                                            <a href="{{ route('employers.message', ['chat' => $candidate->id]) }}" class="btn btn-sm btn-light border px-3 py-2 rounded-pill fw-bold text-secondary" style="font-size: 12px;" title="Nhắn tin trực tiếp">
+                                                <i class="fa fa-comment-o text-primary me-1"></i> Nhắn tin
+                                            </a>
 
-                                    <div class="candidate-card__body">
-                                        <div class="candidate-card__item">
-                                            <span>Email</span>
-                                            <strong>{{ $candidate->email ?? 'Chưa có' }}</strong>
-                                        </div>
-                                        <div class="candidate-card__item">
-                                            <span>Kinh nghiệm</span>
-                                            <strong>{{ ($candidate->experience_years ?? 0) }} năm</strong>
-                                        </div>
-                                        <div class="candidate-card__item">
-                                            <span>Trạng thái</span>
-                                            <strong>{{ $latestSubmission ? 'Có dữ liệu phân tích' : 'Chưa có submission' }}</strong>
-                                        </div>
-                                        <div class="candidate-card__item">
-                                            <span>Hồ sơ</span>
-                                            <strong>{{ $latestApplication ? 'Ứng tuyển gần nhất' : 'Chưa ứng tuyển' }}</strong>
-                                        </div>
-                                    </div>
-
-                                    @if ($applicationJobs->isNotEmpty())
-                                        <div class="candidate-card__body mt-3">
-                                            <div class="candidate-card__item" style="grid-column: 1 / -1;">
-                                                <span>Các vị trí đã ứng tuyển</span>
-                                                <strong>
-                                                    {{ $applicationJobs->map(fn ($application) => $application->job?->title)->filter()->join(' • ') }}
-                                                </strong>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <div class="candidate-card__footer">
-                                        <div class="candidate-card__actions">
-                                            <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}" class="jobguru-btn-2">
-                                                Chi tiết hồ sơ
+                                            <a href="{{ route('employers.candidate_detail', ['candidate' => $candidate->id]) }}" class="btn btn-sm btn-light border px-3 py-2 rounded-pill fw-bold flex-grow-1 text-secondary text-center" style="font-size: 12px;">
+                                                Xem chi tiết hồ sơ
                                             </a>
 
                                             @if ($latestSubmission)
-                                                <button
-                                                    type="button"
-                                                    wire:click="analyzeWithAi({{ $latestSubmission->id }})"
-                                                    wire:loading.attr="disabled"
-                                                    wire:target="analyzeWithAi({{ $latestSubmission->id }})"
-                                                    class="jobguru-btn-2"
-                                                >
-                                                    <span wire:loading.remove wire:target="analyzeWithAi({{ $latestSubmission->id }})">
-                                                        {{ $aiScore !== null ? 'Cập nhật AI' : 'Phân tích AI' }}
-                                                    </span>
-                                                    <span wire:loading wire:target="analyzeWithAi({{ $latestSubmission->id }})">Đang xử lý...</span>
+                                                <button type="button" 
+                                                        wire:click="analyzeWithAi({{ $latestSubmission->id }})" 
+                                                        wire:loading.attr="disabled"
+                                                        class="btn btn-sm text-white fw-bold px-3 py-2 rounded-pill d-inline-flex align-items-center justify-content-center" 
+                                                        style="background: linear-gradient(135deg, #f37021 0%, #ea580c 100%); border: none; font-size: 12px;"
+                                                        title="Phân tích lại AI Matching">
+                                                    <i class="fa fa-bolt"></i>
                                                 </button>
                                             @endif
                                         </div>
-
                                     </div>
-                                </article>
+                                </div>
                             @empty
-                                <div class="portal-shell portal-shell--subtle p-5 text-center">
-                                    <img src="{{ asset('assets/img/empty.svg') }}" alt="Empty" style="max-width: 180px; opacity: 0.55; margin-bottom: 18px;">
-                                    <h3 class="mb-2">Chưa có ứng viên nào</h3>
-                                    <p class="mb-0 text-muted">Khi có hồ sơ ứng tuyển hoặc submission mới, danh sách sẽ xuất hiện ở đây.</p>
+                                <div class="col-12">
+                                    <div class="p-5 text-center bg-white rounded-4 border shadow-sm text-muted">
+                                        <div style="width: 64px; height: 64px; border-radius: 20px; background: #f1f5f9; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px auto;">
+                                            <i class="fa fa-users"></i>
+                                        </div>
+                                        <h4 class="fw-bold text-dark mb-1" style="font-size: 16px;">Không tìm thấy ứng viên</h4>
+                                        <p class="m-0" style="font-size: 13px;">Thử tìm kiếm với từ khóa khác hoặc kiểm tra lại bộ lọc.</p>
+                                    </div>
                                 </div>
                             @endforelse
                         </div>
+
+                        @if($candidates->hasPages())
+                            <div class="d-flex justify-content-end p-2">
+                                {{ $candidates->links() }}
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>

@@ -75,22 +75,18 @@ class InterviewScheduledMail extends Mailable
             '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
             $this->isUpdate
                 ? '<p>Chúng tôi xin gửi đến bạn thông tin <strong>cập nhật lịch phỏng vấn</strong> sau khi điều chỉnh từ bộ phận tuyển dụng.</p>'
-                : '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ! Sau khi xem xét các kỹ năng và kinh nghiệm của bạn, chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn để trao đổi chi tiết hơn về sự phù hợp của bạn với đội ngũ <strong>{{app_name}}</strong>.</p>',
-            '<p><strong>Thông tin chi tiết về buổi phỏng vấn:</strong></p>',
-            '<ul style="line-height: 1.6;">',
-            '<li><strong>Vị trí ứng tuyển:</strong> {{job_title}}</li>',
-            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
-            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
-            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
-            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
-            '<li><strong>Người phỏng vấn:</strong> {{interviewer_name}}</li>',
-            '</ul>',
-            '<p><strong>Ghi chú từ bộ phận tuyển dụng:</strong> {{interview_notes}}</p>',
-            $this->isUpdate
-                ? '<p>Lịch phỏng vấn đã được điều chỉnh. Vui lòng cập nhật lại thời gian tham gia của bạn theo thông tin bên dưới. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>'
-                : '<p>Vui lòng phản hồi email này để xác nhận sự tham gia của bạn. Chúng tôi đã đính kèm lịch hẹn (iCal) vào email này để bạn có thể dễ dàng lưu vào lịch cá nhân.</p>',
-            '<p>Mong sớm được gặp bạn!</p>',
-            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+                : '<p>Cảm ơn bạn đã ứng tuyển vào vị trí <strong>{{job_title}}</strong>. Chúng tôi trân trọng mời bạn tham dự buổi phỏng vấn theo thông tin chi tiết dưới đây:</p>',
+            '<div class="info-card">',
+            '    <div class="info-item"><span>Vị trí ứng tuyển</span><span class="info-value">{{job_title}}</span></div>',
+            '    <div class="info-item"><span>Thời gian</span><span class="info-value">{{scheduled_at}}</span></div>',
+            '    <div class="info-item"><span>Thời lượng</span><span class="info-value">{{duration_minutes}} phút</span></div>',
+            '    <div class="info-item"><span>Hình thức</span><span class="info-value">{{interview_type}}</span></div>',
+            '    <div class="info-item"><span>Địa điểm / Link</span><span class="info-value"><a href="{{interview_location}}">{{interview_location}}</a></span></div>',
+            '    <div class="info-item"><span>Người phỏng vấn</span><span class="info-value">{{interviewer_name}}</span></div>',
+            '</div>',
+            '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
+            '<p style="color: #737373; font-size: 13px;">File lịch hẹn (.ics) đã được đính kèm vào email này để bạn thuận tiện lưu vào lịch cá nhân.</p>',
+            '<p>Trân trọng,<br><strong>Phòng Tuyển dụng - {{app_name}}</strong></p>',
         ]);
 
         $subject = $fallbackSubject;

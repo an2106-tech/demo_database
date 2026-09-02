@@ -39,13 +39,31 @@ class EmployersDashboard extends Component
                 ->count();
         }
 
-        // New data for premium dashboard
+        // Funnel statistics
+        $pipelineMetrics = [
+            'screening' => Application::whereIn('job_id', $jobIds)->whereIn('status', ['cv_reviewing', 'screening'])->count(),
+            'interviewing' => Application::whereIn('job_id', $jobIds)->whereIn('status', ['interview_scheduled', 'interviewing'])->count(),
+            'offered' => Application::whereIn('job_id', $jobIds)->where('status', 'offered')->count(),
+            'hired' => Application::whereIn('job_id', $jobIds)->where('status', 'hired')->count(),
+        ];
+
+        // Upcoming interviews in the next 14 days
+        $upcomingInterviews = \App\Models\Interview::whereHas('application', function ($q) use ($jobIds) {
+            $q->whereIn('job_id', $jobIds);
+        })
+        ->where('scheduled_at', '>=', now()->startOfDay())
+        ->with(['application.candidate.user', 'application.job', 'workplace', 'interviewer'])
+        ->orderBy('scheduled_at', 'asc')
+        ->take(5)
+        ->get();
+
+        // Recent applications
         $greeting = $this->getGreeting();
         $recentApplications = Application::whereIn('job_id', $jobIds)
-            ->with(['job', 'candidate'])
+            ->with(['job', 'candidate.user', 'cvAttachment'])
             ->latest('applied_at')
-            ->latest()
-            ->take(5)
+            ->latest('id')
+            ->take(6)
             ->get();
 
         return view('livewire.client.employers.employers_dashboard', [
@@ -53,6 +71,8 @@ class EmployersDashboard extends Component
             'totalApplications' => $totalApplications,
             'totalCandidates' => $totalCandidates,
             'pendingJobs' => $pendingJobs,
+            'pipelineMetrics' => $pipelineMetrics,
+            'upcomingInterviews' => $upcomingInterviews,
             'user' => $user,
             'isDirector' => $isDirector,
             'greeting' => $greeting,

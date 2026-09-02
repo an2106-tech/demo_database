@@ -1,226 +1,145 @@
-<div>
-    <div class="fpt-breadcrumb-bar">
-        <div class="container">
-            <div class="fpt-breadcrumb-inner">
-                <ul class="fpt-breadcrumb-trail">
-                    <li><a href="{{ route('home') }}"><i class="fa fa-home"></i> Trang chủ</a></li>
-                    <li class="sep"><i class="fa fa-angle-right"></i></li>
-                    <li><a href="{{ route('employers.dashboard') }}">Nhà tuyển dụng</a></li>
-                    <li class="sep"><i class="fa fa-angle-right"></i></li>
-                    <li class="current">Tìm kiếm ứng viên</li>
-                </ul>
-
-                <a href="{{ route('employers.dashboard') }}" class="fpt-back-btn">
-                    <i class="fa fa-arrow-left"></i> Bảng điều khiển
-                </a>
-            </div>
-        </div>
-    </div>
-    <section class="jobguru-top-job-area browse-page section_70">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-10 col-lg-3 mx-auto">
-                    <div class="job-grid-sidebar">
-                        <div class="single-job-sidebar sidebar-location">
-                            <h3>địa điểm</h3>
-                            <div class="job-sidebar-box">
-                                <form>
-                                    <p>
-                                        <input type="search" placeholder="Địa điểm">
-                                    </p>
-                                    <p class="location-value">
-                                        <input type="text" value="50">
-                                    </p>
-                                    <div class="dropdown">
-                                        <button class="btn-dropdown dropdown-toggle" type="button" id="location"
-                                            data-bs-toggle="dropdown" aria-haspopup="true">km</button>
-                                        <ul class="dropdown-menu" aria-labelledby="location">
-                                            <li>km</li>
-                                            <li>dặm</li>
-                                        </ul>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="single-job-sidebar sidebar-keywords">
-                            <h3>Từ khóa</h3>
-                            <div class="job-sidebar-box">
-                                <form>
-                                    <select class="sidebar-category-select" name="states[]" multiple="multiple">
-                                        <option value="1">kế toán</option>
-                                        <option value="2">tài chính</option>
-                                        <option value="3">ô tô</option>
-                                        <option value="4">xây dựng</option>
-                                        <option value="5">photoshop</option>
-                                        <option value="6">đồ họa</option>
-                                        <option value="7">After affects</option>
-                                        <option value="8">thiết kế poster</option>
-                                    </select>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="single-job-sidebar sidebar-category">
-                            <h3>Danh mục</h3>
-                            <div class="job-sidebar-box">
-                                <form>
-                                    <select class="sidebar-category-select-2" name="states[]">
-                                        <option value="1">tất cả danh mục</option>
-                                        <option value="2">kế toán/tài chính</option>
-                                        <option value="3">việc làm ô tô</option>
-                                        <option value="4">xây dựng</option>
-                                        <option value="5">thiết kế, nghệ thuật & đa phương tiện</option>
-                                        <option value="6">giáo dục đào tạo</option>
-                                        <option value="7">nhà hàng/ẩm thực</option>
-                                        <option value="7">lập trình/công nghệ</option>
-                                        <option value="7">bán hàng/marketing</option>
-                                        <option value="7">khoa học dữ liệu/phân tích</option>
-                                    </select>
-                                </form>
-                            </div>
-                        </div>
-                        <div class="single-job-sidebar sidebar-location">
-                            <h3>Ngày đăng</h3>
-                            <div class="date-post-job job-sidebar-box">
-                                <div class="form-group form-radio">
-                                    <input id="last_hour" name="radio" type="radio">
-                                    <label for="last_hour" class="inline control-label">giờ qua</label>
-                                </div>
-                                <div class="form-group form-radio">
-                                    <input id="last_24" name="radio" type="radio">
-                                    <label for="last_24" class="inline control-label">24 giờ qua</label>
-                                </div>
-                                <div class="form-group form-radio">
-                                    <input id="last_7" name="radio" type="radio">
-                                    <label for="last_7" class="inline control-label">7 ngày qua</label>
-                                </div>
-                                <div class="form-group form-radio">
-                                    <input id="last_14" name="radio" type="radio">
-                                    <label for="last_14" class="inline control-label">14 ngày qua</label>
-                                </div>
-                                <div class="form-group form-radio">
-                                    <input id="last_30" name="radio" type="radio">
-                                    <label for="last_30" class="inline control-label">30 ngày qua</label>
-                                </div>
-                                <div class="form-group form-radio">
-                                    <input id="last_all" name="radio" type="radio">
-                                    <label for="last_all" class="inline control-label">tất cả</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="single-job-sidebar sidebar-type">
-                            <h3>loại hình công việc</h3>
-                            <div class="job-sidebar-box">
-                                <ul>
-                                    <li class="checkbox">
-                                        <input class="checkbox-spin" type="checkbox" id="Freelance" />
-                                        <label for="Freelance"><span></span>Tự do (Freelance)</label>
-                                    </li>
-                                    <li class="checkbox">
-                                        <input class="checkbox-spin" type="checkbox" id="Full_Time" />
-                                        <label for="Full_Time"><span></span>Toàn thời gian</label>
-                                    </li>
-                                    <li class="checkbox">
-                                        <input class="checkbox-spin" type="checkbox" id="Internship" />
-                                        <label for="Internship"><span></span>Thực tập</label>
-                                    </li>
-                                    <li class="checkbox">
-                                        <input class="checkbox-spin" type="checkbox" id="Part_Time" />
-                                        <label for="Part_Time"><span></span>Bán thời gian</label>
-                                    </li>
-                                    <li class="checkbox">
-                                        <input class="checkbox-spin" type="checkbox" id="Temporary" />
-                                        <label for="Temporary"><span></span>Tạm thời</label>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="single-job-sidebar sidebar-salary">
-                            <h3>Lọc theo mức lương</h3>
-                            <div class="job-sidebar-box">
-                                <p>
-                                    <input type="text" id="amount" readonly>
-                                </p>
-                                <div id="slider"></div>
-                            </div>
-                        </div>
-                        </div>
+<div class="premium-dashboard-container">
+    <section class="candidate-dashboard-area section_70" style="padding: 28px 0 60px 0; background: #f8fafc; min-height: 85vh;">
+        <div class="container-fluid px-lg-5">
+            <div class="row g-4">
+                <!-- Standard Employer Sidebar (Left Column) -->
+                <div class="col-md-4 col-lg-3 dashboard-left-border">
+                    @include('livewire.client.partials.employer-sidebar')
                 </div>
-                <div class="col-md-12 col-lg-9  mx-auto">
-                    <div class="job-grid-right">
-                        <div class="browse-job-head-option">
-                            <div class="job-browse-search">
-                                <form>
-                                    <input type="search" placeholder="Tìm kiếm công việc tại đây...">
-                                    <button type="submit"><i class="fa fa-search"></i></button>
-                                </form>
-                            </div>
-                            <div class="job-browse-action">
-                                <div class="email-alerts">
-                                    <input type="checkbox" class="styled" id="b_1">
-                                    <label class="styled" for="b_1">nhận thông báo email cho tìm kiếm này</label>
+
+                <!-- Main Content (Right Column) -->
+                <div class="col-md-8 col-lg-9">
+                    <div class="dashboard-right d-flex flex-column gap-4">
+                        
+                        <!-- Top Header & Filter Bar (Double Bezel Outer Shell) -->
+                        <div class="p-4 rounded-4 shadow-sm bg-white border d-flex flex-column gap-3">
+                            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div>
+                                    <div class="d-inline-flex align-items-center gap-1.5 px-2.5 py-1 rounded-pill mb-2" style="background: rgba(243, 112, 33, 0.1); color: #f37021; font-size: 11.5px; font-weight: 700;">
+                                        <i class="fa fa-search"></i> Talent Acquisition
+                                    </div>
+                                    <h3 class="fw-bold mb-1" style="font-size: 20px; color: #0f172a;">
+                                        Tìm kiếm & Săn nhân tài FPT
+                                    </h3>
+                                    <p class="mb-0 text-muted" style="font-size: 13px;">
+                                        Khám phá ứng viên tiềm năng trong toàn bộ hệ thống FPT Education.
+                                    </p>
                                 </div>
-                                <div class="dropdown">
-                                    <button class="btn-dropdown dropdown-toggle" type="button" id="dropdowncur"
-                                        data-bs-toggle="dropdown" aria-haspopup="true" style="text-transform:none;">Sắp xếp theo</button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdowncur">
-                                        <li>Mới nhất</li>
-                                        <li>Cũ nhất</li>
-                                        <li>Ngẫu nhiên</li>
-                                    </ul>
+
+                                <div class="text-muted text-nowrap fw-semibold" style="font-size: 13px;">
+                                    Tìm thấy <span class="badge bg-light text-primary border rounded-pill px-2.5 py-1" style="font-size: 13px;">{{ $candidates->total() }}</span> hồ sơ
+                                </div>
+                            </div>
+
+                            <!-- Integrated Search & Filter Controls -->
+                            <div class="row g-2 pt-2 border-top">
+                                <div class="col-md-6">
+                                    <div class="position-relative">
+                                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm theo tên, chuyên môn, kỹ năng..." class="form-control rounded-pill ps-4 pe-4" style="font-size: 13px; height: 40px; border-color: #e2e8f0;">
+                                        <i class="fa fa-search position-absolute text-muted" style="left: 14px; top: 13px; font-size: 13px;"></i>
+                                        @if(filled($search))
+                                            <button type="button" wire:click="$set('search', '')" class="btn btn-link position-absolute p-0 text-muted" style="right: 14px; top: 8px; font-size: 14px;">&times;</button>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <select wire:model.live="location" class="form-select rounded-pill" style="font-size: 13px; height: 40px; border-color: #e2e8f0;">
+                                        <option value="">Tất cả khu vực</option>
+                                        <option value="Hà Nội">Hà Nội</option>
+                                        <option value="Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                                        <option value="Đà Nẵng">Đà Nẵng</option>
+                                        <option value="Cần Thơ">Cần Thơ</option>
+                                        <option value="Quy Nhơn">Bình Định (Quy Nhơn)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select wire:model.live="experience" class="form-select rounded-pill" style="font-size: 13px; height: 40px; border-color: #e2e8f0;">
+                                        <option value="">Kinh nghiệm làm việc</option>
+                                        <option value="0">Dưới 1 năm / Fresher</option>
+                                        <option value="1-3">1 - 3 năm</option>
+                                        <option value="3-5">3 - 5 năm</option>
+                                        <option value="5+">Trên 5 năm (Senior)</option>
+                                    </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="candidate-list-page">
+
+                        <!-- Candidates High-End List -->
+                        <div class="d-flex flex-column gap-3">
                             @forelse ($candidates as $candidate)
-                            <div class="single-candidate-list">
-                                <div class="main-comment">
-                                    <div class="candidate-image">
-                                        <img src="{{ asset('assets/img/avatar_detail.jpg') }}" alt="tác giả">
+                                @php
+                                    $latestApp = $candidate->applications->first();
+                                    $jobTitle = $candidate->title ?? $latestApp?->job?->title ?? 'Chuyên viên tài năng';
+                                    $branchName = $latestApp?->job?->branch?->name ?? 'FPT Education';
+                                @endphp
+                                <div class="p-3.5 p-md-4 rounded-4 bg-white shadow-sm border d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" 
+                                     style="transition: all 0.2s cubic-bezier(0.32,0.72,0,1);" 
+                                     wire:key="candidate-browse-{{ $candidate->id }}">
+                                    
+                                    <div class="d-flex align-items-start gap-3.5">
+                                        <div class="position-relative flex-shrink-0">
+                                            <img src="{{ $candidate->user?->avatar_url ?? asset('assets/img/candidate-default.png') }}" 
+                                                 alt="{{ $candidate->name }}" 
+                                                 class="rounded-circle object-fit-cover border" 
+                                                 style="width: 54px; height: 54px; background: #fff;">
+                                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                                        </div>
+
+                                        <div>
+                                            <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                                                <a href="{{ route('employers.candidate_detail', $candidate->id) }}" class="fw-bold text-dark text-decoration-none" style="font-size: 15.5px;">
+                                                    {{ $candidate->name }}
+                                                </a>
+                                                <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1" style="font-size: 11px;">
+                                                    <i class="fa fa-briefcase me-1 text-primary"></i> {{ $candidate->experience_years ?? 0 }} năm KN
+                                                </span>
+                                            </div>
+
+                                            <div class="text-muted fw-semibold" style="font-size: 13px; margin-bottom: 6px;">
+                                                {{ $jobTitle }}
+                                            </div>
+
+                                            <div class="d-flex align-items-center gap-3 text-muted flex-wrap" style="font-size: 12px;">
+                                                <span><i class="fa fa-envelope-o me-1"></i> {{ $candidate->email ?? 'Chưa cập nhật' }}</span>
+                                                <span><i class="fa fa-map-marker text-danger me-1"></i> {{ $candidate->address ?: $branchName }}</span>
+                                                @if($candidate->phone)
+                                                    <span><i class="fa fa-phone me-1"></i> {{ $candidate->phone }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="candidate-text">
-                                        <div class="candidate-info">
-                                            <div class="candidate-title">
-                                                <h3><a href="#">{{ $candidate->name }}</a></h3>
-                                                <img src="{{ asset('assets/img/de.svg') }}" alt="vùng" />
-                                            </div>
-                                            <p>Thiết kế UI/UX</p>
-                                        </div>
-                                        <div class="candidate-text-inner">
-                                            <p>{{ $candidate->email }}
-                                            </p>
-                                        </div>
-                                        <div class="candidate-text-bottom">
-                                            <div class="candidate-text-box">
-                                                <p class="open-icon"><i class="fa fa-thumbs-up"></i> 100% thành công
-                                                </p>
-                                                <p class="company-state"><i class="fa fa-map-marker"></i> Berlin</p>
-                                                <p class="varify"><i class="fa fa-check"></i> $50 / giờ</p>
-                                            </div>
-                                            <div class="candidate-action">
-                                                <a href="#" class="jobguru-btn-2">xem hồ sơ</a>
-                                            </div>
-                                        </div>
+
+                                    <div class="d-flex align-items-center gap-2 align-self-end align-self-md-center flex-shrink-0">
+                                        <a href="{{ route('employers.message', ['chat' => $candidate->id]) }}" class="btn btn-sm btn-light border px-3 py-2 rounded-pill fw-bold text-secondary" style="font-size: 12.5px;">
+                                            <i class="fa fa-comment-o me-1 text-primary"></i> Nhắn tin
+                                        </a>
+                                        <a href="{{ route('employers.candidate_detail', $candidate->id) }}" class="btn btn-sm text-white fw-bold px-3.5 py-2 rounded-pill d-inline-flex align-items-center gap-1.5 shadow-sm" style="background: linear-gradient(135deg, #f37021 0%, #ea580c 100%); border: none; font-size: 12.5px;">
+                                            <span>Xem hồ sơ</span>
+                                            <i class="fa fa-arrow-right" style="font-size: 11px;"></i>
+                                        </a>
                                     </div>
                                 </div>
-                            </div>
                             @empty
-                            <p>Không có ứng viên nào.</p>
-                            @endforelse     
-                            </div>
-                        <div class="pagination-box-row">
-                            <p>Trang 1 trên 6</p>
-                            <ul class="pagination">
-                                <li class="active"><a href="#">1</a></li>
-                                <li><a href="#">2</a></li>
-                                <li><a href="#">3</a></li>
-                                <li>...</li>
-                                <li><a href="#">6</a></li>
-                                <li><a href="#"><i class="fa fa-angle-double-right"></i></a></li>
-                            </ul>
+                                <div class="p-5 text-center bg-white rounded-4 border shadow-sm text-muted">
+                                    <div style="width: 64px; height: 64px; border-radius: 20px; background: #f1f5f9; color: #94a3b8; display: flex; align-items: center; justify-content: center; font-size: 28px; margin: 0 auto 16px auto;">
+                                        <i class="fa fa-users"></i>
+                                    </div>
+                                    <h4 class="fw-bold text-dark mb-1" style="font-size: 16px;">Không tìm thấy ứng viên phù hợp</h4>
+                                    <p class="m-0" style="font-size: 13px;">Hãy thử điều chỉnh lại bộ lọc hoặc nhập từ khóa tìm kiếm khác.</p>
+                                </div>
+                            @endforelse
                         </div>
+
+                        <!-- Pagination -->
+                        @if($candidates->hasPages())
+                            <div class="d-flex justify-content-end p-2">
+                                {{ $candidates->links() }}
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    </div>
+</div>

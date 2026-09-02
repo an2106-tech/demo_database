@@ -459,24 +459,156 @@
                             <div class="alert alert-danger">{{ session('error') }}</div>
                         @endif
 
-                        <div class="filter-section">
+                        <div class="filter-section d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 p-3.5 bg-white rounded-4 shadow-sm border mb-4">
                             <div>
-                                <h3 style="margin: 0; font-weight: 700;">Pipeline tuyển dụng</h3>
-                                <p style="margin: 5px 0 0; color: #64748b; font-size: 0.9rem;">
-                                    Theo dõi tiến độ ứng tuyển theo chi nhánh và vị trí.
+                                <h3 style="margin: 0; font-weight: 800; font-size: 1.15rem; color: #0f172a;">
+                                    <i class="fa fa-columns text-primary me-1"></i> Pipeline tuyển dụng FPT
+                                </h3>
+                                <p style="margin: 3px 0 0; color: #64748b; font-size: 0.85rem;">
+                                    Quản lý và theo dõi tiến độ ứng viên qua từng vòng tuyển dụng.
                                 </p>
                             </div>
-                            <div>
-                                <select wire:model.live="selectedJobId" class="premium-select">
-                                    <option value="">Tất cả vị trí</option>
+                            <div class="d-flex align-items-center gap-2.5 flex-wrap">
+                                <!-- Realtime Search -->
+                                <div class="position-relative" style="min-width: 220px;">
+                                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Tìm tên, email, vị trí..." class="form-control form-control-sm rounded-pill ps-4 pe-4" style="font-size: 12.5px; border-color: #e2e8f0; height: 38px;">
+                                    <i class="fa fa-search position-absolute text-muted" style="left: 12px; top: 12px; font-size: 12px;"></i>
+                                    @if(filled($search))
+                                        <button type="button" wire:click="$set('search', '')" class="btn btn-link position-absolute p-0 text-muted" style="right: 12px; top: 9px; font-size: 14px;">&times;</button>
+                                    @endif
+                                </div>
+
+                                <!-- Job Filter -->
+                                <select wire:model.live="selectedJobId" class="premium-select" style="height: 38px; padding-top: 6px; padding-bottom: 6px; font-size: 12.5px;">
+                                    <option value="">Tất cả vị trí tuyển dụng</option>
                                     @foreach($jobs as $job)
                                         <option value="{{ $job->id }}">{{ $job->title }}</option>
                                     @endforeach
                                 </select>
+
+                                <!-- View Mode Switcher -->
+                                <div class="btn-group p-1 bg-light rounded-pill border" role="group">
+                                    <button type="button" wire:click="$set('viewMode', 'kanban')" class="btn btn-sm rounded-pill px-3 fw-bold {{ $viewMode === 'kanban' ? 'btn-white bg-white shadow-sm text-primary' : 'text-secondary border-0' }}" style="font-size: 12px;">
+                                        <i class="fa fa-columns me-1"></i> Kanban
+                                    </button>
+                                    <button type="button" wire:click="$set('viewMode', 'table')" class="btn btn-sm rounded-pill px-3 fw-bold {{ $viewMode === 'table' ? 'btn-white bg-white shadow-sm text-primary' : 'text-secondary border-0' }}" style="font-size: 12px;">
+                                        <i class="fa fa-list me-1"></i> Bảng
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="pipeline-container">
+                        @if($viewMode === 'table')
+                            <!-- Table List View Mode -->
+                            <div class="bg-white rounded-4 shadow-sm border overflow-hidden mb-4">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle mb-0" style="font-size: 13px;">
+                                        <thead class="bg-light text-muted" style="font-size: 12px; text-transform: uppercase;">
+                                            <tr>
+                                                <th class="ps-4 py-3">Ứng viên</th>
+                                                <th class="py-3">Vị trí & Chi nhánh</th>
+                                                <th class="py-3">Trạng thái vòng</th>
+                                                <th class="py-3">Ngày nộp</th>
+                                                <th class="pe-4 py-3 text-end">Thao tác</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @php
+                                                $allFilteredApps = collect($applicationsByStage)->flatten();
+                                            @endphp
+                                            @forelse($allFilteredApps as $app)
+                                                @php
+                                                    $snapshot = is_array($app->profile_snapshot) ? $app->profile_snapshot : [];
+                                                    $candidateName = data_get($snapshot, 'name') ?: data_get($snapshot, 'candidate.name') ?: $app->candidate?->name ?: 'Ứng viên';
+                                                    $candidateEmail = data_get($snapshot, 'email') ?: data_get($snapshot, 'candidate.email') ?: $app->candidate?->email ?: '-';
+                                                    $candidatePhone = data_get($snapshot, 'phone') ?: data_get($snapshot, 'candidate.phone') ?: $app->candidate?->phone ?: '-';
+                                                    $appPerms = $pipelineActionPermissions[$app->id] ?? [];
+                                                    $nextAction = $nextActionStatusesByApplicationId[$app->id] ?? null;
+                                                @endphp
+                                                <tr wire:key="pipeline-row-{{ $app->id }}">
+                                                    <td class="ps-4 py-3">
+                                                        <div class="d-flex align-items-center gap-2.5">
+                                                            <img src="{{ $app->candidate?->user?->avatar_url ?? asset('assets/img/candidate-default.png') }}" 
+                                                                 alt="{{ $candidateName }}" 
+                                                                 class="rounded-circle object-fit-cover border" 
+                                                                 style="width: 38px; height: 38px; background: #fff;">
+                                                            <div>
+                                                                <a href="{{ route('employers.candidate_detail', $app->candidate_id ?? 0) }}" class="fw-bold text-dark text-decoration-none">
+                                                                    {{ $candidateName }}
+                                                                </a>
+                                                                <div class="text-muted" style="font-size: 11.5px;">
+                                                                    {{ $candidateEmail }} • {{ $candidatePhone }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-3">
+                                                        <div class="fw-bold" style="color: #1e293b;">{{ $app->job?->title ?? 'Vị trí đã đóng' }}</div>
+                                                        <div class="text-muted" style="font-size: 11.5px;">
+                                                            <i class="fa fa-map-marker text-danger me-1"></i> {{ $app->job?->branch?->name ?? 'FPT Education' }}
+                                                        </div>
+                                                    </td>
+                                                    <td class="py-3">
+                                                        <span class="badge rounded-pill px-2.5 py-1" style="background: {{ $app->status->getColor() }}18; color: {{ $app->status->getColor() }}; font-weight: 700; font-size: 11px;">
+                                                            {{ $app->status->getLabel() }}
+                                                        </span>
+                                                    </td>
+                                                    <td class="py-3 text-muted" style="font-size: 12px;">
+                                                        {{ optional($app->applied_at ?? $app->created_at)->format('d/m/Y H:i') }}
+                                                    </td>
+                                                    <td class="pe-4 py-3 text-end">
+                                                        <div class="d-inline-flex align-items-center gap-1.5">
+                                                            @if($app->cv_url)
+                                                                <a href="{{ $app->cv_url }}" target="_blank" class="btn btn-sm btn-light border px-2 py-1 rounded-2" title="Xem CV" style="font-size: 11.5px;">
+                                                                    <i class="fa fa-file-pdf-o text-danger"></i> CV
+                                                                </a>
+                                                            @endif
+
+                                                            @if(($appPerms['schedule'] ?? false))
+                                                                <button type="button" wire:click="openInterviewScheduler({{ $app->id }})" class="btn btn-sm btn-success px-2 py-1 rounded-2 fw-bold text-white" title="Lên lịch PV" style="font-size: 11.5px;">
+                                                                    <i class="fa fa-calendar-plus-o"></i> Lịch PV
+                                                                </button>
+                                                            @endif
+
+                                                            @if(($appPerms['evaluate'] ?? false))
+                                                                <button type="button" wire:click="openInterviewEvaluation({{ $app->id }})" class="btn btn-sm btn-primary px-2 py-1 rounded-2 fw-bold text-white" title="Chấm điểm PV" style="font-size: 11.5px;">
+                                                                    <i class="fa fa-check-square-o"></i> Đánh giá
+                                                                </button>
+                                                            @endif
+
+                                                            @if($nextAction && ($appPerms['manage'] ?? false))
+                                                                <button type="button" wire:click="advanceApplication({{ $app->id }})" class="btn btn-sm px-2.5 py-1 rounded-2 fw-bold text-white" style="background: #f37021; border: none; font-size: 11.5px;" title="Chuyển sang: {{ $nextAction['label'] }}">
+                                                                    Chuyển tiếp <i class="fa fa-arrow-right ms-1"></i>
+                                                                </button>
+                                                            @endif
+
+                                                            <button type="button" wire:click="openMessageModal({{ $app->id }})" class="btn btn-sm btn-light border px-2 py-1 rounded-2 text-secondary" title="Nhắn tin" style="font-size: 11.5px;">
+                                                                <i class="fa fa-comment-o"></i>
+                                                            </button>
+
+                                                            @if(($appPerms['reject'] ?? false))
+                                                                <button type="button" wire:click="openRejectionModal({{ $app->id }})" class="btn btn-sm btn-light border border-danger-subtle text-danger px-2 py-1 rounded-2" title="Từ chối" style="font-size: 11.5px;">
+                                                                    <i class="fa fa-times"></i>
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="5" class="text-center py-5 text-muted">
+                                                        <i class="fa fa-inbox" style="font-size: 32px; color: #cbd5e1; margin-bottom: 8px;"></i>
+                                                        <p class="m-0">Không tìm thấy hồ sơ ứng viên phù hợp với bộ lọc.</p>
+                                                    </td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @else
+                            <!-- Kanban Columns View Mode -->
+                            <div class="pipeline-container">
                             @foreach($stages as $stageKey => $stage)
                                 @php
                                     $stageIcons = [
@@ -555,16 +687,7 @@
 
                                             <div class="candidate-card" wire:key="pipeline-application-{{ $app->id }}-{{ $status?->value ?? 'none' }}">
                                                 <div class="candidate-card__top">
-                                                    @if($app->candidate?->user?->avatar && file_exists(public_path('storage/' . $app->candidate->user->avatar)))
-                                                        <img src="{{ asset('storage/' . $app->candidate->user->avatar) }}" class="candidate-avatar" alt="">
-                                                    @else
-                                                        <div class="candidate-avatar d-flex align-items-center justify-content-center">
-                                                            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                                                <path d="M12 12.25a4.25 4.25 0 1 0 0-8.5 4.25 4.25 0 0 0 0 8.5Z" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                                                <path d="M4.75 20.25c1.35-3.15 3.7-4.75 7.25-4.75s5.9 1.6 7.25 4.75" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                                                            </svg>
-                                                        </div>
-                                                    @endif
+                                                    <img src="{{ $app->candidate?->user?->avatar_url ?? asset('assets/img/candidate-default.png') }}" class="candidate-avatar object-fit-cover" alt="{{ $candidateName }}">
 
                                                     <div class="candidate-card__main">
                                                         <h5 class="candidate-name text-truncate">
@@ -636,6 +759,7 @@
                                 </div>
                             @endforeach
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
