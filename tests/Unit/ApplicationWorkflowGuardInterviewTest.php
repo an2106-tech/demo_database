@@ -17,6 +17,7 @@ use App\Services\ApplicationWorkflowSummaryService;
 use App\Services\InterviewEvaluatorService;
 use App\Services\InterviewScheduleDeliveryService;
 use App\Services\RecruitmentInternalNotificationService;
+use Database\Seeders\EmailTemplateSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -327,6 +328,8 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
             'result' => 'pending',
         ]);
 
+        $this->seed(EmailTemplateSeeder::class);
+
         $internalMail = new InterviewScheduledMail($interview, 'evaluator');
         $legacyLeadMail = new InterviewScheduledMail($interview, 'interviewer');
         $candidateMail = new InterviewScheduledMail($interview, 'candidate');
@@ -335,7 +338,9 @@ class ApplicationWorkflowGuardInterviewTest extends TestCase
         $this->assertStringContainsString('Thành viên đánh giá', $internalMail->render());
         $this->assertStringNotContainsString('Chúc mừng bạn đã vượt qua', $internalMail->render());
         $this->assertStringContainsString('Người phụ trách vòng phỏng vấn', $legacyLeadMail->render());
-        $this->assertStringContainsString('Thư mời phỏng vấn', $candidateMail->envelope()->subject);
+        $this->assertStringContainsString('Thư mời tham gia', $candidateMail->envelope()->subject);
+        $this->assertStringContainsString('Phỏng vấn chuyên môn', $candidateMail->envelope()->subject);
+        $this->assertStringContainsString('Phỏng vấn chuyên môn', $candidateMail->render());
     }
 
     public function test_only_assigned_hr_can_record_draft_and_can_only_finalize_after_interview_ends(): void

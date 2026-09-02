@@ -1,23 +1,41 @@
 @component('emails.layouts.base', [
     'title' => 'Yêu cầu duyệt đề nghị tuyển dụng',
-    'eyebrow' => 'Duyệt đề nghị',
+    'eyebrow' => 'Phê duyệt đề nghị',
     'preview' => 'Có đề nghị tuyển dụng mới cần được xem xét.',
 ])
     <p>Chào <strong>{{ $recipientName }}</strong>,</p>
-    <p>HR đã tạo một đề nghị tuyển dụng mới và cần bạn xem chi tiết trước khi duyệt.</p>
+    <p>Bộ phận tuyển dụng vừa tạo một đề nghị tuyển dụng mới (Offer) và gửi yêu cầu phê duyệt đến bạn.</p>
 
     <div class="info-card">
-        <span class="info-item"><strong>Ứng viên:</strong> <span class="info-value">{{ $candidateName }}</span></span>
-        <span class="info-item"><strong>Vị trí:</strong> <span class="info-value">{{ $jobTitle }}</span></span>
-        <span class="info-item"><strong>Mức lương:</strong> <span class="info-value">{{ $salaryOffered }}</span></span>
-        <span class="info-item"><strong>Ngày bắt đầu:</strong> <span class="info-value">{{ $startDate }}</span></span>
-        <span class="info-item"><strong>Thử việc:</strong> <span class="info-value">{{ $probationMonths }} tháng</span></span>
-        <span class="info-item"><strong>Hạn phản hồi:</strong> <span class="info-value">{{ $responseDeadline }}</span></span>
+        <div class="info-item">
+            <span>Ứng viên</span>
+            <span class="info-value">{{ $candidateName }}</span>
+        </div>
+        <div class="info-item">
+            <span>Vị trí</span>
+            <span class="info-value">{{ $jobTitle }}</span>
+        </div>
+        <div class="info-item">
+            <span>Mức lương đề xuất</span>
+            <span class="info-value">{{ $salaryOffered }}</span>
+        </div>
+        <div class="info-item">
+            <span>Ngày bắt đầu dự kiến</span>
+            <span class="info-value">{{ $startDate }}</span>
+        </div>
+        <div class="info-item">
+            <span>Thời gian thử việc</span>
+            <span class="info-value">{{ $probationMonths }} tháng</span>
+        </div>
+        <div class="info-item">
+            <span>Hạn phản hồi</span>
+            <span class="info-value">{{ $responseDeadline }}</span>
+        </div>
     </div>
 
     <div class="mail-actions">
-        <a href="{{ $approvalUrl }}" class="mail-button mail-button--orange">
-            <span>Xem chi tiết</span><i>→</i>
+        <a href="{{ $approvalUrl }}" class="mail-button">
+            <span>Xem chi tiết đề nghị</span>
         </a>
     </div>
 @endcomponent

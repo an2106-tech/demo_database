@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Mail;
+
 use App\Models\Application;
 use App\Models\Candidate;
 use App\Models\EmailTemplate;
@@ -16,6 +18,7 @@ class CandidateApplicationReceivedMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
+
     protected string $htmlBody;
 
     public function __construct(
@@ -48,19 +51,18 @@ class CandidateApplicationReceivedMail extends Mailable
     {
         // 1. Cập nhật mẫu Acknowledgement Email chuyên nghiệp vào Fallback
         $fallbackSubject = '[{{app_name}}] - Xác nhận tiếp nhận hồ sơ ứng tuyển vị trí {{job_title}}';
-        
+
         $fallbackBody = implode("\n", [
             '<p>Thân gửi <strong>{{candidate_name}}</strong>,</p>',
             '<p>Cảm ơn bạn đã quan tâm và dành thời gian gửi hồ sơ ứng tuyển vị trí <strong>{{job_title}}</strong> tại <strong>{{app_name}}</strong>.</p>',
             '<p>Chúng tôi xác nhận đã nhận được hồ sơ của bạn thành công. Dưới đây là thông tin ghi nhận từ hệ thống:</p>',
             '<div class="info-card">',
-            '    <div class="info-item">Mã hồ sơ: <span class="info-value">#{{application_id}}</span></div>',
-            '    <div class="info-item">Vị trí: <span class="info-value">{{job_title}}</span></div>',
-            '    <div class="info-item">Thời gian nộp: <span class="info-value">{{applied_at}}</span></div>',
-            '    <div class="info-item">Email ứng tuyển: <span class="info-value">{{candidate_email}}</span></div>',
+            '    <div class="info-item"><span>Mã hồ sơ</span><span class="info-value">#{{application_id}}</span></div>',
+            '    <div class="info-item"><span>Vị trí</span><span class="info-value">{{job_title}}</span></div>',
+            '    <div class="info-item"><span>Thời gian nộp</span><span class="info-value">{{applied_at}}</span></div>',
+            '    <div class="info-item"><span>Email ứng tuyển</span><span class="info-value">{{candidate_email}}</span></div>',
             '</div>',
-            '<p>Bộ phận Tuyển dụng đang trong quá trình xem xét các hồ sơ phù hợp. Nếu hồ sơ của bạn đáp ứng các yêu cầu công việc, chúng tôi sẽ sớm liên hệ với bạn để trao đổi về các bước tiếp theo.</p>',
-            '<p>Chúc bạn một ngày nhiều năng lượng!</p>',
+            '<p>Bộ phận tuyển dụng đang trong quá trình xem xét các hồ sơ phù hợp. Nếu hồ sơ của bạn đáp ứng các yêu cầu công việc, chúng tôi sẽ sớm liên hệ với bạn để trao đổi về các bước tiếp theo.</p>',
             '<p>Trân trọng,<br><strong>Đội ngũ Tuyển dụng - {{app_name}}</strong></p>',
         ]);
 

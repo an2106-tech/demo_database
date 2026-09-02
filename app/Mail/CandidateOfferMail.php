@@ -154,7 +154,7 @@ class CandidateOfferMail extends Mailable
         $content = trim((string) $this->offer->content);
 
         if ($content !== '') {
-            return '<div style="margin: 15px 0; padding: 10px; border-left: 4px solid #eee;">'.nl2br(e($content)).'</div>';
+            return '<div style="margin: 16px 0; padding: 14px 18px; border-left: 3px solid #09090b; background: #fafafa; border-radius: 0 8px 8px 0; color: #3f3f46; font-size: 13px; line-height: 1.65;">'.nl2br(e($content)).'</div>';
         }
 
         return '';
@@ -186,11 +186,11 @@ class CandidateOfferMail extends Mailable
         $declineUrl = $baseUrl.$declinePath;
 
         return implode('', [
-            '<div style="margin: 24px 0; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; text-align: center;">',
-            '<p style="margin: 0 0 16px;"><strong>Phản hồi thư mời nhận việc</strong></p>',
-            '<a href="'.e($acceptUrl).'" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #16a34a; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Đồng ý nhận việc</a>',
-            '<a href="'.e($declineUrl).'" style="display: inline-block; margin: 0 8px 8px; padding: 12px 22px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 999px; font-weight: 700;">Từ chối thư mời</a>',
-            '<p style="margin: 12px 0 0; color: #475569; font-size: 13px;">Liên kết có hiệu lực đến '.e($expiresAt->format('d/m/Y H:i')).'.</p>',
+            '<div style="margin: 28px 0 16px; padding: 22px 20px; background-color: #fafafa; border: 1px solid #ebebeb; border-radius: 8px; text-align: center;">',
+            '<p style="margin: 0 0 16px; color: #111111; font-weight: 600; font-size: 14px;">Phản hồi thư mời nhận việc</p>',
+            '<a href="'.e($acceptUrl).'" style="display: inline-block; margin: 0 4px 8px; padding: 11px 24px; background-color: #111111; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Đồng ý nhận việc</a>',
+            '<a href="'.e($declineUrl).'" style="display: inline-block; margin: 0 4px 8px; padding: 10px 22px; background-color: #ffffff; color: #111111; border: 1px solid #d4d4d4; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px;">Từ chối thư mời</a>',
+            '<p style="margin: 14px 0 0; color: #8c8c8c; font-size: 12px; line-height: 1.5;">Liên kết có hiệu lực đến '.e($expiresAt->format('d/m/Y H:i')).'.</p>',
             '</div>',
         ]);
     }

@@ -18,6 +18,7 @@ class InterviewScheduledMail extends Mailable
     use Queueable, SerializesModels;
 
     protected string $subjectLine;
+
     protected string $htmlBody;
 
     public function __construct(
@@ -101,6 +102,8 @@ class InterviewScheduledMail extends Mailable
             '{{candidate_name}}' => e($candidate?->name ?? 'Ứng viên'),
             '{{candidate_email}}' => e((string) ($candidate?->email ?? '')),
             '{{job_title}}' => e($job?->title ?? 'Vị trí ứng tuyển'),
+            '{{round_number}}' => e((string) ((int) ($this->interview->round_number ?: 1))),
+            '{{round_name}}' => e($this->interview->round_name ?: 'Vòng '.((int) ($this->interview->round_number ?: 1))),
             '{{scheduled_at}}' => e($this->formatDisplayDate($this->interview->scheduled_at)),
             '{{duration_minutes}}' => e((string) ((int) ($this->interview->duration_minutes ?: 60))),
             '{{interview_type}}' => e($this->interview->type === 'online' ? 'Phỏng vấn Online' : 'Phỏng vấn trực tiếp (Offline)'),
@@ -130,20 +133,19 @@ class InterviewScheduledMail extends Mailable
             '<p>Chào <strong>{{candidate_name}}</strong>,</p>',
             $this->isUpdate
                 ? '<p>Chúng tôi xin gửi đến bạn thông tin <strong>cập nhật lịch phỏng vấn</strong> từ bộ phận tuyển dụng.</p>'
-                : '<p>Chúc mừng bạn đã vượt qua vòng lọc hồ sơ. Chúng tôi trân trọng mời bạn tham gia buổi phỏng vấn cho vị trí <strong>{{job_title}}</strong> tại <strong>{{app_name}}</strong>.</p>',
-            '<p><strong>Thông tin buổi phỏng vấn:</strong></p>',
-            '<ul style="line-height: 1.6;">',
-            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
-            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
-            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
-            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
-            '<li><strong>Người phụ trách vòng phỏng vấn:</strong> {{interviewer_name}}</li>',
-            '</ul>',
+                : '<p>Cảm ơn bạn đã ứng tuyển vào vị trí <strong>{{job_title}}</strong>. Chúng tôi trân trọng mời bạn tham dự buổi phỏng vấn theo thông tin dưới đây.</p>',
+            '<div class="info-card">',
+            '    <div class="info-item"><span>Vòng phỏng vấn</span><span class="info-value">{{round_name}}</span></div>',
+            '    <div class="info-item"><span>Vị trí ứng tuyển</span><span class="info-value">{{job_title}}</span></div>',
+            '    <div class="info-item"><span>Thời gian</span><span class="info-value">{{scheduled_at}}</span></div>',
+            '    <div class="info-item"><span>Thời lượng</span><span class="info-value">{{duration_minutes}} phút</span></div>',
+            '    <div class="info-item"><span>Hình thức</span><span class="info-value">{{interview_type}}</span></div>',
+            '    <div class="info-item"><span>Địa điểm / Link</span><span class="info-value"><a href="{{interview_location}}">{{interview_location}}</a></span></div>',
+            '    <div class="info-item"><span>Người phụ trách</span><span class="info-value">{{interviewer_name}}</span></div>',
+            '</div>',
             '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
-            $this->isUpdate
-                ? '<p>Vui lòng cập nhật lại lịch cá nhân theo file iCal đính kèm.</p>'
-                : '<p>Vui lòng phản hồi email để xác nhận tham gia. File iCal đã được đính kèm để bạn lưu lịch.</p>',
-            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+            '<p style="color: #737373; font-size: 13px;">File lịch hẹn (.ics) đã được đính kèm để bạn thuận tiện lưu hoặc cập nhật lịch cá nhân.</p>',
+            '<p>Trân trọng,<br><strong>Phòng Tuyển dụng - {{app_name}}</strong></p>',
         ]);
     }
 
@@ -154,16 +156,19 @@ class InterviewScheduledMail extends Mailable
             $this->isUpdate
                 ? '<p>Lịch phỏng vấn ứng viên <strong>{{candidate_name}}</strong> đã được cập nhật.</p>'
                 : '<p>Anh/chị được phân công tham gia phỏng vấn ứng viên <strong>{{candidate_name}}</strong> cho vị trí <strong>{{job_title}}</strong>.</p>',
-            '<p><strong>Vai trò:</strong> {{recipient_role}}</p>',
-            '<ul style="line-height: 1.6;">',
-            '<li><strong>Thời gian:</strong> {{scheduled_at}}</li>',
-            '<li><strong>Thời lượng:</strong> {{duration_minutes}} phút</li>',
-            '<li><strong>Hình thức:</strong> {{interview_type}}</li>',
-            '<li><strong>Địa điểm / Link họp:</strong> <a href="{{interview_location}}">{{interview_location}}</a></li>',
-            '</ul>',
+            '<div class="info-card">',
+            '    <div class="info-item"><span>Ứng viên</span><span class="info-value">{{candidate_name}}</span></div>',
+            '    <div class="info-item"><span>Vòng phỏng vấn</span><span class="info-value">{{round_name}}</span></div>',
+            '    <div class="info-item"><span>Vai trò của anh/chị</span><span class="info-value">{{recipient_role}}</span></div>',
+            '    <div class="info-item"><span>Vị trí tuyển dụng</span><span class="info-value">{{job_title}}</span></div>',
+            '    <div class="info-item"><span>Thời gian</span><span class="info-value">{{scheduled_at}}</span></div>',
+            '    <div class="info-item"><span>Thời lượng</span><span class="info-value">{{duration_minutes}} phút</span></div>',
+            '    <div class="info-item"><span>Hình thức</span><span class="info-value">{{interview_type}}</span></div>',
+            '    <div class="info-item"><span>Địa điểm / Link</span><span class="info-value"><a href="{{interview_location}}">{{interview_location}}</a></span></div>',
+            '</div>',
             '<p><strong>Ghi chú:</strong> {{interview_notes}}</p>',
             '<p>Sau buổi phỏng vấn, vui lòng mở hồ sơ trên hệ thống và gửi phiếu đánh giá theo mẫu đã phân công.</p>',
-            '<p>Trân trọng,<br><strong>Phòng Nhân sự - {{app_name}}</strong></p>',
+            '<p>Trân trọng,<br><strong>Phòng Tuyển dụng - {{app_name}}</strong></p>',
         ]);
     }
 
