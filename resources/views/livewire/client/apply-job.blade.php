@@ -872,13 +872,11 @@
                             </div>
 
                             @if(Auth::check())
-                                {{-- Authenticated User: Can pick online template, existing attachment, or upload new file --}}
+                                {{-- Authenticated users choose a saved CV; template selection stays in the CV builder. --}}
                                 <div class="fpt-cv-selector">
-                                    {{-- Online CV Templates --}}
-                                    @foreach($availableTemplates as $tpl)
+                                    @if($onlineCv)
                                         @php
-                                            $val = 'online_' . $tpl['id'];
-                                            $isPrimary = (data_get($primaryCv, 'type') === 'online' && data_get($primaryCv, 'template', 'fpt-modern') === $tpl['id']);
+                                            $val = 'online_' . $onlineCv['template'];
                                         @endphp
                                         <label class="fpt-cv-card {{ $selectedCvOption === $val ? 'is-selected' : '' }}">
                                             <div class="fpt-cv-card-left">
@@ -886,20 +884,20 @@
                                                 <div>
                                                     <div class="fpt-cv-card-title">
                                                         <i class="fa fa-desktop" style="color: #2563eb;"></i>
-                                                        <span>{{ $tpl['name'] }} (CV Trực tuyến)</span>
-                                                        @if($isPrimary)
+                                                        <span>CV online của tôi</span>
+                                                        @if($onlineCv['is_primary'])
                                                             <span class="fpt-badge-star">⭐ CV CHÍNH</span>
                                                         @endif
                                                     </div>
-                                                    <div class="fpt-cv-card-sub">Hệ thống tự động kết xuất PDF chuẩn in ấn A4 từ hồ sơ của bạn</div>
+                                                    <div class="fpt-cv-card-sub">Mẫu đang áp dụng: {{ $onlineCv['name'] }} · Hệ thống sẽ kết xuất PDF khi gửi</div>
                                                 </div>
                                             </div>
 
-                                            <a href="{{ route('candidates.cv.download', ['template' => $tpl['id'], 'mode' => 'stream', 'action' => 'view']) }}" target="_blank" class="fpt-preview-link" onclick="event.stopPropagation();">
+                                            <a href="{{ route('candidates.cv.download', ['template' => $onlineCv['template'], 'mode' => 'stream', 'action' => 'view']) }}" target="_blank" class="fpt-preview-link" onclick="event.stopPropagation();">
                                                 <i class="fa fa-eye"></i> Xem trước
                                             </a>
                                         </label>
-                                    @endforeach
+                                    @endif
 
                                     {{-- Uploaded Attachments --}}
                                     @if(isset($attachments) && $attachments->isNotEmpty())

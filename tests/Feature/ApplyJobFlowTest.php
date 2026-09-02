@@ -5,13 +5,13 @@ namespace Tests\Feature;
 use App\Enums\StatusApplicationEnum;
 use App\Jobs\ProcessApplicationCvText;
 use App\Livewire\Client\ApplyJob;
+use App\Mail\GuestApplicationVerificationMail;
 use App\Models\Application;
 use App\Models\Attachment;
 use App\Models\Branch;
 use App\Models\Candidate;
 use App\Models\CandidateJobSubmission;
 use App\Models\CandidateResume;
-use App\Mail\GuestApplicationVerificationMail;
 use App\Models\RecruitmentJob;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -25,6 +25,133 @@ use Tests\TestCase;
 class ApplyJobFlowTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_candidate_applies_with_only_the_saved_online_cv_template(): void
+    {
+        Mail::fake();
+        Queue::fake();
+        Storage::fake('public');
+
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Can Tho',
+            'code' => 'CT',
+            'city' => 'Can Tho',
+        ]);
+        $employer = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $user = User::factory()->create([
+            'name' => 'Nguyen Van A',
+            'email' => 'candidate-online-cv@example.com',
+            'role' => 'candidate',
+            'is_active' => true,
+            'metadata' => ['account_types' => ['candidate']],
+        ]);
+        $candidate = Candidate::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Nguyen Van A',
+            'email' => 'candidate-online-cv@example.com',
+            'phone' => '0901234567',
+            'metadata' => [
+                'primary_cv' => [
+                    'type' => 'online',
+                    'template' => 'ats-classic',
+                    'attachment_id' => null,
+                    'updated_at' => now()->toIso8601String(),
+                ],
+            ],
+        ]);
+        CandidateResume::query()->create([
+            'candidate_id' => $candidate->id,
+            'profile_title' => 'Laravel Developer',
+            'career_objective' => 'Xay dung san pham on dinh va huu ich.',
+            'extra' => ['builder_template' => 'ats-classic'],
+        ]);
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Laravel Developer',
+            'slug' => 'laravel-developer-online-cv',
+            'description' => 'Build and maintain Laravel applications.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ApplyJob::class, ['job' => $job])
+            ->assertSet('selectedCvOption', 'online_ats-classic')
+            ->assertSee('CV online của tôi')
+            ->assertSee('ATS Classic Clean')
+            ->assertDontSee('FPT Modern Pro')
+            ->assertDontSee('Tech Executive')
+            ->call('submit')
+            ->assertHasNoErrors()
+            ->assertSet('showSuccessModal', true);
+
+        $application = Application::query()->where('candidate_id', $candidate->id)->firstOrFail();
+
+        $this->assertStringContainsString('ats-classic', $application->cv_path);
+        Storage::disk('public')->assertExists($application->cv_path);
+        Queue::assertPushed(ProcessApplicationCvText::class);
+    }
+
+    public function test_apply_job_rejects_an_online_template_that_is_not_the_saved_cv(): void
+    {
+        Storage::fake('public');
+
+        $branch = Branch::query()->create([
+            'name' => 'FPT Polytechnic Can Tho',
+            'code' => 'CT',
+            'city' => 'Can Tho',
+        ]);
+        $employer = User::factory()->create([
+            'role' => 'hr',
+            'is_active' => true,
+            'branch_id' => $branch->id,
+        ]);
+        $user = User::factory()->create([
+            'name' => 'Nguyen Van A',
+            'email' => 'candidate-invalid-template@example.com',
+            'role' => 'candidate',
+            'is_active' => true,
+            'metadata' => ['account_types' => ['candidate']],
+        ]);
+        $candidate = Candidate::query()->create([
+            'user_id' => $user->id,
+            'name' => 'Nguyen Van A',
+            'email' => 'candidate-invalid-template@example.com',
+            'phone' => '0901234567',
+        ]);
+        CandidateResume::query()->create([
+            'candidate_id' => $candidate->id,
+            'profile_title' => 'Laravel Developer',
+            'extra' => ['builder_template' => 'ats-classic'],
+        ]);
+        $job = RecruitmentJob::query()->create([
+            'title' => 'Laravel Developer',
+            'slug' => 'laravel-developer-invalid-online-template',
+            'description' => 'Build and maintain Laravel applications.',
+            'status' => 'published',
+            'branch_id' => $branch->id,
+            'positions_count' => 1,
+            'created_by' => $employer->id,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ApplyJob::class, ['job' => $job])
+            ->set('selectedCvOption', 'online_tech-executive')
+            ->call('submit')
+            ->assertHasErrors(['selectedCvOption']);
+
+        $this->assertDatabaseMissing('applications', [
+            'candidate_id' => $candidate->id,
+            'job_id' => $job->id,
+        ]);
+    }
 
     public function test_candidate_can_apply_to_job_with_cv(): void
     {

@@ -19,11 +19,14 @@ use App\Rules\VietnamPhone;
 use App\Services\CandidateAccountService;
 use App\Services\JobApplicationEligibilityService;
 use App\Services\OutboundMailQueue;
-use App\Support\CvUpload;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -73,6 +76,7 @@ class ApplyJob extends Component
         $user = Auth::user();
         if (! $user) {
             $this->selectedCvOption = 'new_upload';
+
             return;
         }
 
@@ -110,16 +114,21 @@ class ApplyJob extends Component
         $this->profile_title = $resume->profile_title;
         $this->career_objective = $resume->career_objective;
 
-        // Auto-select Candidate's Primary CV
+        // Apply with the saved CV itself; template changes belong to the CV builder.
         $primaryCv = data_get($candidate->metadata, 'primary_cv', []);
         $primaryType = $primaryCv['type'] ?? 'online';
-        if ($primaryType === 'attachment' && !empty($primaryCv['attachment_id'])) {
-            $this->selectedCvOption = 'attachment_' . $primaryCv['attachment_id'];
-        } elseif ($primaryType === 'online') {
-            $tpl = $primaryCv['template'] ?? 'fpt-modern';
-            $this->selectedCvOption = 'online_' . $tpl;
+        $primaryAttachmentId = (int) ($primaryCv['attachment_id'] ?? 0);
+        $hasPrimaryAttachment = $primaryType === 'attachment'
+            && $primaryAttachmentId > 0
+            && $candidate->attachments()->where('type', 'cv')->whereKey($primaryAttachmentId)->exists();
+        $onlineTemplate = $candidateService->savedOnlineCvTemplate($candidate);
+
+        if ($hasPrimaryAttachment) {
+            $this->selectedCvOption = 'attachment_'.$primaryAttachmentId;
+        } elseif ($onlineTemplate !== null) {
+            $this->selectedCvOption = 'online_'.$onlineTemplate;
         } else {
-            $this->selectedCvOption = 'online_fpt-modern';
+            $this->selectedCvOption = 'new_upload';
         }
     }
 
@@ -136,14 +145,15 @@ class ApplyJob extends Component
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:50', new VietnamPhone()],
+            'phone' => ['nullable', 'string', 'max:50', new VietnamPhone],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:60'],
             'profile_title' => ['nullable', 'string', 'max:255'],
             'career_objective' => ['nullable', 'string', 'max:4000'],
+            'selectedCvOption' => ['required', Rule::in($this->availableCvOptionValues())],
         ];
 
         if ($this->selectedCvOption === 'new_upload') {
-            $rules['cv'] = ['required', 'file', 'max:10240', new CvUploadFile()];
+            $rules['cv'] = ['required', 'file', 'max:10240', new CvUploadFile];
         }
 
         $this->validate($rules);
@@ -209,7 +219,6 @@ class ApplyJob extends Component
                 'applied_at' => now(),
                 'branch_id' => $this->job->branch_id,
             ]);
-
 
             if ($application->trashed()) {
                 $application->deleted_at = null;
@@ -344,7 +353,7 @@ class ApplyJob extends Component
 
     protected function resolveCandidateForApplication(): Candidate
     {
-        $candidate = $this->resolveExistingCandidate() ?? new Candidate();
+        $candidate = $this->resolveExistingCandidate() ?? new Candidate;
 
         if (! $candidate->exists && Auth::check()) {
             $candidate->user_id = Auth::id();
@@ -405,24 +414,29 @@ class ApplyJob extends Component
             }
         }
 
-        // 3. Selected Online CV Template (e.g. online_fpt-modern, online_ats-classic, online_tech-executive)
+        // 3. Selected the single saved online CV. Template changes stay in the CV builder.
         if (str_starts_with($this->selectedCvOption, 'online_')) {
-            $template = str_replace('online_', '', $this->selectedCvOption);
-            $template = in_array($template, ['fpt-modern', 'ats-classic', 'tech-executive'], true) ? $template : 'fpt-modern';
-
             $resume = CandidateResume::query()->firstOrNew(['candidate_id' => $candidate->id], []);
+            $template = app(CandidateAccountService::class)->savedOnlineCvTemplate($candidate);
+
+            if ($template === null || $this->selectedCvOption !== 'online_'.$template) {
+                return [
+                    'path' => (string) $candidate->cv_file,
+                    'attachment' => null,
+                ];
+            }
 
             try {
-                $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.cv-template', [
+                $pdf = Pdf::loadView('pdf.cv-template', [
                     'candidate' => $candidate,
                     'resume' => $resume,
                     'template' => $template,
                 ])->setPaper('a4', 'portrait')
-                  ->setOption('isHtml5ParserEnabled', true)
-                  ->setOption('isRemoteEnabled', true)
-                  ->setOption('defaultFont', 'DejaVu Sans');
+                    ->setOption('isHtml5ParserEnabled', true)
+                    ->setOption('isRemoteEnabled', true)
+                    ->setOption('defaultFont', 'DejaVu Sans');
 
-                $fileName = 'CV_' . \Illuminate\Support\Str::slug($candidate->name ?: 'Candidate', '_') . '_' . $template . '.pdf';
+                $fileName = 'CV_'.Str::slug($candidate->name ?: 'Candidate', '_').'_'.$template.'.pdf';
                 $relativeDir = "applications/{$candidate->id}/{$this->job->id}/cv";
                 $relativePath = "{$relativeDir}/{$fileName}";
 
@@ -441,7 +455,7 @@ class ApplyJob extends Component
                     'attachment' => $attachment,
                 ];
             } catch (\Throwable $e) {
-                Log::error('Failed to generate online CV PDF during application: ' . $e->getMessage());
+                Log::error('Failed to generate online CV PDF during application: '.$e->getMessage());
             }
         }
 
@@ -660,7 +674,7 @@ class ApplyJob extends Component
 
         return Route::has('public-file.preview')
             ? route('public-file.preview', ['path' => $candidate->cv_file])
-            : asset('storage/' . ltrim($candidate->cv_file, '/'));
+            : asset('storage/'.ltrim($candidate->cv_file, '/'));
     }
 
     public function getRequiresCandidateActivationProperty(): bool
@@ -699,6 +713,7 @@ class ApplyJob extends Component
             'cv.file' => 'CV tải lên không hợp lệ.',
             'cv.mimes' => 'CV chỉ hỗ trợ định dạng PDF, DOC hoặc DOCX.',
             'cv.max' => 'CV không được vượt quá 10MB.',
+            'selectedCvOption.in' => 'CV đã chọn không còn khả dụng. Vui lòng chọn lại CV trước khi ứng tuyển.',
         ];
     }
 
@@ -724,17 +739,50 @@ class ApplyJob extends Component
             : collect();
 
         $primaryCv = data_get($candidate?->metadata, 'primary_cv', []);
-
-        $availableTemplates = [
-            ['id' => 'fpt-modern', 'name' => 'FPT Modern Pro', 'badge' => 'Khuyên dùng'],
-            ['id' => 'ats-classic', 'name' => 'ATS Classic Clean', 'badge' => 'ATS Standard'],
-            ['id' => 'tech-executive', 'name' => 'Tech Executive', 'badge' => 'Tech Leader'],
-        ];
+        $onlineTemplate = $candidate
+            ? app(CandidateAccountService::class)->savedOnlineCvTemplate($candidate)
+            : null;
+        $onlineCv = $onlineTemplate ? [
+            'template' => $onlineTemplate,
+            'name' => $this->onlineTemplateName($onlineTemplate),
+            'is_primary' => data_get($primaryCv, 'type') === 'online',
+        ] : null;
 
         return view('livewire.client.apply-job', [
             'attachments' => $attachments,
             'primaryCv' => $primaryCv,
-            'availableTemplates' => $availableTemplates,
+            'onlineCv' => $onlineCv,
         ]);
+    }
+
+    /** @return array<int, string> */
+    private function availableCvOptionValues(): array
+    {
+        $options = ['new_upload'];
+        $candidate = $this->resolveExistingCandidate();
+
+        if (! $candidate) {
+            return $options;
+        }
+
+        $onlineTemplate = app(CandidateAccountService::class)->savedOnlineCvTemplate($candidate);
+        if ($onlineTemplate !== null) {
+            $options[] = 'online_'.$onlineTemplate;
+        }
+
+        foreach ($candidate->attachments()->where('type', 'cv')->pluck('id') as $attachmentId) {
+            $options[] = 'attachment_'.$attachmentId;
+        }
+
+        return $options;
+    }
+
+    private function onlineTemplateName(string $template): string
+    {
+        return match ($template) {
+            'ats-classic' => 'ATS Classic Clean',
+            'tech-executive' => 'Tech Executive',
+            default => 'FPT Modern Pro',
+        };
     }
 }

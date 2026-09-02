@@ -192,7 +192,42 @@ class CandidateAccountService
     public function candidateHasCv(Candidate $candidate): bool
     {
         return filled($candidate->cv_file)
-            || ($candidate->exists && $candidate->attachments()->where('type', 'cv')->exists());
+            || ($candidate->exists && $candidate->attachments()->where('type', 'cv')->exists())
+            || $this->savedOnlineCvTemplate($candidate) !== null;
+    }
+
+    public function savedOnlineCvTemplate(Candidate $candidate): ?string
+    {
+        if (! $candidate->exists) {
+            return null;
+        }
+
+        $resume = $candidate->relationLoaded('resume')
+            ? $candidate->resume
+            : $candidate->resume()->first();
+
+        if (! $resume) {
+            return null;
+        }
+
+        $metadata = is_array($candidate->metadata) ? $candidate->metadata : [];
+        $primaryCv = is_array($metadata['primary_cv'] ?? null) ? $metadata['primary_cv'] : [];
+        $extra = is_array($resume->extra) ? $resume->extra : [];
+
+        $hasSavedContent = filled($extra['builder_template'] ?? null)
+            || (($primaryCv['type'] ?? null) === 'online' && filled($primaryCv['updated_at'] ?? null));
+
+        if (! $hasSavedContent) {
+            return null;
+        }
+
+        $template = ($primaryCv['type'] ?? null) === 'online'
+            ? ($primaryCv['template'] ?? null)
+            : ($extra['builder_template'] ?? null);
+
+        return in_array($template, ['fpt-modern', 'ats-classic', 'tech-executive'], true)
+            ? $template
+            : 'fpt-modern';
     }
 
     private function extractPhone(User $user): ?string
